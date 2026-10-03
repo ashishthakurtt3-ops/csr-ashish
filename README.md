@@ -112,7 +112,7 @@ python manage.py backup_database
 python manage.py import_existing_data
 ```
 
-Shipped dataset in `csr_intelligence_django`: 200 companies, 1800 jobs,
+Shipped dataset in `csr_intelligence_django`: 200 companies, 3000+ jobs,
 502 CSR projects, 400 contacts, 322 NGO collaborations, 200 scores,
 809 page records, 135 opportunities, 7 prospects, 2 users,
 1 subscription + 2 invoices + 5 promo codes.
