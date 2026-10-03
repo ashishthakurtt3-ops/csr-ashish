@@ -5,7 +5,7 @@ corporations**. A single Django 5.x monolith ingests corporate master records,
 serves a dynamic enterprise web portal, exposes versioned JSON REST APIs with
 server-side pagination, and ships a custom enterprise admin console —
 backed by MySQL (the one and only primary database), with 200 companies,
-1800 verified jobs, 502 CSR projects, 400 contacts and 135 open CSR
+3000+ verified jobs, 502 CSR projects, 400 contacts and 135 open CSR
 opportunities out of the box.
 
 > **Architecture notes**
