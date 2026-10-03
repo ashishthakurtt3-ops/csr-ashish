@@ -1,0 +1,57 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Edit Job: {{ job.job_title }}{% endblock %}
+{% block page_title %}Update Job Intelligence: {{ job.job_title }}{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST" style="display:flex; flex-direction:column; gap:16px;">
+        {% csrf_token %}
+        <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Job Title *</label>
+            <input type="text" name="job_title" value="{{ job.job_title }}" required style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Department</label>
+                <input type="text" name="department" value="{{ job.department }}" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Work Mode</label>
+                <select name="work_mode" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px;">
+                    <option value="Hybrid" {% if job.work_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                    <option value="On-site" {% if job.work_mode == "On-site" %}selected{% endif %}>On-site</option>
+                    <option value="Remote" {% if job.work_mode == "Remote" %}selected{% endif %}>Remote</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Location</label>
+                <input type="text" name="location" value="{{ job.location }}" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Status</label>
+                <input type="text" name="status" value="{{ job.status }}" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px;">
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Application URL</label>
+            <input type="url" name="application_url" value="{{ job.application_url }}" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px;">
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Target Skills (Comma Separated)</label>
+            <textarea name="skills" rows="3" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px; font-family:inherit;">{{ job.skills }}</textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:16px; border-top:1px solid var(--admin-border); padding-top:16px;">
+            <a href="{% url 'admin_jobs:list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" class="btn-admin btn-admin-primary">Save Job</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

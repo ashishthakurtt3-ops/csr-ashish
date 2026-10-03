@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Proposal or Compliance Document — ImpactBridge™</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .upload-container { max-width: 680px; margin: 40px auto; padding: 0 20px; }
+        .upload-box { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; color: #f8fafc; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 11px 14px; background: rgba(30,41,59,0.7); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 14px; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 13px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+    </style>
+</head>
+<body style="background:#090d16; min-height:100vh;">
+    <div class="upload-container">
+        <div style="margin-bottom:20px;">
+            <a href="/" style="color:#38bdf8; text-decoration:none; font-weight:600;">&larr; Back to Platform Home</a>
+        </div>
+        <div class="upload-box">
+            <h1 style="font-size:22px; font-weight:700; margin-top:0;">📤 Submit Document / CSR Proposal</h1>
+            <p style="color:#94a3b8; font-size:13.5px; margin-bottom:24px;">Upload your organization's 80G/12A registrations, CSR grant proposal briefs, or verification proofs.</p>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Document Title</label>
+                    <input type="text" name="title" class="form-input" placeholder="e.g. 2026 Education CSR Proposal" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Document Category</label>
+                    <select name="document_type" class="form-input">
+                        {% for code, label in doc_types %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Corporate Donor (Optional)</label>
+                    <select name="company_id" class="form-input">
+                        <option value="">-- General Submission (No specific company) --</option>
+                        {% for comp in companies %}
+                        <option value="{{ comp.company_id }}">{{ comp.company_name }} ({{ comp.nse_symbol|default:"NSE" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Select File (PDF, DOCX, ZIP)</label>
+                    <input type="file" name="file" class="form-input" style="padding:8px;" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes / Proposal Summary</label>
+                    <textarea name="notes" class="form-input" rows="3" placeholder="Brief executive summary or note for corporate CSR team"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Upload &amp; Submit Document &rarr;</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

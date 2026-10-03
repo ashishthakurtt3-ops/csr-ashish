@@ -1,0 +1,90 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Account Management{% endblock %}
+{% block page_title %}User Account &amp; Role Management ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:600px;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by username, email, name or organization..." style="flex:1; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="role" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Roles</option>
+                {% for r_code, r_label in role_choices %}
+                <option value="{{ r_code }}" {% if selected_role == r_code %}selected{% endif %}>{{ r_label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="users" title="Users" %}
+            <a href="{% url 'admin_users:create' %}" class="btn-admin btn-admin-primary">
+                <span>+</span> <span>Create User</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Organization</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff;">{{ u.username }}</strong>
+                        {% if u.is_superuser %}<span class="badge-status badge-active" style="margin-left:4px; font-size:9px;">SUPERUSER</span>{% endif %}
+                    </td>
+                    <td>{{ u.email|default:"—" }}</td>
+                    <td><span class="badge-status badge-pending">{{ u.get_role_display }}</span></td>
+                    <td>{{ u.organization_name|default:"—" }}</td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; color:var(--admin-muted);">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td style="text-align:right;">
+                        <a href="{% url 'admin_users:edit' u.id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                        {% if u != request.user %}
+                        <a href="{% url 'admin_users:toggle_status' u.id %}" class="btn-admin btn-admin-danger" style="padding:4px 8px; font-size:11.5px;">
+                            {% if u.is_active %}Disable{% else %}Enable{% endif %}
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No users match the search criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&role={{ selected_role }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&role={{ selected_role }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

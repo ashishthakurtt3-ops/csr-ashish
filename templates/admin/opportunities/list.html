@@ -1,0 +1,86 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}CSR Opportunities Portal{% endblock %}
+{% block page_title %}High-Intent CSR Partnership Opportunities ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:600px;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by opportunity title, category, company..." style="flex:1; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="status" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Status</option>
+                <option value="OPEN" {% if selected_status == "OPEN" %}selected{% endif %}>Open</option>
+                <option value="UPCOMING" {% if selected_status == "UPCOMING" %}selected{% endif %}>Upcoming</option>
+                <option value="CLOSED" {% if selected_status == "CLOSED" %}selected{% endif %}>Closed</option>
+            </select>
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="opportunities" title="CSR Opportunities" %}
+            <a href="{% url 'admin_opportunities:projects' %}" class="btn-admin btn-admin-secondary">View CSR Projects</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Opportunity Title</th>
+                    <th>Corporate Partner</th>
+                    <th>Category</th>
+                    <th>Estimated Value</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for opp in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff;">{{ opp.title }}</strong>
+                        {% if opp.description %}
+                        <div style="font-size:11.5px; color:var(--admin-muted); margin-top:2px;">{{ opp.description|truncatewords:15 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if opp.company %}
+                        <a href="{% url 'admin_companies:detail' opp.company.company_id %}" style="color:var(--admin-accent); font-weight:600;">{{ opp.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><span class="badge-status badge-pending">{{ opp.category }}</span></td>
+                    <td style="font-family:'JetBrains Mono',monospace;">{{ opp.estimated_value|default:"Negotiable" }}</td>
+                    <td style="font-size:12px; color:var(--admin-muted);">{{ opp.deadline|default:"Ongoing" }}</td>
+                    <td>
+                        {% if opp.status == "OPEN" %}
+                        <span class="badge-status badge-active">Open</span>
+                        {% elif opp.status == "UPCOMING" %}
+                        <span class="badge-status badge-pending">Upcoming</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ opp.status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--admin-muted);">No CSR opportunities currently match criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ selected_status }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

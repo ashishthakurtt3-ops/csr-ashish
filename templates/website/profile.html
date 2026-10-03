@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account — ImpactBridge™</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .profile-wrap { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .profile-card { background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; color: #f8fafc; }
+        .profile-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 24px; }
+        .profile-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .info-item { background: rgba(30,41,59,0.5); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .info-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .info-val { font-size: 16px; font-weight: 600; color: #ffffff; }
+        .btn-action { display: inline-block; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 14px; }
+        .btn-logout { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+    </style>
+</head>
+<body class="enterprise-mode" style="background:#090d16; min-height:100vh;">
+    <div class="profile-wrap">
+        <div style="margin-bottom:20px;">
+            <a href="/" style="color:#38bdf8; text-decoration:none; font-weight:600;">&larr; Back to Platform Home</a>
+        </div>
+        <div class="profile-card">
+            <div class="profile-header">
+                <div>
+                    <h1 style="margin:0; font-size:24px; font-weight:700;">🌱 User Profile: {{ user.username }}</h1>
+                    <p style="margin:6px 0 0 0; color:#94a3b8;">{{ user.organization_name|default:"Independent User" }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'website:user_logout' %}" class="btn-action btn-logout">Sign Out</a>
+                </div>
+            </div>
+
+            <div class="profile-info-grid">
+                <div class="info-item">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-val">{{ user.email|default:"Not specified" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Assigned Role</div>
+                    <div class="info-val">{{ user.get_role_display }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Account Status</div>
+                    <div class="info-val" style="color:#34d399;">Active &bull; Verified</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-val">{{ user.date_joined|date:"M d, Y" }}</div>
+                </div>
+            </div>
+
+            <div style="margin-top:32px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:16px;">
+                <a href="{% url 'website:public_document_upload' %}" class="btn-action" style="background:#0284c7; color:#fff;">Upload Grant Proposal / Documents &rarr;</a>
+                {% if user.is_staff or user.role == 'ADMIN' %}
+                <a href="/admin-portal/" class="btn-action" style="background:#059669; color:#fff;">Enter Admin Portal &rarr;</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

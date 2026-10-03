@@ -1,0 +1,87 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Enterprise Subscriptions{% endblock %}
+{% block page_title %}Corporate &amp; NGO Subscriptions ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:600px;">
+            <select name="plan" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Plans</option>
+                <option value="FREE" {% if selected_plan == "FREE" %}selected{% endif %}>FREE</option>
+                <option value="PRO" {% if selected_plan == "PRO" %}selected{% endif %}>PRO</option>
+                <option value="ENTERPRISE" {% if selected_plan == "ENTERPRISE" %}selected{% endif %}>ENTERPRISE</option>
+            </select>
+            <select name="status" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Status</option>
+                <option value="ACTIVE" {% if selected_status == "ACTIVE" %}selected{% endif %}>Active</option>
+                <option value="CANCELLED" {% if selected_status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
+                <option value="EXPIRED" {% if selected_status == "EXPIRED" %}selected{% endif %}>Expired</option>
+            </select>
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            {% include "admin/components/exchange_toolbar.html" with entity="subscriptions" title="Subscriptions" %}
+            <a href="{% url 'admin_subscriptions:invoices' %}" class="btn-admin btn-admin-secondary">Invoices &amp; GST</a>
+            <a href="{% url 'admin_subscriptions:promos' %}" class="btn-admin btn-admin-primary">Promo Codes</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>User / Organization</th>
+                    <th>Plan Tier</th>
+                    <th>Billing Interval</th>
+                    <th>Status</th>
+                    <th>Auto Renew</th>
+                    <th>Subscribed On</th>
+                    <th>Current Period Ends</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff;">{{ s.user.username }}</strong>
+                        <div style="font-size:11px; color:var(--admin-muted);">{{ s.user.email }}</div>
+                    </td>
+                    <td><span class="badge-status badge-active">{{ s.plan_id }}</span></td>
+                    <td>{{ s.billing_interval|default:"Monthly" }}</td>
+                    <td>
+                        {% if s.status == "ACTIVE" %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ s.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{% if s.auto_renew %}Yes{% else %}No{% endif %}</td>
+                    <td style="font-size:12px; color:var(--admin-muted);">{{ s.created_at|date:"M d, Y" }}</td>
+                    <td style="font-size:12px; color:var(--admin-muted);">{{ s.current_period_end|date:"M d, Y"|default:"Indefinite" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No subscription records match filters.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&plan={{ selected_plan }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&plan={{ selected_plan }}&status={{ selected_status }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

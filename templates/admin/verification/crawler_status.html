@@ -1,0 +1,85 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}SafeCrawler Engine Telemetry{% endblock %}
+{% block page_title %}Crawler &amp; URL Verification Telemetry{% endblock %}
+
+{% block content %}
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--admin-accent);">{{ telemetry.pages_catalogued }}</div>
+        <div class="stat-label">Pages Catalogued</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--admin-success);">{{ telemetry.companies_crawled }} / {{ telemetry.companies_monitored }}</div>
+        <div class="stat-label">Companies Monitored</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--admin-success); font-size:16px;">COMPLIANT</div>
+        <div class="stat-label">Robots.txt Policy</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:#fff; font-size:16px;">{{ telemetry.rate_limit_delay }}</div>
+        <div class="stat-label">Rate Limiting Backoff</div>
+    </div>
+</div>
+
+<div class="admin-card" style="margin-bottom:24px;">
+    <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">Engine Configuration</h3>
+    <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr><td style="padding:8px 0; color:var(--admin-muted); width:200px;">Active Engine:</td><td style="color:#fff; font-weight:600;">{{ telemetry.crawler_engine }}</td></tr>
+        <tr><td style="padding:8px 0; color:var(--admin-muted);">User-Agent Signature:</td><td style="font-family:'JetBrains Mono',monospace; color:var(--admin-accent);">{{ telemetry.user_agent }}</td></tr>
+        <tr><td style="padding:8px 0; color:var(--admin-muted);">Security Standard:</td><td><span class="badge-status badge-active">{{ telemetry.compliance_status }}</span></td></tr>
+    </table>
+</div>
+
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <h3 style="margin:0; font-size:15px; color:#fff;">Recent Crawled Web Pages (Latest 25)</h3>
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="pages" title="Crawled Pages" %}
+            <a href="{% url 'admin_verification:queue' %}" class="btn-admin btn-admin-secondary">Review Queue</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Page Title</th>
+                    <th>URL</th>
+                    <th>HTTP Status</th>
+                    <th>Depth</th>
+                    <th>Crawled Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in recent_pages %}
+                <tr>
+                    <td>
+                        {% if page.company %}
+                        <a href="{% url 'admin_companies:detail' page.company.company_id %}" style="color:var(--admin-accent); font-weight:600;">{{ page.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><strong style="color:#fff;">{{ page.title|default:"Untitled Page"|truncatechars:35 }}</strong></td>
+                    <td>
+                        <a href="{{ page.url }}" target="_blank" style="color:var(--admin-muted); font-size:12px; font-family:'JetBrains Mono',monospace;">{{ page.url|truncatechars:40 }} &nearr;</a>
+                    </td>
+                    <td>
+                        {% if page.http_status == 200 %}
+                        <span class="badge-status badge-active">200 OK</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ page.http_status|default:"Pending" }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family:'JetBrains Mono',monospace;">{{ page.depth }}</td>
+                    <td style="font-size:12px; color:var(--admin-muted);">{{ page.crawled_at|truncatechars:19 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--admin-muted);">No crawl pages logged yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

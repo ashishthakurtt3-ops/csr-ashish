@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Free Account — ImpactBridge™</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #090d16; padding: 24px 20px; }
+        .auth-box { width: 100%; max-width: 480px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 36px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); backdrop-filter: blur(12px); color: #f8fafc; }
+        .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: #ffffff; text-align: center; }
+        .auth-subtitle { font-size: 14px; color: #94a3b8; text-align: center; margin-bottom: 24px; }
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 11px 14px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #fff; font-size: 14px; box-sizing: border-box; }
+        .form-input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+        .btn-submit { width: 100%; padding: 13px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 12px; }
+        .btn-submit:hover { opacity: 0.95; }
+        .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: #94a3b8; }
+        .auth-footer a { color: #38bdf8; text-decoration: none; font-weight: 600; }
+        .alert { padding: 12px; border-radius: 8px; font-size: 13.5px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div style="text-align:center; font-size:36px; margin-bottom:12px;">🌱</div>
+            <h1 class="auth-title">Join ImpactBridge™</h1>
+            <p class="auth-subtitle">Empowering NGOs and job seekers with verified intelligence</p>
+
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    {{ form.username }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Official Email</label>
+                    {{ form.email }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    {{ form.password }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Organization Name (Optional)</label>
+                    {{ form.organization_name }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Primary Role</label>
+                    {{ form.role }}
+                </div>
+                <button type="submit" class="btn-submit">Create Free Account &rarr;</button>
+            </form>
+
+            <div class="auth-footer">
+                Already registered? <a href="{% url 'website:user_login' %}">Sign in here</a>
+                <br><br>
+                <a href="/" style="color:#94a3b8; font-weight:normal;">&larr; Back to Public Portal</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

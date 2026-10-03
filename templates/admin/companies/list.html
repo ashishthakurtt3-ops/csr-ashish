@@ -1,0 +1,88 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Enterprise Companies Directory{% endblock %}
+{% block page_title %}Top 200 Indian Companies Portfolio ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:800px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search company name, symbol, sector, HQ..." style="flex:2; min-width:200px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="sector" style="flex:1; min-width:150px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Sectors</option>
+                {% for sec in all_sectors %}
+                <option value="{{ sec }}" {% if selected_sector == sec %}selected{% endif %}>{{ sec }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" style="flex:1; min-width:120px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Status</option>
+                <option value="CRAWLED" {% if selected_status == "CRAWLED" %}selected{% endif %}>Crawled</option>
+                <option value="PENDING" {% if selected_status == "PENDING" %}selected{% endif %}>Pending</option>
+                <option value="FAILED" {% if selected_status == "FAILED" %}selected{% endif %}>Failed</option>
+            </select>
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+        {% include "admin/components/exchange_toolbar.html" with entity="companies" title="Companies" %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>NSE Symbol</th>
+                    <th>Sector</th>
+                    <th>Headquarters</th>
+                    <th>Crawl Status</th>
+                    <th>Audit Date</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff;">{{ c.company_name }}</strong>
+                        <div style="font-size:11px; color:var(--admin-muted);">ID: {{ c.company_id }}</div>
+                    </td>
+                    <td><span class="badge-status badge-pending" style="font-family:'JetBrains Mono',monospace;">{{ c.nse_symbol|default:"—" }}</span></td>
+                    <td>{{ c.sector|default:"General" }}</td>
+                    <td>{{ c.headquarters|default:"India" }}</td>
+                    <td>
+                        {% if c.crawl_status == "CRAWLED" %}
+                        <span class="badge-status badge-active">Crawled</span>
+                        {% elif c.crawl_status == "PENDING" %}
+                        <span class="badge-status badge-pending">Pending</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ c.crawl_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; color:var(--admin-muted);">{{ c.last_crawled_date|default:"Recently" }}</td>
+                    <td style="text-align:right;">
+                        <a href="{% url 'admin_companies:detail' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">View</a>
+                        <a href="{% url 'admin_companies:edit' c.company_id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No corporate records matched your filters.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&sector={{ selected_sector }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&sector={{ selected_sector }}&status={{ selected_status }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

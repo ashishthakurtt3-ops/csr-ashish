@@ -1,0 +1,10 @@
+{
+  "csr_url": ["csr", "corporate-social-responsibility", "corporate-responsibility", "social-responsibility", "social-impact", "community", "community-development", "foundation", "sustainability", "esg", "social-investment", "giving", "philanthropy", "volunteering", "impact", "responsible-business"],
+  "job_url": ["careers", "career", "jobs", "job-openings", "work-with-us", "join-us", "opportunities", "vacancies", "current-openings", "careers-portal"],
+  "opportunity": ["partner with us", "ngo partnership", "csr proposal", "submit proposal", "csr application", "implementation partner", "social impact partner", "community partner", "eoi", "expression of interest", "apply", "registration", "empanelment"],
+  "csr_content": ["corporate social responsibility", "csr", "ngo", "non-profit", "community", "education", "healthcare", "skill development", "women empowerment", "rural development", "environment", "livelihood", "sanitation", "water", "disaster relief", "social impact", "foundation", "donation", "partnership", "collaboration"],
+  "collaboration": ["partnered with", "in partnership with", "collaborated with", "implementation partner", "ngo partner", "foundation partner", "government partnership", "academic partnership"],
+  "contact": ["csr head", "csr manager", "sustainability head", "esg head", "corporate affairs", "foundation head", "community relations", "partnerships", "csr email"],
+  "job_social": ["csr manager", "esg manager", "sustainability manager", "community development manager", "foundation manager", "social impact manager", "csr project manager"],
+  "categories": ["education", "healthcare", "skill development", "employment", "women empowerment", "rural development", "environment", "water & sanitation", "agriculture", "disability", "child welfare", "disaster relief", "sports", "arts & culture", "animal welfare"]
+}

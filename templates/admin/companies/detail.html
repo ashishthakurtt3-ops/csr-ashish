@@ -1,0 +1,139 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ company.company_name }} — Dossier{% endblock %}
+{% block page_title %}{{ company.company_name }}{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary">&larr; Back to Directory</a>
+        {% if company.nse_symbol %}
+        <span class="badge-status badge-pending" style="font-family:'JetBrains Mono',monospace;">NSE: {{ company.nse_symbol }}</span>
+        {% endif %}
+    </div>
+    <a href="{% url 'admin_companies:edit' company.company_id %}" class="btn-admin btn-admin-primary">Edit Company Information</a>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--admin-accent);">{{ company.sector|default:"General" }}</div>
+        <div class="stat-label">Industrial Sector</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:var(--admin-success);">{{ score.composite_score|default:"—" }}</div>
+        <div class="stat-label">Opportunity Score</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:#fff;">{{ projects|length }}</div>
+        <div class="stat-label">Active CSR Projects</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color:#fff;">{{ jobs|length }}</div>
+        <div class="stat-label">Active Job Openings</div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:24px;">
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">Corporate Intelligence</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <tr><td style="padding:8px 0; color:var(--admin-muted);">Company ID:</td><td style="font-family:'JetBrains Mono',monospace; color:#fff;">{{ company.company_id }}</td></tr>
+            <tr><td style="padding:8px 0; color:var(--admin-muted);">Headquarters:</td><td style="color:#fff;">{{ company.headquarters|default:"India" }}</td></tr>
+            <tr><td style="padding:8px 0; color:var(--admin-muted);">Website:</td><td>{% if company.website_url %}<a href="{{ company.website_url }}" target="_blank" style="color:var(--admin-accent);">Visit Web Portal &nearr;</a>{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px 0; color:var(--admin-muted);">Careers Portal:</td><td>{% if company.careers_url %}<a href="{{ company.careers_url }}" target="_blank" style="color:var(--admin-accent);">View Careers &nearr;</a>{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px 0; color:var(--admin-muted);">CSR Portal:</td><td>{% if company.csr_portal_url %}<a href="{{ company.csr_portal_url }}" target="_blank" style="color:var(--admin-accent);">View CSR Portal &nearr;</a>{% else %}—{% endif %}</td></tr>
+            <tr><td style="padding:8px 0; color:var(--admin-muted);">Crawl Status:</td><td><span class="badge-status badge-active">{{ company.crawl_status }}</span></td></tr>
+        </table>
+    </div>
+
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">Verified POC Contacts</h3>
+        {% if contacts %}
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            {% for con in contacts %}
+            <div style="padding:10px; background:rgba(30,41,59,0.5); border-radius:6px; font-size:12.5px;">
+                <div style="font-weight:700; color:#fff;">{{ con.name }}</div>
+                <div style="color:var(--admin-muted);">{{ con.designation|default:"Corporate Representative" }}</div>
+                <div style="margin-top:4px;">
+                    {% if con.email %}<span style="color:var(--admin-accent);">{{ con.email }}</span>{% endif %}
+                    {% if con.phone %} &bull; <span>{{ con.phone }}</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="color:var(--admin-muted); padding:20px 0; font-size:13px;">No direct corporate contacts catalogued for this entity yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="admin-card" style="margin-bottom:24px;">
+    <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">Active CSR Projects</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Category</th>
+                <th>State / Region</th>
+                <th>Budget (INR)</th>
+                <th>Confidence</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in projects %}
+            <tr>
+                <td><strong style="color:#fff;">{{ p.project_name }}</strong></td>
+                <td><span class="badge-status badge-pending">{{ p.category }}</span></td>
+                <td>{{ p.state|default:"Pan India" }}</td>
+                <td style="font-family:'JetBrains Mono',monospace;">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
+                <td><span class="badge-status badge-active">{{ p.confidence|floatformat:2 }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center; padding:16px; color:var(--admin-muted);">No CSR initiatives currently on record.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--admin-border); padding-bottom:10px; margin-bottom:12px;">
+        <h3 style="margin:0; font-size:15px; color:#fff;">Current Open Job Roles ({{ jobs|length }})</h3>
+        {% if jobs %}
+        <a href="{% url 'admin_portal:data_export' 'jobs' %}?format=csv&company_id={{ company.company_id }}" 
+           class="btn-admin" 
+           style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); color:#fff; font-size:12px; padding:5px 12px; border-radius:6px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"
+           title="Download all {{ jobs|length }} job openings for {{ company.company_name }} with full details (CSV / Excel)">
+            <span>📥</span> <span>Download Company Jobs Details</span>
+        </a>
+        {% endif %}
+    </div>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Work Mode</th>
+                <th>Application Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for j in jobs %}
+            <tr>
+                <td><strong style="color:#fff;">{{ j.job_title }}</strong></td>
+                <td>{{ j.department|default:"General" }}</td>
+                <td>{{ j.location|default:"India" }}</td>
+                <td><span class="badge-status badge-pending">{{ j.work_mode }}</span></td>
+                <td>
+                    {% if j.application_url %}
+                    <a href="{{ j.application_url }}" target="_blank" style="color:var(--admin-accent); font-size:12px;">Apply &nearr;</a>
+                    {% else %}—{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center; padding:16px; color:var(--admin-muted);">No job openings currently on record.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

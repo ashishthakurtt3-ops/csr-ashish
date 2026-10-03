@@ -1,0 +1,94 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Enterprise Job Openings{% endblock %}
+{% block page_title %}Job Market Intelligence Openings ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:800px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search title, company, skills, location..." style="flex:2; min-width:200px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="work_mode" style="flex:1; min-width:140px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Work Modes</option>
+                <option value="Hybrid" {% if selected_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                <option value="On-site" {% if selected_mode == "On-site" %}selected{% endif %}>On-site</option>
+                <option value="Remote" {% if selected_mode == "Remote" %}selected{% endif %}>Remote</option>
+            </select>
+            <select name="link_status" style="flex:1; min-width:140px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Link Status</option>
+                <option value="VERIFIED_HTTP_200" {% if selected_link_status == "VERIFIED_HTTP_200" %}selected{% endif %}>Verified HTTP 200</option>
+                <option value="PENDING" {% if selected_link_status == "PENDING" %}selected{% endif %}>Pending</option>
+                <option value="DEAD_LINK" {% if selected_link_status == "DEAD_LINK" %}selected{% endif %}>Dead Link</option>
+            </select>
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+        {% include "admin/components/exchange_toolbar.html" with entity="jobs" title="Jobs" %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Department</th>
+                    <th>Location</th>
+                    <th>Work Mode</th>
+                    <th>Link Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff;">{{ j.job_title }}</strong>
+                        {% if j.skills %}
+                        <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">{{ j.skills|truncatechars:45 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if j.company %}
+                        <a href="{% url 'admin_companies:detail' j.company.company_id %}" style="color:var(--admin-accent); font-weight:600;">{{ j.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ j.department|default:"General" }}</td>
+                    <td>{{ j.location|default:"India" }}</td>
+                    <td><span class="badge-status badge-pending">{{ j.work_mode }}</span></td>
+                    <td>
+                        {% if j.link_status == "VERIFIED_HTTP_200" %}
+                        <span class="badge-status badge-active">HTTP 200 OK</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">{{ j.link_status|default:"Pending" }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right;">
+                        <a href="{% url 'admin_jobs:edit' j.job_row_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                        {% if j.application_url %}
+                        <a href="{{ j.application_url }}" target="_blank" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">&nearr;</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No job records match the selected filters.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&work_mode={{ selected_mode }}&link_status={{ selected_link_status }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&work_mode={{ selected_mode }}&link_status={{ selected_link_status }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

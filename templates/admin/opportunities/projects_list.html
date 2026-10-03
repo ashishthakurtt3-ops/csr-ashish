@@ -1,0 +1,82 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}CSR Projects Portfolio{% endblock %}
+{% block page_title %}CSR Initiatives &amp; Grant Projects ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:800px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search project name, company, sector, state..." style="flex:2; min-width:200px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <input type="text" name="category" value="{{ selected_category }}" placeholder="Category..." style="flex:1; min-width:140px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <input type="text" name="state" value="{{ selected_state }}" placeholder="State..." style="flex:1; min-width:140px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="projects" title="CSR Projects" %}
+            <a href="{% url 'admin_opportunities:list' %}" class="btn-admin btn-admin-secondary">View Opportunities</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Company</th>
+                    <th>Category</th>
+                    <th>State</th>
+                    <th>Budget</th>
+                    <th>Confidence</th>
+                    <th>Verified Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff;">{{ p.project_name }}</strong>
+                        {% if p.description %}
+                        <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.company %}
+                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--admin-accent); font-weight:600;">{{ p.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><span class="badge-status badge-pending">{{ p.category }}</span></td>
+                    <td>{{ p.state|default:"Pan India" }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
+                    <td><span class="badge-status badge-active">{{ p.confidence|floatformat:2 }}</span></td>
+                    <td>
+                        {% if p.link_status == "VERIFIED_HTTP_200" %}
+                        <span class="badge-status badge-active">Verified</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">{{ p.link_status|default:"Pending" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No CSR projects found matching query.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&category={{ selected_category }}&state={{ selected_state }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&category={{ selected_category }}&state={{ selected_state }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
