@@ -376,3 +376,76 @@ class ScoringEngineTests(TestCase):
             )
         self.assertTrue(0 <= result["match_score"] <= 100)
         self.assertTrue(len(result["match_reasons"]) > 0)
+
+
+class SubscriptionModelAndCatalogTests(TestCase):
+    """Test suite verifying Starter, Pro, Enterprise, and Foundation subscription model entitlements and catalog."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from modules.admin_panel.management.commands.seed_subscription_plans import Command
+        cmd = Command()
+        cmd.handle()
+
+    def test_plan_entitlements_and_properties(self):
+        from modules.admin_panel.models import Subscription
+
+        # Starter tier
+        sub_starter = Subscription(subscription_id="SUB_F1", tenant_id="t_free", plan_id="starter")
+        self.assertEqual(sub_starter.plan_tier, "starter")
+        self.assertTrue(sub_starter.is_free)
+        self.assertFalse(sub_starter.is_pro)
+        self.assertFalse(sub_starter.is_enterprise)
+        self.assertFalse(sub_starter.can_view_contacts)
+        self.assertFalse(sub_starter.can_reprobe_crawler)
+        self.assertFalse(sub_starter.can_access_api)
+        self.assertFalse(sub_starter.can_access_audit_packs)
+        self.assertEqual(sub_starter.max_export_rows, 25)
+        self.assertEqual(sub_starter.max_allowed_seats, 1)
+
+        # Pro tier
+        sub_pro = Subscription(subscription_id="SUB_P1", tenant_id="t_pro", plan_id="pro")
+        self.assertEqual(sub_pro.plan_tier, "pro")
+        self.assertTrue(sub_pro.is_pro)
+        self.assertTrue(sub_pro.can_view_contacts)
+        self.assertTrue(sub_pro.can_reprobe_crawler)
+        self.assertFalse(sub_pro.can_access_api)
+        self.assertFalse(sub_pro.can_access_audit_packs)
+        self.assertEqual(sub_pro.max_export_rows, 1000)
+        self.assertEqual(sub_pro.max_allowed_seats, 3)
+
+        # Enterprise tier
+        sub_enterprise = Subscription(subscription_id="SUB_U1", tenant_id="t_ultra", plan_id="enterprise")
+        self.assertEqual(sub_enterprise.plan_tier, "enterprise")
+        self.assertTrue(sub_enterprise.is_enterprise)
+        self.assertTrue(sub_enterprise.can_view_contacts)
+        self.assertTrue(sub_enterprise.can_reprobe_crawler)
+        self.assertTrue(sub_enterprise.can_access_api)
+        self.assertTrue(sub_enterprise.can_access_audit_packs)
+        self.assertIsNone(sub_enterprise.max_export_rows)
+        self.assertEqual(sub_enterprise.max_allowed_seats, 15)
+
+    def test_catalog_and_plan_resolution(self):
+        from modules.website.utils.subscription_service import get_plan, require_plan, plans_payload
+
+        # Canonical lookup
+        starter = get_plan("starter")
+        pro = get_plan("pro")
+        enterprise = get_plan("enterprise")
+        foundation = get_plan("foundation")
+        self.assertIsNotNone(starter)
+        self.assertIsNotNone(pro)
+        self.assertIsNotNone(enterprise)
+        self.assertIsNotNone(foundation)
+
+        # Alias lookup backwards-compatibility
+        self.assertEqual(get_plan("free")["id"], "starter")
+        self.assertEqual(get_plan("ultra")["id"], "enterprise")
+        self.assertEqual(get_plan("api")["id"], "foundation")
+
+        # Plans payload check
+        payload = plans_payload()
+        self.assertEqual(payload["status"], "success")
+        plan_ids = [p["id"] for p in payload["plans"]]
+        self.assertEqual(plan_ids, ["starter", "pro", "enterprise", "foundation"])
+

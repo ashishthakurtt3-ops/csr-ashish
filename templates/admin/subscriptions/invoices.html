@@ -4,12 +4,15 @@
 {% block page_title %}GST Tax Invoices &amp; Ledger ({{ total_count }}){% endblock %}
 
 {% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="invoices" %}
+
 <div class="admin-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <a href="{% url 'admin_subscriptions:list' %}" class="btn-admin btn-admin-secondary">&larr; Back to Subscriptions</a>
+        <span style="font-size:13px; color:var(--admin-muted);">
+            All tax invoices automatically calculate 18% GST (CGST/SGST intrastate, IGST interstate).
+        </span>
         <div style="display:flex; gap:10px; align-items:center;">
             {% include "admin/components/exchange_toolbar.html" with entity="invoices" title="Invoices" %}
-            <a href="{% url 'admin_subscriptions:promos' %}" class="btn-admin btn-admin-primary">Manage Promo Codes</a>
         </div>
     </div>
 
@@ -19,19 +22,31 @@
                 <tr>
                     <th>Invoice ID</th>
                     <th>User</th>
-                    <th>Amount Due</th>
+                    <th>Plan / Interval</th>
+                    <th>Taxable Value</th>
                     <th>GST (18%)</th>
                     <th>Total Paid</th>
                     <th>Status</th>
                     <th>Issued Date</th>
-                    <th>PDF</th>
+                    <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for inv in page_obj %}
                 <tr>
-                    <td style="font-family:'JetBrains Mono',monospace; color:#fff;">{{ inv.invoice_id }}</td>
-                    <td>{{ inv.user.username }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace; color:#fff; font-size:12.5px;">
+                        <a href="{% url 'admin_subscriptions:invoice_detail' inv.id %}" target="_blank" style="color:var(--admin-accent); text-decoration:none;">
+                            {{ inv.invoice_id }} &nearr;
+                        </a>
+                    </td>
+                    <td>
+                        <strong style="color:#fff;">{{ inv.user.username }}</strong>
+                        <div style="font-size:11px; color:var(--admin-muted);">{{ inv.user.email }}</div>
+                    </td>
+                    <td>
+                        <span class="badge-status badge-active" style="font-size:10.5px;">{{ inv.plan_id|upper }}</span>
+                        <span style="font-size:11px; color:var(--admin-muted);">{{ inv.billing_cycle|default:"Monthly" }}</span>
+                    </td>
                     <td style="font-family:'JetBrains Mono',monospace;">&#8377; {{ inv.amount_due|floatformat:2 }}</td>
                     <td style="font-family:'JetBrains Mono',monospace; color:var(--admin-muted);">&#8377; {{ inv.gst_amount|floatformat:2 }}</td>
                     <td style="font-family:'JetBrains Mono',monospace; color:var(--admin-success); font-weight:700;">&#8377; {{ inv.total_amount|floatformat:2 }}</td>
@@ -43,14 +58,14 @@
                         {% endif %}
                     </td>
                     <td style="font-size:12px; color:var(--admin-muted);">{{ inv.issued_at|date:"M d, Y" }}</td>
-                    <td>
-                        {% if inv.pdf_path %}
-                        <a href="{{ inv.pdf_path }}" target="_blank" style="color:var(--admin-accent); font-size:12px;">Download &nearr;</a>
-                        {% else %}—{% endif %}
+                    <td style="text-align:right;">
+                        <a href="{% url 'admin_subscriptions:invoice_detail' inv.id %}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:3px 8px;">
+                            Print Tax Invoice &nearr;
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--admin-muted);">No invoices recorded in system.</td></tr>
+                <tr><td colspan="9" style="text-align:center; padding:24px; color:var(--admin-muted);">No invoices recorded in system.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

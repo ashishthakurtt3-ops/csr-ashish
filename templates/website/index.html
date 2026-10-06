@@ -12,11 +12,41 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+    <div class="app-bg-glows" aria-hidden="true"></div>
 
     <!-- ===== TOP ENTERPRISE NAVIGATION HEADER ===== -->
     <header class="header-nav">
+        <!-- Mobile Header Bar (< 1024px) -->
+        <div class="mobile-header-bar">
+            <a href="/" class="brand-badge" title="ImpactBridge Enterprise Intelligence">
+                <div class="brand-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="brand-meta">
+                    <div class="brand-title">ImpactBridge<span class="brand-tm">™</span></div>
+                    <div class="brand-tagline">CSR &amp; Job Intelligence OS</div>
+                </div>
+            </a>
+            <div class="mobile-header-actions">
+                <button class="nav-btn-sync mobile-sync-btn" onclick="confirmLiveFetch()" title="Fetch Live Data">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                </button>
+                <button class="mobile-menu-toggle" id="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle Navigation">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
         <div class="header-inner">
-            <!-- Row 1: Brand, Telemetry & Top Actions -->
+            <!-- Row 1: Brand, Telemetry & Top Actions (Desktop >= 1024px) -->
             <div class="header-top-row">
                 <div class="header-brand-group">
                     <a href="/" class="brand-badge" title="ImpactBridge Enterprise Intelligence">
@@ -91,10 +121,10 @@
                     <div class="header-v-divider"></div>
 
                     <!-- Subscription Tier Badge -->
-                    <div class="user-tier-pill" id="header-user-tier-pill" onclick="openSubscriptionModal()" title="View and manage organization access tier">
+                    <div class="user-tier-pill" id="header-user-tier-pill" onclick="switchTab('pricing')" title="View transparent subscription tiers and manage organization access">
                         <span class="pulse-dot-cyan"></span>
                         <span class="user-tier-name" id="header-tier-label">Institutional Access</span>
-                        <button class="user-tier-btn" id="header-tier-btn">Plans ⚡</button>
+                        <button class="user-tier-btn" id="header-tier-btn" onclick="event.stopPropagation(); switchTab('pricing');">Plans ⚡</button>
                     </div>
                 </div>
             </div>
@@ -102,57 +132,137 @@
             <!-- Row 2: Full-Width Navigation Tabs -->
             <div class="header-tabs-row">
                 <nav class="nav-links" aria-label="Primary Platform Navigation">
-                    <button class="nav-link-btn active" data-nav="companies" onclick="switchTab('companies')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="8" y1="6" x2="8.01" y2="6"/><line x1="16" y1="6" x2="16.01" y2="6"/><line x1="12" y1="6" x2="12.01" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/>
-                        </svg>
-                        <span>Corporate Donors</span>
-                        <span class="badge badge-indigo">200</span>
-                    </button>
-                    <button class="nav-link-btn" data-nav="active-opps" onclick="switchTab('active-opps')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                        </svg>
-                        <span>Open Grants &amp; RFPs</span>
-                        <span class="badge badge-amber-subtle" id="nav-opps-badge">135</span>
-                    </button>
-                    <button class="nav-link-btn" data-nav="jobs" data-tab="jobs" onclick="switchTab('jobs')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                        </svg>
-                        <span>Enterprise Jobs</span>
-                        <span class="badge badge-cyan-subtle" id="jobs-count-badge">3,030</span>
-                    </button>
-                    <button class="nav-link-btn" data-nav="matching" onclick="switchTab('matching')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                        </svg>
-                        <span>Cause Matchmaker</span>
-                    </button>
-                    <button class="nav-link-btn" data-nav="prospects" onclick="switchTab('prospects')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                        </svg>
-                        <span>Outreach CRM</span>
-                        <span class="badge badge-purple-subtle" id="pipeline-count-badge">7</span>
-                    </button>
-                    <button class="nav-link-btn" data-nav="crawler-logs" onclick="switchTab('crawler-logs')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                        <span>Domain Telemetry</span>
-                        <span class="badge badge-emerald-subtle" id="nav-logs-badge">Live</span>
-                    </button>
-                    <button class="nav-link-btn" data-nav="pricing" onclick="switchTab('pricing')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        <span>Institutional Plans</span>
-                    </button>
+                    <div class="nav-links-left">
+                        <button class="nav-link-btn active" data-nav="companies" onclick="switchTab('companies')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="8" y1="6" x2="8.01" y2="6"/><line x1="16" y1="6" x2="16.01" y2="6"/><line x1="12" y1="6" x2="12.01" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/>
+                            </svg>
+                            <span>Corporate Donors</span>
+                            <span class="badge badge-indigo">200</span>
+                        </button>
+                        <button class="nav-link-btn" data-nav="active-opps" onclick="switchTab('active-opps')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                            <span>Open Grants &amp; RFPs</span>
+                            <span class="badge badge-amber-subtle" id="nav-opps-badge">135</span>
+                        </button>
+                        <button class="nav-link-btn" data-nav="jobs" data-tab="jobs" onclick="switchTab('jobs')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            </svg>
+                            <span>Enterprise Jobs</span>
+                            <span class="badge badge-cyan-subtle" id="jobs-count-badge">3,030</span>
+                        </button>
+                        <button class="nav-link-btn" data-nav="matching" onclick="switchTab('matching')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                            </svg>
+                            <span>Cause Matchmaker</span>
+                        </button>
+                        <button class="nav-link-btn" data-nav="prospects" onclick="switchTab('prospects')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span>Outreach CRM</span>
+                            <span class="badge badge-purple-subtle" id="pipeline-count-badge">7</span>
+                        </button>
+                        <button class="nav-link-btn" data-nav="crawler-logs" onclick="switchTab('crawler-logs')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span>Domain Telemetry</span>
+                            <span class="badge badge-emerald-subtle" id="nav-logs-badge">Live</span>
+                        </button>
+                    </div>
+                    <div class="nav-links-right">
+                        <button class="nav-link-btn nav-btn-plans-featured" data-nav="pricing" onclick="switchTab('pricing')" title="View transparent subscription tiers and capability matrix">
+                            <span style="font-size:14px;">⚡</span>
+                            <span>Institutional Plans</span>
+                            <span class="badge badge-purple" style="font-size:10px; padding:2px 7px; margin-left:3px; font-weight:700;">Plans &amp; Pricing</span>
+                        </button>
+                    </div>
                 </nav>
             </div>
         </div>
     </header>
+
+    <!-- ===== MOBILE NAVIGATION DRAWER & BACKDROP ===== -->
+    <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop" onclick="closeMobileNav()"></div>
+    <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Mobile Navigation">
+        <div class="mobile-drawer-header">
+            <div class="drawer-brand">
+                <div class="brand-icon-wrap" style="width:32px; height:32px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="brand-title" style="font-size:15px;">ImpactBridge<span class="brand-tm">™</span></div>
+            </div>
+            <button class="mobile-drawer-close" onclick="closeMobileNav()" aria-label="Close navigation">✕</button>
+        </div>
+
+        <div class="mobile-drawer-telemetry" onclick="switchTab('crawler-logs'); closeMobileNav();">
+            <span class="pulse-dot"></span>
+            <span style="font-size:12px; font-weight:600; color:#fff;">200 Corporations Monitored</span>
+            <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">100% Live</span>
+        </div>
+
+        <nav class="mobile-drawer-nav">
+            <div class="drawer-nav-section-title">INTELLIGENCE PLATFORM</div>
+            <button class="drawer-nav-btn active" data-nav="companies" onclick="switchTab('companies'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
+                <span>Corporate Donors</span>
+                <span class="badge badge-indigo" style="margin-left:auto;">200</span>
+            </button>
+            <button class="drawer-nav-btn" data-nav="active-opps" onclick="switchTab('active-opps'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+                <span>Open Grants &amp; RFPs</span>
+                <span class="badge badge-amber-subtle" style="margin-left:auto;">135</span>
+            </button>
+            <button class="drawer-nav-btn" data-nav="jobs" onclick="switchTab('jobs'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span>Enterprise Jobs</span>
+                <span class="badge badge-cyan-subtle" style="margin-left:auto;">3,030</span>
+            </button>
+            <button class="drawer-nav-btn" data-nav="matching" onclick="switchTab('matching'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Cause Matchmaker</span>
+            </button>
+            <button class="drawer-nav-btn" data-nav="prospects" onclick="switchTab('prospects'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span>Outreach CRM</span>
+                <span class="badge badge-purple-subtle" style="margin-left:auto;">7</span>
+            </button>
+            <button class="drawer-nav-btn" data-nav="crawler-logs" onclick="switchTab('crawler-logs'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                <span>Domain Telemetry</span>
+                <span class="badge badge-emerald-subtle" style="margin-left:auto;">Live</span>
+            </button>
+            <button class="drawer-nav-btn" data-nav="pricing" onclick="switchTab('pricing'); closeMobileNav();">
+                <span>⚡ Institutional Plans</span>
+                <span class="badge badge-purple" style="margin-left:auto;">Pricing</span>
+            </button>
+
+            <div class="drawer-nav-section-title" style="margin-top:14px;">UTILITIES &amp; GOVERNANCE</div>
+            <button class="drawer-nav-btn" onclick="openModal('modal-ngo-help'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Help Guide</span>
+            </button>
+            <button class="drawer-nav-btn" onclick="openModal('modal-analytics'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span>Analytics Dashboard</span>
+            </button>
+            <button class="drawer-nav-btn" onclick="openModal('modal-export'); closeMobileNav();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Export CSV Datasets</span>
+            </button>
+            <a href="/admin-portal/" class="drawer-nav-btn drawer-btn-admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>Admin Console &rarr;</span>
+            </a>
+        </nav>
+    </aside>
 
     <main class="main-wrapper">
 
@@ -169,11 +279,25 @@
                     Authoritative data intelligence across India's Top 200 NSE &amp; BSE corporations. Indexing statutory Section 135 social fund allocations, active corporate grant RFPs, verified foundation portals, and 3,030 live career openings with zero simulated data.
                 </p>
 
+                <!-- Mobile Guide Toggle Bar (< 768px) -->
+                <div class="mobile-guide-toggle-wrap">
+                    <button class="btn-mobile-guide-toggle" onclick="toggleMobileGuide()" id="btnMobileGuideToggle">
+                        <span class="guide-toggle-left">
+                            <span class="guide-lightbulb">💡</span>
+                            <span>Platform Workflow Guide &amp; Steps</span>
+                        </span>
+                        <span class="guide-toggle-arrow" id="guideToggleArrow">▼</span>
+                    </button>
+                </div>
+
                 <!-- 3-STEP NGO QUICK GUIDE BANNER -->
-                <div class="ngo-welcome-banner">
+                <div class="ngo-welcome-banner" id="ngoWelcomeBanner">
                     <div class="ngo-welcome-title">
                         <span>Structured Platform Navigation Workflow</span>
-                        <button class="btn-secondary" style="font-size:12px; padding:4px 10px;" onclick="openModal('modal-ngo-help')">Read Full Guide ↗</button>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button class="btn-primary" style="font-size:11.5px; padding:3px 10px; background:linear-gradient(135deg,#6366f1,#9333ea);" onclick="switchTab('pricing')">⚡ View Institutional Plans</button>
+                            <button class="btn-secondary" style="font-size:11.5px; padding:3px 10px;" onclick="openModal('modal-ngo-help')">Read Full Guide ↗</button>
+                        </div>
                     </div>
                     <div class="ngo-steps-grid">
                         <div class="ngo-step-card" onclick="switchTab('companies')">
@@ -837,6 +961,13 @@
             </div>
 
             <!-- Pipeline Kanban Board -->
+            <div class="kanban-mobile-tabs">
+                <button class="kanban-tab-btn active" data-stage="Shortlisted" onclick="setKanbanMobileView('Shortlisted')">Shortlisted (<span id="mb-count-shortlisted">0</span>)</button>
+                <button class="kanban-tab-btn" data-stage="ProposalSent" onclick="setKanbanMobileView('ProposalSent')">Concept (<span id="mb-count-proposal">0</span>)</button>
+                <button class="kanban-tab-btn" data-stage="InDiscussion" onclick="setKanbanMobileView('InDiscussion')">Dialogue (<span id="mb-count-discussion">0</span>)</button>
+                <button class="kanban-tab-btn" data-stage="Partnered" onclick="setKanbanMobileView('Partnered')">Funded (<span id="mb-count-partnered">0</span>)</button>
+            </div>
+
             <div class="kanban-container">
                 <div class="kanban-col">
                     <div class="kanban-col-header">
@@ -918,99 +1049,12 @@
                 </div>
             </div>
 
-            <!-- 4 Tier Pricing Cards Grid -->
-            <div class="pricing-grid">
-                <!-- Tier 1: Community Starter -->
-                <div class="pricing-card" id="card-plan-starter">
-                    <div class="plan-header">
-                        <span class="badge badge-cyan">Free Forever</span>
-                        <h3 class="plan-name">Community Starter</h3>
-                        <p class="plan-desc">For local NGOs, students, and independent social-impact researchers.</p>
-                    </div>
-                    <div class="plan-price">
-                        <span class="currency">₹</span>
-                        <span class="amount" id="price-starter">0</span>
-                        <span class="period">/month</span>
-                    </div>
-                    <ul class="plan-features">
-                        <li>✓ Browse all 200 NSE corporations</li>
-                        <li>✓ 3,030 Verified Career Listings</li>
-                        <li>✓ Standard Daily Scrape Logs</li>
-                        <li>✓ 5 Donor Match Queries / day</li>
-                        <li>✓ Outreach CRM (Up to 10 saved)</li>
-                        <li>✓ Standard CSV Data Exports</li>
-                    </ul>
-                    <button class="btn-secondary" style="width:100%; opacity:0.8;" disabled>Current Active Tier</button>
-                </div>
-
-                <!-- Tier 2: Impact Pro -->
-                <div class="pricing-card featured" id="card-plan-pro">
-                    <div class="featured-badge">MOST POPULAR FOR NGOS</div>
-                    <div class="plan-header">
-                        <span class="badge badge-indigo">Non-Profit Standard</span>
-                        <h3 class="plan-name">Impact Pro</h3>
-                        <p class="plan-desc">For growing NGOs actively seeking statutory corporate partnerships.</p>
-                    </div>
-                    <div class="plan-price">
-                        <span class="currency">₹</span>
-                        <span class="amount" id="price-pro">4,999</span>
-                        <span class="period">/month</span>
-                    </div>
-                    <ul class="plan-features">
-                        <li>✓ <strong>Everything in Starter, plus:</strong></li>
-                        <li>✓ <strong>Unlimited</strong> Donor Matchmaker queries</li>
-                        <li>✓ Real-Time Web Scraping Logs</li>
-                        <li>✓ Instant On-Demand HTTP Live Probing</li>
-                        <li>✓ Unlimited Outreach CRM Pipeline</li>
-                        <li>✓ Proposal Concept Alignment Assistant</li>
-                        <li>✓ Direct Priority Webhook Alerts</li>
-                    </ul>
-                    <button class="btn-primary" style="width:100%;" onclick="openSubscriptionModal('pro')">Upgrade to Pro ⚡</button>
-                </div>
-
-                <!-- Tier 3: Corporate Enterprise -->
-                <div class="pricing-card" id="card-plan-enterprise">
-                    <div class="plan-header">
-                        <span class="badge badge-purple">Corporates &amp; ESG</span>
-                        <h3 class="plan-name">Corporate Enterprise</h3>
-                        <p class="plan-desc">For listed companies benchmarking CSR programs against peers.</p>
-                    </div>
-                    <div class="plan-price">
-                        <span class="currency">₹</span>
-                        <span class="amount" id="price-enterprise">19,999</span>
-                        <span class="period">/month</span>
-                    </div>
-                    <ul class="plan-features">
-                        <li>✓ <strong>Everything in Impact Pro, plus:</strong></li>
-                        <li>✓ Competitive Peer Section 135 Benchmarking</li>
-                        <li>✓ Complete REST API Access (10,000 req/mo)</li>
-                        <li>✓ Automated Weekly Intelligence Digests</li>
-                        <li>✓ Custom Domain Monitoring &amp; Whitelisting</li>
-                        <li>✓ Dedicated Account Management</li>
-                    </ul>
-                    <button class="btn-secondary" style="width:100%;" onclick="openSubscriptionModal('enterprise')">Select Enterprise</button>
-                </div>
-
-                <!-- Tier 4: Foundation Master -->
-                <div class="pricing-card" id="card-plan-foundation">
-                    <div class="plan-header">
-                        <span class="badge badge-emerald">Philanthropic Trusts</span>
-                        <h3 class="plan-name">Foundation Master</h3>
-                        <p class="plan-desc">For major philanthropic trusts and multilateral funding institutions.</p>
-                    </div>
-                    <div class="plan-price">
-                        <span class="currency">₹</span>
-                        <span class="amount" id="price-foundation">49,999</span>
-                        <span class="period">/month</span>
-                    </div>
-                    <ul class="plan-features">
-                        <li>✓ Complete Top 500 Enterprise Coverage</li>
-                        <li>✓ Custom AI Web Crawlers on Demand</li>
-                        <li>✓ Unlimited REST API Access &amp; Webhooks</li>
-                        <li>✓ Raw Data Lake &amp; Parquet Sync</li>
-                        <li>✓ 99.9% Uptime SLA &amp; Support Hotline</li>
-                    </ul>
-                    <button class="btn-secondary" style="width:100%;" onclick="openSubscriptionModal('foundation')">Contact Sales</button>
+            <!-- Database-Driven Pricing Cards Grid -->
+            <div class="pricing-grid" id="pricing-plans-grid">
+                <!-- Populated dynamically from GET /api/subscription/plans by app.js -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-secondary);">
+                    <div style="display:inline-block; width:32px; height:32px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--accent-cyan); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:12px;"></div>
+                    <div>Loading verified institutional tiers from database...</div>
                 </div>
             </div>
         </section>
@@ -1252,13 +1296,38 @@
 
     <!-- ===== SUBSCRIPTION CHECKOUT MODAL ===== -->
     <div class="modal-backdrop" id="modal-subscription" style="display:none;">
-        <div class="modal-panel">
+        <div class="modal-panel" style="max-width: 620px; width: 95%;">
             <div class="modal-header">
-                <h3 id="modal-sub-title">Institutional Tier Management</h3>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; font-size:18px;">💳</div>
+                    <div>
+                        <h3 id="modal-sub-title" style="margin:0; font-size:17px; font-weight:800; color:#fff;">Activate Institutional Access</h3>
+                        <div style="font-size:11.5px; color:var(--text-secondary);">Prototype Checkout &bull; No Real Money Charged</div>
+                    </div>
+                </div>
                 <button class="close-btn" onclick="closeModal('modal-subscription')">✕</button>
             </div>
-            <div class="modal-body" id="modal-sub-body">
+            <div class="modal-body" id="modal-sub-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
                 <!-- Populated dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PROTOTYPE WALLET TOP-UP MODAL ===== -->
+    <div class="modal-backdrop" id="modal-wallet-topup" style="display:none;">
+        <div class="modal-panel" style="max-width: 440px; width: 95%;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(16,185,129,0.2); display:flex; align-items:center; justify-content:center; font-size:18px;">💰</div>
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#fff;">Add Prototype Funds</h3>
+                        <div style="font-size:11.5px; color:#38bdf8;">Simulated in-app wallet top-up</div>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeModal('modal-wallet-topup')">✕</button>
+            </div>
+            <div class="modal-body" id="modal-wallet-topup-body" style="padding: 20px;">
+                <!-- Top-up content rendered by app.js -->
             </div>
         </div>
     </div>
@@ -1311,6 +1380,42 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== MOBILE BOTTOM NAVIGATION DOCK (< 768px) ===== -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Quick Mobile Navigation">
+        <button class="mobile-bottom-nav-item active" data-bottom-nav="companies" onclick="switchTab('companies')">
+            <div class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
+            </div>
+            <span>Donors</span>
+        </button>
+        <button class="mobile-bottom-nav-item" data-bottom-nav="active-opps" onclick="switchTab('active-opps')">
+            <div class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="bottom-nav-badge">135</span>
+            </div>
+            <span>Grants</span>
+        </button>
+        <button class="mobile-bottom-nav-item" data-bottom-nav="jobs" onclick="switchTab('jobs')">
+            <div class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span class="bottom-nav-badge">3k+</span>
+            </div>
+            <span>Careers</span>
+        </button>
+        <button class="mobile-bottom-nav-item" data-bottom-nav="matching" onclick="switchTab('matching')">
+            <div class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <span>Match</span>
+        </button>
+        <button class="mobile-bottom-nav-item" id="bottomNavMenuBtn" onclick="toggleMobileNav()">
+            <div class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+            <span>More</span>
+        </button>
+    </nav>
 
     <!-- Core Scripts -->
     <script src="{% static 'js/app.js' %}"></script>

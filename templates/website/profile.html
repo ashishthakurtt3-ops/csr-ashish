@@ -4,62 +4,498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Account — ImpactBridge™</title>
+    <title>My Account &amp; Billing — ImpactBridge™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
-        .profile-wrap { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        .profile-card { background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; color: #f8fafc; }
-        .profile-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 24px; }
-        .profile-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .info-item { background: rgba(30,41,59,0.5); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
-        .info-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .info-val { font-size: 16px; font-weight: 600; color: #ffffff; }
-        .btn-action { display: inline-block; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 14px; }
-        .btn-logout { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+        :root {
+            --bg-deep: #07090e;
+            --bg-card: #0d121f;
+            --bg-elevated: #131b2e;
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --accent: #38bdf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 30px 16px 80px;
+        }
+        .profile-container {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-pending { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-custom {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: all 0.15s ease;
+        }
+        .btn-primary-c { background: var(--primary); color: #fff; }
+        .btn-primary-c:hover { background: #4f46e5; }
+        .btn-secondary-c { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
+        .btn-secondary-c:hover { background: rgba(255, 255, 255, 0.14); }
+        .btn-danger-c { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-danger-c:hover { background: rgba(239, 68, 68, 0.25); }
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+        .table-custom th {
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+        .preset-chip {
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: #fff;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 600;
+        }
+        .preset-chip:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .messages {
+            margin-bottom: 20px;
+        }
+        .msg {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 13.5px;
+        }
+        .msg-success { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; }
+        .msg-error { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; }
+        .msg-info { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; }
     </style>
 </head>
-<body class="enterprise-mode" style="background:#090d16; min-height:100vh;">
-    <div class="profile-wrap">
-        <div style="margin-bottom:20px;">
-            <a href="/" style="color:#38bdf8; text-decoration:none; font-weight:600;">&larr; Back to Platform Home</a>
+<body>
+
+<div class="profile-container">
+    <!-- Top Bar Navigation -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <a href="/" style="color:var(--accent); text-decoration:none; font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:6px;">
+            &larr; Back to Platform Home
+        </a>
+        <div style="display:flex; gap:10px;">
+            {% if user.is_staff or user.role == 'ADMIN' %}
+            <a href="/admin-portal/" class="btn-custom btn-secondary-c">Admin Portal &rarr;</a>
+            {% endif %}
+            <a href="{% url 'website:user_logout' %}" class="btn-custom btn-danger-c">Sign Out</a>
         </div>
-        <div class="profile-card">
-            <div class="profile-header">
-                <div>
-                    <h1 style="margin:0; font-size:24px; font-weight:700;">🌱 User Profile: {{ user.username }}</h1>
-                    <p style="margin:6px 0 0 0; color:#94a3b8;">{{ user.organization_name|default:"Independent User" }}</p>
-                </div>
-                <div>
-                    <a href="{% url 'website:user_logout' %}" class="btn-action btn-logout">Sign Out</a>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="msg {% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- User Account Summary Card -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h1 style="margin:0; font-size:22px; font-weight:800; color:#fff;">
+                    {{ user.first_name }} {{ user.last_name|default:user.username }}
+                </h1>
+                <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                    {{ user.organization_name|default:"Independent Researcher / NGO" }} &bull; <code>@{{ user.username }}</code>
                 </div>
             </div>
-
-            <div class="profile-info-grid">
-                <div class="info-item">
-                    <div class="info-label">Email Address</div>
-                    <div class="info-val">{{ user.email|default:"Not specified" }}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Assigned Role</div>
-                    <div class="info-val">{{ user.get_role_display }}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Account Status</div>
-                    <div class="info-val" style="color:#34d399;">Active &bull; Verified</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Member Since</div>
-                    <div class="info-val">{{ user.date_joined|date:"M d, Y" }}</div>
-                </div>
+            <div>
+                <span class="badge badge-active">{{ user.get_role_display }}</span>
             </div>
+        </div>
 
-            <div style="margin-top:32px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:16px;">
-                <a href="{% url 'website:public_document_upload' %}" class="btn-action" style="background:#0284c7; color:#fff;">Upload Grant Proposal / Documents &rarr;</a>
-                {% if user.is_staff or user.role == 'ADMIN' %}
-                <a href="/admin-portal/" class="btn-action" style="background:#059669; color:#fff;">Enter Admin Portal &rarr;</a>
-                {% endif %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:8px; border:1px solid var(--border);">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted);">Email Address</div>
+                <div style="font-size:13.5px; font-weight:600; color:#fff; margin-top:2px;">{{ user.email }}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:8px; border:1px solid var(--border);">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted);">Member Since</div>
+                <div style="font-size:13.5px; font-weight:600; color:#fff; margin-top:2px;">{{ user.date_joined|date:"M d, Y" }}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:8px; border:1px solid var(--border);">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted);">Tenant Identifier</div>
+                <div style="font-size:13px; font-weight:600; color:var(--accent); margin-top:2px;" class="mono">{{ subscription.tenant_id }}</div>
             </div>
         </div>
     </div>
+
+    <!-- 2 Column Section: Subscription & Prototype Wallet -->
+    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; align-items:start; margin-bottom:24px;">
+        <!-- MY BILLING & ACTIVE SUBSCRIPTION -->
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+                <div>
+                    <span style="font-size:11px; text-transform:uppercase; color:var(--accent); font-weight:700; letter-spacing:0.5px;">My Subscription</span>
+                    <h2 style="margin:2px 0 0; font-size:20px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                        {{ plan.name|default:subscription.plan_id|upper }}
+                        {% if subscription.status == "ACTIVE" %}
+                        <span class="badge badge-active">ACTIVE</span>
+                        {% else %}
+                        <span class="badge badge-danger">{{ subscription.status }}</span>
+                        {% endif %}
+                    </h2>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:18px; font-weight:800; color:var(--success);" class="mono">
+                        {% if plan.monthly_price_paise == 0 %}
+                        Free
+                        {% else %}
+                        &#8377; {{ plan.monthly_price_inr|floatformat:0 }}<span style="font-size:11px; color:var(--text-muted);">/mo</span>
+                        {% endif %}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted);">{{ subscription.billing_interval|default:"Monthly" }} cycle</div>
+                </div>
+            </div>
+
+            <!-- Subscription Details Grid -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:18px;">
+                <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:6px; border:1px solid var(--border);">
+                    <div style="font-size:11px; color:var(--text-muted);">Current Period End</div>
+                    <div style="font-size:13px; font-weight:700; color:#fff; margin-top:2px;">
+                        {{ subscription.current_period_end|date:"M d, Y"|default:"Indefinite" }}
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:6px; border:1px solid var(--border);">
+                    <div style="font-size:11px; color:var(--text-muted);">Auto-Renewal</div>
+                    <div style="font-size:13px; font-weight:700; color:{% if subscription.auto_renew %}var(--success){% else %}var(--text-muted){% endif %}; margin-top:2px;">
+                        {% if subscription.auto_renew %}ON (Wallet Auto-Pay){% else %}OFF{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if subscription.pending_change_plan %}
+            <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:12px; font-size:12.5px; color:#fbbf24; margin-bottom:16px;">
+                <strong>Scheduled Plan Change:</strong> Your plan will switch to <strong>{{ subscription.pending_change_plan|upper }}</strong> at current period end ({{ subscription.current_period_end|date:"M d, Y" }}).
+            </div>
+            {% endif %}
+
+            {% if subscription.cancel_at_period_end %}
+            <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:12px; font-size:12.5px; color:#f87171; margin-bottom:16px;">
+                <strong>Cancellation Scheduled:</strong> Your subscription is set to expire on {{ subscription.current_period_end|date:"M d, Y" }}. Access will remain active until then.
+            </div>
+            {% endif %}
+
+            <!-- Entitlements Summary -->
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Plan Capabilities:</div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    {% for ent in entitlements %}
+                    <div style="display:flex; justify-content:space-between; font-size:12px; padding:4px 8px; background:rgba(255,255,255,0.02); border-radius:4px;">
+                        <span style="color:#cbd5e1;">{{ ent.name }}</span>
+                        <span class="mono" style="font-weight:700; color:var(--accent);">{{ ent.raw_value }}</span>
+                    </div>
+                    {% empty %}
+                    <div style="font-size:12px; color:var(--text-muted);">Standard Community features.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Actions Bar -->
+            <div style="display:flex; gap:10px; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--border);">
+                <a href="/#tab-pricing" class="btn-custom btn-primary-c">
+                    Change Plan
+                </a>
+
+                {% if subscription.plan_id != "starter" %}
+                    {% if subscription.auto_renew %}
+                    <form id="form-cancel-autorenew" method="POST" style="margin:0;" onsubmit="return openAutoRenewOffModal(event);">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cancel_autorenew">
+                        <button type="submit" class="btn-custom btn-secondary-c" style="color:#f59e0b;">
+                            Turn Off Auto-Renew
+                        </button>
+                    </form>
+                    {% else %}
+                    <form id="form-enable-autorenew" method="POST" style="margin:0;" onsubmit="return openAutoRenewOnModal(event);">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reactivate_autorenew">
+                        <button type="submit" class="btn-custom btn-secondary-c" style="color:var(--success);">
+                            Enable Auto-Renewal
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <form id="form-cancel-sub" method="POST" style="margin:0;" onsubmit="return openCancelSubModal(event);">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cancel_subscription">
+                        <button type="submit" class="btn-custom btn-secondary-c" style="color:#ef4444; border-color:rgba(239,68,68,0.35);">
+                            Cancel Subscription
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PROTOTYPE WALLET CARD -->
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+                <div>
+                    <span style="font-size:11px; text-transform:uppercase; color:var(--accent); font-weight:700; letter-spacing:0.5px;">Payment Balance</span>
+                    <h2 style="margin:2px 0 0; font-size:20px; font-weight:800; color:#fff;">Prototype Wallet</h2>
+                </div>
+                <span class="badge badge-pending">TEST WALLET</span>
+            </div>
+
+            <!-- Balance Display -->
+            <div style="text-align:center; padding:18px 0; background:rgba(15,23,42,0.6); border:1px solid var(--border); border-radius:10px; margin-bottom:16px;">
+                <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Current Usable Balance</div>
+                <div style="font-size:32px; font-weight:800; color:var(--success); margin-top:4px;" class="mono">
+                    &#8377; {{ wallet.balance_inr|floatformat:2 }}
+                </div>
+                <div style="font-size:11px; color:#38bdf8; margin-top:2px;">
+                    PROTOTYPE FUNDS &bull; NO REAL MONEY CHARGED
+                </div>
+            </div>
+
+            <!-- Top-Up Form with Custom Amount & Dynamic Round-Off Suggestions (Requirements 12, 13, 14) -->
+            <form id="profile-wallet-form" method="POST" onsubmit="return openWalletRechargeModal(event);" style="display:flex; flex-direction:column; gap:12px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="topup">
+
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
+                        Add Money (INR &#8377;)
+                    </label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <span style="position:absolute; left:12px; color:var(--text-muted); font-weight:700; font-size:14px;">&#8377;</span>
+                        <input type="number" step="0.01" name="amount_inr" id="topup-amount-input" value="500" min="1" required
+                               oninput="updateProfileRoundOffSuggestions(this.value)"
+                               style="width:100%; box-sizing:border-box; padding:9px 12px 9px 28px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:6px; color:#fff; font-size:14px;" class="mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:600; color:var(--text-muted); margin-bottom:6px;">
+                        Suggested Amounts
+                    </label>
+                    <div id="profile-roundoff-suggestions" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="preset-chip" onclick="setProfileTopupAmount(500)">&#8377;500</button>
+                        <button type="button" class="preset-chip" onclick="setProfileTopupAmount(1000)">&#8377;1,000</button>
+                        <button type="button" class="preset-chip" onclick="setProfileTopupAmount(2000)">&#8377;2,000</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-custom btn-primary-c" style="width:100%; justify-content:center; padding:10px;">
+                    Continue &rarr;
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- WALLET TRANSACTION LEDGER -->
+    <div class="card">
+        <div class="card-header">
+            <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff;">Recent Wallet Transactions</h3>
+            <span style="font-size:12px; color:var(--text-muted);">Atomic financial ledger</span>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Date &amp; Time</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Balance After</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in wallet_txs %}
+                    <tr>
+                        <td class="mono" style="color:#fff; font-weight:600;">{{ tx.transaction_id }}</td>
+                        <td style="color:var(--text-muted);">{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <span class="badge {% if tx.credit_or_debit == 'CREDIT' %}badge-active{% else %}badge-warning{% endif %}">
+                                {{ tx.get_transaction_type_display|default:tx.transaction_type }}
+                            </span>
+                        </td>
+                        <td class="mono" style="font-weight:700; color:{% if tx.credit_or_debit == 'CREDIT' %}var(--success){% else %}var(--danger){% endif %};">
+                            {% if tx.credit_or_debit == 'CREDIT' %}+{% else %}-{% endif %}&#8377; {{ tx.amount_inr|floatformat:2 }}
+                        </td>
+                        <td class="mono" style="color:#fff;">&#8377; {{ tx.balance_after_inr|floatformat:2 }}</td>
+                        <td style="color:var(--text-muted);">{{ tx.description|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">
+                            No wallet transactions on record.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PAYMENT & INVOICE HISTORY -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start;">
+        <!-- Payment Transactions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff;">Payment History</h3>
+                <span style="font-size:12px; color:var(--text-muted);">Simulated checkout receipts</span>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in payments %}
+                        <tr>
+                            <td class="mono" style="font-size:11.5px; color:#fff;">{{ p.payment_id }}</td>
+                            <td class="mono" style="color:var(--success); font-weight:700;">&#8377; {{ p.amount_inr|floatformat:2 }}</td>
+                            <td style="font-size:11.5px; color:var(--text-muted);">{{ p.payment_method }}</td>
+                            <td>
+                                <span class="badge {% if p.payment_status == 'SUCCESS' %}badge-active{% elif p.payment_status == 'REFUNDED' %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ p.payment_status }}
+                                </span>
+                            </td>
+                            <td style="font-size:11.5px; color:var(--text-muted);">{{ p.created_at|date:"M d" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">
+                                No payments recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Invoices & Tax Documents -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff;">Tax Invoices &amp; Receipts</h3>
+                <span style="font-size:12px; color:var(--text-muted);">18% GST Compliant</span>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Plan</th>
+                            <th>Total (INR)</th>
+                            <th>Issued</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                        <tr>
+                            <td class="mono" style="font-size:11.5px; color:#fff;">{{ inv.invoice_id }}</td>
+                            <td><span class="badge badge-active">{{ inv.plan_id|upper }}</span></td>
+                            <td class="mono" style="color:var(--success); font-weight:700;">&#8377; {{ inv.total_amount|floatformat:2 }}</td>
+                            <td style="font-size:11.5px; color:var(--text-muted);">{{ inv.issued_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'admin_subscriptions:invoice_detail' inv.id %}" target="_blank" style="color:var(--accent); font-size:12px; text-decoration:none;">
+                                    View Receipt &nearr;
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">
+                                No invoices issued yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setTopupAmount(val) {
+    document.getElementById('topup-amount-input').value = val;
+}
+</script>
+
 </body>
 </html>

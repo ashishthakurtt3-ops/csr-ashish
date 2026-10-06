@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 title ImpactBridge Enterprise Django Portal (Port 8000)
 echo =====================================================================
-echo      IMPACTBRIDGE ENTERPRISE DJANGO ARCHITECTURE & INTELLIGENCE
+echo      IMPACTBRIDGE ENTERPRISE DJANGO ARCHITECTURE ^& INTELLIGENCE
 echo =====================================================================
 echo.
 

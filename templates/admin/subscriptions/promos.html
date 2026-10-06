@@ -4,10 +4,7 @@
 {% block page_title %}Promo Codes &amp; Campaign Incentives{% endblock %}
 
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-    <a href="{% url 'admin_subscriptions:list' %}" class="btn-admin btn-admin-secondary">&larr; Back to Subscriptions</a>
-    {% include "admin/components/exchange_toolbar.html" with entity="promos" title="Promo Codes" %}
-</div>
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="promos" %}
 
 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:24px;">
     <div class="admin-card">

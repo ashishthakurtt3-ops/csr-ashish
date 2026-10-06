@@ -65,6 +65,29 @@ let crawlerTelemetry = {};
 let activeTab = 'companies';
 let companyViewMode = 'cards'; // 'cards' | 'table'
 let activeJobCategory = 'all';
+let currentSubscription = {
+    tier: 'free',
+    plan_id: 'free',
+    plan_name: 'Community Free',
+    organization_name: 'Institutional Non-Profit Access',
+    contact_email: '',
+    status: 'ACTIVE',
+    is_free: true,
+    limits: {
+        daily_matches: 5,
+        view_contacts: false,
+        live_reprobe: false,
+        export_rows_per_month: 25,
+        seats: 1,
+        api_access: false,
+        audit_packs: false
+    },
+    quota: {
+        used: 0,
+        limit: 5,
+        unlimited: false
+    }
+};
 
 // Central Pagination State Store
 const paginationState = {
@@ -103,13 +126,12 @@ async function initApp() {
         updateAllFetchTimestamps(getCurrentTimeFormatted(), true);
     }
 
-    await loadStats();
-    await loadRecommendations(1);
-    await loadJobs(1);
-    await loadCrawlerLogs(1);
-    await loadOpportunities(1);
-    await loadProspects();
-    await loadSubscriptionState();
+    // High performance initial load: immediately render Tab 1 (Donors) and stats
+    // Secondary tabs (Jobs, Grants, CRM, Telemetry) load on-demand when clicked
+    loadStats();
+    loadRecommendations(1);
+    loadSubscriptionState();
+    loadAndRenderPricingPlans();
 }
 
 function setupEventListeners() {
@@ -185,14 +207,89 @@ function setupGlobalModalBehaviour() {
     });
 }
 
+// ===========================================================================
+// MOBILE NAVIGATION & RESPONSIVE CONTROLLER
+// ===========================================================================
+function toggleMobileNav() {
+    const drawer = document.getElementById('mobileNavDrawer');
+    const backdrop = document.getElementById('mobileDrawerBackdrop');
+    if (drawer && backdrop) {
+        const isShown = drawer.classList.contains('show');
+        if (isShown) {
+            closeMobileNav();
+        } else {
+            drawer.classList.add('show');
+            backdrop.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+}
+
+function closeMobileNav() {
+    const drawer = document.getElementById('mobileNavDrawer');
+    const backdrop = document.getElementById('mobileDrawerBackdrop');
+    if (drawer) drawer.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+}
+
+// Mobile Segmented Controller for CRM Kanban
+function setKanbanMobileView(stage) {
+    document.querySelectorAll('.kanban-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.stage === stage);
+    });
+    const colMap = {
+        'Shortlisted': 'col-Shortlisted',
+        'ProposalSent': 'col-ProposalSent',
+        'InDiscussion': 'col-InDiscussion',
+        'Partnered': 'col-Partnered'
+    };
+    const targetColId = colMap[stage];
+    if (targetColId) {
+        const targetCol = document.getElementById(targetColId);
+        if (targetCol) {
+            const parent = targetCol.closest('.kanban-col');
+            if (parent) {
+                parent.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }
+    }
+}
+
+function toggleMobileGuide() {
+    const banner = document.getElementById('ngoWelcomeBanner');
+    const arrow = document.getElementById('guideToggleArrow');
+    if (!banner) return;
+    const isShowing = banner.classList.toggle('mobile-guide-open');
+    if (arrow) {
+        arrow.textContent = isShowing ? '▲' : '▼';
+    }
+}
+
 async function switchTab(tab) {
     activeTab = tab;
+    closeMobileNav();
+
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     const target = document.getElementById(`tab-${tab}`);
     if (target) target.style.display = 'block';
 
+    const heroBanner = document.querySelector('.hero-banner');
+    if (heroBanner) {
+        if (tab === 'pricing') {
+            heroBanner.style.display = 'none';
+        } else {
+            heroBanner.style.display = 'block';
+        }
+    }
+
     document.querySelectorAll('.nav-link-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.nav === tab));
+    document.querySelectorAll('.drawer-nav-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.nav === tab));
+    document.querySelectorAll('.mobile-bottom-nav-item').forEach(b =>
+        b.classList.toggle('active', b.dataset.bottomNav === tab));
 
     if (tab === 'jobs') {
         if (allJobs.length === 0) {
@@ -208,6 +305,7 @@ async function switchTab(tab) {
         if (allCrawlerLogs.length === 0) loadCrawlerLogs();
     } else if (tab === 'pricing') {
         loadSubscriptionState();
+        loadAndRenderPricingPlans();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -921,12 +1019,10 @@ async function loadJobs(page = 1) {
         paginationState.jobs.total = total;
         paginationState.jobs.totalPages = totalPages;
 
-        // Populate dropdown options once from full catalogue if not done yet
-        if (!jobFilterOptionsLoaded) {
+        // Populate dropdown options instantly from loaded items without heavy network blocking
+        if (!jobFilterOptionsLoaded && items.length > 0) {
             jobFilterOptionsLoaded = true;
-            fetch(`${API_BASE}/jobs?limit=500`).then(r => r.json()).then(fullList => {
-                if (Array.isArray(fullList)) populateJobFilterDropdowns(fullList);
-            }).catch(() => {});
+            populateJobFilterDropdowns(items);
         }
 
         // Update KPI and badge
@@ -1272,6 +1368,37 @@ async function runSimpleNgoMatch() {
     const container = document.getElementById('matching-results-container');
     if (!container) return;
 
+    const tier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'free');
+    const todayStr = new Date().toISOString().split('T')[0];
+    const quotaKey = `ib_match_count_${todayStr}`;
+    let dailyUsed = parseInt(localStorage.getItem(quotaKey) || '0', 10);
+
+    if (tier === 'free') {
+        if (dailyUsed >= 5) {
+            container.innerHTML = `
+                <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.35); border-radius:14px; padding:32px 24px; text-align:center; max-width:680px; margin:24px auto;">
+                    <div style="font-size:36px; margin-bottom:12px;">🔒</div>
+                    <h3 style="font-size:18px; font-weight:800; color:#fff; margin-bottom:8px;">Daily Matchmaker Limit Reached (5/5 Used)</h3>
+                    <p style="font-size:13.5px; color:#cbd5e1; line-height:1.6; margin-bottom:20px;">
+                        The <strong>Community Free</strong> tier is limited to <strong>5 algorithmic donor matches per day</strong>. Your free queries will reset at midnight.
+                        <br><br>
+                        Upgrade to <strong>Impact Pro</strong> or <strong>Ultra Enterprise</strong> for <strong>unlimited daily queries</strong>, unmasked executive direct contacts, and 1-click CSR proposals!
+                    </p>
+                    <div style="display:flex; justify-content:center; gap:12px;">
+                        <button class="btn-primary" style="padding:10px 24px; font-size:13px;" onclick="openSubscriptionModal('pro')">
+                            Upgrade to Impact Pro (Unlimited) ⚡
+                        </button>
+                    </div>
+                </div>
+            `;
+            showLiveToast('Daily free matchmaker quota reached (5/5). Upgrade to Pro for unlimited matching.', 'info');
+            return;
+        }
+        // Increment daily count
+        dailyUsed += 1;
+        localStorage.setItem(quotaKey, String(dailyUsed));
+    }
+
     container.innerHTML = `
         <div class="dynamic-loading-skeleton" style="padding:40px;">
             <div class="loading-spinner-circle"></div>
@@ -1294,10 +1421,20 @@ async function runSimpleNgoMatch() {
             return;
         }
 
+        const quotaBadgeHtml = (tier === 'free')
+            ? `<div style="display:flex; align-items:center; gap:8px;">
+                 <span class="badge badge-amber" style="font-size:11.5px; padding:4px 10px;">Daily Quota: ${dailyUsed}/5 Used Today</span>
+                 <a href="javascript:void(0)" onclick="openSubscriptionModal('pro')" style="color:var(--accent-cyan); font-size:11.5px; font-weight:700; text-decoration:none;">Get Unlimited ⚡</a>
+               </div>`
+            : `<span class="badge badge-emerald" style="font-size:11.5px; padding:4px 10px;">⚡ Unlimited Algorithmic Matches (${escapeHtml(currentSubscription.plan_name || 'Impact Pro')})</span>`;
+
         container.innerHTML = `
             <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(99,102,241,0.3); border-radius:14px; padding:20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                 <div>
-                    <h3 style="font-size:18px; font-weight:800; color:#fff; margin-bottom:4px;">🎯 Top Algorithmic Enterprise Donor Matches</h3>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                        <h3 style="font-size:18px; font-weight:800; color:#fff; margin:0;">🎯 Top Algorithmic Enterprise Donor Matches</h3>
+                        ${quotaBadgeHtml}
+                    </div>
                     <p style="font-size:13.5px; color:#94a3b8; margin:0;">
                         Scored live for <strong>${escapeHtml(selectedCause)}</strong> in <strong>${escapeHtml(selectedState)}</strong> based on disclosed Section 135 projects, geographic focus, and scale.
                     </p>
@@ -1535,6 +1672,14 @@ async function triggerLiveProbe(companyId, url, btnElement) {
     if (!btnElement && window.event) {
         btnElement = window.event.currentTarget;
     }
+
+    const tier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'free');
+    if (tier === 'free') {
+        showLiveToast('⚡ Live On-Demand Crawler Probing requires Impact Pro or Ultra Enterprise. Opening plans...', 'info');
+        openSubscriptionModal('pro');
+        return;
+    }
+
     const originalText = btnElement ? btnElement.innerHTML : '⚡ Probe Ping';
     if (btnElement) {
         btnElement.disabled = true;
@@ -1672,6 +1817,15 @@ function renderPipeline(prospects) {
         const badge = document.getElementById(st.badgeId);
         if (badge) badge.textContent = counts[st.id] || 0;
     });
+
+    const mbShortlisted = document.getElementById('mb-count-shortlisted');
+    if (mbShortlisted) mbShortlisted.textContent = counts['Shortlisted'] || 0;
+    const mbProposal = document.getElementById('mb-count-proposal');
+    if (mbProposal) mbProposal.textContent = counts['Proposal Sent'] || 0;
+    const mbDiscussion = document.getElementById('mb-count-discussion');
+    if (mbDiscussion) mbDiscussion.textContent = counts['In Discussion'] || 0;
+    const mbPartnered = document.getElementById('mb-count-partnered');
+    if (mbPartnered) mbPartnered.textContent = counts['Approved'] || 0;
 }
 
 async function quickSaveToPipeline(companyId, companyName, sector) {
@@ -1897,18 +2051,67 @@ function switchDossierTab(tab) {
             </div>
         `;
     } else if (tab === 'contacts') {
+        const tier = ((currentSubscription && currentSubscription.tier) || 'free').toLowerCase();
+        const canViewContacts = tier === 'pro' || tier === 'ultra';
+
+        let lockBannerHtml = '';
+        if (!canViewContacts) {
+            lockBannerHtml = `
+                <div style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); padding:16px 20px; border-radius:12px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <div style="font-size:14px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                            <span>🔒 Executive Contacts Masked (Community Free Tier)</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#cbd5e1; margin-top:4px;">
+                            Upgrade to <strong>Impact Pro</strong> or <strong>Ultra</strong> to unmask direct emails, verified phone numbers, and generate 1-click tailored CSR pitches.
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="font-size:12px; padding:8px 16px;" onclick="openSubscriptionModal('pro')">
+                        Unlock Direct Contacts ⚡
+                    </button>
+                </div>
+            `;
+        }
+
         body.innerHTML = `
             <div class="insight-box">
-                <div class="insight-title">Publicly Verified Contact Directory</div>
+                <div class="insight-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <span>Publicly Verified Contact Directory</span>
+                    ${canViewContacts 
+                        ? `<span class="badge badge-emerald" style="font-size:11px;">✓ Unmasked Direct Contacts (${(currentSubscription && currentSubscription.plan_name) || 'Active'})</span>` 
+                        : `<span class="badge badge-purple" style="font-size:11px;">🔒 Masked on Free Plan</span>`}
+                </div>
+                ${lockBannerHtml}
                 <p style="font-size:13px; color:#94a3b8; margin-bottom:12px;">
                     Honesty Guarantee: We only present contacts that have been publicly verified on official corporate portals.
                 </p>
-                ${contacts.length > 0 && contacts[0].email ? contacts.map(c => `
-                    <div class="insight-item">
-                        <span>${escapeHtml(c.designation || 'CSR Team')}</span>
-                        <strong>${escapeHtml(c.email)}</strong>
-                    </div>
-                `).join('') : `
+                ${contacts.length > 0 && contacts[0].email ? contacts.map(c => {
+                    const rawEmail = c.email || '';
+                    const displayEmail = canViewContacts 
+                        ? escapeHtml(rawEmail) 
+                        : escapeHtml(rawEmail.replace(/(?<=.{2}).(?=[^@]*?@)/g, '*'));
+                    const rawPhone = c.phone || '+91 22 6600 0000';
+                    const displayPhone = canViewContacts ? escapeHtml(rawPhone) : '+91 22 •••• ••••';
+
+                    return `
+                        <div class="insight-item" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                            <div>
+                                <span>${escapeHtml(c.designation || 'CSR Team')}</span>
+                                <strong style="font-size:13px; color:${canViewContacts ? '#38bdf8' : '#94a3b8'};">${displayEmail}</strong>
+                                <span style="font-size:12px; color:#94a3b8; margin-left:8px;">📞 ${displayPhone}</span>
+                            </div>
+                            ${canViewContacts ? `
+                                <a href="mailto:${escapeHtml(rawEmail)}?subject=CSR%20Partnership%20Inquiry%20-%20Section%20135&body=Dear%20${encodeURIComponent(c.name || 'CSR Head')},%0D%0A%0D%0AWe%20are%20reaching%20out%20from%20our%20non-profit%20regarding%20statutory%20CSR%20partnership%20under%20Schedule%20VII..." class="btn-secondary" style="font-size:11px; padding:4px 10px;">
+                                    ✉️ 1-Click Pitch
+                                </a>
+                            ` : `
+                                <button class="btn-secondary" style="font-size:11px; padding:4px 10px; opacity:0.8;" onclick="openSubscriptionModal('pro')">
+                                    🔒 Unmask
+                                </button>
+                            `}
+                        </div>
+                    `;
+                }).join('') : `
                     <div style="font-size:13px; color:#cbd5e1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">
                         No generic pattern-guessed emails are shown. Please engage directly through the official CSR foundation portal:
                         <div style="margin-top:8px;">
@@ -1930,6 +2133,7 @@ function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
         if (modalId === 'modal-live-stream') loadLiveStreamEvents();
     }
 }
@@ -1937,10 +2141,14 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
 }
 
 function closeAllModals() {
     document.querySelectorAll('.modal-backdrop').forEach(m => m.style.display = 'none');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
 }
 
 async function loadLiveStreamEvents() {
@@ -1971,69 +2179,910 @@ async function loadLiveStreamEvents() {
 }
 
 // ===========================================================================
-// SUBSCRIPTION & PRICING
+// ===========================================================================
+// SUBSCRIPTION, DATABASE-DRIVEN PRICING & PROTOTYPE CHECKOUT / WALLET ENGINE
 // ===========================================================================
 let activeBillingCycle = 'monthly';
+let dbPlansCatalog = [];
+let userWalletBalance = 0;
+let checkoutSelectedPlan = null;
+let checkoutSelectedCycle = 'monthly';
+let checkoutCurrentQuote = null;
+
+function normalizeSubscriptionTier(tierOrPlan) {
+    if (!tierOrPlan) return 'starter';
+    const s = String(tierOrPlan).trim().toLowerCase();
+    if (s === 'starter' || s === 'free') return 'starter';
+    if (s === 'pro') return 'pro';
+    if (s === 'enterprise' || s === 'ultra') return 'enterprise';
+    if (s === 'foundation' || s === 'api') return 'foundation';
+    return s;
+}
+
+async function fetchWalletBalance() {
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/wallet/balance`);
+        if (res.ok) {
+            const data = await res.json();
+            userWalletBalance = Number(data.balance_inr || 0);
+            updateWalletBalanceInUI();
+            return userWalletBalance;
+        }
+    } catch (e) {
+        console.warn('Wallet balance fetch error:', e);
+    }
+    return userWalletBalance;
+}
+
+function updateWalletBalanceInUI() {
+    const el = document.getElementById('checkout-wallet-balance-val');
+    if (el) el.textContent = `₹${userWalletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+}
+
+async function loadAndRenderPricingPlans() {
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/plans`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        dbPlansCatalog = data.plans || [];
+
+        // Dynamic Annual Savings Calculation across catalog
+        let maxSavingsPct = 17;
+        dbPlansCatalog.forEach(p => {
+            if (p.monthly_price > 0 && p.yearly_price > 0) {
+                const yearlyIfMonthly = p.monthly_price * 12;
+                const savings = yearlyIfMonthly - p.yearly_price;
+                if (savings > 0) {
+                    const pct = Math.round((savings / yearlyIfMonthly) * 100);
+                    if (pct > maxSavingsPct) maxSavingsPct = pct;
+                }
+            }
+        });
+
+        const savePills = document.querySelectorAll('.save-pill');
+        savePills.forEach(sp => {
+            sp.textContent = `Save up to ${maxSavingsPct}%`;
+        });
+
+        renderPricingGrid();
+    } catch (err) {
+        console.error('Failed to load dynamic subscription plans catalog:', err);
+    }
+}
 
 function setBillingCycle(cycle) {
     activeBillingCycle = cycle;
     document.getElementById('btn-cycle-monthly')?.classList.toggle('active', cycle === 'monthly');
     document.getElementById('btn-cycle-yearly')?.classList.toggle('active', cycle === 'yearly');
+    renderPricingGrid();
+}
 
-    const pricePro = document.getElementById('price-pro');
-    const priceEnterprise = document.getElementById('price-enterprise');
-    const priceFoundation = document.getElementById('price-foundation');
+function renderPricingGrid() {
+    const grid = document.getElementById('pricing-plans-grid');
+    if (!grid) return;
 
-    if (cycle === 'yearly') {
-        if (pricePro) pricePro.textContent = '3,999';
-        if (priceEnterprise) priceEnterprise.textContent = '15,999';
-        if (priceFoundation) priceFoundation.textContent = '39,999';
-    } else {
-        if (pricePro) pricePro.textContent = '4,999';
-        if (priceEnterprise) priceEnterprise.textContent = '19,999';
-        if (priceFoundation) priceFoundation.textContent = '49,999';
+    if (!dbPlansCatalog || dbPlansCatalog.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);">
+                No subscription plans are currently active in the database catalog.
+            </div>
+        `;
+        return;
+    }
+
+    const currentNormTier = normalizeSubscriptionTier(currentSubscription.plan_id || currentSubscription.tier);
+    const isYearly = activeBillingCycle === 'yearly';
+
+    let html = '';
+    dbPlansCatalog.forEach(plan => {
+        const planCode = plan.code.toLowerCase();
+        const isCurrentActive = (currentNormTier === planCode);
+        const isFeatured = plan.is_popular;
+
+        // Dynamic price calculation
+        let displayPrice = 0;
+        let periodText = '/month';
+        let subPriceText = '';
+
+        if (isYearly) {
+            displayPrice = Math.round(plan.yearly_price);
+            periodText = '/year';
+            if (plan.monthly_price > 0 && plan.yearly_price > 0) {
+                const monthlyEquiv = Math.round(plan.yearly_price / 12);
+                const yearlyIfMonthly = plan.monthly_price * 12;
+                const savings = yearlyIfMonthly - plan.yearly_price;
+                const savingsPct = Math.round((savings / yearlyIfMonthly) * 100);
+                subPriceText = `(₹${monthlyEquiv.toLocaleString('en-IN')}/mo &bull; Save ₹${savings.toLocaleString('en-IN')} / ${savingsPct}%)`;
+            }
+        } else {
+            displayPrice = Math.round(plan.monthly_price);
+            periodText = '/month';
+            if (plan.yearly_price > 0) {
+                subPriceText = '+18% GST applicable';
+            }
+        }
+
+        // Action Button logic (Requirements 1, 3, 4, 5 - Zero 'Downgrade' UI)
+        let buttonText = `Switch to ${plan.name}`;
+        let buttonClass = isFeatured ? 'btn-primary' : 'btn-secondary';
+        let buttonDisabled = false;
+
+        if (isCurrentActive) {
+            buttonText = 'CURRENT PLAN';
+            buttonDisabled = true;
+            buttonClass = 'btn-secondary';
+        } else if (plan.is_contact_sales) {
+            buttonText = 'Contact Sales Team ↗';
+        } else {
+            const currentPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currentNormTier);
+            const currentOrder = currentPlanObj ? currentPlanObj.display_order : 10;
+            if (plan.display_order < currentOrder) {
+                buttonText = `Switch to ${plan.name}`;
+            } else {
+                buttonText = `Change to ${plan.name}`;
+            }
+        }
+
+        // Features list
+        const features = plan.features || [];
+        const featuresHtml = features.map(f => `<li>✓ ${escapeHtml(f)}</li>`).join('');
+
+        html += `
+            <div class="pricing-card ${isFeatured ? 'featured' : ''}" id="card-plan-${planCode}" style="${isCurrentActive ? 'border: 2px solid var(--accent-cyan);' : ''}">
+                ${isFeatured ? `<div class="featured-badge">${plan.badge || 'MOST POPULAR'}</div>` : (plan.badge ? `<div style="font-size:10.5px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; margin-bottom:4px;">${plan.badge}</div>` : '')}
+                <div class="plan-header">
+                    <h3 class="plan-name">${escapeHtml(plan.name)}</h3>
+                    <p class="plan-desc">${escapeHtml(plan.description || '')}</p>
+                </div>
+                <div class="plan-price">
+                    <span class="currency">₹</span>
+                    <span class="amount">${displayPrice.toLocaleString('en-IN')}</span>
+                    <span class="period">${periodText}</span>
+                </div>
+                ${subPriceText ? `<div style="font-size:11.5px; color:var(--accent-cyan); margin:-8px 0 14px 0; font-weight:600;">${subPriceText}</div>` : ''}
+                <ul class="plan-features">
+                    ${featuresHtml}
+                </ul>
+                <button class="${buttonClass}" style="width:100%;" ${buttonDisabled ? 'disabled style="opacity:0.75; cursor:default;"' : ''} onclick="openSubscriptionModal('${planCode}')">
+                    ${buttonText}
+                </button>
+            </div>
+        `;
+    });
+
+    grid.innerHTML = html;
+}
+
+async function loadSubscriptionState() {
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/current`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data && data.subscription) {
+            const sub = data.subscription;
+            const normTier = normalizeSubscriptionTier(sub.plan_id || sub.tier);
+            currentSubscription = {
+                tier: normTier,
+                plan_id: sub.plan_id || normTier,
+                plan_name: sub.plan_name || (normTier === 'foundation' ? 'Foundation Master' : (normTier === 'enterprise' ? 'Corporate Enterprise' : (normTier === 'pro' ? 'Impact Pro' : 'Community Starter'))),
+                organization_name: sub.organization_name || 'Institutional Non-Profit Access',
+                contact_email: sub.contact_email || '',
+                status: sub.status || 'ACTIVE',
+                auto_renew: !!sub.auto_renew,
+                pending_change_plan: sub.pending_change_plan,
+                current_period_end: sub.current_period_end,
+                is_free: normTier === 'starter',
+                limits: sub.limits || {
+                    daily_matches: normTier === 'starter' ? 5 : null,
+                    view_contacts: normTier !== 'starter',
+                    live_reprobe: normTier !== 'starter',
+                    export_rows_per_month: normTier === 'starter' ? 25 : (normTier === 'pro' ? 1000 : null),
+                    seats: normTier === 'foundation' ? 50 : (normTier === 'enterprise' ? 15 : (normTier === 'pro' ? 3 : 1)),
+                    api_access: normTier === 'enterprise' || normTier === 'foundation',
+                    audit_packs: normTier === 'enterprise' || normTier === 'foundation'
+                },
+                quota: data.quota || {
+                    used: 0,
+                    limit: normTier === 'starter' ? 5 : null,
+                    unlimited: normTier !== 'starter'
+                }
+            };
+            try {
+                localStorage.setItem('ib_current_subscription', JSON.stringify(currentSubscription));
+            } catch (e) {}
+        }
+    } catch (err) {
+        console.warn('Subscription sync fallback to cache:', err);
+        try {
+            const cached = localStorage.getItem('ib_current_subscription');
+            if (cached) currentSubscription = JSON.parse(cached);
+        } catch (e) {}
+    }
+
+    await fetchWalletBalance();
+    applySubscriptionToUI();
+    renderPricingGrid();
+}
+
+function applySubscriptionToUI() {
+    const normTier = normalizeSubscriptionTier(currentSubscription.tier || currentSubscription.plan_id);
+    const planName = currentSubscription.plan_name || (normTier === 'foundation' ? 'Foundation Master' : (normTier === 'enterprise' ? 'Corporate Enterprise' : (normTier === 'pro' ? 'Impact Pro' : 'Community Starter')));
+
+    // 1. Header Tier Pill
+    const headerLabel = document.getElementById('header-tier-label');
+    const headerPill = document.getElementById('header-user-tier-pill');
+    const headerBtn = document.getElementById('header-tier-btn');
+    if (headerLabel) {
+        if (normTier === 'foundation') headerLabel.textContent = '👑 Foundation Master';
+        else if (normTier === 'enterprise') headerLabel.textContent = '🚀 Corporate Enterprise';
+        else if (normTier === 'pro') headerLabel.textContent = '⚡ Impact Pro';
+        else headerLabel.textContent = 'Community Starter (Free)';
+    }
+    if (headerPill) {
+        if (normTier === 'foundation' || normTier === 'enterprise') {
+            headerPill.style.borderColor = 'rgba(168, 85, 247, 0.6)';
+            headerPill.style.background = 'rgba(168, 85, 247, 0.15)';
+        } else if (normTier === 'pro') {
+            headerPill.style.borderColor = 'rgba(99, 102, 241, 0.6)';
+            headerPill.style.background = 'rgba(99, 102, 241, 0.15)';
+        } else {
+            headerPill.style.borderColor = '';
+            headerPill.style.background = '';
+        }
+    }
+    if (headerBtn) {
+        headerBtn.textContent = normTier === 'starter' ? 'Plans ⚡' : 'Active Plan ✓';
+    }
+
+    // 2. Active Subscription Card
+    const badgeName = document.getElementById('active-plan-badge-name');
+    const orgTitle = document.getElementById('active-plan-org-title');
+    const featuresSummary = document.getElementById('active-plan-features-summary');
+    const upgradeCta = document.getElementById('active-plan-upgrade-cta');
+    const subCard = document.getElementById('active-subscription-card');
+
+    if (badgeName) {
+        badgeName.textContent = `${planName.toUpperCase()} (ACTIVE)`;
+    }
+    if (orgTitle) {
+        orgTitle.textContent = `${currentSubscription.organization_name || 'Institutional Non-Profit Access'} • ${planName} Active`;
+    }
+    if (featuresSummary) {
+        if (normTier === 'foundation') {
+            featuresSummary.innerHTML = `✓ <strong>Enterprise Feed &amp; API</strong> &bull; ✓ <strong>Custom Domain Monitoring</strong> &bull; ✓ <strong>Unlimited Matching &amp; Exports</strong> &bull; ✓ <strong>50 Team Seats</strong>`;
+        } else if (normTier === 'enterprise') {
+            featuresSummary.innerHTML = `✓ <strong>Dedicated REST API Access</strong> &bull; ✓ <strong>Statutory Section 135 Audit Packs</strong> &bull; ✓ <strong>Bulk Exports</strong> &bull; ✓ <strong>15 Team Seats</strong>`;
+        } else if (normTier === 'pro') {
+            featuresSummary.innerHTML = `✓ <strong>Unlimited Algorithmic Donor Matches</strong> &bull; ✓ <strong>Unmasked Direct Contacts</strong> &bull; ✓ <strong>Live Crawler Probing</strong> &bull; ✓ <strong>1,000 Exports/mo</strong>`;
+        } else {
+            featuresSummary.innerHTML = `✓ Browse all 200 NSE Listed Corporations &bull; ✓ 3,030 Verified Jobs &bull; ✓ 5 Donor Matches / Day &bull; Standard Exports (25 rows)`;
+        }
+    }
+    if (upgradeCta) {
+        if (normTier === 'foundation') {
+            upgradeCta.textContent = 'Foundation Master Active 👑';
+            upgradeCta.style.opacity = '0.9';
+            upgradeCta.onclick = () => openSubscriptionModal('foundation');
+        } else if (normTier === 'enterprise') {
+            upgradeCta.textContent = 'Upgrade to Foundation 👑';
+            upgradeCta.style.opacity = '1';
+            upgradeCta.onclick = () => openSubscriptionModal('foundation');
+        } else if (normTier === 'pro') {
+            upgradeCta.textContent = 'Upgrade to Enterprise 🚀';
+            upgradeCta.style.opacity = '1';
+            upgradeCta.onclick = () => openSubscriptionModal('enterprise');
+        } else {
+            upgradeCta.textContent = 'Upgrade to Impact Pro ⚡';
+            upgradeCta.style.opacity = '1';
+            upgradeCta.onclick = () => openSubscriptionModal('pro');
+        }
+    }
+    if (subCard) {
+        if (normTier === 'foundation' || normTier === 'enterprise') {
+            subCard.style.borderColor = 'rgba(168, 85, 247, 0.5)';
+            subCard.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(15, 23, 42, 0.8))';
+        } else if (normTier === 'pro') {
+            subCard.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+            subCard.style.background = 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(15, 23, 42, 0.8))';
+        } else {
+            subCard.style.borderColor = '';
+            subCard.style.background = 'var(--bg-card)';
+        }
     }
 }
 
-function openSubscriptionModal(tier = 'pro') {
+// ===========================================================================
+// MULTI-STEP PROTOTYPE CHECKOUT MODAL & QUOTE SYSTEM
+// ===========================================================================
+async function openSubscriptionModal(tier = 'pro') {
     const modal = document.getElementById('modal-subscription');
     const body = document.getElementById('modal-sub-body');
     const title = document.getElementById('modal-sub-title');
     if (!modal || !body) return;
 
     modal.style.display = 'flex';
-    if (title) title.textContent = `Activate Plan: ${tier.toUpperCase()}`;
+    if (title) title.textContent = 'Change Plan';
+
+    const normTier = normalizeSubscriptionTier(tier);
+    const plan = dbPlansCatalog.find(p => p.code.toLowerCase() === normTier) || {
+        code: normTier,
+        name: normTier.toUpperCase(),
+        monthly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 499 : 999),
+        yearly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 4999 : 9999),
+        display_order: normTier === 'starter' ? 1 : (normTier === 'pro' ? 2 : 3),
+        features: []
+    };
+
+    checkoutSelectedPlan = plan;
+    checkoutSelectedCycle = 'monthly';
+
+    // Current subscription details
+    const currTier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'starter');
+    const isSamePlan = (plan.code.toLowerCase() === currTier);
+
+    // Requirement 3: If user selects the currently active plan
+    if (isSamePlan) {
+        body.innerHTML = `
+            <div style="text-align:center; padding:30px 16px;">
+                <div style="display:inline-block; padding:4px 14px; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); border-radius:20px; color:#818cf8; font-size:11px; font-weight:800; letter-spacing:0.5px; margin-bottom:14px;">
+                    CURRENT PLAN
+                </div>
+                <h3 style="margin:0 0 8px; font-size:20px; color:#fff; font-weight:800;">You are already on the ${escapeHtml(plan.name)} plan</h3>
+                <p style="color:var(--text-secondary); font-size:13.5px; max-width:380px; margin:0 auto 22px;">
+                    This is your currently active subscription plan. You cannot purchase the exact same active plan as a new subscription.
+                </p>
+                <button type="button" class="btn-secondary" style="padding:8px 22px;" onclick="closeModal('modal-subscription')">Close</button>
+            </div>
+        `;
+        return;
+    }
+
+    // Determine whether higher-priced or lower-priced
+    const currPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currTier);
+    const currentPrice = currPlanObj ? Number(currPlanObj.monthly_price || 0) : 0;
+    const targetPrice = Number(plan.monthly_price || 0);
+    const isLowerOrFree = (targetPrice < currentPrice) || plan.is_free;
+
+    if (isLowerOrFree) {
+        // Requirement 2 & 5: Lower-priced transition confirmation (NO "Downgrade")
+        const currPlanName = currPlanObj ? currPlanObj.name : currTier.toUpperCase();
+        const currEndStr = currentSubscription?.current_period_end ? new Date(currentSubscription.current_period_end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'current period end';
+        
+        body.innerHTML = `
+            <div style="background:rgba(15,23,42,0.85); border:1px solid var(--border-card); border-radius:10px; padding:22px; font-size:13.5px;">
+                <h3 style="margin:0 0 16px; font-size:18px; font-weight:800; color:#fff;">Confirm Plan Change</h3>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:18px;">
+                    <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:600;">Current Plan:</div>
+                        <div style="font-size:16px; font-weight:700; color:#fff; margin-top:2px;">${escapeHtml(currPlanName)}</div>
+                        <div style="font-size:12px; color:var(--accent-cyan); margin-top:4px;">Current Billing: ₹${currentPrice.toLocaleString('en-IN')}/month</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:600;">New Plan:</div>
+                        <div style="font-size:16px; font-weight:700; color:#38bdf8; margin-top:2px;">${escapeHtml(plan.name)}</div>
+                        <div style="font-size:12px; color:#38bdf8; margin-top:4px;">New Billing: ₹${targetPrice.toLocaleString('en-IN')}/month</div>
+                    </div>
+                </div>
+
+                <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:14px; font-size:13px; color:#cbd5e1; margin-bottom:20px; line-height:1.6;">
+                    <div>Your current <strong>${escapeHtml(currPlanName)}</strong> access remains available until: <strong style="color:#fff;">${currEndStr}</strong></div>
+                    <div style="margin-top:6px;"><strong>${escapeHtml(plan.name)}</strong> starts: <strong style="color:#38bdf8;">${currEndStr}</strong></div>
+                    <div style="margin-top:6px; font-size:12px; color:var(--text-secondary);">The new plan will become active after the current paid period.</div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn-secondary" style="padding:8px 18px;" onclick="closeModal('modal-subscription')">Cancel</button>
+                    <button type="button" class="btn-primary" id="btn-confirm-lower-plan" style="padding:8px 22px; font-weight:700;" onclick="executeSchedulePlanChange('${plan.code}')">
+                        Confirm Plan Change
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Higher-priced transition
+    await renderCheckoutStep(1, '');
+}
+
+async function executeSchedulePlanChange(targetPlanCode) {
+    const btn = document.getElementById('btn-confirm-lower-plan');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Scheduling Plan Change...';
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/change-plan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan_id: targetPlanCode })
+        });
+        const data = await res.json();
+        if (!res.ok || (data.status !== 'success' && !data.success)) {
+            throw new Error(data.message || data.detail || 'Failed to change plan.');
+        }
+
+        await loadSubscriptionState();
+        renderPlanChangeSuccessScreen(data);
+    } catch (err) {
+        alert(`Plan Change Error: ${err.message}`);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Confirm Plan Change';
+        }
+    }
+}
+
+function renderPlanChangeSuccessScreen(data) {
+    const body = document.getElementById('modal-sub-body');
+    const title = document.getElementById('modal-sub-title');
+    if (!body) return;
+    if (title) title.textContent = 'Plan Change Scheduled';
+
+    const effectiveDate = data.effective_date ? new Date(data.effective_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'current period end';
 
     body.innerHTML = `
-        <div style="font-size:14px; color:#e2e8f0; margin-bottom:16px;">
-            You selected the <strong>${tier.toUpperCase()}</strong> tier (${activeBillingCycle === 'yearly' ? 'Annual - 20% Off' : 'Monthly'}).
-        </div>
-        <div style="background:rgba(11,18,34,0.7); padding:14px; border-radius:10px; margin-bottom:16px; border:1px solid rgba(56,189,248,0.2);">
-            <div style="font-size:12px; color:#94a3b8; text-transform:uppercase; font-weight:700; margin-bottom:6px;">Included Features</div>
-            <div style="font-size:13px; color:#f8fafc; line-height:1.6;">
-                ✓ All 200 Top Enterprise Portals &bull; Unlimited Job Board &bull; Real-Time Live Web Extraction Logs &bull; Algorithmic Matching
+        <div style="text-align:center; padding:10px 0 20px;">
+            <div style="width:64px; height:64px; border-radius:50%; background:rgba(56,189,248,0.15); border:2px solid #38bdf8; color:#38bdf8; font-size:32px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                ✓
+            </div>
+            <h2 style="margin:0 0 8px; font-size:20px; color:#fff; font-weight:800;">Plan Change Confirmed</h2>
+            <div style="font-size:13.5px; color:#cbd5e1; max-width:440px; margin:0 auto; line-height:1.5;">
+                ${escapeHtml(data.message || `Your plan change has been scheduled. You will retain your current access until ${effectiveDate}.`)}
             </div>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button class="btn-secondary" onclick="closeModal('modal-subscription')">Cancel</button>
-            <button class="btn-primary" onclick="simulateCheckoutSuccess('${tier}')">Confirm &amp; Activate Plan</button>
+
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
+            <button type="button" class="btn-primary" style="padding:9px 24px;" onclick="closeModal('modal-subscription')">
+                Done
+            </button>
         </div>
     `;
 }
 
-function simulateCheckoutSuccess(tier) {
-    const label = document.getElementById('header-tier-label');
-    const badgeName = document.getElementById('active-plan-badge-name');
-    if (label) label.textContent = `⚡ ${tier.toUpperCase()}`;
-    if (badgeName) badgeName.textContent = `${tier.toUpperCase()} ACTIVE`;
-    closeModal('modal-subscription');
-    alert(`🎉 Successfully upgraded to ${tier.toUpperCase()}! You now have full enterprise access.`);
+async function changeCheckoutCycle(cycle, promoCode = '') {
+    checkoutSelectedCycle = cycle;
+    await renderCheckoutStep(1, promoCode);
 }
 
-async function loadSubscriptionState() {
-    // Initializer
+async function applyCheckoutPromo() {
+    const promoInput = document.getElementById('checkout-promo-input');
+    const code = promoInput ? promoInput.value.trim() : '';
+    await renderCheckoutStep(1, code);
 }
 
+async function renderCheckoutStep(step = 1, promoCode = '') {
+    const body = document.getElementById('modal-sub-body');
+    const title = document.getElementById('modal-sub-title');
+    if (!body || !checkoutSelectedPlan) return;
+
+    if (title) title.textContent = 'Confirm Plan Change';
+
+    // Show loading spinner
+    body.innerHTML = `
+        <div style="text-align:center; padding:40px 20px;">
+            <div style="display:inline-block; width:32px; height:32px; border:3px solid rgba(255,255,255,0.2); border-top-color:var(--accent-cyan); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+            <div style="margin-top:14px; font-size:13.5px; color:var(--text-secondary);">Calculating quotation &amp; proration...</div>
+        </div>
+    `;
+
+    // Fetch quote from backend
+    try {
+        const quoteRes = await fetch(`${API_BASE}/api/subscription/quote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                plan_id: checkoutSelectedPlan.code,
+                billing_cycle: checkoutSelectedCycle,
+                promo_code: promoCode,
+                place_of_supply: '27'
+            })
+        });
+
+        if (!quoteRes.ok) {
+            const err = await quoteRes.json();
+            throw new Error(err.detail || err.error || 'Failed to calculate quote.');
+        }
+
+        checkoutCurrentQuote = await quoteRes.json();
+    } catch (e) {
+        console.error('Quote calculation error:', e);
+        body.innerHTML = `
+            <div style="padding:20px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#f87171;">
+                <strong>Unable to generate quote:</strong> ${escapeHtml(e.message)}
+                <div style="margin-top:14px;">
+                    <button class="btn-secondary" onclick="closeModal('modal-subscription')">Close</button>
+                    <button class="btn-primary" onclick="openSubscriptionModal('${checkoutSelectedPlan.code}')">Retry</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const q = checkoutCurrentQuote;
+    const finalAmount = Number(q.final_amount || 0);
+    const hasSufficientWallet = (userWalletBalance >= finalAmount);
+    const balanceAfter = Math.max(0, userWalletBalance - finalAmount);
+
+    const currTier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'starter');
+    const currPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currTier);
+    const currPlanName = currPlanObj ? currPlanObj.name : currTier.toUpperCase();
+    const currPrice = currPlanObj ? Number(currPlanObj.monthly_price || 0) : 0;
+
+    body.innerHTML = `
+        <!-- Requirement 4: Higher Plan Confirmation Display -->
+        <div style="background:rgba(15,23,42,0.7); border:1px solid var(--border-card); border-radius:8px; padding:16px; margin-bottom:16px; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-secondary);">Current Plan:</span>
+                <strong style="color:#fff;">${escapeHtml(currPlanName)} — ₹${currPrice.toLocaleString('en-IN')}/month</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-secondary);">New Plan:</span>
+                <strong style="color:var(--accent-cyan); font-size:14px;">${escapeHtml(checkoutSelectedPlan.name)} — ₹${(checkoutSelectedCycle === 'yearly' ? checkoutSelectedPlan.yearly_price : checkoutSelectedPlan.monthly_price).toLocaleString('en-IN')}/${checkoutSelectedCycle === 'yearly' ? 'year' : 'month'}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08);">
+                <span style="color:var(--text-secondary);">Amount Payable:</span>
+                <strong class="mono" style="color:var(--success); font-size:14px;">₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-secondary);">Wallet Balance:</span>
+                <strong class="mono" style="color:#38bdf8;">₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.08);">
+                <span style="color:var(--text-secondary);">Balance After:</span>
+                <strong class="mono" style="color:${hasSufficientWallet ? '#34d399' : '#f87171'};">₹${balanceAfter.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+            </div>
+        </div>
+
+        <!-- Cycle & Promo -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
+            <div style="display:flex; gap:6px;">
+                <button type="button" class="btn-secondary ${checkoutSelectedCycle === 'monthly' ? 'btn-primary' : ''}" style="font-size:11.5px; padding:5px 12px;" onclick="changeCheckoutCycle('monthly', '${promoCode}')">
+                    Monthly
+                </button>
+                <button type="button" class="btn-secondary ${checkoutSelectedCycle === 'yearly' ? 'btn-primary' : ''}" style="font-size:11.5px; padding:5px 12px;" onclick="changeCheckoutCycle('yearly', '${promoCode}')">
+                    Annual (Save)
+                </button>
+            </div>
+            <div style="flex:1; max-width:220px; display:flex; gap:6px;">
+                <input type="text" id="checkout-promo-input" value="${escapeHtml(promoCode)}" placeholder="Promo code"
+                       style="width:100%; box-sizing:border-box; padding:6px 10px; background:rgba(30,41,59,0.7); border:1px solid var(--border-card); border-radius:6px; color:#fff; font-size:11.5px; font-family:'JetBrains Mono',monospace; text-transform:uppercase;">
+                <button type="button" class="btn-secondary" style="font-size:11px; padding:6px 10px;" onclick="applyCheckoutPromo()">
+                    Apply
+                </button>
+            </div>
+        </div>
+
+        ${!hasSufficientWallet ? `
+        <div style="padding:12px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:8px; font-size:12.5px; color:#f87171; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>Insufficient wallet balance.</strong><br>
+                    <span>Need ₹${(finalAmount - userWalletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} more.</span>
+                </div>
+                <button type="button" class="btn-primary" style="font-size:11.5px; padding:6px 12px;" onclick="openWalletTopupModal(${Math.ceil(finalAmount - userWalletBalance)})">
+                    Add Money +
+                </button>
+            </div>
+        </div>` : ''}
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-secondary" onclick="closeModal('modal-subscription')">Cancel</button>
+            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()">
+                Confirm Plan Change
+            </button>
+        </div>
+    `;
+}
+
+async function executeCheckout() {
+    const submitBtn = document.getElementById('btn-submit-checkout');
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <span style="display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:6px;"></span>
+            Processing Plan Change...
+        `;
+    }
+
+    const idempotencyKey = `chk_${checkoutSelectedPlan.code}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/change-plan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Idempotency-Key': idempotencyKey
+            },
+            body: JSON.stringify({
+                plan_id: checkoutSelectedPlan.code,
+                billing_cycle: checkoutSelectedCycle,
+                payment_method: 'WALLET',
+                promo_code: checkoutCurrentQuote?.promo_code || '',
+                idempotency_key: idempotencyKey,
+                place_of_supply: '27'
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || (data.status !== 'success' && !data.success)) {
+            throw new Error(data.message || data.error || data.detail || `Plan change failed (HTTP ${res.status})`);
+        }
+
+        await loadSubscriptionState();
+        renderCheckoutSuccessScreen(data);
+    } catch (err) {
+        console.error('Subscription checkout error:', err);
+        renderCheckoutFailureScreen(err.message);
+    }
+}
+
+function renderCheckoutSuccessScreen(data) {
+    const body = document.getElementById('modal-sub-body');
+    const title = document.getElementById('modal-sub-title');
+    if (!body) return;
+
+    if (title) title.textContent = '🎉 Plan Activated Successfully!';
+
+    const p = data.payment || {};
+    const sub = data.subscription || {};
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px 0 20px;">
+            <div style="width:64px; height:64px; border-radius:50%; background:rgba(16,185,129,0.15); border:2px solid #10b981; color:#34d399; font-size:32px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                ✓
+            </div>
+            <h2 style="margin:0 0 6px; font-size:20px; color:#fff; font-weight:800;">Plan Change Completed</h2>
+            <div style="font-size:13px; color:var(--text-secondary);">
+                Your new plan is now active with immediate entitlement access.
+            </div>
+        </div>
+
+        <div style="background:rgba(15,23,42,0.8); border:1px solid var(--border-card); border-radius:8px; padding:16px; margin-bottom:20px; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-secondary);">Active Plan:</span>
+                <strong style="color:var(--accent-cyan); font-size:14px;">${escapeHtml(sub.plan_name || checkoutSelectedPlan.name)}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-secondary);">Amount Charged:</span>
+                <span class="mono" style="color:var(--success); font-weight:700;">₹${Number(p.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-secondary);">Wallet Balance Remaining:</span>
+                <span class="mono" style="color:#38bdf8; font-weight:700;">₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-secondary);">Validity:</span>
+                <span style="color:#cbd5e1;">${sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : 'Indefinite'}</span>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <a href="/profile/" class="btn-secondary" style="flex:1; text-align:center; padding:9px 16px;">
+                View Billing Dashboard &nearr;
+            </a>
+            <button type="button" class="btn-primary" style="flex:1; padding:9px 16px;" onclick="closeModal('modal-subscription')">
+                Done &bull; Return to Platform
+            </button>
+        </div>
+    `;
+
+    showLiveToast(`🎉 Successfully switched to ${checkoutSelectedPlan.name}!`, 'success');
+}
+
+function renderCheckoutFailureScreen(errorMessage) {
+    const body = document.getElementById('modal-sub-body');
+    const title = document.getElementById('modal-sub-title');
+    if (!body) return;
+
+    if (title) title.textContent = '❌ Plan Change Unsuccessful';
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px 0 20px;">
+            <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.15); border:2px solid #ef4444; color:#f87171; font-size:32px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                ✕
+            </div>
+            <h2 style="margin:0 0 6px; font-size:20px; color:#fff; font-weight:800;">Transaction Failed</h2>
+            <div style="font-size:13px; color:#f87171; max-width:440px; margin:0 auto;">
+                ${escapeHtml(errorMessage || 'The plan change could not be completed.')}
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="btn-secondary" onclick="closeModal('modal-subscription')">Close</button>
+            <button type="button" class="btn-primary" onclick="openSubscriptionModal('${checkoutSelectedPlan?.code || 'pro'}')">
+                Try Again
+            </button>
+        </div>
+    `;
+}
+
+// ===========================================================================
+// WALLET TOP-UP MODAL (Requirements 12, 13, 14)
+// ===========================================================================
+function getWalletRoundOffSuggestions(amount) {
+    const val = Number(amount) || 0;
+    if (val <= 0) return [500, 1000, 2000];
+    const suggestions = [];
+    const nextMultiple = (v, step) => Math.ceil(v / step) * step;
+
+    if (val < 500) {
+        suggestions.push(500, 1000);
+    } else if (val < 1000) {
+        const next100 = nextMultiple(val, 100);
+        if (next100 > val && next100 < 1000) suggestions.push(next100);
+        suggestions.push(1000, 2000);
+    } else if (val < 2000) {
+        const next500 = nextMultiple(val, 500);
+        if (next500 > val) suggestions.push(next500);
+        suggestions.push(2000, 5000);
+    } else if (val < 5000) {
+        const next1000 = nextMultiple(val, 1000);
+        if (next1000 > val) suggestions.push(next1000);
+        suggestions.push(5000, 10000);
+    } else {
+        const next1000 = nextMultiple(val, 1000);
+        if (next1000 > val) suggestions.push(next1000);
+        suggestions.push(nextMultiple(val * 1.5, 5000));
+    }
+    const unique = [...new Set(suggestions)].filter(s => s > val).slice(0, 3);
+    return unique.length > 0 ? unique : [nextMultiple(val + 100, 500)];
+}
+
+function updateModalTopupSuggestions(val) {
+    const container = document.getElementById('modal-wallet-suggestions');
+    if (!container) return;
+    const suggestions = getWalletRoundOffSuggestions(val);
+    container.innerHTML = suggestions.map(s => `
+        <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="setModalTopupInput(${s})">&#8377;${s.toLocaleString('en-IN')}</button>
+    `).join('');
+}
+
+function setModalTopupInput(val) {
+    const input = document.getElementById('wallet-topup-input');
+    if (input) {
+        input.value = val;
+        updateModalTopupSuggestions(val);
+    }
+}
+
+function openWalletTopupModal(suggestedAmount = 500) {
+    const modal = document.getElementById('modal-wallet-topup');
+    const body = document.getElementById('modal-wallet-topup-body');
+    if (!modal || !body) return;
+
+    modal.style.display = 'flex';
+    const initAmt = suggestedAmount > 0 ? suggestedAmount : 500;
+
+    body.innerHTML = `
+        <div style="margin-bottom:16px;">
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Current Wallet Balance:</div>
+            <div class="mono" style="font-size:24px; font-weight:800; color:var(--success);">
+                ₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+            </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:11.5px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">
+                ADD MONEY
+            </label>
+            <div style="position:relative; display:flex; align-items:center; margin-bottom:12px;">
+                <span style="position:absolute; left:12px; color:var(--text-secondary); font-weight:700; font-size:15px;">₹</span>
+                <input type="number" id="wallet-topup-input" value="${initAmt}" min="1" step="1"
+                       oninput="updateModalTopupSuggestions(this.value)"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px 9px 30px; background:rgba(30,41,59,0.8); border:1px solid var(--border-card); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace;">
+            </div>
+
+            <label style="display:block; font-size:11.5px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">
+                Suggested Amounts
+            </label>
+            <div id="modal-wallet-suggestions" style="display:flex; gap:8px; flex-wrap:wrap;">
+                <!-- Filled dynamically -->
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+            <button type="button" class="btn-secondary" onclick="closeModal('modal-wallet-topup')">Cancel</button>
+            <button type="button" class="btn-primary" id="btn-topup-continue" onclick="confirmModalWalletRecharge()">
+                Continue &rarr;
+            </button>
+        </div>
+    `;
+
+    updateModalTopupSuggestions(initAmt);
+}
+
+function confirmModalWalletRecharge() {
+    const input = document.getElementById('wallet-topup-input');
+    const body = document.getElementById('modal-wallet-topup-body');
+    const amt = Number(input ? input.value : 0);
+
+    if (amt <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+    }
+
+    const currentBal = userWalletBalance;
+    const newBal = currentBal + amt;
+
+    // Requirement 14: Confirmation modal
+    body.innerHTML = `
+        <div style="font-size:13.5px;">
+            <h3 style="margin:0 0 16px; font-size:17px; font-weight:800; color:#fff;">Confirm Wallet Recharge</h3>
+
+            <div style="background:rgba(15,23,42,0.8); border:1px solid var(--border-card); border-radius:8px; padding:16px; margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; color:var(--text-secondary);">
+                    <span>Amount:</span>
+                    <strong class="mono" style="color:var(--success); font-size:15px;">₹${amt.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; color:var(--text-secondary);">
+                    <span>Current Balance:</span>
+                    <strong class="mono" style="color:#fff;">₹${currentBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-weight:700; color:#fff;">
+                    <span>New Balance:</span>
+                    <strong class="mono" style="color:#38bdf8; font-size:15px;">₹${newBal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn-secondary" onclick="openWalletTopupModal(${amt})">Cancel</button>
+                <button type="button" class="btn-primary" id="btn-topup-execute" onclick="executeWalletTopup(${amt})">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+async function executeWalletTopup(amountToCharge) {
+    const submitBtn = document.getElementById('btn-topup-execute');
+    const amount = Number(amountToCharge || 0);
+
+    if (amount <= 0) {
+        alert('Please enter a valid top-up amount.');
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Processing Recharge...';
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/wallet/topup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount_inr: amount })
+        });
+
+        const data = await res.json();
+        if (!res.ok || (data.status !== 'success' && !data.success)) {
+            throw new Error(data.message || data.error || 'Wallet recharge failed.');
+        }
+
+        userWalletBalance = Number(data.wallet ? data.wallet.balance_inr : (userWalletBalance + amount));
+        updateWalletBalanceInUI();
+        closeModal('modal-wallet-topup');
+        showLiveToast(`🎉 Successfully added ₹${amount.toLocaleString('en-IN')} to your prototype wallet!`, 'success');
+
+        // If checkout modal is open, refresh
+        const checkoutModal = document.getElementById('modal-subscription');
+        if (checkoutModal && checkoutModal.style.display !== 'none' && checkoutSelectedPlan) {
+            renderCheckoutStep(1, checkoutCurrentQuote?.promo_code || '');
+        }
+    } catch (e) {
+        alert(`Recharge error: ${e.message}`);
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Confirm';
+        }
+    }
+}
 // ===========================================================================
 // CSV EXPORT CENTER
 // ===========================================================================
@@ -2050,10 +3099,28 @@ function triggerCsvDownload(csv, filename) {
 }
 
 function exportJobsCSV() {
-    const list = filteredJobs.length > 0 ? filteredJobs : allJobs;
+    let list = filteredJobs.length > 0 ? filteredJobs : allJobs;
     if (!list || list.length === 0) {
         alert('No job records available to export.');
         return;
+    }
+
+    const tier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'free');
+    let exportLimit = list.length;
+    let limitNotice = '';
+
+    if (tier === 'free') {
+        exportLimit = 25;
+        list = list.slice(0, exportLimit);
+        limitNotice = ` (Export limited to 25 rows on Community Free. Upgrade to Pro for 1,000 rows or Ultra for all 3,030+ jobs)`;
+    } else if (tier === 'pro') {
+        exportLimit = 1000;
+        if (list.length > exportLimit) {
+            list = list.slice(0, exportLimit);
+        }
+        limitNotice = ` (Impact Pro: ${list.length} rows exported. Ultra unlocks complete bulk catalog)`;
+    } else {
+        limitNotice = ` (Ultra Enterprise: All ${list.length} jobs exported)`;
     }
 
     const headers = ['Company Name', 'NSE Symbol', 'Job Title', 'Department', 'Location', 'Work Mode', 'Experience', 'Status', 'Application URL'];
@@ -2070,7 +3137,8 @@ function exportJobsCSV() {
     ]);
 
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    triggerCsvDownload(csv, `ImpactBridge_Verified_Enterprise_Jobs_${Date.now()}.csv`);
+    triggerCsvDownload(csv, `ImpactBridge_Verified_Enterprise_Jobs_${tier.toUpperCase()}_${Date.now()}.csv`);
+    showLiveToast(`✅ Exported ${list.length} verified jobs${limitNotice}.`, 'success');
 }
 
 function exportCompaniesCSV() {
@@ -2079,8 +3147,27 @@ function exportCompaniesCSV() {
         return;
     }
 
+    const tier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'free');
+    let list = allRecommendations;
+    let exportLimit = list.length;
+    let limitNotice = '';
+
+    if (tier === 'free') {
+        exportLimit = 25;
+        list = list.slice(0, exportLimit);
+        limitNotice = ` (Export limited to 25 rows on Community Free tier. Upgrade to Pro for 1,000 rows/mo or Ultra for complete bulk datasets)`;
+    } else if (tier === 'pro') {
+        exportLimit = 1000;
+        if (list.length > exportLimit) {
+            list = list.slice(0, exportLimit);
+        }
+        limitNotice = ` (Impact Pro Tier: ${list.length} rows exported)`;
+    } else {
+        limitNotice = ` (Ultra Enterprise Tier: Full dataset exported)`;
+    }
+
     const headers = ['Company Name', 'NSE Symbol', 'Sector', 'Headquarters', 'Official Website', 'Careers Portal', 'CSR Portal', 'Readiness Score'];
-    const rows = allRecommendations.map(c => [
+    const rows = list.map(c => [
         `"${(c.company_name || '').replace(/"/g, '""')}"`,
         `"${(c.nse_symbol || '').replace(/"/g, '""')}"`,
         `"${(c.sector || '').replace(/"/g, '""')}"`,
@@ -2092,7 +3179,8 @@ function exportCompaniesCSV() {
     ]);
 
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    triggerCsvDownload(csv, `ImpactBridge_Top_200_Indian_Corporations_${Date.now()}.csv`);
+    triggerCsvDownload(csv, `ImpactBridge_Top_200_Indian_Corporations_${tier.toUpperCase()}_${Date.now()}.csv`);
+    showLiveToast(`✅ Exported ${list.length} company records${limitNotice}.`, 'success');
 }
 
 function exportPipelineCSV() {

@@ -1,0 +1,152 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Payments &amp; Transactions{% endblock %}
+{% block page_title %}Prototype Payment Transactions ({{ total_count }}){% endblock %}
+
+{% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="payments" %}
+
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:800px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search by payment ID or username..."
+                   style="flex:1; min-width:180px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+
+            <select name="status" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Statuses</option>
+                <option value="SUCCESS" {% if selected_status == "SUCCESS" %}selected{% endif %}>SUCCESS</option>
+                <option value="PENDING" {% if selected_status == "PENDING" %}selected{% endif %}>PENDING</option>
+                <option value="FAILED" {% if selected_status == "FAILED" %}selected{% endif %}>FAILED</option>
+                <option value="CANCELLED" {% if selected_status == "CANCELLED" %}selected{% endif %}>CANCELLED</option>
+                <option value="REFUNDED" {% if selected_status == "REFUNDED" %}selected{% endif %}>REFUNDED</option>
+            </select>
+
+            <select name="type" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Types</option>
+                <option value="SUBSCRIPTION" {% if selected_type == "SUBSCRIPTION" %}selected{% endif %}>Subscription</option>
+                <option value="UPGRADE" {% if selected_type == "UPGRADE" %}selected{% endif %}>Upgrade</option>
+                <option value="RENEWAL" {% if selected_type == "RENEWAL" %}selected{% endif %}>Renewal</option>
+                <option value="TOPUP" {% if selected_type == "TOPUP" %}selected{% endif %}>Wallet Top-Up</option>
+                <option value="REFUND" {% if selected_type == "REFUND" %}selected{% endif %}>Refund</option>
+            </select>
+
+            <select name="method" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <option value="all">All Methods</option>
+                <option value="WALLET" {% if selected_method == "WALLET" %}selected{% endif %}>Wallet</option>
+                <option value="UPI" {% if selected_method == "UPI" %}selected{% endif %}>UPI (Proto)</option>
+                <option value="CARD" {% if selected_method == "CARD" %}selected{% endif %}>Card (Proto)</option>
+                <option value="NETBANKING" {% if selected_method == "NETBANKING" %}selected{% endif %}>NetBanking</option>
+                <option value="CORPORATE_PO" {% if selected_method == "CORPORATE_PO" %}selected{% endif %}>Corporate PO</option>
+            </select>
+
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+            {% if search_query or selected_status != "all" or selected_type != "all" or selected_method != "all" %}
+            <a href="{% url 'admin_subscriptions:payments_list' %}" class="btn-admin btn-admin-secondary" style="color:var(--admin-muted);">Reset</a>
+            {% endif %}
+        </form>
+
+        <span class="badge-status badge-pending" style="font-size:11px;">
+            Simulated / Prototype Payments
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Payment ID</th>
+                    <th>User</th>
+                    <th>Plan / Purpose</th>
+                    <th>Amount (INR)</th>
+                    <th>Method</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:#fff; font-family:'JetBrains Mono',monospace; font-size:12.5px;">{{ p.payment_id }}</strong>
+                        {% if p.is_prototype %}
+                        <div style="font-size:10px; color:#38bdf8;">PROTOTYPE</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="color:#fff; font-weight:600;">{{ p.user.username }}</span>
+                        <div style="font-size:11px; color:var(--admin-muted);">{{ p.user.email }}</div>
+                    </td>
+                    <td>
+                        <span class="badge-status badge-active" style="font-size:11px;">
+                            {{ p.plan_code|upper|default:"TOPUP" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--admin-success); font-size:13.5px;">
+                            &#8377; {{ p.amount_inr|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-size:12px; color:var(--admin-muted);">{{ p.payment_method }}</span>
+                    </td>
+                    <td>
+                        <span style="font-size:12px;">{{ p.payment_type }}</span>
+                    </td>
+                    <td>
+                        {% if p.payment_status == "SUCCESS" %}
+                        <span class="badge-status badge-active">SUCCESS</span>
+                        {% elif p.payment_status == "REFUNDED" %}
+                        <span class="badge-status badge-rejected">REFUNDED</span>
+                        {% elif p.payment_status == "FAILED" %}
+                        <span class="badge-status badge-rejected">FAILED</span>
+                        {% elif p.payment_status == "CANCELLED" %}
+                        <span class="badge-status badge-rejected">CANCELLED</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">{{ p.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; color:var(--admin-muted);">
+                        {{ p.created_at|date:"M d, Y H:i" }}
+                    </td>
+                    <td style="text-align:right;">
+                        {% if p.payment_status == "SUCCESS" and p.payment_type != "REFUND" %}
+                        <form method="POST" action="{% url 'admin_subscriptions:payment_refund' p.payment_id %}" style="display:inline; margin:0;" onsubmit="return confirm('Refund this payment (₹{{ p.amount_inr }}) back to the user\'s prototype wallet?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-admin btn-admin-danger" style="font-size:11px; padding:3px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444;">
+                                Refund to Wallet
+                            </button>
+                        </form>
+                        {% else %}
+                        <span style="font-size:11px; color:var(--admin-muted);">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align:center; padding:28px; color:var(--admin-muted);">
+                        No payment records found matching the specified filters.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}&type={{ selected_type }}&method={{ selected_method }}&q={{ search_query }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&status={{ selected_status }}&type={{ selected_type }}&method={{ selected_method }}&q={{ search_query }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

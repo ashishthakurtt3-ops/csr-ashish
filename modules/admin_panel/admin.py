@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     User, Company, Job, OpportunityScore, CSRProject, CSROpportunity,
     Contact, NGOCollaboration, PageRecord, AuditTrail, Prospect,
+    Plan, PlanEntitlement, Wallet, WalletTransaction, Payment,
     PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter,
     Document, ServiceCatalog
 )
@@ -102,6 +103,40 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_filter = ('status',)
 
 
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'monthly_price_paise', 'yearly_price_paise', 'is_active', 'is_visible', 'display_order')
+    search_fields = ('code', 'name')
+    list_filter = ('is_active', 'is_visible', 'is_popular')
+
+
+@admin.register(PlanEntitlement)
+class PlanEntitlementAdmin(admin.ModelAdmin):
+    list_display = ('plan', 'feature_key', 'display_name', 'feature_type', 'is_unlimited')
+    search_fields = ('feature_key', 'display_name')
+    list_filter = ('feature_type', 'plan')
+
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ('user', 'balance_paise', 'currency', 'is_active', 'updated_at')
+    search_fields = ('user__username', 'user__email')
+
+
+@admin.register(WalletTransaction)
+class WalletTransactionAdmin(admin.ModelAdmin):
+    list_display = ('transaction_id', 'user', 'transaction_type', 'credit_or_debit', 'amount_paise', 'balance_after_paise', 'created_at')
+    search_fields = ('transaction_id', 'user__username')
+    list_filter = ('transaction_type', 'credit_or_debit')
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('payment_id', 'user', 'plan_code', 'payment_type', 'amount_paise', 'payment_status', 'payment_method', 'created_at')
+    search_fields = ('payment_id', 'user__username', 'transaction_reference')
+    list_filter = ('payment_status', 'payment_type', 'payment_method')
+
+
 @admin.register(AuditTrail)
 class AuditTrailAdmin(admin.ModelAdmin):
     list_display = ('audit_id', 'record_type', 'record_id', 'action', 'user_role', 'timestamp')
@@ -113,3 +148,4 @@ class AuditTrailAdmin(admin.ModelAdmin):
 class ServiceCatalogAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'price_inr', 'is_active')
     list_filter = ('category', 'is_active')
+

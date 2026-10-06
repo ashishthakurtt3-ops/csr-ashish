@@ -5,7 +5,10 @@ from .opportunity import OpportunityScore, CSRProject, CSROpportunity
 from .contact import Contact, NGOCollaboration
 from .crawler import PageRecord, AuditTrail
 from .prospect import Prospect
-from .subscription import PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter
+from .subscription import (
+    Plan, PlanEntitlement, Wallet, WalletTransaction, Payment,
+    PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter
+)
 from .document import Document
 from .service import ServiceCatalog
 
@@ -21,6 +24,11 @@ __all__ = [
     'PageRecord',
     'AuditTrail',
     'Prospect',
+    'Plan',
+    'PlanEntitlement',
+    'Wallet',
+    'WalletTransaction',
+    'Payment',
     'PromoCode',
     'Subscription',
     'SubscriptionEvent',

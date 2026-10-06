@@ -1,26 +1,9 @@
 """
-Subscription / billing service — Django-ORM edition.
+Subscription / billing service — Database-Driven Django-ORM Edition.
 
-This module is a complete, self-contained replacement for the legacy
-``app.subscription`` module.  All data is read from / written to the
-Django ORM (MySQL, the project's primary database), so no raw PyMySQL
-connection is opened.
-
-Public surface used by ``subscription_api_views.py``:
-    plans_payload()
-    promos_payload()
-    current(tenant_id)
-    quote(payload, tenant_id)
-    validate_promo(payload, tenant_id)
-    checkout(payload, tenant_id)
-    cancel(payload, tenant_id)
-    resume(payload, tenant_id)
-    history(tenant_id, limit)
-    invoices_payload(tenant_id, limit)
-    usage_payload(tenant_id)
-    rotate_api_key(tenant_id)
-    normalise_tenant(value)
-    SubscriptionError
+All pricing, plans, features, limits, wallets, payments, and billing lifecycles
+are backed directly by MySQL through the Django ORM.
+Hardcoded pricing constants have been removed as the source of truth.
 """
 from __future__ import annotations
 
@@ -35,19 +18,23 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Dict, List, Optional, Tuple
 
-# ── Django ORM imports (safe to use anywhere settings are configured) ──────
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone as dtz
+
 from modules.admin_panel.models import (
-    PromoCode, Subscription, SubscriptionEvent, Invoice,
+    Plan, PlanEntitlement, Wallet, WalletTransaction, Payment,
+    PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter, User
 )
 
 # ── Money / currency constants ──────────────────────────────────────────────
 CURRENCY = 'INR'
 GST_RATE_BPS = 1800          # 18.00 %  (1 % = 100 bps)
-SUPPLIER_STATE_CODE = str(os.environ.get('SUPPLIER_STATE_CODE', '29')).strip().upper()
+SUPPLIER_STATE_CODE = str(os.environ.get('SUPPLIER_STATE_CODE', '27')).strip().upper()
 DEFAULT_TENANT_ID = 'tenant_default'
 TRIAL_DAYS = int(os.environ.get('SUBSCRIPTION_TRIAL_DAYS', '14'))
 
-PAYMENT_METHODS = ('UPI', 'Card', 'NetBanking', 'Corporate PO', 'NEFT')
+PAYMENT_METHODS = ('WALLET', 'UPI', 'Card', 'NetBanking', 'Corporate PO', 'NEFT')
 BILLING_CYCLES = ('monthly', 'yearly')
 
 _STATUS_ACTIVE = 'ACTIVE'
@@ -71,8 +58,15 @@ STATE_CODES: Dict[str, str] = {
     '37': 'Andhra Pradesh',
 }
 
+PLAN_ALIASES: Dict[str, str] = {
+    'free': 'starter',
+    'community_free': 'starter',
+    'ultra': 'enterprise',
+    'api': 'foundation',
+    'institutional': 'foundation',
+}
 
-# ── Exception ───────────────────────────────────────────────────────────────
+
 class SubscriptionError(Exception):
     def __init__(self, message: str, status_code: int = 400, code: str = 'invalid_request'):
         super().__init__(message)
@@ -141,131 +135,117 @@ def period_end(start: datetime, cycle: str) -> datetime:
     return _add_months(start, 12 if cycle == 'yearly' else 1)
 
 
-# ── Plan catalogue ────────────────────────────────────────────────────────────
-_RAW_PLANS: List[Dict[str, Any]] = [
-    {
-        'id': 'starter', 'name': 'Community Starter', 'badge': 'Free Forever',
-        'is_popular': False, 'price_monthly': 0, 'price_yearly': 0,
-        'billing_note': 'No credit card required',
-        'description': 'Essential CSR intelligence for grassroots non-profits.',
-        'features': [
-            'Full Top 200 Listed Companies Registry',
-            'Verified Official Corporate & CSR Portal URLs',
-            '5 Donor Matchmaker Queries / Day',
-            'Daily Web Crawl Provenance Logs',
-            'CSV Exports (up to 50 records / month)',
-            'Community Email Support',
-        ],
-        'highlight_features': ['5 Matches/Day', '200 Companies', 'Standard Exports'],
-        'cta_text': 'Start Free',
-        'limits': {'daily_matches': 5, 'api_access': False, 'live_reprobe': False,
-                   'seats': 1, 'export_rows_per_month': 50},
-    },
-    {
-        'id': 'pro', 'name': 'Impact Pro', 'badge': 'Most Popular',
-        'is_popular': True, 'price_monthly': 4999, 'price_yearly': 47990,
-        'billing_note': 'Billed monthly or annually (+18% GST)',
-        'description': 'Advanced discovery & intelligence suite for active NGOs.',
-        'features': [
-            'Everything in Starter, plus:',
-            'Unlimited Donor Matchmaker Queries',
-            'Live Website Re-Check & On-Demand Web Scraping',
-            'Real-Time Corporate Open RFPs & Grant Deadline Radar',
-            '1-Click Tailored CSR Pitch & Outreach Email Generator',
-            'Live Social Impact Job Board & Verified Recruiter Links',
-            'Outreach Pipeline CRM with Custom Tags & Export',
-            'Unlimited Master Dataset Exports (CSV & JSON)',
-            'Priority Email & Chat Support',
-        ],
-        'highlight_features': ['Unlimited Matchmaker', 'Live Scrape On-Demand',
-                               'Open RFPs Radar', 'Outreach CRM'],
-        'cta_text': 'Upgrade to Impact Pro',
-        'limits': {'daily_matches': None, 'api_access': False, 'live_reprobe': True,
-                   'seats': 3, 'export_rows_per_month': None},
-    },
-    {
-        'id': 'enterprise', 'name': 'Enterprise CSR', 'badge': 'Enterprise',
-        'is_popular': False, 'price_monthly': 19999, 'price_yearly': 189990,
-        'billing_note': 'Billed monthly or annually (+18% GST)',
-        'description': 'High-volume intelligence for large foundations.',
-        'features': [
-            'Everything in Pro, plus:',
-            '10 Dedicated Team Seats & Multi-User Collaboration',
-            'Statutory Section 135 & Schedule VII Audit Reports',
-            'Real-Time Slack & Microsoft Teams Webhook Alerts',
-            'Priority High-Speed Web Scraping Probes (Hourly Sync)',
-            'Custom Corporate Domain & Subsidiary Tracking',
-            'Auditor-Ready Evidence Packs with Raw Provenance',
-            'Dedicated CSR Account Strategist & 99.9% SLA',
-        ],
-        'highlight_features': ['10 Team Seats', 'Section 135 Audit Reports',
-                               'Slack / Teams Webhooks', 'Hourly Crawl Priority'],
-        'cta_text': 'Upgrade to Enterprise',
-        'limits': {'daily_matches': None, 'api_access': True, 'live_reprobe': True,
-                   'seats': 10, 'export_rows_per_month': None},
-    },
-    {
-        'id': 'api', 'name': 'Institutional Data Feed & API', 'badge': 'Developer Feed',
-        'is_popular': False, 'price_monthly': 49999, 'price_yearly': 479990,
-        'billing_note': 'Billed monthly or annually (+18% GST)',
-        'description': 'Programmatic access for research institutions & fintech.',
-        'features': [
-            'Everything in Enterprise, plus:',
-            'Dedicated REST API with Key Management',
-            'Batch Export Up to 10,000 Records per Call',
-            'Custom Data Ingestion Hooks (webhooks)',
-            'Premium SLA with 24/7 Support',
-        ],
-        'highlight_features': ['REST API Access', '10K Batch Exports', 'Webhooks', '24/7 SLA'],
-        'cta_text': 'Contact Sales',
-        'limits': {'daily_matches': None, 'api_access': True, 'live_reprobe': True,
-                   'seats': 25, 'export_rows_per_month': None},
-    },
-]
+# ── Database-Driven Plan Resolution ──────────────────────────────────────────
+def _plan_model_to_dict(plan: Plan) -> Dict[str, Any]:
+    monthly_paise = int(plan.monthly_price_paise or 0)
+    yearly_paise = int(plan.yearly_price_paise or 0)
+    full_year_paise = monthly_paise * 12
+    savings_paise = max(0, full_year_paise - yearly_paise)
+    savings_pct = round((savings_paise / full_year_paise) * 100, 1) if full_year_paise else 0.0
 
+    limits_dict = plan.get_limits_and_entitlements()
+    features_list = list(plan.features or [])
+    highlight_list = list(plan.highlight_features or [])
 
-def _build_catalog() -> List[Dict[str, Any]]:
-    catalog = []
-    for raw in _RAW_PLANS:
-        monthly = rupees_to_paise(raw['price_monthly'])
-        yearly = rupees_to_paise(raw['price_yearly'])
-        full_year = monthly * 12
-        savings = max(0, full_year - yearly)
-        savings_percent = round((savings / full_year) * 100, 1) if full_year else 0.0
-        plan = dict(raw)
-        plan['price_monthly_paise'] = monthly
-        plan['price_yearly_paise'] = yearly
-        plan['price_monthly_display'] = format_inr(monthly)
-        plan['price_yearly_display'] = format_inr(yearly)
-        plan['currency'] = '₹'
-        plan['savings_yearly_paise'] = savings
-        plan['savings_yearly_display'] = format_inr(savings)
-        plan['savings_percent'] = savings_percent
-        plan['savings_label'] = (
-            f'Save {format_inr(savings)} / year ({savings_percent}% off)'
-            if savings else None
-        )
-        plan['is_free'] = monthly == 0
-        plan['is_contact_sales'] = raw['id'] == 'api'
-        catalog.append(plan)
-    return catalog
+    renewal_paise = getattr(plan, 'renewal_price_paise', None)
+    if renewal_paise is None:
+        renewal_paise = monthly_paise
+    wallet_deduct_paise = getattr(plan, 'wallet_deduction_paise', None)
+    if wallet_deduct_paise is None:
+        wallet_deduct_paise = monthly_paise
 
-
-PLANS_CATALOG: List[Dict[str, Any]] = _build_catalog()
-PLANS_BY_ID: Dict[str, Dict[str, Any]] = {p['id']: p for p in PLANS_CATALOG}
+    return {
+        'id': plan.code,
+        'code': plan.code,
+        'name': plan.name,
+        'slug': plan.slug,
+        'badge': plan.badge or ('Free Forever' if monthly_paise == 0 else ''),
+        'description': plan.description or '',
+        'cta_text': getattr(plan, 'button_text', None) or plan.cta_text or ('Start Free' if monthly_paise == 0 else f'Switch to {plan.name}'),
+        'button_text': getattr(plan, 'button_text', None) or ('Start Free' if monthly_paise == 0 else 'Change Plan'),
+        'button_visible': bool(getattr(plan, 'button_visible', True)),
+        'button_order': int(getattr(plan, 'button_order', 1) or 1),
+        'billing_note': plan.billing_note or ('No credit card required' if monthly_paise == 0 else 'Billed monthly or annually (+18% GST)'),
+        'is_recommended': bool(getattr(plan, 'is_recommended', False)),
+        'discount_percent': int(getattr(plan, 'discount_percent', 0) or 0),
+        'savings_text': getattr(plan, 'savings_text', None) or (f'Save {format_inr(savings_paise)}' if savings_paise else ''),
+        'renewal_price_paise': renewal_paise,
+        'renewal_price': paise_to_rupees(renewal_paise),
+        'renewal_price_display': format_inr(renewal_paise),
+        'wallet_deduction_paise': wallet_deduct_paise,
+        'wallet_deduction': paise_to_rupees(wallet_deduct_paise),
+        'wallet_deduction_display': format_inr(wallet_deduct_paise),
+        'card_description': getattr(plan, 'card_description', None) or plan.description or '',
+        'additional_info': getattr(plan, 'additional_info', None) or '',
+        'terms': getattr(plan, 'terms', None) or '',
+        'notes': getattr(plan, 'notes', None) or '',
+        'price_monthly_paise': monthly_paise,
+        'price_yearly_paise': yearly_paise,
+        'monthly_price_paise': monthly_paise,
+        'yearly_price_paise': yearly_paise,
+        'price_monthly': paise_to_rupees(monthly_paise),
+        'price_yearly': paise_to_rupees(yearly_paise),
+        'monthly_price': paise_to_rupees(monthly_paise),
+        'yearly_price': paise_to_rupees(yearly_paise),
+        'price_monthly_display': format_inr(monthly_paise),
+        'price_yearly_display': format_inr(yearly_paise),
+        'currency': '₹',
+        'is_active': bool(plan.is_active),
+        'savings_yearly_paise': savings_paise,
+        'savings_yearly_display': format_inr(savings_paise),
+        'savings_percent': savings_pct,
+        'savings_label': f'Save {format_inr(savings_paise)} / year ({savings_pct}% off)' if savings_paise else None,
+        'is_free': monthly_paise == 0,
+        'is_popular': bool(plan.is_popular),
+        'is_contact_sales': bool(plan.is_contact_sales),
+        'display_order': plan.display_order,
+        'trial_days': plan.trial_days,
+        'allow_upgrade': bool(plan.allow_upgrade),
+        'allow_plan_change': bool(plan.allow_downgrade),
+        'allow_cancel': bool(plan.allow_cancel),
+        'auto_renew_default': bool(plan.auto_renew_default),
+        'features': features_list,
+        'highlight_features': highlight_list,
+        'limits': limits_dict,
+    }
 
 
 def get_plan(plan_id: Any) -> Optional[Dict[str, Any]]:
-    return PLANS_BY_ID.get(str(plan_id or '').strip().lower())
+    key = str(plan_id or '').strip().lower()
+    canonical_key = PLAN_ALIASES.get(key, key)
+    try:
+        plan_obj = Plan.objects.filter(code=canonical_key).first()
+        if not plan_obj:
+            plan_obj = Plan.objects.filter(code=key).first()
+        if plan_obj:
+            return _plan_model_to_dict(plan_obj)
+    except Exception:
+        pass
+    return None
 
 
 def require_plan(plan_id: Any) -> Dict[str, Any]:
     plan = get_plan(plan_id)
     if not plan:
+        valid_plans = [p.code for p in Plan.objects.filter(is_active=True).order_by('display_order')]
         raise SubscriptionError(
-            f"Unknown plan '{plan_id}'. Valid plans: {', '.join(PLANS_BY_ID)}.",
-            404, 'unknown_plan')
+            f"Unknown plan '{plan_id}'. Valid plans: {', '.join(valid_plans)}.",
+            404, 'unknown_plan'
+        )
+    if not plan.get('is_active', True):
+        raise SubscriptionError(f"Plan '{plan_id}' is inactive and cannot be purchased.", 400, 'plan_inactive')
     return plan
+
+
+def get_all_active_plans() -> List[Dict[str, Any]]:
+    try:
+        qs = Plan.objects.filter(is_active=True).order_by('display_order', 'monthly_price_paise')
+        if qs.exists():
+            return [_plan_model_to_dict(p) for p in qs]
+    except Exception:
+        pass
+    starter = get_plan('starter')
+    return [starter] if starter else []
 
 
 def base_price_paise(plan: Dict[str, Any], cycle: str) -> int:
@@ -304,7 +284,7 @@ def normalise_cycle(value: Any) -> str:
 
 
 def normalise_payment_method(value: Any) -> str:
-    method = ' '.join(str(value or 'UPI').split())
+    method = ' '.join(str(value or 'WALLET').split())
     if method not in PAYMENT_METHODS:
         raise SubscriptionError(
             f"payment_method must be one of: {', '.join(PAYMENT_METHODS)}.", 422, 'invalid_payment_method')
@@ -384,46 +364,6 @@ def _promo_model_to_dict(p: PromoCode) -> Dict[str, Any]:
     }
 
 
-_PROMO_SEED = [
-    {'code': 'IMPACT2026', 'percent_off': 25, 'max_redemptions': 100,
-     'valid_from': '2026-01-01T00:00:00+00:00', 'valid_until': '2026-12-31T23:59:59+00:00',
-     'applicable_plans': ['pro', 'enterprise'], 'description': 'Impact 2026 launch promo'},
-    {'code': 'NGO10', 'percent_off': 10, 'max_redemptions': 500,
-     'valid_from': '2026-01-01T00:00:00+00:00', 'valid_until': None,
-     'applicable_plans': None, 'description': 'NGO partner discount'},
-    {'code': 'CSR2026', 'percent_off': 20, 'max_redemptions': 300,
-     'valid_from': '2026-01-01T00:00:00+00:00', 'valid_until': '2026-12-31T23:59:59+00:00',
-     'applicable_plans': ['pro', 'enterprise', 'api'], 'description': 'CSR director programme discount'},
-    {'code': 'PARTNER20', 'percent_off': 20, 'max_redemptions': 500,
-     'valid_from': '2026-01-01T00:00:00+00:00', 'valid_until': None,
-     'applicable_plans': ['pro', 'enterprise', 'api'], 'description': 'Partner referral discount'},
-    {'code': 'ENTERPRISE15', 'percent_off': 15, 'max_redemptions': 200,
-     'valid_from': '2026-01-01T00:00:00+00:00', 'valid_until': None,
-     'applicable_plans': ['enterprise', 'api'], 'description': 'Enterprise volume discount'},
-]
-
-
-def _seed_promos() -> int:
-    inserted = 0
-    for seed in _PROMO_SEED:
-        _, created = PromoCode.objects.get_or_create(
-            code=seed['code'],
-            defaults={
-                'percent_off': seed['percent_off'],
-                'max_redemptions': seed['max_redemptions'],
-                'times_redeemed': 0,
-                'valid_from': seed['valid_from'],
-                'valid_until': seed['valid_until'],
-                'applicable_plans': json.dumps(seed['applicable_plans']) if seed['applicable_plans'] else None,
-                'description': seed['description'],
-                'active': True,
-            }
-        )
-        if created:
-            inserted += 1
-    return inserted
-
-
 def evaluate_promo(code: Optional[str], plan_id: str, base_paise: int) -> Dict[str, Any]:
     if not code:
         return {'valid': False, 'code': None, 'percent_off': 0, 'message': None, 'applied': False}
@@ -456,9 +396,11 @@ def evaluate_promo(code: Optional[str], plan_id: str, base_paise: int) -> Dict[s
                 'message': f'Promo code {code} has reached its redemption limit.', 'applied': False}
 
     allowed = promo['applicable_plans']
-    if allowed and plan_id not in allowed:
-        return {'valid': False, 'code': code, 'percent_off': 0,
-                'message': f"Promo code {code} is only valid on: {', '.join(allowed)}.", 'applied': False}
+    if allowed:
+        canonical_plan = PLAN_ALIASES.get(plan_id, plan_id)
+        if plan_id not in allowed and canonical_plan not in allowed:
+            return {'valid': False, 'code': code, 'percent_off': 0,
+                    'message': f"Promo code {code} is only valid on: {', '.join(allowed)}.", 'applied': False}
 
     discount = pct_of(base_paise, promo['percent_off'])
     return {
@@ -470,12 +412,222 @@ def evaluate_promo(code: Optional[str], plan_id: str, base_paise: int) -> Dict[s
     }
 
 
+# ── User and Tenant Resolution ───────────────────────────────────────────────
+def resolve_user_and_tenant(user=None, tenant_id: Optional[str] = None) -> Tuple[Optional[User], str]:
+    if user and getattr(user, 'is_authenticated', False):
+        existing_sub = Subscription.objects.filter(user=user).first()
+        if existing_sub:
+            return user, existing_sub.tenant_id
+        # Fallback to check if a subscription exists for username or default if admin
+        if user.is_superuser or user.role == 'ADMIN':
+            default_sub = Subscription.objects.filter(tenant_id=DEFAULT_TENANT_ID).first()
+            if default_sub:
+                if not default_sub.user:
+                    default_sub.user = user
+                    default_sub.save(update_fields=['user'])
+                return user, DEFAULT_TENANT_ID
+        return user, f"user_{user.id}"
+    tenant = normalise_tenant(tenant_id)
+    return None, tenant
+
+
+# ── Wallet Service (Prototype Atomic Operations) ─────────────────────────────
+def get_or_create_wallet(user: User) -> Wallet:
+    wallet, _ = Wallet.objects.get_or_create(user=user, defaults={'balance_paise': 0})
+    return wallet
+
+
+def get_wallet_data(user: User) -> Dict[str, Any]:
+    wallet = get_or_create_wallet(user)
+    recent_txns = list(
+        WalletTransaction.objects.filter(user=user).order_by('-created_at')[:20].values(
+            'transaction_id', 'transaction_type', 'credit_or_debit',
+            'amount_paise', 'balance_before_paise', 'balance_after_paise',
+            'reference_type', 'reference_id', 'description', 'status', 'created_at'
+        )
+    )
+    for t in recent_txns:
+        t['amount_display'] = format_inr(t['amount_paise'])
+        t['balance_after_display'] = format_inr(t['balance_after_paise'])
+        t['amount_rupees'] = paise_to_rupees(t['amount_paise'])
+        t['balance_after_rupees'] = paise_to_rupees(t['balance_after_paise'])
+
+    return {
+        'balance_paise': wallet.balance_paise,
+        'balance_rupees': wallet.balance_rupees,
+        'balance_inr': wallet.balance_rupees,
+        'balance_display': format_inr(wallet.balance_paise),
+        'currency': wallet.currency,
+        'is_active': wallet.is_active,
+        'recent_transactions': recent_txns,
+    }
+
+
+def topup_wallet(user: User, amount_paise: int, payment_method: str = 'WALLET_TOPUP',
+                 description: Optional[str] = None, request_id: Optional[str] = None) -> Dict[str, Any]:
+    if amount_paise <= 0:
+        raise SubscriptionError('Top-up amount must be greater than zero.', 400, 'invalid_amount')
+
+    # Idempotency check
+    if request_id:
+        existing_payment = Payment.objects.filter(idempotency_key=request_id, payment_status='SUCCESS').first()
+        if existing_payment:
+            wallet = get_or_create_wallet(user)
+            return {
+                'status': 'success',
+                'idempotent_replay': True,
+                'payment_id': existing_payment.payment_id,
+                'amount_paise': existing_payment.amount_paise,
+                'amount_display': format_inr(existing_payment.amount_paise),
+                'balance_paise': wallet.balance_paise,
+                'balance_display': format_inr(wallet.balance_paise),
+                'message': f"Top-up of {format_inr(existing_payment.amount_paise)} already applied.",
+            }
+
+    with transaction.atomic():
+        # Row-lock wallet
+        wallet = Wallet.objects.select_for_update().get_or_create(user=user, defaults={'balance_paise': 0})[0]
+        bal_before = wallet.balance_paise
+        bal_after = bal_before + amount_paise
+        wallet.balance_paise = bal_after
+        wallet.save(update_fields=['balance_paise', 'updated_at'])
+
+        pay_id = f"PAY_TOPUP_{uuid.uuid4().hex[:12].upper()}"
+        payment = Payment.objects.create(
+            payment_id=pay_id,
+            user=user,
+            amount_paise=amount_paise,
+            currency=CURRENCY,
+            payment_method=payment_method,
+            payment_status='SUCCESS',
+            payment_type='TOPUP',
+            transaction_reference=f"TXN_TOPUP_{uuid.uuid4().hex[:8].upper()}",
+            idempotency_key=request_id,
+            is_prototype=True,
+            metadata={'balance_before': bal_before, 'balance_after': bal_after},
+            completed_at=dtz.now(),
+        )
+
+        txn_id = f"WTXN_{uuid.uuid4().hex[:12].upper()}"
+        WalletTransaction.objects.create(
+            transaction_id=txn_id,
+            wallet=wallet,
+            user=user,
+            transaction_type='WALLET_TOPUP',
+            credit_or_debit='CREDIT',
+            amount_paise=amount_paise,
+            balance_before_paise=bal_before,
+            balance_after_paise=bal_after,
+            reference_type='PAYMENT',
+            reference_id=pay_id,
+            description=description or f"Prototype Wallet Top-Up of {format_inr(amount_paise)}",
+            status='SUCCESS',
+        )
+
+        SubscriptionEvent.objects.create(
+            subscription_id=None,
+            tenant_id=f"user_{user.id}",
+            event_type='WALLET_TOPUP',
+            amount_paise=amount_paise,
+            notes=f"Added {format_inr(amount_paise)} prototype funds. New balance: {format_inr(bal_after)}",
+            actor=user.username,
+            created_at=_now(),
+        )
+
+    return {
+        'status': 'success',
+        'success': True,
+        'payment_id': pay_id,
+        'transaction_id': txn_id,
+        'amount_paise': amount_paise,
+        'amount_display': format_inr(amount_paise),
+        'balance_before_display': format_inr(bal_before),
+        'balance_display': format_inr(bal_after),
+        'balance_rupees': paise_to_rupees(bal_after),
+        'balance_inr': paise_to_rupees(bal_after),
+        'message': f"Successfully credited {format_inr(amount_paise)} to your prototype wallet!",
+    }
+
+
+def refund_payment(payment_id: str, actor: str = 'Admin', reason: Optional[str] = None) -> Dict[str, Any]:
+    with transaction.atomic():
+        try:
+            payment = Payment.objects.select_for_update().get(payment_id=payment_id)
+        except Payment.DoesNotExist:
+            raise SubscriptionError(f"Payment '{payment_id}' not found.", 404, 'payment_not_found')
+
+        if payment.payment_status == 'REFUNDED':
+            raise SubscriptionError('This payment has already been refunded.', 400, 'already_refunded')
+        if payment.payment_status != 'SUCCESS':
+            raise SubscriptionError(f"Cannot refund payment with status '{payment.payment_status}'.", 400, 'invalid_status')
+
+        user = payment.user
+        amount = payment.amount_paise
+        if not user or amount <= 0:
+            payment.payment_status = 'REFUNDED'
+            payment.failure_reason = reason or 'Refunded without wallet credit'
+            payment.save(update_fields=['payment_status', 'failure_reason'])
+            return {'status': 'success', 'message': f'Payment {payment_id} marked as refunded.'}
+
+        wallet = Wallet.objects.select_for_update().get_or_create(user=user, defaults={'balance_paise': 0})[0]
+        bal_before = wallet.balance_paise
+        bal_after = bal_before + amount
+        wallet.balance_paise = bal_after
+        wallet.save(update_fields=['balance_paise', 'updated_at'])
+
+        payment.payment_status = 'REFUNDED'
+        payment.failure_reason = reason or 'Refunded to prototype wallet'
+        payment.save(update_fields=['payment_status', 'failure_reason'])
+
+        txn_id = f"WTXN_{uuid.uuid4().hex[:12].upper()}"
+        WalletTransaction.objects.create(
+            transaction_id=txn_id,
+            wallet=wallet,
+            user=user,
+            transaction_type='REFUND',
+            credit_or_debit='CREDIT',
+            amount_paise=amount,
+            balance_before_paise=bal_before,
+            balance_after_paise=bal_after,
+            reference_type='PAYMENT',
+            reference_id=payment.payment_id,
+            description=f"Refund for payment {payment.payment_id}: {reason or 'Administrative refund'}",
+            status='SUCCESS',
+        )
+
+        # Update invoice status if linked
+        Invoice.objects.filter(payment=payment).update(status='REFUNDED')
+
+        SubscriptionEvent.objects.create(
+            subscription_id=payment.subscription.subscription_id if payment.subscription else None,
+            tenant_id=f"user_{user.id}",
+            event_type='REFUND',
+            amount_paise=amount,
+            notes=f"Refunded {format_inr(amount)} to wallet. Reason: {reason or 'Admin action'}",
+            actor=actor,
+            created_at=_now(),
+        )
+
+    return {
+        'status': 'success',
+        'success': True,
+        'payment_id': payment_id,
+        'amount_paise': amount,
+        'amount_display': format_inr(amount),
+        'new_balance_display': format_inr(bal_after),
+        'message': f"Payment {payment_id} refunded successfully. {format_inr(amount)} credited back to wallet.",
+    }
+
+
 # ── Subscription ORM helpers ─────────────────────────────────────────────────
 def _sub_to_dict(s: Subscription) -> Dict[str, Any]:
+    plan_dict = s.plan.get_limits_and_entitlements() if s.plan else {}
     return {
         'subscription_id': s.subscription_id,
         'tenant_id': s.tenant_id,
-        'plan_id': s.plan_id,
+        'user_id': s.user_id,
+        'plan_id': s.plan_id or s.plan_tier,
+        'plan_code': s.plan_tier,
         'status': s.status,
         'billing_cycle': s.billing_cycle,
         'organization_name': s.organization_name,
@@ -486,6 +638,10 @@ def _sub_to_dict(s: Subscription) -> Dict[str, Any]:
         'cancel_at_period_end': int(s.cancel_at_period_end or 0),
         'canceled_at': s.canceled_at,
         'cancel_reason': s.cancel_reason,
+        'auto_renew': bool(s.auto_renew),
+        'pending_change_plan': s.pending_downgrade_plan,
+        'pending_change_cycle': s.pending_downgrade_cycle,
+        'pending_change_date': s.pending_downgrade_date,
         'promo_code': s.promo_code,
         'promo_percent': int(s.promo_percent or 0),
         'base_amount_paise': int(s.base_amount_paise or 0),
@@ -512,77 +668,121 @@ def _sub_to_dict(s: Subscription) -> Dict[str, Any]:
     }
 
 
-def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    starter = PLANS_BY_ID['starter']
+def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    starter = get_plan('starter') or {
+        'id': 'starter', 'name': 'Community Starter', 'badge': 'Free Forever',
+        'is_free': True, 'features': [], 'highlight_features': [],
+        'limits': {'seats': 1, 'daily_matches': 5, 'api_access': False, 'live_reprobe': False, 'view_contacts': False, 'audit_packs': False}
+    }
     ts = _now()
+    org_name = user.organization_name if user and user.organization_name else 'Unregistered Organisation'
+    email = user.email if user and user.email else None
     return {
         'subscription_id': f'SUB_FREE_{tenant_id}'.upper()[:48],
         'tenant_id': tenant_id,
+        'user_id': user.id if user else None,
         'plan_id': 'starter',
+        'plan_code': 'starter',
         'plan_name': starter['name'],
         'tier': 'starter',
         'status': _STATUS_ACTIVE,
         'billing_cycle': 'free',
-        'organization_name': 'Unregistered Organisation',
-        'contact_email': None,
+        'organization_name': org_name,
+        'contact_email': email,
         'activated_at': ts, 'current_period_start': ts, 'current_period_end': None,
         'cancel_at_period_end': 0, 'canceled_at': None, 'cancel_reason': None,
+        'auto_renew': False,
+        'pending_change_plan': None, 'pending_change_cycle': None, 'pending_change_date': None,
         'promo_code': None, 'promo_percent': 0,
         'base_amount_paise': 0, 'discount_paise': 0, 'taxable_paise': 0,
         'cgst_paise': 0, 'sgst_paise': 0, 'igst_paise': 0, 'total_paise': 0,
         'currency': CURRENCY, 'payment_method': None, 'transaction_id': None,
         'gstin': None, 'place_of_supply': SUPPLIER_STATE_CODE, 'supply_type': 'INTRA_STATE',
-        'seats': starter['limits']['seats'] or 1,
-        'daily_match_quota': starter['limits']['daily_matches'],
+        'seats': starter['limits'].get('seats') or 1,
+        'daily_match_quota': starter['limits'].get('daily_matches'),
         'api_key_hash': None, 'api_key_prefix': None, 'api_key_last4': None,
         'request_id': None, 'created_at': ts, 'updated_at': ts,
     }
 
 
 def _refresh_status(row: Dict[str, Any]) -> Dict[str, Any]:
-    """Auto-expire a paid subscription whose billing period has lapsed."""
-    if row.get('plan_id') == 'starter' or not row.get('current_period_end'):
-        return row
-    if row.get('status') == _STATUS_EXPIRED:
+    """Auto-expire or apply scheduled downgrade if billing period lapsed."""
+    pid = str(row.get('plan_id') or '').lower()
+    if pid in ('starter', 'free') or not row.get('current_period_end'):
         return row
     end = _parse_iso(row.get('current_period_end'))
     if not end or datetime.now(timezone.utc) < end:
         return row
-    # Mark expired in DB
-    try:
-        Subscription.objects.filter(tenant_id=row['tenant_id']).update(
+
+    # Period has lapsed
+    tenant = row['tenant_id']
+    pending_down = row.get('pending_downgrade_plan')
+    auto_renew = bool(row.get('auto_renew'))
+
+    if pending_down:
+        # Apply scheduled downgrade
+        down_plan = get_plan(pending_down) or get_plan('starter')
+        Subscription.objects.filter(tenant_id=tenant).update(
+            plan_id=down_plan['id'],
+            plan_record=Plan.objects.filter(code=down_plan['id']).first(),
+            pending_downgrade_plan=None,
+            pending_downgrade_cycle=None,
+            pending_downgrade_date=None,
+            updated_at=_now(),
+        )
+        SubscriptionEvent.objects.create(
+            subscription_id=row['subscription_id'],
+            tenant_id=tenant,
+            event_type='DOWNGRADE_APPLIED',
+            from_plan=row.get('plan_id'), to_plan=down_plan['id'],
+            amount_paise=0,
+            notes=f"Scheduled plan change to {down_plan['name']} applied at period end.",
+            actor='System', created_at=_now(),
+        )
+        updated = dict(row)
+        updated['plan_id'] = down_plan['id']
+        updated['pending_downgrade_plan'] = None
+        return updated
+
+    if not auto_renew and row.get('status') != _STATUS_EXPIRED:
+        Subscription.objects.filter(tenant_id=tenant).update(
             status=_STATUS_EXPIRED, updated_at=_now()
         )
         SubscriptionEvent.objects.create(
             subscription_id=row['subscription_id'],
-            tenant_id=row['tenant_id'],
+            tenant_id=tenant,
             event_type='SUBSCRIPTION_EXPIRED',
             from_plan=row.get('plan_id'), to_plan='starter',
             amount_paise=0,
             notes=f"Billing period ended on {row.get('current_period_end')}.",
             actor='System', created_at=_now(),
         )
-    except Exception:
-        pass
-    expired = dict(row)
-    expired['status'] = _STATUS_EXPIRED
-    expired['plan_id'] = 'starter'
-    return expired
+        expired = dict(row)
+        expired['status'] = _STATUS_EXPIRED
+        return expired
+
+    return row
 
 
-def _load(tenant_id: str) -> Dict[str, Any]:
-    try:
-        s = Subscription.objects.get(tenant_id=tenant_id)
-        row = _sub_to_dict(s)
-        return _refresh_status(row)
-    except Subscription.DoesNotExist:
-        return empty_subscription(tenant_id)
+def _load(tenant_id: str, user: Optional[User] = None) -> Dict[str, Any]:
+    qs = Subscription.objects.all()
+    if user and getattr(user, 'is_authenticated', False):
+        s = qs.filter(user=user).first()
+        if s:
+            return _refresh_status(_sub_to_dict(s))
+    s = qs.filter(tenant_id=tenant_id).first()
+    if s:
+        if user and not s.user:
+            s.user = user
+            s.save(update_fields=['user'])
+        return _refresh_status(_sub_to_dict(s))
+    return empty_subscription(tenant_id, user)
 
 
 def _entitlement(row: Dict[str, Any]) -> Dict[str, Any]:
     if row.get('status') in (_STATUS_EXPIRED, _STATUS_CANCELED):
-        return PLANS_BY_ID['starter']
-    return get_plan(row.get('plan_id')) or PLANS_BY_ID['starter']
+        return get_plan('starter')
+    return get_plan(row.get('plan_id')) or get_plan('starter')
 
 
 def effective_plan_id(row: Dict[str, Any]) -> str:
@@ -590,7 +790,7 @@ def effective_plan_id(row: Dict[str, Any]) -> str:
 
 
 def serialize(row: Dict[str, Any]) -> Dict[str, Any]:
-    plan = get_plan(row.get('plan_id')) or PLANS_BY_ID['starter']
+    plan = get_plan(row.get('plan_id')) or get_plan('starter')
     out = dict(row)
     out['plan_name'] = plan['name']
     out['tier'] = plan['id']
@@ -601,6 +801,7 @@ def serialize(row: Dict[str, Any]) -> Dict[str, Any]:
     out['highlight_features'] = plan['highlight_features']
     out['currency_symbol'] = '₹'
     out['cancel_at_period_end'] = int(row.get('cancel_at_period_end') or 0)
+    out['auto_renew'] = bool(row.get('auto_renew'))
     for field in ('base_amount', 'discount', 'taxable', 'cgst', 'sgst', 'igst', 'total'):
         out[f'{field}_display'] = format_inr(row.get(f'{field}_paise'))
     out['total_amount'] = paise_to_rupees(row.get('total_paise'))
@@ -613,49 +814,32 @@ def serialize(row: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-# ── Usage metering (simple DB table via Django ORM) ──────────────────────────
-# We use a minimal usage_counters pattern.  If the model doesn't exist yet
-# (table not migrated), usage checks degrade gracefully to 0.
+# ── Usage metering ───────────────────────────────────────────────────────────
 def _get_usage(tenant_id: str, metric: str, period_date: Optional[str] = None) -> int:
-    from django.utils import timezone as dtz
     today = period_date or datetime.now(timezone.utc).date().isoformat()
     try:
-        from django.db import connection
-        with connection.cursor() as cur:
-            cur.execute(
-                'SELECT used FROM usage_counters WHERE tenant_id=%s AND metric=%s AND period_date=%s',
-                [tenant_id, metric, today]
-            )
-            row = cur.fetchone()
-        return int(row[0]) if row else 0
+        uc = UsageCounter.objects.filter(tenant_id=tenant_id, metric=metric, period_date=today).first()
+        return uc.used if uc else 0
     except Exception:
         return 0
 
 
 def _bump_usage(tenant_id: str, metric: str, amount: int = 1) -> int:
     today = datetime.now(timezone.utc).date().isoformat()
-    current = _get_usage(tenant_id, metric, today)
-    new_total = current + amount
     try:
-        from django.db import connection
-        with connection.cursor() as cur:
-            if current == 0:
-                cur.execute(
-                    'INSERT INTO usage_counters(tenant_id, metric, period_date, used) VALUES(%s,%s,%s,%s)',
-                    [tenant_id, metric, today, new_total]
-                )
-            else:
-                cur.execute(
-                    'UPDATE usage_counters SET used=%s WHERE tenant_id=%s AND metric=%s AND period_date=%s',
-                    [new_total, tenant_id, metric, today]
-                )
+        uc, _ = UsageCounter.objects.get_or_create(
+            tenant_id=tenant_id, metric=metric, period_date=today,
+            defaults={'used': 0}
+        )
+        uc.used += amount
+        uc.save(update_fields=['used'])
+        return uc.used
     except Exception:
-        pass
-    return new_total
+        return 1
 
 
 def quota_snapshot(row: Dict[str, Any]) -> Dict[str, Any]:
-    plan = get_plan(row.get('plan_id')) or PLANS_BY_ID['starter']
+    plan = get_plan(row.get('plan_id')) or get_plan('starter')
     limit = plan['limits'].get('daily_matches')
     tenant = row.get('tenant_id') or DEFAULT_TENANT_ID
     used = _get_usage(tenant, 'ngo_matches')
@@ -670,14 +854,15 @@ def quota_snapshot(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-# ── Pricing helpers ────────────────────────────────────────────────────────────
+# ── Pricing & Proration helpers ──────────────────────────────────────────────
 def _zero_credit() -> Dict[str, Any]:
     return {'credit_paise': 0, 'credit_display': format_inr(0),
             'remaining_days': 0, 'total_days': 0, 'applies': False}
 
 
 def _proration_credit(row: Dict[str, Any], now_dt: datetime) -> Dict[str, Any]:
-    if not row or row.get('plan_id') in (None, 'starter'):
+    pid = str(row.get('plan_id') or '').lower()
+    if not row or pid in ('starter', 'free'):
         return _zero_credit()
     if row.get('status') not in (_STATUS_ACTIVE, _STATUS_TRIALING):
         return _zero_credit()
@@ -733,6 +918,7 @@ def _breakdown(plan: Dict[str, Any], cycle: str, promo: Dict[str, Any],
     return {
         'plan_id': plan['id'], 'plan_name': plan['name'], 'billing_cycle': cycle,
         'base_amount_paise': base, 'base_amount_display': format_inr(base),
+        'base_paise': base,
         'discount_paise': discount, 'discount_display': format_inr(discount),
         'credit_paise': credit_amount, 'credit_display': format_inr(credit_amount),
         'taxable_paise': taxable, 'taxable_display': format_inr(taxable),
@@ -742,10 +928,14 @@ def _breakdown(plan: Dict[str, Any], cycle: str, promo: Dict[str, Any],
 
 
 def _change_type(current_plan_id: str, target_plan_id: str) -> str:
-    order = {p['id']: i for i, p in enumerate(PLANS_CATALOG)}
-    if current_plan_id == target_plan_id:
+    curr = PLAN_ALIASES.get(str(current_plan_id or '').lower(), str(current_plan_id or '').lower())
+    target = PLAN_ALIASES.get(str(target_plan_id or '').lower(), str(target_plan_id or '').lower())
+    if not curr or curr in ('starter', 'free'):
+        return 'SUBSCRIPTION'
+    if curr == target:
         return 'RENEWAL'
-    return 'UPGRADE' if order.get(target_plan_id, 0) > order.get(current_plan_id, 0) else 'DOWNGRADE'
+    order_map = {'starter': 1, 'free': 1, 'pro': 2, 'enterprise': 3, 'ultra': 3, 'foundation': 4, 'api': 4}
+    return 'UPGRADE' if order_map.get(target, 0) > order_map.get(curr, 0) else 'DOWNGRADE'
 
 
 def _new_api_key(plan_id: str) -> Tuple[str, str, str, str]:
@@ -764,12 +954,18 @@ def _invoice_number(issued_at: str, invoice_id: int) -> str:
 def _create_invoice(tenant_id: str, subscription_id: str, description: str,
                     tax: Dict[str, Any], taxable_paise: int, total_paise: int,
                     gstin: Optional[str], line_items: List[Dict[str, Any]],
-                    status: str = 'PAID') -> Dict[str, Any]:
+                    status: str = 'PAID', user: Optional[User] = None,
+                    payment: Optional[Payment] = None, plan_id: Optional[str] = None,
+                    cycle: Optional[str] = None) -> Dict[str, Any]:
     issued_at = _now()
     inv = Invoice.objects.create(
         invoice_no=None,
+        user=user,
         subscription_id=subscription_id,
+        plan_id=plan_id,
+        payment=payment,
         tenant_id=tenant_id,
+        billing_cycle=cycle,
         issued_at=issued_at,
         description=description,
         taxable_paise=int(taxable_paise),
@@ -781,23 +977,32 @@ def _create_invoice(tenant_id: str, subscription_id: str, description: str,
         gstin=gstin,
         place_of_supply=tax['place_of_supply'],
         status=status,
+        line_items=json.dumps(line_items) if line_items else None,
     )
     invoice_no = _invoice_number(issued_at, inv.invoice_id)
     inv.invoice_no = invoice_no
     inv.save(update_fields=['invoice_no'])
     return {
-        'invoice_id': inv.invoice_id, 'invoice_no': invoice_no,
+        'invoice_id': inv.invoice_id, 'invoice_no': invoice_no, 'invoice_number': invoice_no,
         'issued_at': issued_at, 'status': status,
+        'total_paise': total_paise, 'total_display': format_inr(total_paise),
     }
 
 
-def _list_invoices(tenant_id: str, limit: int = 50) -> List[Dict[str, Any]]:
-    qs = Invoice.objects.filter(tenant_id=tenant_id).order_by('-invoice_id')[:min(limit, 500)]
+def _list_invoices(tenant_id: str, user: Optional[User] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    qs = Invoice.objects.all()
+    if user and getattr(user, 'is_authenticated', False):
+        qs = qs.filter(user=user)
+    else:
+        qs = qs.filter(tenant_id=tenant_id)
+    qs = qs.order_by('-invoice_id')[:min(limit, 500)]
+
     result = []
     for inv in qs:
         d = {
             'invoice_id': inv.invoice_id, 'invoice_no': inv.invoice_no,
             'subscription_id': inv.subscription_id, 'tenant_id': inv.tenant_id,
+            'plan_id': inv.plan_id,
             'issued_at': inv.issued_at, 'description': inv.description,
             'taxable_paise': int(inv.taxable_paise or 0),
             'cgst_paise': int(inv.cgst_paise or 0),
@@ -806,28 +1011,30 @@ def _list_invoices(tenant_id: str, limit: int = 50) -> List[Dict[str, Any]]:
             'total_paise': int(inv.total_paise or 0),
             'currency': inv.currency, 'gstin': inv.gstin,
             'place_of_supply': inv.place_of_supply, 'status': inv.status,
-            'line_items': [],
+            'payment_id': inv.payment.payment_id if inv.payment else None,
+            'line_items': json.loads(inv.line_items) if inv.line_items else [],
         }
         for field in ('taxable', 'cgst', 'sgst', 'igst', 'total'):
             d[f'{field}_display'] = format_inr(d.get(f'{field}_paise'))
+            d[f'{field}_rupees'] = paise_to_rupees(d.get(f'{field}_paise'))
         result.append(d)
     return result
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
+# ── Public APIs ──────────────────────────────────────────────────────────────
 def plans_payload() -> Dict[str, Any]:
+    catalog = get_all_active_plans()
     return {
         'status': 'success', 'currency': 'INR', 'currency_symbol': '₹',
         'gst_rate_percent': round(GST_RATE_BPS / 100, 2),
         'supplier_state_code': SUPPLIER_STATE_CODE,
         'billing_cycles': list(BILLING_CYCLES), 'payment_methods': list(PAYMENT_METHODS),
-        'trial_days': TRIAL_DAYS, 'plans': PLANS_CATALOG,
+        'trial_days': TRIAL_DAYS, 'plans': catalog,
         'state_codes': [{'code': c, 'name': n} for c, n in sorted(STATE_CODES.items())],
     }
 
 
 def promos_payload() -> Dict[str, Any]:
-    _seed_promos()
     now_dt = datetime.now(timezone.utc)
     redeemable = []
     for p in PromoCode.objects.all().order_by('code'):
@@ -852,54 +1059,68 @@ def promos_payload() -> Dict[str, Any]:
     return {'status': 'success', 'count': len(redeemable), 'promos': redeemable}
 
 
-def current(tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    _seed_promos()
-    tenant = normalise_tenant(tenant_id)
-    row = _load(tenant)
+def current(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
+    row = _load(resolved_tenant, user_obj)
     sub = serialize(row)
     quota = quota_snapshot(row)
-    plan = get_plan(sub.get('plan_id')) or PLANS_BY_ID['starter']
+    plan = get_plan(sub.get('plan_id')) or get_plan('starter')
     events = list(
-        SubscriptionEvent.objects.filter(tenant_id=tenant).order_by('-event_id')[:5].values(
+        SubscriptionEvent.objects.filter(tenant_id=resolved_tenant).order_by('-event_id')[:5].values(
             'event_id', 'event_type', 'from_plan', 'to_plan',
             'amount_paise', 'notes', 'actor', 'created_at'
         )
     )
+    wallet_data = get_wallet_data(user_obj) if user_obj else None
+
     return {
-        'status': 'success', 'tenant_id': tenant,
+        'status': 'success', 'tenant_id': resolved_tenant,
+        'user_id': user_obj.id if user_obj else None,
         'subscription': sub, 'plan_details': plan,
         'quota': quota, 'recent_events': events,
+        'wallet': wallet_data,
         'has_api_key': bool(sub.get('has_api_key')),
     }
 
 
-def quote(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    _seed_promos()
+def quote(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
     plan = require_plan(payload.get('plan_id'))
     cycle = normalise_cycle(payload.get('billing_cycle'))
     state_code = normalise_state(payload.get('place_of_supply'))
     promo_code = normalise_promo_code(payload.get('promo_code'))
-    tenant = normalise_tenant(tenant_id)
     now_dt = datetime.now(timezone.utc)
 
-    current_row = _load(tenant)
+    current_row = _load(resolved_tenant, user_obj)
     current_plan_id = effective_plan_id(current_row)
     credit = (_proration_credit(current_row, now_dt)
-              if current_plan_id != plan['id'] and current_plan_id != 'starter'
+              if current_plan_id != plan['id'] and current_plan_id not in ('starter', 'free')
               else _zero_credit())
     promo = evaluate_promo(promo_code, plan['id'], base_price_paise(plan, cycle))
     bd = _breakdown(plan, cycle, promo, state_code, credit)
     quota = quota_snapshot(current_row)
 
+    wallet_balance_paise = 0
+    if user_obj:
+        wallet = get_or_create_wallet(user_obj)
+        wallet_balance_paise = wallet.balance_paise
+
+    sufficient_wallet = wallet_balance_paise >= bd['total_paise']
+
     return {
-        'status': 'success', 'quoted_at': now_dt.isoformat(), 'tenant_id': tenant,
+        'status': 'success', 'quoted_at': now_dt.isoformat(), 'tenant_id': resolved_tenant,
         'current_plan_id': current_plan_id,
         'change_type': _change_type(current_plan_id, plan['id']),
         'requires_payment': bd['total_paise'] > 0,
-        'plan': {'id': plan['id'], 'name': plan['name'], 'badge': plan['badge'],
-                 'features': plan['features'], 'limits': plan['limits'],
-                 'is_popular': plan['is_popular'], 'cta_text': plan['cta_text']},
+        'plan': plan,
         'promo': promo, 'proration': credit, 'breakdown': bd, 'current_quota': quota,
+        'wallet': {
+            'balance_paise': wallet_balance_paise,
+            'balance_display': format_inr(wallet_balance_paise),
+            'sufficient_balance': sufficient_wallet,
+            'shortfall_paise': max(0, bd['total_paise'] - wallet_balance_paise),
+            'shortfall_display': format_inr(max(0, bd['total_paise'] - wallet_balance_paise)),
+        },
         'summary': {
             'plan_id': plan['id'], 'plan_name': plan['name'], 'billing_cycle': cycle,
             'line_items': bd['lines'],
@@ -912,6 +1133,7 @@ def quote(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[s
             'sgst_display': bd['tax']['sgst_display'],
             'total_tax_display': bd['tax']['total_tax_display'],
             'total_display': bd['total_display'],
+            'total_paise': bd['total_paise'],
             'gst_rate_percent': bd['tax']['gst_rate_percent'],
             'supply_type': bd['tax']['supply_type'],
             'place_of_supply': bd['tax']['place_of_supply'],
@@ -920,8 +1142,7 @@ def quote(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[s
     }
 
 
-def validate_promo(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    _seed_promos()
+def validate_promo(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
     plan = require_plan(payload.get('plan_id'))
     cycle = normalise_cycle(payload.get('billing_cycle'))
     code = normalise_promo_code(payload.get('promo_code'))
@@ -929,50 +1150,61 @@ def validate_promo(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) 
     return {'status': 'success', 'promo': result}
 
 
-def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    _seed_promos()
-    tenant = normalise_tenant(tenant_id)
+def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
     plan = require_plan(payload.get('plan_id'))
     cycle = normalise_cycle(payload.get('billing_cycle'))
-    org = normalise_org(payload.get('organization_name'))
-    email = normalise_email(payload.get('contact_email'))
+    payment_method = str(payload.get('payment_method') or 'WALLET').strip().upper()
+    if payment_method not in PAYMENT_METHODS:
+        payment_method = 'WALLET'
+
+    raw_org = payload.get('organization_name') or (user_obj.organization_name if user_obj and user_obj.organization_name else None) or 'ImpactBridge Enterprise Subscriber'
+    raw_email = payload.get('contact_email') or (user_obj.email if user_obj and user_obj.email else None) or 'subscriber@impactbridge.org'
+    org = normalise_org(raw_org)
+    email = normalise_email(raw_email)
     state_code = normalise_state(payload.get('place_of_supply'))
     gstin = normalise_gstin(payload.get('gstin'))
     promo_code = normalise_promo_code(payload.get('promo_code'))
-    request_id = str(payload.get('request_id') or '').strip()[:64] or None
+    request_id = str(payload.get('request_id') or '').strip()[:128] or None
     want_trial = bool(payload.get('start_trial')) and not plan['is_free']
-    payment_method = (None if (plan['is_free'] or want_trial)
-                      else normalise_payment_method(payload.get('payment_method')))
     now_dt = datetime.now(timezone.utc)
 
-    # Idempotency check
-    try:
-        existing_sub = Subscription.objects.get(tenant_id=tenant)
-        existing_dict = _sub_to_dict(existing_sub)
-        if request_id and existing_dict.get('request_id') == request_id:
-            replay_row = _load(tenant)
-            prior_invoices = _list_invoices(tenant, 1)
+    # Idempotency check: if request_id was processed within 24h, return previous transaction
+    if request_id:
+        prior_payment = Payment.objects.filter(idempotency_key=request_id, payment_status='SUCCESS').first()
+        if prior_payment:
+            replay_row = _load(resolved_tenant, user_obj)
+            prior_invoices = _list_invoices(resolved_tenant, user_obj, 1)
             return {
                 'status': 'success', 'idempotent_replay': True, 'change_type': 'REPLAY',
-                'message': f"Replayed the existing {plan['name']} activation (request {request_id} already applied).",
+                'message': f"Request {request_id} already applied. Replayed current subscription state.",
                 'subscription': serialize(replay_row),
                 'invoice': prior_invoices[0] if prior_invoices else None,
-                'quote': None, 'quota': quota_snapshot(replay_row), 'api_key': None, 'api_key_note': None,
+                'payment': {
+                    'payment_id': prior_payment.payment_id,
+                    'amount_paise': prior_payment.amount_paise,
+                    'amount_display': format_inr(prior_payment.amount_paise),
+                    'status': prior_payment.payment_status,
+                },
+                'quote': None, 'quota': quota_snapshot(replay_row), 'api_key': None,
             }
-    except Subscription.DoesNotExist:
-        existing_dict = None
 
-    current_row = _load(tenant)
+    current_row = _load(resolved_tenant, user_obj)
     from_plan = effective_plan_id(current_row)
     credit = (_proration_credit(current_row, now_dt)
-              if (from_plan != plan['id'] and from_plan != 'starter') else _zero_credit())
+              if (from_plan != plan['id'] and from_plan not in ('starter', 'free')) else _zero_credit())
     promo = evaluate_promo(promo_code, plan['id'], base_price_paise(plan, cycle))
     bd = _breakdown(plan, cycle, promo, state_code, credit)
 
     if want_trial:
         period_start_dt = now_dt
-        period_end_dt = now_dt + timedelta(days=TRIAL_DAYS)
+        period_end_dt = now_dt + timedelta(days=plan.get('trial_days', TRIAL_DAYS) or TRIAL_DAYS)
         status = _STATUS_TRIALING
+        charged_paise = 0
+    elif plan['is_free']:
+        period_start_dt = now_dt
+        period_end_dt = None
+        status = _STATUS_ACTIVE
         charged_paise = 0
     else:
         period_start_dt = now_dt
@@ -980,78 +1212,226 @@ def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dic
         status = _STATUS_ACTIVE
         charged_paise = bd['total_paise']
 
-    api_key_plain = None
-    api_key_hash = existing_dict.get('api_key_hash') if existing_dict else None
-    api_key_prefix = existing_dict.get('api_key_prefix') if existing_dict else None
-    api_key_last4 = existing_dict.get('api_key_last4') if existing_dict else None
-    if plan['limits'].get('api_access') and not api_key_hash:
-        api_key_plain, api_key_hash, api_key_prefix, api_key_last4 = _new_api_key(plan['id'])
-
-    sub_id = (existing_dict.get('subscription_id') if existing_dict
-              else f'SUB_{uuid.uuid4().hex[:12].upper()}')
-
-    Subscription.objects.update_or_create(
-        tenant_id=tenant,
-        defaults={
-            'subscription_id': sub_id,
-            'plan_id': plan['id'], 'status': status, 'billing_cycle': cycle,
-            'organization_name': org, 'contact_email': email,
-            'activated_at': now_dt.isoformat(),
-            'current_period_start': period_start_dt.isoformat(),
-            'current_period_end': period_end_dt.isoformat(),
-            'cancel_at_period_end': False, 'canceled_at': None, 'cancel_reason': None,
-            'promo_code': promo.get('code') if promo.get('applied') else None,
-            'promo_percent': int(promo.get('percent_off') or 0) if promo.get('applied') else 0,
-            'base_amount_paise': bd['base_amount_paise'],
-            'discount_paise': bd['discount_paise'],
-            'taxable_paise': 0 if want_trial else bd['taxable_paise'],
-            'cgst_paise': 0 if want_trial else bd['tax']['cgst_paise'],
-            'sgst_paise': 0 if want_trial else bd['tax']['sgst_paise'],
-            'igst_paise': 0 if want_trial else bd['tax']['igst_paise'],
-            'total_paise': charged_paise,
-            'currency': CURRENCY, 'payment_method': payment_method,
-            'transaction_id': f'TXN_IB_{uuid.uuid4().hex[:12].upper()}' if charged_paise > 0 else None,
-            'gstin': gstin, 'place_of_supply': bd['tax']['place_of_supply'],
-            'supply_type': bd['tax']['supply_type'],
-            'seats': plan['limits']['seats'] or 1,
-            'daily_match_quota': plan['limits']['daily_matches'],
-            'api_key_hash': api_key_hash, 'api_key_prefix': api_key_prefix,
-            'api_key_last4': api_key_last4, 'request_id': request_id,
-            'created_at': existing_dict.get('created_at') if existing_dict else now_dt.isoformat(),
-            'updated_at': now_dt.isoformat(),
-        }
-    )
-
-    invoice = None
-    if charged_paise > 0:
-        invoice = _create_invoice(
-            tenant, sub_id,
-            f"{plan['name']} — {cycle.title()} subscription",
-            bd['tax'], bd['taxable_paise'], charged_paise, gstin, bd['lines']
-        )
-
     change = _change_type(from_plan, plan['id'])
-    SubscriptionEvent.objects.create(
-        subscription_id=sub_id, tenant_id=tenant, event_type=change,
-        from_plan=from_plan, to_plan=plan['id'], amount_paise=charged_paise,
-        notes=f"{plan['name']} ({cycle.upper()}); paid {format_inr(charged_paise)}",
-        actor='Subscriber', created_at=now_dt.isoformat(),
-    )
-    if promo.get('applied') and charged_paise > 0:
-        PromoCode.objects.filter(code=promo['code']).update(
-            times_redeemed=models_f_plus_1('times_redeemed')
+
+    # ATOMIC PAYMENT & SUBSCRIPTION UPDATE
+    if charged_paise > 0 and payment_method == 'WALLET':
+        if not user_obj:
+            raise SubscriptionError('Please log in to your account to pay with wallet funds.', 401, 'unauthorized')
+        pre_wallet = get_or_create_wallet(user_obj)
+        if pre_wallet.balance_paise < charged_paise:
+            fail_id = f"PAY_{uuid.uuid4().hex[:12].upper()}"
+            Payment.objects.create(
+                payment_id=fail_id,
+                user=user_obj,
+                plan_code=plan['id'],
+                amount_paise=charged_paise,
+                currency=CURRENCY,
+                payment_method='WALLET',
+                payment_status='FAILED',
+                payment_type=change,
+                failure_reason=f"Insufficient balance. Required: {format_inr(charged_paise)}, Available: {format_inr(pre_wallet.balance_paise)}",
+                idempotency_key=request_id,
+                is_prototype=True,
+            )
+            raise SubscriptionError(
+                f"Insufficient wallet balance. Required: {format_inr(charged_paise)}, Current Balance: {format_inr(pre_wallet.balance_paise)}. Please top up your wallet.",
+                400, 'insufficient_wallet_balance'
+            )
+
+    with transaction.atomic():
+        payment = None
+        wallet = None
+
+        if charged_paise > 0:
+            if payment_method == 'WALLET':
+                wallet = Wallet.objects.select_for_update().get_or_create(user=user_obj, defaults={'balance_paise': 0})[0]
+                if wallet.balance_paise < charged_paise:
+                    fail_id = f"PAY_{uuid.uuid4().hex[:12].upper()}"
+                    Payment.objects.create(
+                        payment_id=fail_id,
+                        user=user_obj,
+                        plan_code=plan['id'],
+                        amount_paise=charged_paise,
+                        currency=CURRENCY,
+                        payment_method='WALLET',
+                        payment_status='FAILED',
+                        payment_type=change,
+                        failure_reason=f"Insufficient balance. Required: {format_inr(charged_paise)}, Available: {format_inr(wallet.balance_paise)}",
+                        idempotency_key=request_id,
+                        is_prototype=True,
+                    )
+                    raise SubscriptionError(
+                        f"Insufficient wallet balance. Required: {format_inr(charged_paise)}, Current Balance: {format_inr(wallet.balance_paise)}. Please top up your wallet.",
+                        400, 'insufficient_wallet_balance'
+                    )
+
+                # Deduct wallet atomically
+                bal_before = wallet.balance_paise
+                bal_after = bal_before - charged_paise
+                wallet.balance_paise = bal_after
+                wallet.save(update_fields=['balance_paise', 'updated_at'])
+
+                pay_id = f"PAY_{uuid.uuid4().hex[:12].upper()}"
+                payment = Payment.objects.create(
+                    payment_id=pay_id,
+                    user=user_obj,
+                    plan_code=plan['id'],
+                    amount_paise=charged_paise,
+                    currency=CURRENCY,
+                    payment_method='WALLET',
+                    payment_status='SUCCESS',
+                    payment_type=change,
+                    transaction_reference=f"TXN_W_{uuid.uuid4().hex[:8].upper()}",
+                    idempotency_key=request_id,
+                    is_prototype=True,
+                    metadata={'balance_before': bal_before, 'balance_after': bal_after, 'plan': plan['id']},
+                    completed_at=dtz.now(),
+                )
+
+                wtxn_id = f"WTXN_{uuid.uuid4().hex[:12].upper()}"
+                WalletTransaction.objects.create(
+                    transaction_id=wtxn_id,
+                    wallet=wallet,
+                    user=user_obj,
+                    transaction_type='SUBSCRIPTION_PAYMENT' if change != 'UPGRADE' else 'UPGRADE_PAYMENT',
+                    credit_or_debit='DEBIT',
+                    amount_paise=charged_paise,
+                    balance_before_paise=bal_before,
+                    balance_after_paise=bal_after,
+                    reference_type='PAYMENT',
+                    reference_id=pay_id,
+                    description=f"{plan['name']} {cycle.title()} activation",
+                    status='SUCCESS',
+                )
+            else:
+                # Other prototype payment methods (UPI, Card, NetBanking, etc.)
+                pay_id = f"PAY_{uuid.uuid4().hex[:12].upper()}"
+                payment = Payment.objects.create(
+                    payment_id=pay_id,
+                    user=user_obj,
+                    plan_code=plan['id'],
+                    amount_paise=charged_paise,
+                    currency=CURRENCY,
+                    payment_method=payment_method,
+                    payment_status='SUCCESS',
+                    payment_type=change,
+                    transaction_reference=f"TXN_PROTO_{uuid.uuid4().hex[:8].upper()}",
+                    idempotency_key=request_id,
+                    is_prototype=True,
+                    metadata={'method': payment_method, 'plan': plan['id']},
+                    completed_at=dtz.now(),
+                )
+
+        # Generate / retain API key if entitled
+        existing_sub = Subscription.objects.filter(tenant_id=resolved_tenant).first()
+        api_key_plain = None
+        api_key_hash = existing_sub.api_key_hash if existing_sub else None
+        api_key_prefix = existing_sub.api_key_prefix if existing_sub else None
+        api_key_last4 = existing_sub.api_key_last4 if existing_sub else None
+
+        if plan['limits'].get('api_access') and not api_key_hash:
+            api_key_plain, api_key_hash, api_key_prefix, api_key_last4 = _new_api_key(plan['id'])
+
+        sub_id = existing_sub.subscription_id if existing_sub else f"SUB_{uuid.uuid4().hex[:12].upper()}"
+        plan_record = Plan.objects.filter(code=plan['id']).first()
+
+        sub_obj, _ = Subscription.objects.update_or_create(
+            tenant_id=resolved_tenant,
+            defaults={
+                'subscription_id': sub_id,
+                'user': user_obj,
+                'plan_record': plan_record,
+                'plan_id': plan['id'],
+                'status': status,
+                'billing_cycle': cycle,
+                'organization_name': org,
+                'contact_email': email,
+                'activated_at': now_dt.isoformat(),
+                'current_period_start': period_start_dt.isoformat(),
+                'current_period_end': period_end_dt.isoformat() if period_end_dt else None,
+                'cancel_at_period_end': False,
+                'canceled_at': None,
+                'cancel_reason': None,
+                'auto_renew': bool(plan.get('auto_renew_default', True)),
+                'pending_downgrade_plan': None,
+                'pending_downgrade_cycle': None,
+                'pending_downgrade_date': None,
+                'renewal_failure_count': 0,
+                'promo_code': promo.get('code') if promo.get('applied') else None,
+                'promo_percent': int(promo.get('percent_off') or 0) if promo.get('applied') else 0,
+                'base_amount_paise': bd['base_amount_paise'],
+                'discount_paise': bd['discount_paise'],
+                'taxable_paise': 0 if want_trial else bd['taxable_paise'],
+                'cgst_paise': 0 if want_trial else bd['tax']['cgst_paise'],
+                'sgst_paise': 0 if want_trial else bd['tax']['sgst_paise'],
+                'igst_paise': 0 if want_trial else bd['tax']['igst_paise'],
+                'total_paise': charged_paise,
+                'currency': CURRENCY,
+                'payment_method': payment_method if charged_paise > 0 else None,
+                'transaction_id': payment.payment_id if payment else None,
+                'gstin': gstin,
+                'place_of_supply': bd['tax']['place_of_supply'],
+                'supply_type': bd['tax']['supply_type'],
+                'seats': plan['limits'].get('seats') or 1,
+                'daily_match_quota': plan['limits'].get('daily_matches'),
+                'api_key_hash': api_key_hash,
+                'api_key_prefix': api_key_prefix,
+                'api_key_last4': api_key_last4,
+                'request_id': request_id,
+                'created_at': existing_sub.created_at if existing_sub else now_dt.isoformat(),
+                'updated_at': now_dt.isoformat(),
+            }
         )
 
-    result_row = _load(tenant)
-    quota = quota_snapshot(result_row)
+        if payment:
+            payment.subscription = sub_obj
+            payment.save(update_fields=['subscription'])
 
-    msg = (f"{plan['name']} trial activated for {TRIAL_DAYS} days." if want_trial
-           else f"{plan['name']} activated — {format_inr(charged_paise)} paid." if charged_paise > 0
+        # Create Invoice
+        invoice = None
+        if charged_paise > 0:
+            invoice = _create_invoice(
+                resolved_tenant, sub_id,
+                f"{plan['name']} — {cycle.title()} subscription",
+                bd['tax'], bd['taxable_paise'], charged_paise, gstin, bd['lines'],
+                status='PAID', user=user_obj, payment=payment, plan_id=plan['id'], cycle=cycle
+            )
+
+        # Audit SubscriptionEvent
+        SubscriptionEvent.objects.create(
+            subscription_id=sub_id, tenant_id=resolved_tenant, event_type=change,
+            from_plan=from_plan, to_plan=plan['id'], amount_paise=charged_paise,
+            notes=f"{plan['name']} ({cycle.upper()}); paid {format_inr(charged_paise)} via {payment_method}",
+            actor=user_obj.username if user_obj else 'Subscriber', created_at=now_dt.isoformat(),
+        )
+
+        # Increment promo code redemptions
+        if promo.get('applied') and charged_paise > 0:
+            PromoCode.objects.filter(code=promo['code']).update(times_redeemed=models_f_plus_1('times_redeemed'))
+
+    result_row = _load(resolved_tenant, user_obj)
+    quota = quota_snapshot(result_row)
+    wallet_data = get_wallet_data(user_obj) if user_obj else None
+
+    msg = (f"{plan['name']} trial activated for {plan.get('trial_days', TRIAL_DAYS)} days." if want_trial
+           else f"{plan['name']} activated — {format_inr(charged_paise)} paid via {payment_method}." if charged_paise > 0
            else f"{plan['name']} activated on the free tier.")
 
     return {
-        'status': 'success', 'idempotent_replay': False, 'change_type': change,
-        'message': msg, 'subscription': serialize(result_row), 'invoice': invoice,
+        'status': 'success', 'success': True, 'idempotent_replay': False, 'change_type': change,
+        'message': msg,
+        'subscription': serialize(result_row),
+        'invoice': invoice,
+        'payment': {
+            'payment_id': payment.payment_id if payment else None,
+            'amount_paise': charged_paise,
+            'amount_display': format_inr(charged_paise),
+            'method': payment_method,
+            'status': 'SUCCESS',
+            'is_prototype': True,
+        } if payment else None,
+        'wallet': wallet_data,
         'quote': {'breakdown': bd, 'promo': promo, 'proration': credit},
         'quota': quota, 'api_key': api_key_plain,
         'api_key_note': 'Store this API key now — it is shown only once.' if api_key_plain else None,
@@ -1059,158 +1439,210 @@ def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dic
 
 
 def models_f_plus_1(field: str):
-    """Return an F() expression for incrementing a field by 1."""
     from django.db.models import F
     return F(field) + 1
 
 
-def cancel(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    tenant = normalise_tenant(tenant_id)
+def cancel(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
     immediate = bool(payload.get('immediate'))
     reason = ' '.join(str(payload.get('reason') or '').split())[:300] or None
     now_dt = datetime.now(timezone.utc)
 
-    row = _load(tenant)
-    if not row or row.get('plan_id') in (None, 'starter'):
+    row = _load(resolved_tenant, user_obj)
+    if not row or str(row.get('plan_id') or '').lower() in ('starter', 'free'):
         raise SubscriptionError('There is no paid subscription to cancel.', 409, 'no_paid_subscription')
     if row.get('status') == _STATUS_CANCELED:
         raise SubscriptionError('This subscription is already cancelled.', 409, 'already_canceled')
 
     if immediate:
-        Subscription.objects.filter(tenant_id=tenant).update(
-            status=_STATUS_CANCELED, plan_id='starter', cancel_at_period_end=False,
+        starter_plan = Plan.objects.filter(code='starter').first()
+        Subscription.objects.filter(tenant_id=resolved_tenant).update(
+            status=_STATUS_CANCELED, plan_id='starter', plan_record=starter_plan,
+            cancel_at_period_end=False, auto_renew=False,
             canceled_at=now_dt.isoformat(), cancel_reason=reason,
             current_period_end=now_dt.isoformat(), updated_at=now_dt.isoformat(),
         )
         SubscriptionEvent.objects.create(
-            subscription_id=row['subscription_id'], tenant_id=tenant,
-            event_type='CANCELED_IMMEDIATE', from_plan=row.get('plan_id'), to_plan='starter',
+            subscription_id=row['subscription_id'], tenant_id=resolved_tenant,
+            event_type='CANCEL_IMMEDIATE', from_plan=row.get('plan_id'), to_plan='starter',
             amount_paise=0, notes=reason or 'Cancelled immediately by subscriber.',
-            actor='Subscriber', created_at=now_dt.isoformat(),
+            actor=user_obj.username if user_obj else 'Subscriber', created_at=now_dt.isoformat(),
         )
         message = 'Subscription cancelled immediately. Your entitlements have reverted to the free tier.'
     else:
-        Subscription.objects.filter(tenant_id=tenant).update(
-            cancel_at_period_end=True, canceled_at=now_dt.isoformat(),
-            cancel_reason=reason, updated_at=now_dt.isoformat(),
+        Subscription.objects.filter(tenant_id=resolved_tenant).update(
+            cancel_at_period_end=True, auto_renew=False,
+            canceled_at=now_dt.isoformat(), cancel_reason=reason, updated_at=now_dt.isoformat(),
         )
         SubscriptionEvent.objects.create(
-            subscription_id=row['subscription_id'], tenant_id=tenant,
+            subscription_id=row['subscription_id'], tenant_id=resolved_tenant,
             event_type='CANCEL_AT_PERIOD_END', from_plan=row.get('plan_id'), to_plan=row.get('plan_id'),
-            amount_paise=0, notes=reason or 'Scheduled to cancel at period end.',
-            actor='Subscriber', created_at=now_dt.isoformat(),
+            amount_paise=0, notes=reason or 'Auto-renew cancelled; scheduled to expire at period end.',
+            actor=user_obj.username if user_obj else 'Subscriber', created_at=now_dt.isoformat(),
         )
-        message = (f"Subscription will end on {str(row.get('current_period_end'))[:10]}. "
-                   'You keep full access until then.')
+        message = (f"Auto-renewal cancelled. Your plan remains active until {str(row.get('current_period_end'))[:10]}. "
+                   'No further charges will occur.')
 
-    updated = serialize(_load(tenant))
+    updated = serialize(_load(resolved_tenant, user_obj))
     return {'status': 'success', 'message': message, 'subscription': updated}
 
 
-def resume(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    tenant = normalise_tenant(tenant_id)
-    cycle_override = payload.get('billing_cycle')
+def resume(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
     now_dt = datetime.now(timezone.utc)
+    row = _load(resolved_tenant, user_obj)
+    if not row or str(row.get('plan_id') or '').lower() in ('starter', 'free'):
+        raise SubscriptionError('No paid subscription is available to reactivate.', 409, 'no_paid_subscription')
 
-    row = _load(tenant)
-    if not row or row.get('plan_id') in (None, 'starter'):
-        raise SubscriptionError('No paid subscription is available to resume.', 409, 'no_paid_subscription')
+    Subscription.objects.filter(tenant_id=resolved_tenant).update(
+        cancel_at_period_end=False, auto_renew=True, canceled_at=None,
+        cancel_reason=None, updated_at=now_dt.isoformat(),
+    )
+    SubscriptionEvent.objects.create(
+        subscription_id=row['subscription_id'], tenant_id=resolved_tenant,
+        event_type='CANCEL_REVERSED', from_plan=row.get('plan_id'), to_plan=row.get('plan_id'),
+        amount_paise=0, notes='Auto-renewal reactivated by subscriber.',
+        actor=user_obj.username if user_obj else 'Subscriber', created_at=now_dt.isoformat(),
+    )
+    updated = serialize(_load(resolved_tenant, user_obj))
+    return {'status': 'success', 'message': 'Auto-renewal reactivated. Your subscription will renew automatically.', 'subscription': updated}
 
-    plan = require_plan(row.get('plan_id'))
-    cycle = (normalise_cycle(cycle_override) if cycle_override
-             else (row.get('billing_cycle') if row.get('billing_cycle') in BILLING_CYCLES else 'monthly'))
 
-    if row.get('cancel_at_period_end') and row.get('status') != _STATUS_CANCELED:
-        Subscription.objects.filter(tenant_id=tenant).update(
-            cancel_at_period_end=False, canceled_at=None, cancel_reason=None, updated_at=now_dt.isoformat(),
-        )
-        SubscriptionEvent.objects.create(
-            subscription_id=row['subscription_id'], tenant_id=tenant,
-            event_type='CANCEL_REVERSED', from_plan=row.get('plan_id'), to_plan=row.get('plan_id'),
-            amount_paise=0, notes='Scheduled cancellation reversed by subscriber.',
-            actor='Subscriber', created_at=now_dt.isoformat(),
-        )
-        updated = serialize(_load(tenant))
-        message = 'Scheduled cancellation reversed. Your plan continues.'
+def toggle_auto_renew(user: User, enable: bool) -> Dict[str, Any]:
+    sub = Subscription.objects.filter(user=user).first()
+    if not sub:
+        raise SubscriptionError('No subscription found for your user account.', 404, 'no_subscription')
+    sub.auto_renew = enable
+    if not enable:
+        sub.cancel_at_period_end = True
     else:
-        bd = _breakdown(plan, cycle, {'applied': False},
-                        row.get('place_of_supply') or SUPPLIER_STATE_CODE, _zero_credit())
-        new_end = period_end(now_dt, cycle)
-        Subscription.objects.filter(tenant_id=tenant).update(
-            status=_STATUS_ACTIVE, billing_cycle=cycle,
-            current_period_start=now_dt.isoformat(),
-            current_period_end=new_end.isoformat(),
-            cancel_at_period_end=False, canceled_at=None, cancel_reason=None,
-            taxable_paise=bd['taxable_paise'],
-            cgst_paise=bd['tax']['cgst_paise'], sgst_paise=bd['tax']['sgst_paise'],
-            igst_paise=bd['tax']['igst_paise'], total_paise=bd['total_paise'],
-            transaction_id=f'TXN_IB_{uuid.uuid4().hex[:12].upper()}',
-            updated_at=now_dt.isoformat(),
-        )
-        _create_invoice(
-            tenant, row['subscription_id'],
-            f"{plan['name']} — renewal ({cycle})",
-            bd['tax'], bd['taxable_paise'], bd['total_paise'],
-            row.get('gstin'), bd['lines']
-        )
-        SubscriptionEvent.objects.create(
-            subscription_id=row['subscription_id'], tenant_id=tenant,
-            event_type='RENEWED', from_plan=row.get('plan_id'), to_plan=plan['id'],
-            amount_paise=bd['total_paise'],
-            notes=f"Renewed for {cycle} period ending {new_end.date().isoformat()}.",
-            actor='Subscriber', created_at=now_dt.isoformat(),
-        )
-        updated = serialize(_load(tenant))
-        message = f"{plan['name']} renewed until {new_end.date().isoformat()}."
+        sub.cancel_at_period_end = False
+    sub.save(update_fields=['auto_renew', 'cancel_at_period_end', 'updated_at'])
 
-    return {'status': 'success', 'message': message, 'subscription': updated}
+    SubscriptionEvent.objects.create(
+        subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+        event_type='AUTO_RENEW_ENABLED' if enable else 'AUTO_RENEW_DISABLED',
+        from_plan=sub.plan_id, to_plan=sub.plan_id, amount_paise=0,
+        notes=f"Auto-renew set to {'ON' if enable else 'OFF'} by user.",
+        actor=user.username, created_at=_now(),
+    )
+    return {
+        'status': 'success',
+        'auto_renew': sub.auto_renew,
+        'message': f"Auto-renewal is now {'ENABLED' if enable else 'DISABLED'}.",
+    }
 
 
-def history(tenant_id: str = DEFAULT_TENANT_ID, limit: int = 50) -> Dict[str, Any]:
-    tenant = normalise_tenant(tenant_id)
+def schedule_downgrade(payload: Dict[str, Any], user: User) -> Dict[str, Any]:
+    target_plan_id = payload.get('plan_id')
+    target_plan = require_plan(target_plan_id)
+    sub = Subscription.objects.filter(user=user).first()
+    if not sub:
+        raise SubscriptionError('No active subscription found.', 404, 'no_subscription')
+
+    if target_plan['id'] == sub.plan_id:
+        raise SubscriptionError('You are already on this plan.', 400, 'same_plan')
+
+    now_dt = datetime.now(timezone.utc)
+    sub.pending_downgrade_plan = target_plan['id']
+    sub.pending_downgrade_cycle = payload.get('billing_cycle', sub.billing_cycle)
+    sub.pending_downgrade_date = sub.current_period_end
+    sub.save(update_fields=['pending_downgrade_plan', 'pending_downgrade_cycle', 'pending_downgrade_date', 'updated_at'])
+
+    SubscriptionEvent.objects.create(
+        subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+        event_type='DOWNGRADE_SCHEDULED', from_plan=sub.plan_id, to_plan=target_plan['id'],
+        amount_paise=0, notes=f"Plan change to {target_plan['name']} scheduled for {sub.current_period_end}.",
+        actor=user.username, created_at=now_dt.isoformat(),
+    )
+
+    return {
+        'status': 'success',
+        'message': f"Plan change to {target_plan['name']} scheduled for {str(sub.current_period_end)[:10]}. You will retain your current access until then.",
+        'pending_change_plan': target_plan['id'],
+        'effective_date': sub.current_period_end,
+    }
+
+schedule_plan_change = schedule_downgrade
+
+
+def change_plan(payload: Dict[str, Any], user: User, tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
+    """Unified plan change workflow for higher-priced, lower-priced, or free plan changes."""
+    target_plan_id = payload.get('plan_id')
+    target_plan = require_plan(target_plan_id)
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
+    current_row = _load(resolved_tenant, user_obj)
+    curr_plan_id = effective_plan_id(current_row)
+
+    if curr_plan_id == target_plan['id']:
+        raise SubscriptionError('You are already on this plan.', 400, 'same_plan')
+
+    curr_plan = get_plan(curr_plan_id) or get_plan('starter')
+    cycle = normalise_cycle(payload.get('billing_cycle') or current_row.get('billing_cycle') or 'monthly')
+    target_price = base_price_paise(target_plan, cycle)
+    curr_price = base_price_paise(curr_plan, cycle) if curr_plan else 0
+
+    if target_price > curr_price and not target_plan.get('is_free'):
+        # Higher-priced transition (Immediate activation with proration)
+        return checkout(payload, tenant_id=resolved_tenant, user=user)
+    else:
+        # Lower-priced or Free transition (Active until current period ends)
+        return schedule_downgrade(payload, user=user)
+
+
+def history(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None, limit: int = 50) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
+    qs = SubscriptionEvent.objects.all()
+    if user_obj:
+        qs = qs.filter(tenant_id=resolved_tenant)
+    else:
+        qs = qs.filter(tenant_id=resolved_tenant)
     events = list(
-        SubscriptionEvent.objects.filter(tenant_id=tenant).order_by('-event_id')
-        [:min(limit, 500)].values(
+        qs.order_by('-event_id')[:min(limit, 500)].values(
             'event_id', 'event_type', 'from_plan', 'to_plan',
             'amount_paise', 'notes', 'actor', 'created_at',
         )
     )
-    return {'status': 'success', 'tenant_id': tenant, 'count': len(events), 'events': events}
+    for e in events:
+        e['amount_display'] = format_inr(e['amount_paise'])
+        e['amount_rupees'] = paise_to_rupees(e['amount_paise'])
+    return {'status': 'success', 'tenant_id': resolved_tenant, 'count': len(events), 'events': events}
 
 
-def invoices_payload(tenant_id: str = DEFAULT_TENANT_ID, limit: int = 50) -> Dict[str, Any]:
-    tenant = normalise_tenant(tenant_id)
-    docs = _list_invoices(tenant, limit)
-    return {'status': 'success', 'tenant_id': tenant, 'count': len(docs), 'invoices': docs}
+def invoices_payload(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None, limit: int = 50) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
+    docs = _list_invoices(resolved_tenant, user_obj, limit)
+    return {'status': 'success', 'tenant_id': resolved_tenant, 'count': len(docs), 'invoices': docs}
 
 
-def usage_payload(tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    tenant = normalise_tenant(tenant_id)
-    row = _load(tenant)
+def usage_payload(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
+    row = _load(resolved_tenant, user_obj)
     quota = quota_snapshot(row)
-    return {'status': 'success', 'tenant_id': tenant, 'quota': quota}
+    return {'status': 'success', 'tenant_id': resolved_tenant, 'quota': quota}
 
 
-def rotate_api_key(tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
-    tenant = normalise_tenant(tenant_id)
-    row = _load(tenant)
+def rotate_api_key(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
+    user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
+    row = _load(resolved_tenant, user_obj)
     plan = _entitlement(row)
     if not plan['limits'].get('api_access'):
         raise SubscriptionError(
             f"API access is not included in the {plan['name']} plan. "
-            'Upgrade to Enterprise or the Institutional Data Feed.', 403, 'api_access_not_included')
+            'Upgrade to Corporate Enterprise or Foundation Master.', 403, 'api_access_not_included')
     plain, digest, prefix, last4 = _new_api_key(plan['id'])
     now_dt = datetime.now(timezone.utc)
-    Subscription.objects.filter(tenant_id=tenant).update(
+    Subscription.objects.filter(tenant_id=resolved_tenant).update(
         api_key_hash=digest, api_key_prefix=prefix,
         api_key_last4=last4, updated_at=now_dt.isoformat(),
     )
     SubscriptionEvent.objects.create(
-        subscription_id=row.get('subscription_id'), tenant_id=tenant,
+        subscription_id=row.get('subscription_id'), tenant_id=resolved_tenant,
         event_type='API_KEY_ROTATED', from_plan=plan['id'], to_plan=plan['id'],
         amount_paise=0,
-        notes=f"Previous key {row.get('api_key_prefix') or 'none'} revoked.",
-        actor='Subscriber', created_at=now_dt.isoformat(),
+        notes=f"Previous key revoked; new prefix {prefix} issued.",
+        actor=user_obj.username if user_obj else 'Subscriber', created_at=now_dt.isoformat(),
     )
     quota = quota_snapshot(row)
     return {
@@ -1218,4 +1650,217 @@ def rotate_api_key(tenant_id: str = DEFAULT_TENANT_ID) -> Dict[str, Any]:
         'api_key_prefix': prefix, 'api_key_last4': last4,
         'message': 'A new API key was issued. The previous key is now invalid.',
         'quota': quota,
+    }
+
+
+# ── RENEWAL ENGINE (Automated / Admin Run) ────────────────────────────────────
+def process_subscription_renewals(force: bool = False, force_run: bool = False, tenant_id: Optional[str] = None) -> Dict[str, Any]:
+    force_run = force or force_run
+    now_dt = datetime.now(timezone.utc)
+    qs = Subscription.objects.filter(status=_STATUS_ACTIVE)
+    if tenant_id:
+        qs = qs.filter(tenant_id=tenant_id)
+
+    processed = 0
+    renewed = 0
+    failed = 0
+    expired = 0
+    details = []
+
+    for sub in qs:
+        # Check if due for renewal
+        pid = str(sub.plan_id or '').lower()
+        if pid in ('starter', 'free') or not sub.current_period_end:
+            continue
+
+        end_dt = _parse_iso(sub.current_period_end)
+        is_due = force_run or (end_dt and now_dt >= end_dt)
+
+        if not is_due:
+            continue
+
+        processed += 1
+
+        # Check for scheduled downgrade
+        if sub.pending_downgrade_plan:
+            down_plan = get_plan(sub.pending_downgrade_plan) or get_plan('starter')
+            sub.plan_id = down_plan['id']
+            sub.plan_record = Plan.objects.filter(code=down_plan['id']).first()
+            sub.pending_downgrade_plan = None
+            sub.pending_downgrade_cycle = None
+            sub.pending_downgrade_date = None
+            sub.current_period_start = now_dt.isoformat()
+            sub.current_period_end = period_end(now_dt, sub.billing_cycle or 'monthly').isoformat() if not down_plan['is_free'] else None
+            sub.save()
+            SubscriptionEvent.objects.create(
+                subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+                event_type='DOWNGRADE_APPLIED', from_plan=sub.plan_id, to_plan=down_plan['id'],
+                amount_paise=0, notes=f"Applied scheduled plan change to {down_plan['name']}",
+                actor='RenewalEngine', created_at=now_dt.isoformat(),
+            )
+            details.append({'subscription_id': sub.subscription_id, 'result': 'downgraded', 'plan': down_plan['id']})
+            continue
+
+        # Check if auto_renew is OFF
+        if not sub.auto_renew:
+            starter_plan = Plan.objects.filter(code='starter').first()
+            sub.status = _STATUS_EXPIRED
+            sub.plan_record = starter_plan
+            sub.plan_id = 'starter'
+            sub.save(update_fields=['status', 'plan_record', 'plan_id', 'updated_at'])
+            SubscriptionEvent.objects.create(
+                subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+                event_type='EXPIRED', from_plan=pid, to_plan='starter',
+                amount_paise=0, notes='Auto-renewal was off; subscription expired at period end.',
+                actor='RenewalEngine', created_at=now_dt.isoformat(),
+            )
+            expired += 1
+            details.append({'subscription_id': sub.subscription_id, 'result': 'expired', 'reason': 'auto_renew_off'})
+            continue
+
+        # Auto-renewal is ON: attempt wallet payment
+        plan_dict = get_plan(sub.plan_id)
+        if not plan_dict or plan_dict['is_free']:
+            continue
+
+        cycle = sub.billing_cycle or 'monthly'
+        bd = _breakdown(plan_dict, cycle, {'applied': False}, sub.place_of_supply or SUPPLIER_STATE_CODE, _zero_credit())
+        amount_needed = bd['total_paise']
+
+        user = sub.user
+        if not user:
+            # Cannot charge wallet without user
+            sub.renewal_failure_count += 1
+            sub.last_renewal_attempt = now_dt.isoformat()
+            sub.save(update_fields=['renewal_failure_count', 'last_renewal_attempt'])
+            failed += 1
+            details.append({'subscription_id': sub.subscription_id, 'result': 'failed', 'reason': 'no_user_account'})
+            continue
+
+        with transaction.atomic():
+            wallet = Wallet.objects.select_for_update().get_or_create(user=user, defaults={'balance_paise': 0})[0]
+            if wallet.balance_paise >= amount_needed:
+                # Success: Deduct wallet
+                bal_before = wallet.balance_paise
+                bal_after = bal_before - amount_needed
+                wallet.balance_paise = bal_after
+                wallet.save(update_fields=['balance_paise', 'updated_at'])
+
+                # Create Payment
+                pay_id = f"PAY_REN_{uuid.uuid4().hex[:12].upper()}"
+                payment = Payment.objects.create(
+                    payment_id=pay_id,
+                    user=user,
+                    subscription=sub,
+                    plan_code=sub.plan_id,
+                    amount_paise=amount_needed,
+                    currency=CURRENCY,
+                    payment_method='WALLET',
+                    payment_status='SUCCESS',
+                    payment_type='RENEWAL',
+                    transaction_reference=f"TXN_REN_{uuid.uuid4().hex[:8].upper()}",
+                    is_prototype=True,
+                    metadata={'renewal_cycle': cycle, 'period_extended': True},
+                    completed_at=dtz.now(),
+                )
+
+                # Record WalletTransaction
+                wtxn_id = f"WTXN_{uuid.uuid4().hex[:12].upper()}"
+                WalletTransaction.objects.create(
+                    transaction_id=wtxn_id,
+                    wallet=wallet,
+                    user=user,
+                    transaction_type='SUBSCRIPTION_RENEWAL',
+                    credit_or_debit='DEBIT',
+                    amount_paise=amount_needed,
+                    balance_before_paise=bal_before,
+                    balance_after_paise=bal_after,
+                    reference_type='PAYMENT',
+                    reference_id=pay_id,
+                    description=f"Auto-renewal payment for {plan_dict['name']} ({cycle})",
+                    status='SUCCESS',
+                )
+
+                # Extend subscription period
+                new_start = end_dt if end_dt else now_dt
+                new_end = period_end(new_start, cycle)
+                sub.current_period_start = new_start.isoformat()
+                sub.current_period_end = new_end.isoformat()
+                sub.renewal_failure_count = 0
+                sub.last_renewal_attempt = now_dt.isoformat()
+                sub.save(update_fields=['current_period_start', 'current_period_end', 'renewal_failure_count', 'last_renewal_attempt', 'updated_at'])
+
+                # Create Invoice
+                _create_invoice(
+                    sub.tenant_id, sub.subscription_id,
+                    f"{plan_dict['name']} — {cycle.title()} renewal",
+                    bd['tax'], bd['taxable_paise'], amount_needed, sub.gstin, bd['lines'],
+                    status='PAID', user=user, payment=payment, plan_id=sub.plan_id, cycle=cycle
+                )
+
+                # SubscriptionEvent
+                SubscriptionEvent.objects.create(
+                    subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+                    event_type='RENEWAL_SUCCESS', from_plan=sub.plan_id, to_plan=sub.plan_id,
+                    amount_paise=amount_needed,
+                    notes=f"Auto-renewed for {cycle} period ending {new_end.date().isoformat()}. Charged {format_inr(amount_needed)} to wallet.",
+                    actor='RenewalEngine', created_at=now_dt.isoformat(),
+                )
+
+                renewed += 1
+                details.append({'subscription_id': sub.subscription_id, 'result': 'renewed', 'amount_paise': amount_needed})
+            else:
+                # Failed: Insufficient funds in wallet
+                sub.renewal_failure_count += 1
+                sub.last_renewal_attempt = now_dt.isoformat()
+
+                pay_id = f"PAY_FAIL_{uuid.uuid4().hex[:12].upper()}"
+                Payment.objects.create(
+                    payment_id=pay_id,
+                    user=user,
+                    subscription=sub,
+                    plan_code=sub.plan_id,
+                    amount_paise=amount_needed,
+                    currency=CURRENCY,
+                    payment_method='WALLET',
+                    payment_status='FAILED',
+                    payment_type='RENEWAL',
+                    failure_reason=f"Insufficient wallet balance. Required: {format_inr(amount_needed)}, Available: {format_inr(wallet.balance_paise)}",
+                    is_prototype=True,
+                )
+
+                SubscriptionEvent.objects.create(
+                    subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+                    event_type='RENEWAL_FAILED', from_plan=sub.plan_id, to_plan=sub.plan_id,
+                    amount_paise=0,
+                    notes=f"Renewal failed: insufficient wallet balance ({format_inr(wallet.balance_paise)} available, {format_inr(amount_needed)} required).",
+                    actor='RenewalEngine', created_at=now_dt.isoformat(),
+                )
+
+                if sub.renewal_failure_count >= 3:
+                    # Grace period expired: downgrade to starter
+                    starter_plan = Plan.objects.filter(code='starter').first()
+                    sub.status = _STATUS_EXPIRED
+                    sub.plan_record = starter_plan
+                    sub.plan_id = 'starter'
+                    SubscriptionEvent.objects.create(
+                        subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
+                        event_type='EXPIRED', from_plan=pid, to_plan='starter',
+                        amount_paise=0, notes="Expired after 3 failed renewal attempts.",
+                        actor='RenewalEngine', created_at=now_dt.isoformat(),
+                    )
+                    expired += 1
+
+                sub.save(update_fields=['status', 'plan_record', 'plan_id', 'renewal_failure_count', 'last_renewal_attempt', 'updated_at'])
+                failed += 1
+                details.append({'subscription_id': sub.subscription_id, 'result': 'failed', 'reason': 'insufficient_wallet_balance'})
+
+    return {
+        'status': 'success',
+        'processed': processed,
+        'renewed': renewed,
+        'failed': failed,
+        'expired': expired,
+        'executed_at': now_dt.isoformat(),
+        'details': details,
     }

@@ -11,12 +11,13 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         :root {
-            --admin-bg: #090d16;
-            --admin-surface: #0f172a;
-            --admin-card: rgba(15, 23, 42, 0.75);
+            --admin-bg: #07090e;
+            --admin-surface: #0c101a;
+            --admin-surface-elevated: #111726;
+            --admin-card: rgba(14, 20, 36, 0.78);
             --admin-border: rgba(255, 255, 255, 0.08);
-            --admin-primary: #0284c7;
-            --admin-primary-hover: #0369a1;
+            --admin-primary: #6366f1;
+            --admin-primary-hover: #4f46e5;
             --admin-accent: #38bdf8;
             --admin-success: #10b981;
             --admin-warning: #f59e0b;
@@ -377,6 +378,69 @@
             gap: 10px;
             flex-wrap: wrap;
         }
+
+        /* Admin Responsive Sidebar & Drawer */
+        .admin-mobile-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+            color: #fff;
+            padding: 7px 10px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            transition: all 0.15s ease;
+        }
+        .admin-mobile-toggle:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .admin-sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 7, 15, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 95;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+        .admin-sidebar-backdrop.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 1023px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 10px 0 40px rgba(0, 0, 0, 0.85);
+            }
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+            .admin-main {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+            .admin-mobile-toggle {
+                display: inline-flex;
+            }
+            .admin-topbar {
+                padding: 0 16px;
+            }
+            .topbar-actions .btn-admin span:last-child {
+                display: none;
+            }
+            .admin-content {
+                padding: 16px;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -444,9 +508,21 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>User Accounts</span>
             </a>
-            <a href="{% url 'admin_subscriptions:list' %}" class="sidebar-link {% if 'subscriptions' in request.path %}active{% endif %}">
+            <a href="{% url 'admin_subscriptions:list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'list' and 'subscriptions' in request.path %}active{% endif %}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>Subscriptions &amp; GST</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:plans_list' %}" class="sidebar-link {% if 'plans' in request.path %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span>Pricing Plans</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:payments_list' %}" class="sidebar-link {% if 'payments' in request.path %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <span>Payments Ledger</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:wallets_list' %}" class="sidebar-link {% if 'wallets' in request.path %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="2"/></svg>
+                <span>User Wallets</span>
             </a>
 
             <div class="nav-section-title">Data Center &amp; Downloads</div>
@@ -478,10 +554,22 @@
         </div>
     </aside>
 
+    <!-- ADMIN SIDEBAR BACKDROP FOR MOBILE -->
+    <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" onclick="closeAdminSidebar()"></div>
+
     <!-- ADMIN MAIN CONTENT AREA -->
     <main class="admin-main">
         <header class="admin-topbar">
-            <h1 class="topbar-title">{% block page_title %}Admin Control Panel{% endblock %}</h1>
+            <div style="display:flex; align-items:center;">
+                <button type="button" class="admin-mobile-toggle" id="adminSidebarToggle" onclick="toggleAdminSidebar()" aria-label="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <h1 class="topbar-title">{% block page_title %}Admin Control Panel{% endblock %}</h1>
+            </div>
             <div class="topbar-actions">
                 <a href="{% url 'admin_portal:download_hub' %}" class="btn-admin btn-admin-secondary" style="font-weight:700;" title="Download datasets from all sections">
                     <span>📥</span> <span>Download Hub</span>
@@ -625,6 +713,20 @@
                 var sizeKb = (file.size / 1024).toFixed(1);
                 document.getElementById('selectedFileName').innerHTML = '✅ <strong>Ready:</strong> ' + file.name + ' (' + sizeKb + ' KB)';
             }
+        }
+
+        function toggleAdminSidebar() {
+            var sidebar = document.querySelector('.admin-sidebar');
+            var backdrop = document.getElementById('adminSidebarBackdrop');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (backdrop) backdrop.classList.toggle('show');
+        }
+
+        function closeAdminSidebar() {
+            var sidebar = document.querySelector('.admin-sidebar');
+            var backdrop = document.getElementById('adminSidebarBackdrop');
+            if (sidebar) sidebar.classList.remove('show');
+            if (backdrop) backdrop.classList.remove('show');
         }
     </script>
     {% block extra_js %}{% endblock %}
