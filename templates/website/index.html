@@ -116,6 +116,14 @@
                             </svg>
                             <span>Admin Portal</span>
                         </a>
+                        <button class="nav-action-btn nav-btn-wallet" id="header-wallet-btn" onclick="openWalletTopupModal()" title="Demo Wallet: Enter any number to top-up real money for demo testing" style="border-color:rgba(16,185,129,0.35); background:rgba(16,185,129,0.1);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981;">
+                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+                            </svg>
+                            <span>Wallet:</span>
+                            <strong class="mono" id="header-wallet-balance-val" style="color:var(--accent-emerald); font-weight:800; font-size:12.5px; margin-left:3px;">₹0.00</strong>
+                            <span style="font-size:10px; background:rgba(16,185,129,0.22); color:#34d399; padding:1px 6px; border-radius:10px; font-weight:800; border:1px solid rgba(16,185,129,0.4); margin-left:4px;">+ TOP UP</span>
+                        </button>
                     </div>
 
                     <div class="header-v-divider"></div>
@@ -206,6 +214,13 @@
             <span class="pulse-dot"></span>
             <span style="font-size:12px; font-weight:600; color:#fff;">200 Corporations Monitored</span>
             <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">100% Live</span>
+        </div>
+
+        <div class="mobile-drawer-telemetry" onclick="openWalletTopupModal(); closeMobileNav();" style="border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.12); margin-top:8px; cursor:pointer;">
+            <span style="font-size:15px;">💰</span>
+            <span style="font-size:12px; font-weight:700; color:#fff;">Demo Wallet:</span>
+            <strong class="mono" id="mobile-wallet-balance-val" style="color:var(--accent-emerald); font-size:13px; margin-left:4px;">₹0.00</strong>
+            <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">+ TOP UP</span>
         </div>
 
         <nav class="mobile-drawer-nav">
@@ -1026,6 +1041,66 @@
                             Annual Billing
                             <span class="save-pill">Save 20%</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dedicated Enterprise Demo Wallet Section (Enter Any Number As Real Money For Testing) -->
+            <div class="portal-wallet-section-card" id="portal-wallet-section-card" style="background:linear-gradient(135deg, rgba(16,185,129,0.14), rgba(15,23,42,0.92)); border:1.5px solid rgba(16,185,129,0.38); border-radius:var(--radius-lg); padding:22px 24px; margin-bottom:24px; box-shadow:0 8px 32px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.22); font-size:18px;">💰</span>
+                            <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff;">Enterprise Demo Testing Wallet</h3>
+                            <span class="badge badge-emerald" style="font-size:10.5px; padding:2px 8px; font-weight:700;">REAL MONEY SIMULATION</span>
+                        </div>
+                        <p style="margin:0; font-size:13px; color:var(--text-secondary); max-width:640px; line-height:1.5;">
+                            Enter any number as money to simulate your funds for demo testing. The amount is immediately credited into your active wallet and counted as real currency to test plan purchases, upgrades, and billing workflows.
+                        </p>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.45); border:1px solid rgba(16,185,129,0.35); border-radius:12px; padding:12px 22px; text-align:right; min-width:190px;">
+                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#38bdf8; font-weight:700;">Available Wallet Balance</div>
+                        <div class="mono" id="pricing-wallet-balance-val" style="font-size:26px; font-weight:900; color:var(--accent-emerald); margin-top:2px;">₹0.00</div>
+                        <div style="font-size:11px; color:#94a3b8; margin-top:2px;" id="pricing-wallet-status-note">Ready for immediate checkout</div>
+                    </div>
+                </div>
+
+                <!-- Recharge Controls Row -->
+                <div style="margin-top:20px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-wrap:wrap; align-items:center; gap:12px;">
+                    <div style="position:relative; display:flex; align-items:center; flex:1; min-width:240px; max-width:320px;">
+                        <span style="position:absolute; left:14px; font-weight:800; color:#34d399; font-size:16px; pointer-events:none;">₹</span>
+                        <input type="number" id="inline-wallet-amount-input" min="1" step="any" placeholder="Enter number as money (e.g. 5000)"
+                               style="width:100%; box-sizing:border-box; padding:10px 14px 10px 32px; background:rgba(7,12,26,0.92); border:1.5px solid rgba(16,185,129,0.45); border-radius:8px; color:#fff; font-size:14.5px; font-family:'JetBrains Mono',monospace; outline:none;"
+                               onkeydown="if(event.key==='Enter') executeInlineWalletRecharge();">
+                    </div>
+                    <button type="button" class="btn-primary" id="btn-inline-recharge" onclick="executeInlineWalletRecharge()"
+                            style="padding:10px 22px; font-size:13.5px; font-weight:700; background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:0 0 18px rgba(16,185,129,0.35);">
+                        💰 Add to Wallet
+                    </button>
+
+                    <!-- Quick preset buttons -->
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <span style="font-size:11.5px; color:var(--text-muted); margin-right:4px;">Quick Fill:</span>
+                        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:5px 10px;" onclick="setInlineWalletAmount(500)">+₹500</button>
+                        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:5px 10px;" onclick="setInlineWalletAmount(1000)">+₹1,000</button>
+                        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:5px 10px;" onclick="setInlineWalletAmount(5000)">+₹5,000</button>
+                        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:5px 10px;" onclick="setInlineWalletAmount(20000)">+₹20,000</button>
+                        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:5px 10px;" onclick="setInlineWalletAmount(50000)">+₹50,000</button>
+                    </div>
+
+                    <button type="button" class="btn-secondary" onclick="toggleWalletTxHistory()" style="margin-left:auto; font-size:12px; padding:7px 14px;">
+                        <span id="btn-wallet-tx-toggle-text">📜 View Transactions (Ledger)</span>
+                    </button>
+                </div>
+
+                <!-- Inline Ledger Drawer (Hidden by default) -->
+                <div id="inline-wallet-tx-drawer" style="display:none; margin-top:16px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="font-size:12px; font-weight:700; color:#38bdf8;">Recent Wallet Transactions &amp; Audit Trail:</div>
+                        <span style="font-size:11px; color:var(--text-muted);">Updated in real-time</span>
+                    </div>
+                    <div id="inline-wallet-tx-list" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; font-size:12px;">
+                        <!-- Rendered dynamically by app.js -->
                     </div>
                 </div>
             </div>

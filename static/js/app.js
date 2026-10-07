@@ -2215,8 +2215,148 @@ async function fetchWalletBalance() {
 }
 
 function updateWalletBalanceInUI() {
-    const el = document.getElementById('checkout-wallet-balance-val');
-    if (el) el.textContent = `₹${userWalletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    const formatted = `₹${userWalletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    ['header-wallet-balance-val', 'mobile-wallet-balance-val', 'pricing-wallet-balance-val', 'checkout-wallet-balance-val'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = formatted;
+    });
+
+    const statusNote = document.getElementById('pricing-wallet-status-note');
+    if (statusNote) {
+        if (userWalletBalance > 0) {
+            statusNote.textContent = 'Active demo funds ready for checkout';
+            statusNote.style.color = '#34d399';
+        } else {
+            statusNote.textContent = 'Enter any amount above to add demo funds';
+            statusNote.style.color = '#94a3b8';
+        }
+    }
+}
+
+function setInlineWalletAmount(amt) {
+    const input = document.getElementById('inline-wallet-amount-input');
+    if (input) {
+        input.value = amt;
+        input.focus();
+    }
+}
+
+async function executeInlineWalletRecharge() {
+    const input = document.getElementById('inline-wallet-amount-input');
+    const btn = document.getElementById('btn-inline-recharge');
+    const amt = Number(input ? input.value : 0);
+
+    if (isNaN(amt) || amt <= 0) {
+        alert('Please enter a valid positive number as money.');
+        if (input) input.focus();
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Adding Funds...';
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/wallet/topup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount_inr: amt })
+        });
+        const data = await res.json();
+        if (!res.ok || (data.status !== 'success' && !data.success)) {
+            throw new Error(data.message || data.error || data.detail || 'Recharge failed');
+        }
+
+        userWalletBalance = Number(data.balance_inr !== undefined ? data.balance_inr : (userWalletBalance + amt));
+        updateWalletBalanceInUI();
+        if (input) input.value = '';
+        showLiveToast(`🎉 Successfully credited ₹${amt.toLocaleString('en-IN')} to your demo wallet!`, 'success');
+
+        // Refresh transaction list if drawer is open
+        const drawer = document.getElementById('inline-wallet-tx-drawer');
+        if (drawer && drawer.style.display !== 'none') {
+            await loadWalletTransactionsToDrawer();
+        }
+
+        // If checkout modal is open, refresh
+        const checkoutModal = document.getElementById('modal-subscription');
+        if (checkoutModal && checkoutModal.style.display !== 'none' && checkoutSelectedPlan) {
+            renderCheckoutStep(1, checkoutCurrentQuote?.promo_code || '');
+        }
+    } catch (err) {
+        alert(`Recharge error: ${err.message}`);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '💰 Add to Wallet';
+        }
+    }
+}
+
+async function toggleWalletTxHistory() {
+    const drawer = document.getElementById('inline-wallet-tx-drawer');
+    const toggleText = document.getElementById('btn-wallet-tx-toggle-text');
+    if (!drawer) return;
+
+    if (drawer.style.display === 'none' || drawer.style.display === '') {
+        drawer.style.display = 'block';
+        if (toggleText) toggleText.textContent = '▲ Hide Transactions';
+        await loadWalletTransactionsToDrawer();
+    } else {
+        drawer.style.display = 'none';
+        if (toggleText) toggleText.textContent = '📜 View Transactions (Ledger)';
+    }
+}
+
+async function loadWalletTransactionsToDrawer() {
+    const list = document.getElementById('inline-wallet-tx-list');
+    if (!list) return;
+    list.innerHTML = '<div style="color:var(--text-muted); padding:8px 0;">Loading transactions...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/subscription/wallet/transactions`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const txs = (data.data && data.data.recent_transactions) || data.recent_transactions || [];
+
+        if (txs.length === 0) {
+            list.innerHTML = '<div style="color:var(--text-muted); padding:6px 0;">No wallet transactions recorded yet. Add funds above to start demo testing!</div>';
+            return;
+        }
+
+        list.innerHTML = txs.map(t => {
+            const isCredit = t.credit_or_debit === 'CREDIT';
+            const sign = isCredit ? '+' : '-';
+            const color = isCredit ? 'var(--accent-emerald)' : '#f43f5e';
+            const bg = isCredit ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)';
+            const dateStr = t.created_at ? new Date(t.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '';
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:${bg}; border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:6px 10px;">
+                    <div>
+                        <strong style="color:#fff;">${escapeHtml(t.description || t.transaction_type)}</strong>
+                        <div style="font-size:10.5px; color:var(--text-muted);">${dateStr} &bull; ID: ${escapeHtml(t.transaction_id || '')}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="mono" style="color:${color}; font-weight:800; font-size:13px;">${sign}₹${(Number(t.amount_rupees || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                        <div style="font-size:10px; color:var(--text-muted);">Bal: ₹${(Number(t.balance_after_rupees || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        list.innerHTML = `<div style="color:#f87171; padding:6px 0;">Failed to load transactions: ${escapeHtml(err.message)}</div>`;
+    }
+}
+
+async function addFundsDirectlyInCheckout() {
+    const input = document.getElementById('checkout-inline-topup-amt');
+    const amt = Number(input ? input.value : 0);
+    if (isNaN(amt) || amt <= 0) {
+        alert('Please enter a valid positive number as money.');
+        return;
+    }
+    await executeWalletTopup(amt);
 }
 
 async function loadAndRenderPricingPlans() {
@@ -2756,22 +2896,35 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
         </div>
 
         ${!hasSufficientWallet ? `
-        <div style="padding:12px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:8px; font-size:12.5px; color:#f87171; margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="padding:14px; background:rgba(239,68,68,0.12); border:1.5px solid rgba(239,68,68,0.35); border-radius:8px; font-size:12.5px; color:#f87171; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div>
-                    <strong>Insufficient wallet balance.</strong><br>
-                    <span>Need ₹${(finalAmount - userWalletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} more.</span>
+                    <strong style="color:#fff; font-size:13px;">Insufficient wallet balance for this plan.</strong><br>
+                    <span>Short by <strong style="color:#f87171; font-size:13px;">₹${(finalAmount - userWalletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>. Enter any number below to add demo funds:</span>
                 </div>
-                <button type="button" class="btn-primary" style="font-size:11.5px; padding:6px 12px;" onclick="openWalletTopupModal(${Math.ceil(finalAmount - userWalletBalance)})">
-                    Add Money +
-                </button>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <span style="font-weight:800; color:#38bdf8; font-size:14px;">₹</span>
+                    <input type="number" id="checkout-inline-topup-amt" value="${Math.ceil(finalAmount - userWalletBalance)}" min="1" step="any"
+                           style="width:95px; padding:6px 8px; background:#0b1222; border:1px solid rgba(56,189,248,0.5); border-radius:6px; color:#fff; font-size:13px; font-family:'JetBrains Mono',monospace;">
+                    <button type="button" class="btn-primary" style="font-size:12px; padding:7px 14px; background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:0 0 12px rgba(16,185,129,0.3);" onclick="addFundsDirectlyInCheckout()">
+                        + Add Funds &amp; Pay
+                    </button>
+                </div>
             </div>
-        </div>` : ''}
+        </div>` : `
+        <div style="padding:12px 14px; background:rgba(16,185,129,0.12); border:1.5px solid rgba(16,185,129,0.35); border-radius:8px; font-size:12.5px; color:#34d399; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px;">💰</span>
+            <div>
+                <strong style="color:#fff;">Demo Wallet Ready:</strong>
+                <span>₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})} available. Payment will be deducted directly from your wallet balance.</span>
+            </div>
+        </div>
+        `}
 
         <div style="display:flex; justify-content:flex-end; gap:10px;">
             <button type="button" class="btn-secondary" onclick="closeModal('modal-subscription')">Cancel</button>
-            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()">
-                Confirm Plan Change
+            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()" style="${hasSufficientWallet ? 'background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:0 0 16px rgba(16,185,129,0.35);' : ''}">
+                ${hasSufficientWallet ? `Pay ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})} from Wallet &amp; Activate Plan` : 'Insufficient Funds — Add Money Above'}
             </button>
         </div>
     `;
@@ -3065,10 +3218,16 @@ async function executeWalletTopup(amountToCharge) {
             throw new Error(data.message || data.error || 'Wallet recharge failed.');
         }
 
-        userWalletBalance = Number(data.wallet ? data.wallet.balance_inr : (userWalletBalance + amount));
+        userWalletBalance = Number(data.balance_inr !== undefined ? data.balance_inr : (data.wallet ? data.wallet.balance_inr : (userWalletBalance + amount)));
         updateWalletBalanceInUI();
         closeModal('modal-wallet-topup');
-        showLiveToast(`🎉 Successfully added ₹${amount.toLocaleString('en-IN')} to your prototype wallet!`, 'success');
+        showLiveToast(`🎉 Successfully credited ₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} to your demo wallet!`, 'success');
+
+        // Refresh transaction list if drawer is open
+        const drawer = document.getElementById('inline-wallet-tx-drawer');
+        if (drawer && drawer.style.display !== 'none') {
+            await loadWalletTransactionsToDrawer();
+        }
 
         // If checkout modal is open, refresh
         const checkoutModal = document.getElementById('modal-subscription');
