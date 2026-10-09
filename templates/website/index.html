@@ -74,65 +74,15 @@
                 </div>
 
                 <div class="header-actions-group">
-                    <!-- Live Data Fetch & Timestamp Control -->
-                    <div class="header-live-fetch-wrap">
-                        <button class="nav-btn-sync" id="header-btn-live-sync" onclick="confirmLiveFetch()" title="Verify official portals and synchronize live data">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-                            </svg>
-                            <span class="sync-label">Fetch Live Data</span>
-                        </button>
-                        <div class="header-live-timestamp-pill" id="header-live-timestamp-pill" title="Exact timestamp of official data synchronization">
-                            <span class="pulse-dot-cyan"></span>
-                            <span>Fetched: <strong id="header-fetched-time">Live</strong></span>
-                        </div>
-                    </div>
-
-                    <div class="header-v-divider"></div>
-
-                    <!-- Header Utility Action Buttons -->
-                    <div class="header-utilities-wrap">
-                        <button class="nav-action-btn" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                            </svg>
-                            <span>Theme</span>
-                        </button>
-                        <button class="nav-action-btn" onclick="openModal('modal-ngo-help')" title="Step-by-step documentation for NGOs &amp; applicants">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                            </svg>
-                            <span>Help Guide</span>
-                        </button>
-                        <button class="nav-action-btn" onclick="openModal('modal-analytics')" title="National CSR &amp; Industry Employment Insights">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                            </svg>
-                            <span>Analytics</span>
-                        </button>
-                        <button class="nav-action-btn" onclick="openModal('modal-export')" title="Download verified intelligence datasets (CSV)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                            <span>Export CSV</span>
-                        </button>
-                        <a href="/admin-portal/" class="nav-action-btn nav-btn-admin" title="Open ImpactBridge Management Console">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                            </svg>
-                            <span>Admin Portal</span>
-                        </a>
-                        <button class="nav-action-btn nav-btn-wallet" id="header-wallet-btn" onclick="openWalletTopupModal()" title="Demo Wallet: Enter any number to top-up real money for demo testing" style="border-color:rgba(16,185,129,0.35); background:rgba(16,185,129,0.1);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981;">
-                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
-                            </svg>
-                            <span>Wallet:</span>
-                            <strong class="mono" id="header-wallet-balance-val" style="color:var(--accent-emerald); font-weight:800; font-size:12.5px; margin-left:3px;">₹0.00</strong>
-                            <span style="font-size:10px; background:rgba(16,185,129,0.22); color:#34d399; padding:1px 6px; border-radius:10px; font-weight:800; border:1px solid rgba(16,185,129,0.4); margin-left:4px;">+ TOP UP</span>
-                        </button>
-                    </div>
-
-                    <div class="header-v-divider"></div>
+                    <!-- Clean Demo Wallet Pill -->
+                    <button class="nav-action-btn nav-btn-wallet" id="header-wallet-btn" onclick="openWalletTopupModal()" title="Demo Wallet: Enter any number to top-up demo funds for testing" style="border-color:rgba(16,185,129,0.35); background:rgba(16,185,129,0.1);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#10b981;">
+                            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+                        </svg>
+                        <span>Wallet:</span>
+                        <strong class="mono" id="header-wallet-balance-val" style="color:var(--accent-emerald); font-weight:800; font-size:12.5px; margin-left:3px;">₹0.00</strong>
+                        <span style="font-size:10px; background:rgba(16,185,129,0.22); color:#34d399; padding:1px 6px; border-radius:10px; font-weight:800; border:1px solid rgba(16,185,129,0.4); margin-left:4px;">+ TOP UP</span>
+                    </button>
 
                     <!-- Subscription Tier Badge -->
                     <div class="user-tier-pill" id="header-user-tier-pill" onclick="switchTab('pricing')" title="View transparent subscription tiers and manage organization access">
@@ -140,6 +90,18 @@
                         <span class="user-tier-name" id="header-tier-label">Institutional Access</span>
                         <button class="user-tier-btn" id="header-tier-btn" onclick="event.stopPropagation(); switchTab('pricing');">Plans ⚡</button>
                     </div>
+
+                    <div class="header-v-divider"></div>
+
+                    <!-- Executive Hamburger Menu Button -->
+                    <button class="hamburger-menu-btn" id="main-hamburger-btn" onclick="toggleMobileNav()" aria-label="Open Navigation &amp; Tools Menu" title="Open Navigation &amp; Tools Menu">
+                        <span class="hamburger-icon-bars" aria-hidden="true">
+                            <span class="bar bar-top"></span>
+                            <span class="bar bar-mid"></span>
+                            <span class="bar bar-bot"></span>
+                        </span>
+                        <span class="hamburger-btn-label">Menu</span>
+                    </button>
                 </div>
             </div>
 
@@ -201,88 +163,136 @@
         </div>
     </header>
 
-    <!-- ===== MOBILE NAVIGATION DRAWER & BACKDROP ===== -->
+    <!-- ===== EXECUTIVE HAMBURGER NAVIGATION DRAWER & BACKDROP ===== -->
     <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop" onclick="closeMobileNav()"></div>
-    <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Mobile Navigation">
+    <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Executive Navigation Menu">
         <div class="mobile-drawer-header">
             <div class="drawer-brand">
-                <div class="brand-icon-wrap" style="width:32px; height:32px;">
+                <div class="brand-icon-wrap" style="width:34px; height:34px;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                     </svg>
                 </div>
-                <div class="brand-title" style="font-size:15px;">ImpactBridge<span class="brand-tm">™</span></div>
+                <div class="brand-meta">
+                    <div class="brand-title" style="font-size:15px; font-weight:800;">ImpactBridge<span class="brand-tm">™</span></div>
+                    <div class="brand-tagline" style="font-size:10.5px; color:var(--text-secondary);">Executive Platform Control</div>
+                </div>
             </div>
-            <button class="mobile-drawer-close" onclick="closeMobileNav()" aria-label="Close navigation">✕</button>
+            <button class="mobile-drawer-close" onclick="closeMobileNav()" aria-label="Close navigation" title="Close Menu">✕</button>
         </div>
 
-        <div class="mobile-drawer-telemetry" onclick="switchTab('crawler-logs'); closeMobileNav();">
-            <span class="pulse-dot"></span>
-            <span style="font-size:12px; font-weight:600; color:var(--text-primary);"><span id="mobile-companies-count">201</span> Corporations Monitored</span>
-            <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">Monitored</span>
+        <div class="drawer-scroll-body">
+            <!-- 1. Live Synchronization & Telemetry Card -->
+            <div class="drawer-sync-card">
+                <div class="drawer-sync-card-top">
+                    <div class="drawer-telemetry-badge" onclick="switchTab('crawler-logs'); closeMobileNav();" title="View Real-Time Web Telemetry Logs">
+                        <span class="pulse-dot"></span>
+                        <span style="font-size:12px; font-weight:700; color:var(--text-primary);"><span id="mobile-companies-count">201</span> Corporations Monitored</span>
+                        <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">LIVE</span>
+                    </div>
+                </div>
+                <div class="drawer-sync-action-row">
+                    <button class="nav-btn-sync drawer-live-sync-btn" id="header-btn-live-sync" onclick="confirmLiveFetch()" title="Verify official portals and synchronize live data">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                        <span class="sync-label">Fetch Live Data</span>
+                    </button>
+                    <div class="header-live-timestamp-pill" id="header-live-timestamp-pill" title="Exact timestamp of official data synchronization">
+                        <span class="pulse-dot-cyan"></span>
+                        <span>Fetched: <strong id="header-fetched-time">Live</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Demo Wallet & Funds Card -->
+            <div class="drawer-wallet-card" onclick="openWalletTopupModal(); closeMobileNav();" title="Click to Top Up Demo Funds">
+                <div class="drawer-wallet-left">
+                    <div style="font-size:20px; line-height:1;">💰</div>
+                    <div>
+                        <div style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;">Demo Wallet Balance</div>
+                        <strong class="mono" id="mobile-wallet-balance-val" style="color:var(--accent-emerald); font-size:15px; font-weight:800;">₹0.00</strong>
+                    </div>
+                </div>
+                <span class="badge badge-emerald" style="font-size:10.5px; padding:3px 8px; font-weight:800; cursor:pointer;">+ TOP UP</span>
+            </div>
+
+            <!-- 3. Primary Navigation Section -->
+            <nav class="mobile-drawer-nav">
+                <div class="drawer-nav-section-title">PLATFORM NAVIGATION</div>
+                <button class="drawer-nav-btn active" data-nav="companies" onclick="switchTab('companies'); closeMobileNav();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
+                    <span>Corporate Registry</span>
+                    <span class="badge badge-indigo" id="mobile-nav-companies-badge" style="margin-left:auto;">201</span>
+                </button>
+                <button class="drawer-nav-btn" data-nav="active-opps" onclick="switchTab('active-opps'); closeMobileNav();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+                    <span>Open Grants &amp; RFPs</span>
+                    <span class="badge badge-amber-subtle" id="mobile-nav-opps-badge" style="margin-left:auto;">6</span>
+                </button>
+                <button class="drawer-nav-btn" data-nav="jobs" onclick="switchTab('jobs'); closeMobileNav();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    <span>Enterprise Jobs</span>
+                    <span class="badge badge-cyan-subtle" id="mobile-nav-jobs-badge" style="margin-left:auto;">115</span>
+                </button>
+                <button class="drawer-nav-btn" data-nav="matching" onclick="switchTab('matching'); closeMobileNav();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                    <span>Cause Matchmaker</span>
+                </button>
+                <button class="drawer-nav-btn" data-nav="prospects" onclick="switchTab('prospects'); closeMobileNav();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    <span>Outreach CRM</span>
+                    <span class="badge badge-purple-subtle" style="margin-left:auto;">7</span>
+                </button>
+                <button class="drawer-nav-btn" data-nav="crawler-logs" onclick="switchTab('crawler-logs'); closeMobileNav();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Domain Telemetry</span>
+                    <span class="badge badge-emerald-subtle" style="margin-left:auto;">Live</span>
+                </button>
+                <button class="drawer-nav-btn" data-nav="pricing" onclick="switchTab('pricing'); closeMobileNav();">
+                    <span style="font-size:15px;">⚡</span>
+                    <span>Institutional Plans</span>
+                    <span class="badge badge-purple" style="margin-left:auto;">Plans &amp; Pricing</span>
+                </button>
+
+                <!-- 4. Utilities, Theme & Governance -->
+                <div class="drawer-nav-section-title" style="margin-top:16px;">UTILITIES &amp; TOOLS</div>
+                <button class="drawer-nav-btn" id="theme-toggle" onclick="toggleDarkMode();" title="Toggle Dark or Light Mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <span>Toggle Theme (Dark / Light)</span>
+                </button>
+                <button class="drawer-nav-btn" onclick="openModal('modal-ngo-help'); closeMobileNav();" title="Step-by-step documentation for NGOs &amp; applicants">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>Help Guide &amp; NGO Docs</span>
+                </button>
+                <button class="drawer-nav-btn" onclick="openModal('modal-analytics'); closeMobileNav();" title="National CSR &amp; Industry Employment Insights">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    <span>Analytics Dashboard</span>
+                </button>
+                <button class="drawer-nav-btn" onclick="openModal('modal-export'); closeMobileNav();" title="Download verified intelligence datasets (CSV)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Export CSV Datasets</span>
+                </button>
+                <a href="/admin-portal/" class="drawer-nav-btn drawer-btn-admin" title="Open ImpactBridge Management Console">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span>Admin Portal Console &rarr;</span>
+                </a>
+            </nav>
+
+            <div class="drawer-footer-note">
+                ImpactBridge™ Enterprise OS v2.4.0 &bull; Pan-India Intelligence
+            </div>
         </div>
-
-        <div class="mobile-drawer-telemetry" onclick="openWalletTopupModal(); closeMobileNav();" style="border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.12); margin-top:8px; cursor:pointer;">
-            <span style="font-size:15px;">💰</span>
-            <span style="font-size:12px; font-weight:700; color:var(--text-primary);">Demo Wallet:</span>
-            <strong class="mono" id="mobile-wallet-balance-val" style="color:var(--accent-emerald); font-size:13px; margin-left:4px;">₹0.00</strong>
-            <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">+ TOP UP</span>
-        </div>
-
-        <nav class="mobile-drawer-nav">
-            <div class="drawer-nav-section-title">INTELLIGENCE PLATFORM</div>
-            <button class="drawer-nav-btn active" data-nav="companies" onclick="switchTab('companies'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
-                <span>Corporate Registry</span>
-                <span class="badge badge-indigo" id="mobile-nav-companies-badge" style="margin-left:auto;">201</span>
-            </button>
-            <button class="drawer-nav-btn" data-nav="active-opps" onclick="switchTab('active-opps'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
-                <span>Open Grants &amp; RFPs</span>
-                <span class="badge badge-amber-subtle" id="mobile-nav-opps-badge" style="margin-left:auto;">6</span>
-            </button>
-            <button class="drawer-nav-btn" data-nav="jobs" onclick="switchTab('jobs'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                <span>Enterprise Jobs</span>
-                <span class="badge badge-cyan-subtle" id="mobile-nav-jobs-badge" style="margin-left:auto;">115</span>
-            </button>
-            <button class="drawer-nav-btn" data-nav="matching" onclick="switchTab('matching'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                <span>Cause Matchmaker</span>
-            </button>
-            <button class="drawer-nav-btn" data-nav="prospects" onclick="switchTab('prospects'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                <span>Outreach CRM</span>
-                <span class="badge badge-purple-subtle" style="margin-left:auto;">7</span>
-            </button>
-            <button class="drawer-nav-btn" data-nav="crawler-logs" onclick="switchTab('crawler-logs'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-                <span>Domain Telemetry</span>
-                <span class="badge badge-emerald-subtle" style="margin-left:auto;">Live</span>
-            </button>
-            <button class="drawer-nav-btn" data-nav="pricing" onclick="switchTab('pricing'); closeMobileNav();">
-                <span>⚡ Institutional Plans</span>
-                <span class="badge badge-purple" style="margin-left:auto;">Pricing</span>
-            </button>
-
-            <div class="drawer-nav-section-title" style="margin-top:14px;">UTILITIES &amp; GOVERNANCE</div>
-            <button class="drawer-nav-btn" onclick="openModal('modal-ngo-help'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span>Help Guide</span>
-            </button>
-            <button class="drawer-nav-btn" onclick="openModal('modal-analytics'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                <span>Analytics Dashboard</span>
-            </button>
-            <button class="drawer-nav-btn" onclick="openModal('modal-export'); closeMobileNav();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Export CSV Datasets</span>
-            </button>
-            <a href="/admin-portal/" class="drawer-nav-btn drawer-btn-admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                <span>Admin Console &rarr;</span>
-            </a>
-        </nav>
     </aside>
 
     <main class="main-wrapper">

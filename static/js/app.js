@@ -216,10 +216,11 @@ function setupEventListeners() {
         if (el) el.addEventListener('change', () => filterCrawlerLogs());
     });
 
-    // Keyboard ESC closes any open modal
+    // Keyboard ESC closes any open modal or navigation drawer
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeAllModals();
+            closeMobileNav();
         }
     });
 }
@@ -406,6 +407,15 @@ function formatDateTime(isoString) {
     }) + ' ' + d.toLocaleTimeString('en-IN', {
         hour: '2-digit', minute: '2-digit', hour12: false
     }) + ' UTC';
+}
+
+function formatDate(dateVal) {
+    if (!dateVal) return 'Recent';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return String(dateVal).slice(0, 10);
+    return d.toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric'
+    });
 }
 
 function timeAgo(isoString) {
