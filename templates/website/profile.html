@@ -519,35 +519,97 @@
 
     <!-- Modals -->
     <div id="modal-autorenew-off" class="modal-backdrop">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">Disable Subscription Auto-Renewal</h3>
+        <div class="modal-box" style="max-width:520px;">
+            <div class="modal-header" style="display:flex; align-items:center; gap:12px; padding:18px 24px; border-bottom:1px solid #E2E8F0;">
+                <div style="width:38px; height:38px; border-radius:10px; background:#FEF3C7; border:1px solid #FDE68A; display:flex; align-items:center; justify-content:center; color:#D97706; font-size:18px; flex-shrink:0;">
+                    ⚠️
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">Disable Automatic Renewal</h3>
+                    <div style="font-size:12px; color:#64748B; margin-top:2px;">Plan will not renew automatically on the next billing date</div>
+                </div>
             </div>
-            <div class="modal-body">
-                <p style="margin:0; font-size:13.5px; color:#334155; line-height:1.5;">
-                    Are you sure you want to turn off automatic renewals? At the end of your billing cycle, your account will revert to the free Community Starter tier unless manually renewed.
-                </p>
+            <div class="modal-body" style="padding:22px 24px;">
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                        <span style="color:#64748B;">Current Plan:</span>
+                        <strong style="color:#0F172A;">{{ subscription.plan_id|upper }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px;">
+                        <span style="color:#64748B;">Active Until:</span>
+                        <strong style="color:#0F766E;">{{ subscription.current_period_end|date:"F j, Y" }}</strong>
+                    </div>
+                </div>
+                <div style="font-size:13px; color:#334155; line-height:1.6; margin-bottom:12px;">
+                    <strong>What to expect when auto-renewal is turned off:</strong>
+                    <ul style="margin:8px 0 0 20px; padding:0; color:#475569;">
+                        <li style="margin-bottom:6px;">You will retain full uninterrupted access to all plan features until <strong>{{ subscription.current_period_end|date:"M d, Y" }}</strong>.</li>
+                        <li style="margin-bottom:6px;">No automatic charge will be debited from your wallet or payment method.</li>
+                        <li>After this date, your account will downgrade to the free Community Starter tier unless manually renewed.</li>
+                    </ul>
+                </div>
+                <div style="font-size:12px; color:#64748B; background:#F0FDFA; border:1px solid #CCFBF1; border-radius:8px; padding:10px 12px;">
+                    💡 You can re-enable automatic renewal at any time before your billing cycle ends.
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" onclick="closeModals()" class="btn-custom btn-secondary-c">Keep Enabled</button>
-                <button type="button" onclick="confirmAutoRenewOff()" class="btn-custom btn-danger-c">Yes, Turn Off</button>
+            <div class="modal-footer" style="padding:14px 24px; background:#F8FAFC; border-top:1px solid #E2E8F0; display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeModals()" class="btn-custom btn-primary-c">Keep Auto-Renewal On</button>
+                <button type="button" onclick="confirmAutoRenewOff()" class="btn-custom btn-secondary-c" style="color:#DC2626; border-color:#FECACA;">Yes, Disable Auto-Renewal</button>
             </div>
         </div>
     </div>
 
     <div id="modal-cancel-sub" class="modal-backdrop">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 style="margin:0; font-size:16px; font-weight:700; color:#DC2626;">Cancel Subscription</h3>
+        <div class="modal-box" style="max-width:540px;">
+            <div class="modal-header" style="display:flex; align-items:center; gap:12px; padding:18px 24px; border-bottom:1px solid #FEE2E2; background:#FFF5F5;">
+                <div style="width:38px; height:38px; border-radius:10px; background:#FEE2E2; border:1px solid #FECACA; display:flex; align-items:center; justify-content:center; color:#DC2626; font-size:18px; flex-shrink:0;">
+                    🛡️
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#991B1B;">Cancel Subscription Confirmation</h3>
+                    <div style="font-size:12px; color:#7F1D1D; margin-top:2px;">Enterprise access retention review</div>
+                </div>
             </div>
-            <div class="modal-body">
-                <p style="margin:0; font-size:13.5px; color:#334155; line-height:1.5;">
-                    Your subscription will remain active until <strong>{{ subscription.current_period_end|date:"M d, Y" }}</strong>. After this date, you will lose access to premium queries, unmasked donor contacts, and high-volume data exports.
-                </p>
+            <div class="modal-body" style="padding:22px 24px;">
+                <div style="background:#FFF7ED; border:1px solid #FFEDD5; border-radius:10px; padding:14px; margin-bottom:18px;">
+                    <div style="font-size:13px; color:#9A3412; line-height:1.5;">
+                        Your subscription will remain active until <strong>{{ subscription.current_period_end|date:"F j, Y" }}</strong>. You can continue using your full allocation until that date.
+                    </div>
+                </div>
+
+                <div style="font-size:13px; font-weight:700; color:#0F172A; margin-bottom:8px;">
+                    Access revoked after {{ subscription.current_period_end|date:"M d, Y" }}:
+                </div>
+                <div style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:18px; font-size:12.5px; color:#475569;">
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Unmasked CSR Decision-Maker Direct Phones &amp; Official Emails</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Live Corporate Career ATS Crawler Synchronizations</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Full CSV &amp; Excel Intelligence Exports for Top 200 Companies</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Institutional Grant Matching &amp; RFP Early Notifications</span>
+                    </div>
+                </div>
+
+                <div style="font-size:12px; color:#64748B; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:8px; padding:10px 14px;">
+                    💼 <strong>Need help or customized terms?</strong> Contact our institutional accounts desk at <a href="mailto:support@impactbridge.org" style="color:#0F766E; font-weight:600;">support@impactbridge.org</a> to pause your account or discuss annual team pricing.
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" onclick="closeModals()" class="btn-custom btn-secondary-c">Keep Plan</button>
-                <button type="button" onclick="confirmCancelSub()" class="btn-custom btn-danger-c">Confirm Cancellation</button>
+            <div class="modal-footer" style="padding:14px 24px; background:#F8FAFC; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <button type="button" onclick="confirmCancelSub()" class="btn-custom btn-danger-c" style="font-size:12.5px;">
+                    Confirm &amp; Cancel Plan
+                </button>
+                <button type="button" onclick="closeModals()" class="btn-custom btn-primary-c" style="font-size:13px; padding:9px 20px;">
+                    Keep My Subscription (Recommended)
+                </button>
             </div>
         </div>
     </div>

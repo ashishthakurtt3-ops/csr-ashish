@@ -4182,55 +4182,75 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
     const currPrice = currPlanObj ? Number(currPlanObj.monthly_price || 0) : 0;
 
     body.innerHTML = `
-        <!-- Requirement 4: Higher Plan Confirmation Display -->
-        <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-card); border-radius:8px; padding:16px; margin-bottom:16px; font-size:13px;">
+        <!-- Enterprise Order Summary & Confirmation Box -->
+        <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-card); border-radius:12px; padding:18px; margin-bottom:16px; font-size:13px; box-shadow:var(--shadow-sm);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border-color);">
+                <div>
+                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-tertiary);">Subscription Order</span>
+                    <h4 style="margin:2px 0 0; font-size:15px; font-weight:800; color:var(--text-primary);">${escapeHtml(checkoutSelectedPlan.name)}</h4>
+                </div>
+                <span class="badge badge-active" style="font-size:10px; padding:3px 8px; border-radius:12px;">
+                    ${checkoutSelectedCycle === 'yearly' ? 'Annual Billing (Save 15%)' : 'Monthly Billing'}
+                </span>
+            </div>
+
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span style="color:var(--text-secondary);">Current Plan:</span>
-                <strong style="color:var(--text-primary);">${escapeHtml(currPlanName)} — ₹${currPrice.toLocaleString('en-IN')}/month</strong>
+                <span style="color:var(--text-primary); font-weight:600;">${escapeHtml(currPlanName)} <span style="color:var(--text-tertiary);">(₹${currPrice.toLocaleString('en-IN')}/mo)</span></span>
             </div>
+
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <span style="color:var(--text-secondary);">New Plan:</span>
-                <strong style="color:var(--primary-brand); font-size:14px;">${escapeHtml(checkoutSelectedPlan.name)} — ₹${(checkoutSelectedCycle === 'yearly' ? checkoutSelectedPlan.yearly_price : checkoutSelectedPlan.monthly_price).toLocaleString('en-IN')}/${checkoutSelectedCycle === 'yearly' ? 'year' : 'month'}</strong>
+                <span style="color:var(--text-secondary);">New Plan Base:</span>
+                <span style="color:var(--text-primary); font-weight:600;">₹${(checkoutSelectedCycle === 'yearly' ? checkoutSelectedPlan.yearly_price : checkoutSelectedPlan.monthly_price).toLocaleString('en-IN')}/${checkoutSelectedCycle === 'yearly' ? 'yr' : 'mo'}</span>
             </div>
+
+            ${q.discount_amount && Number(q.discount_amount) > 0 ? `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; color:var(--success);">
+                <span>Promotional Discount:</span>
+                <span class="mono" style="font-weight:700;">-₹${Number(q.discount_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+            </div>` : ''}
+
             <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding-top:8px; border-top:1px solid var(--border-color);">
-                <span style="color:var(--text-secondary);">Amount Payable:</span>
-                <strong class="mono" style="color:var(--success); font-size:14px;">₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+                <span style="color:var(--text-secondary); font-weight:600;">Total Amount Payable:</span>
+                <strong class="mono" style="color:var(--success); font-size:15px; font-weight:800;">₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <span style="color:var(--text-secondary);">Wallet Balance:</span>
-                <strong class="mono" style="color:var(--primary-brand);">₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px;">
+                <span style="color:var(--text-tertiary);">Prototype Wallet Balance:</span>
+                <span class="mono" style="color:var(--primary-brand); font-weight:600;">₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
             </div>
-            <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed var(--border-color);">
-                <span style="color:var(--text-secondary);">Balance After:</span>
-                <strong class="mono" style="color:${hasSufficientWallet ? 'var(--success)' : 'var(--error)'};">₹${balanceAfter.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>
+
+            <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed var(--border-color); font-size:12px;">
+                <span style="color:var(--text-tertiary);">Estimated Balance After:</span>
+                <span class="mono" style="color:${hasSufficientWallet ? 'var(--success)' : 'var(--error)'}; font-weight:700;">₹${balanceAfter.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
             </div>
         </div>
 
         <!-- Cycle & Promo -->
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
             <div style="display:flex; gap:6px;">
-                <button type="button" class="btn-secondary ${checkoutSelectedCycle === 'monthly' ? 'btn-primary' : ''}" style="font-size:11.5px; padding:5px 12px;" onclick="changeCheckoutCycle('monthly', '${promoCode}')">
+                <button type="button" class="btn-secondary ${checkoutSelectedCycle === 'monthly' ? 'btn-primary' : ''}" style="font-size:11.5px; padding:6px 14px;" onclick="changeCheckoutCycle('monthly', '${promoCode}')">
                     Monthly
                 </button>
-                <button type="button" class="btn-secondary ${checkoutSelectedCycle === 'yearly' ? 'btn-primary' : ''}" style="font-size:11.5px; padding:5px 12px;" onclick="changeCheckoutCycle('yearly', '${promoCode}')">
-                    Annual (Save)
+                <button type="button" class="btn-secondary ${checkoutSelectedCycle === 'yearly' ? 'btn-primary' : ''}" style="font-size:11.5px; padding:6px 14px;" onclick="changeCheckoutCycle('yearly', '${promoCode}')">
+                    Annual (Save 15%)
                 </button>
             </div>
             <div style="flex:1; max-width:220px; display:flex; gap:6px;">
                 <input type="text" id="checkout-promo-input" value="${escapeHtml(promoCode)}" placeholder="Promo code"
                        style="width:100%; box-sizing:border-box; padding:6px 10px; background:var(--bg-input); border:1px solid var(--border-card); border-radius:6px; color:var(--text-primary); font-size:11.5px; font-family:'JetBrains Mono',monospace; text-transform:uppercase;">
-                <button type="button" class="btn-secondary" style="font-size:11px; padding:6px 10px;" onclick="applyCheckoutPromo()">
+                <button type="button" class="btn-secondary" style="font-size:11px; padding:6px 12px;" onclick="applyCheckoutPromo()">
                     Apply
                 </button>
             </div>
         </div>
 
         ${!hasSufficientWallet ? `
-        <div style="padding:14px; background:var(--error-bg); border:1.5px solid var(--error-border); border-radius:8px; font-size:12.5px; color:var(--error); margin-bottom:16px;">
+        <div style="padding:14px 16px; background:var(--error-bg); border:1.5px solid var(--error-border); border-radius:10px; font-size:12.5px; color:var(--error); margin-bottom:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div>
                     <strong style="color:var(--text-primary); font-size:13px;">Insufficient wallet balance for this plan.</strong><br>
-                    <span>Short by <strong style="color:var(--error); font-size:13px;">₹${(finalAmount - userWalletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>. Enter any number below to add demo funds:</span>
+                    <span>Short by <strong style="color:var(--error); font-size:13px;">₹${(finalAmount - userWalletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong>. Top up with instant demo funds below:</span>
                 </div>
                 <div style="display:flex; gap:6px; align-items:center;">
                     <span style="font-weight:800; color:var(--primary-brand); font-size:14px;">₹</span>
@@ -4242,20 +4262,28 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
                 </div>
             </div>
         </div>` : `
-        <div style="padding:12px 14px; background:var(--success-bg); border:1.5px solid var(--success-border); border-radius:8px; font-size:12.5px; color:var(--success); margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+        <div style="padding:12px 14px; background:var(--success-bg); border:1.5px solid var(--success-border); border-radius:10px; font-size:12.5px; color:var(--success); margin-bottom:16px; display:flex; align-items:center; gap:10px;">
             <span style="font-size:18px;">💰</span>
             <div>
                 <strong style="color:var(--text-primary);">Demo Wallet Ready:</strong>
-                <span>₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})} available. Payment will be deducted directly from your wallet balance.</span>
+                <span>₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})} available. Settlement will be processed instantly from your wallet balance.</span>
             </div>
         </div>
         `}
 
-        <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:4px;">
             <button type="button" class="btn-secondary" onclick="closeModal('modal-subscription')">Cancel</button>
-            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()" style="${hasSufficientWallet ? 'background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:var(--shadow-sm);' : ''}">
-                ${hasSufficientWallet ? `Pay ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})} from Wallet &amp; Activate Plan` : 'Insufficient Funds — Add Money Above'}
+            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()" style="${hasSufficientWallet ? 'background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:var(--shadow-sm); font-weight:700;' : ''}">
+                ${hasSufficientWallet ? `Confirm &amp; Subscribe — ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}` : 'Insufficient Funds — Add Money Above'}
             </button>
+        </div>
+
+        <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin-top:16px; padding-top:10px; border-top:1px solid var(--border-color); font-size:11px; color:var(--text-tertiary);">
+            <span>🔒 256-Bit SSL Encryption</span>
+            <span>&bull;</span>
+            <span>⚡ Instant Activation</span>
+            <span>&bull;</span>
+            <span>✓ Cancel Anytime in Profile</span>
         </div>
     `;
 }
