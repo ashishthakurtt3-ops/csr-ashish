@@ -1,4 +1,4 @@
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:10px; padding:10px 14px;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:12px; padding:12px 16px;">
     <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
         <a href="{% url 'admin_subscriptions:list' %}" class="btn-admin {% if active_tab == 'subscriptions' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -26,13 +26,30 @@
         </a>
     </div>
 
-    <div style="display:flex; gap:8px; align-items:center;">
-        <span class="badge-status badge-pending" style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;">Prototype Billing Engine</span>
-        <form method="POST" action="{% url 'admin_subscriptions:run_renewals' %}" style="margin:0;" onsubmit="return confirm('Trigger scheduled renewals now? Subscriptions due for renewal will attempt wallet payments.');">
+    <div style="display:flex; gap:10px; align-items:center;">
+        <span class="badge-status badge-pending" style="font-size:11px; font-weight:600;">Billing Engine</span>
+        <form method="POST" action="{% url 'admin_subscriptions:run_renewals' %}" style="margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+            title: 'Authorize Scheduled Renewals Execution',
+            subtitle: 'Initiate batch billing cycle verification and automated wallet settlement.',
+            severity: 'finance',
+            entity: {
+                'Engine': 'ImpactBridge Institutional Billing Router',
+                'Action': 'Process Expired Subscription Periods',
+                'Method': 'Atomic Wallet Deduction & Invoicing'
+            },
+            impacts: [
+                'Scans all active subscriptions where period end date has elapsed',
+                'Debits corresponding plan renewal fees from user wallet balances',
+                'Issues formal GST tax invoices and updates subscription coverage dates',
+                'Records every settlement attempt in the statutory audit ledger'
+            ],
+            alert: 'Subscribers with insufficient wallet balances will enter grace period with automated payment failure notifications.',
+            confirmText: 'Execute Renewals Run'
+        });">
             {% csrf_token %}
-            <button type="submit" class="btn-admin btn-admin-accent" style="font-size:12px; padding:6px 12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                Run Renewals Now
+            <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Run Renewals
             </button>
         </form>
     </div>

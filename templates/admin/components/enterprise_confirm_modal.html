@@ -1,0 +1,630 @@
+<!-- ==========================================================================
+     ENTERPRISE CONFIRMATION MODAL SYSTEM (TIER-1 FINTECH STANDARD)
+     Adheres to Stripe / GitHub Enterprise / AWS high-assurance confirmation standards
+     ========================================================================== -->
+<style>
+    .ent-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ent-modal-backdrop.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .ent-modal-window {
+        background: var(--bg-surface, #FFFFFF);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        max-width: 540px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        transform: scale(0.96) translateY(8px);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ent-modal-backdrop.active .ent-modal-window {
+        transform: scale(1) translateY(0);
+    }
+
+    .ent-modal-header {
+        padding: 22px 24px 16px 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        border-bottom: 1px solid var(--border-subtle, #F1F5F9);
+        position: relative;
+    }
+
+    .ent-icon-wrapper {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    /* Severity Variants */
+    .ent-sev-danger .ent-icon-wrapper {
+        background: #FEE2E2;
+        color: #DC2626;
+        border: 1px solid #FECACA;
+    }
+    .ent-sev-finance .ent-icon-wrapper {
+        background: #CCFBF1;
+        color: #0F766E;
+        border: 1px solid #99F6E4;
+    }
+    .ent-sev-warning .ent-icon-wrapper {
+        background: #FEF3C7;
+        color: #D97706;
+        border: 1px solid #FDE68A;
+    }
+    .ent-sev-info .ent-icon-wrapper {
+        background: #E0F2FE;
+        color: #0284C7;
+        border: 1px solid #BAE6FD;
+    }
+
+    .ent-header-text {
+        flex: 1;
+    }
+    .ent-meta-tag {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 7px;
+        border-radius: 4px;
+        margin-bottom: 6px;
+    }
+    .ent-sev-danger .ent-meta-tag { background: #FEF2F2; color: #DC2626; border: 1px solid #FCA5A5; }
+    .ent-sev-finance .ent-meta-tag { background: #F0FDFA; color: #0F766E; border: 1px solid #99F6E4; }
+    .ent-sev-warning .ent-meta-tag { background: #FFFBEB; color: #D97706; border: 1px solid #FCD34D; }
+    .ent-sev-info .ent-meta-tag { background: #F0F9FF; color: #0284C7; border: 1px solid #BAE6FD; }
+
+    .ent-title {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text-primary, #0F172A);
+        line-height: 1.3;
+    }
+    .ent-subtitle {
+        margin: 4px 0 0;
+        font-size: 12.5px;
+        color: var(--text-secondary, #64748B);
+        line-height: 1.45;
+    }
+
+    .ent-close-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted, #94A3B8);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s ease, background 0.15s ease;
+    }
+    .ent-close-btn:hover {
+        color: var(--text-primary, #0F172A);
+        background: var(--bg-surface-subtle, #F1F5F9);
+    }
+
+    .ent-modal-body {
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Structured Entity Spec Grid */
+    .ent-spec-card {
+        background: var(--bg-surface-subtle, #F8FAFC);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+    .ent-spec-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        font-size: 12.5px;
+        border-bottom: 1px solid var(--border-subtle, #F1F5F9);
+    }
+    .ent-spec-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .ent-spec-row:first-child {
+        padding-top: 0;
+    }
+    .ent-spec-label {
+        color: var(--text-secondary, #64748B);
+        font-weight: 500;
+    }
+    .ent-spec-value {
+        color: var(--text-primary, #0F172A);
+        font-weight: 700;
+        font-family: var(--font-mono, monospace);
+        text-align: right;
+    }
+
+    /* Consequence Points */
+    .ent-consequences {
+        background: var(--bg-surface, #FFFFFF);
+        border-radius: 8px;
+    }
+    .ent-consequences-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary, #64748B);
+        margin-bottom: 8px;
+    }
+    .ent-consequence-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .ent-consequence-item {
+        font-size: 12.5px;
+        color: var(--text-primary, #0F172A);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        line-height: 1.4;
+    }
+    .ent-consequence-item svg {
+        flex-shrink: 0;
+        margin-top: 3px;
+    }
+
+    /* Alert Notice */
+    .ent-alert-box {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.45;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .ent-sev-danger .ent-alert-box {
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #991B1B;
+    }
+    .ent-sev-finance .ent-alert-box {
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        color: #166534;
+    }
+    .ent-sev-warning .ent-alert-box {
+        background: #FFFBEB;
+        border: 1px solid #FDE68A;
+        color: #92400E;
+    }
+    .ent-sev-info .ent-alert-box {
+        background: #F0F9FF;
+        border: 1px solid #BAE6FD;
+        color: #075985;
+    }
+
+    /* Acknowledgement Checkbox for Destructive Actions */
+    .ent-ack-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px dashed #FCA5A5;
+        border-radius: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .ent-ack-wrapper input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #DC2626;
+        cursor: pointer;
+    }
+    .ent-ack-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #991B1B;
+    }
+
+    .ent-modal-footer {
+        padding: 16px 24px 20px 24px;
+        border-top: 1px solid var(--border-subtle, #F1F5F9);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-surface-subtle, #F8FAFC);
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+    }
+    .ent-footer-meta {
+        font-size: 11px;
+        color: var(--text-muted, #94A3B8);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .ent-footer-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-ent-cancel {
+        background: #FFFFFF;
+        border: 1px solid var(--border-color, #CBD5E1);
+        color: var(--text-primary, #0F172A);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .btn-ent-cancel:hover {
+        background: #F1F5F9;
+    }
+
+    .btn-ent-confirm {
+        border: none;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity 0.15s ease, transform 0.1s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .btn-ent-confirm:active {
+        transform: translateY(1px);
+    }
+    .btn-ent-confirm:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .ent-sev-danger .btn-ent-confirm {
+        background: #DC2626;
+        color: #FFFFFF;
+    }
+    .ent-sev-danger .btn-ent-confirm:hover:not(:disabled) {
+        background: #B91C1C;
+    }
+
+    .ent-sev-finance .btn-ent-confirm {
+        background: #0F766E;
+        color: #FFFFFF;
+    }
+    .ent-sev-finance .btn-ent-confirm:hover:not(:disabled) {
+        background: #0D9488;
+    }
+
+    .ent-sev-warning .btn-ent-confirm {
+        background: #D97706;
+        color: #FFFFFF;
+    }
+    .ent-sev-warning .btn-ent-confirm:hover:not(:disabled) {
+        background: #B45309;
+    }
+
+    .ent-sev-info .btn-ent-confirm {
+        background: #0F766E;
+        color: #FFFFFF;
+    }
+    .ent-sev-info .btn-ent-confirm:hover:not(:disabled) {
+        background: #115E59;
+    }
+</style>
+
+<!-- Enterprise Confirmation Dialog HTML -->
+<div id="enterpriseConfirmModalBackdrop" class="ent-modal-backdrop" onclick="EnterpriseConfirm.handleBackdropClick(event)">
+    <div id="enterpriseConfirmModalWindow" class="ent-modal-window">
+        <!-- Header -->
+        <div class="ent-modal-header">
+            <div id="entIconBox" class="ent-icon-wrapper">
+                <!-- SVG Icon injected via JS -->
+            </div>
+            <div class="ent-header-text">
+                <span id="entMetaTag" class="ent-meta-tag">GOVERNANCE PROTOCOL</span>
+                <h3 id="entTitle" class="ent-title">Confirm Action</h3>
+                <p id="entSubtitle" class="ent-subtitle">Action description</p>
+            </div>
+            <button type="button" class="ent-close-btn" onclick="EnterpriseConfirm.close()" title="Dismiss (Esc)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="ent-modal-body">
+            <!-- Entity Specs Grid -->
+            <div id="entSpecCard" class="ent-spec-card" style="display:none;">
+                <!-- Key-values injected via JS -->
+            </div>
+
+            <!-- Consequence Points -->
+            <div id="entConsequencesBox" class="ent-consequences" style="display:none;">
+                <div class="ent-consequences-title">Operational Consequence &bull; Impact Breakdown</div>
+                <ul id="entConsequenceList" class="ent-consequence-list">
+                    <!-- Bullets injected via JS -->
+                </ul>
+            </div>
+
+            <!-- Advisory Warning Alert -->
+            <div id="entAlertBox" class="ent-alert-box">
+                <svg id="entAlertIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <div id="entAlertMessage">
+                    This administrative action is executed directly against the live database and will be attributed in the permanent audit ledger.
+                </div>
+            </div>
+
+            <!-- Mandatory Safety Acknowledgement -->
+            <label id="entAckWrapper" class="ent-ack-wrapper" style="display:none;">
+                <input type="checkbox" id="entAckCheckbox" onchange="EnterpriseConfirm.handleAckChange(this.checked)">
+                <span id="entAckLabel" class="ent-ack-label">I acknowledge the consequences of this high-impact action.</span>
+            </label>
+        </div>
+
+        <!-- Footer -->
+        <div class="ent-modal-footer">
+            <div class="ent-footer-meta">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Audit Verified &bull; ISO 27001 Standard</span>
+            </div>
+            <div class="ent-footer-actions">
+                <button type="button" class="btn-ent-cancel" onclick="EnterpriseConfirm.close()">Cancel</button>
+                <button type="button" id="btnEntConfirm" class="btn-ent-confirm" onclick="EnterpriseConfirm.proceed()">
+                    <span id="btnEntConfirmText">Confirm Action</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Global Enterprise Confirmation Engine
+ * Standardized across all payment, billing, and subscription administrative workflows.
+ */
+window.EnterpriseConfirm = (function() {
+    let currentConfig = null;
+    let pendingForm = null;
+
+    const ICONS = {
+        danger: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+        finance: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+        warning: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+        info: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`
+    };
+
+    const TAGS = {
+        danger: "CRITICAL DESTRUCTIVE ACTION",
+        finance: "FINANCIAL LEDGER MUTATION",
+        warning: "GOVERNANCE STATE CHANGE",
+        info: "ADMINISTRATIVE OPERATION"
+    };
+
+    function show(config) {
+        currentConfig = Object.assign({
+            title: "Confirm Administrative Action",
+            subtitle: "Please verify and authorize the requested operation.",
+            severity: "finance", // 'danger' | 'finance' | 'warning' | 'info'
+            entity: null, // { "Account": "...", "Amount": "..." }
+            impacts: [], // ['Bullet 1', 'Bullet 2']
+            alert: null,
+            confirmText: "Authorize & Proceed",
+            requireAck: false,
+            ackText: "I acknowledge the consequences of this high-impact action.",
+            form: null,
+            onConfirm: null
+        }, config || {});
+
+        const backdrop = document.getElementById('enterpriseConfirmModalBackdrop');
+        const modalWin = document.getElementById('enterpriseConfirmModalWindow');
+        const iconBox = document.getElementById('entIconBox');
+        const metaTag = document.getElementById('entMetaTag');
+        const titleEl = document.getElementById('entTitle');
+        const subtitleEl = document.getElementById('entSubtitle');
+        const specCard = document.getElementById('entSpecCard');
+        const conBox = document.getElementById('entConsequencesBox');
+        const conList = document.getElementById('entConsequenceList');
+        const alertBox = document.getElementById('entAlertBox');
+        const alertMsg = document.getElementById('entAlertMessage');
+        const ackWrapper = document.getElementById('entAckWrapper');
+        const ackCheckbox = document.getElementById('entAckCheckbox');
+        const ackLabel = document.getElementById('entAckLabel');
+        const confirmBtn = document.getElementById('btnEntConfirm');
+        const confirmTextEl = document.getElementById('btnEntConfirmText');
+
+        pendingForm = currentConfig.form || null;
+
+        // Reset classes
+        modalWin.className = 'ent-modal-window ent-sev-' + currentConfig.severity;
+
+        // Header Elements
+        iconBox.innerHTML = ICONS[currentConfig.severity] || ICONS.info;
+        metaTag.textContent = TAGS[currentConfig.severity] || "GOVERNANCE PROTOCOL";
+        titleEl.textContent = currentConfig.title;
+        subtitleEl.textContent = currentConfig.subtitle;
+
+        // Entity Specs
+        if (currentConfig.entity && Object.keys(currentConfig.entity).length > 0) {
+            let specHtml = '';
+            for (let [k, v] of Object.entries(currentConfig.entity)) {
+                specHtml += `
+                    <div class="ent-spec-row">
+                        <span class="ent-spec-label">${k}</span>
+                        <span class="ent-spec-value">${v}</span>
+                    </div>
+                `;
+            }
+            specCard.innerHTML = specHtml;
+            specCard.style.display = 'block';
+        } else {
+            specCard.style.display = 'none';
+        }
+
+        // Consequences Bullets
+        if (currentConfig.impacts && currentConfig.impacts.length > 0) {
+            let bulletsHtml = '';
+            currentConfig.impacts.forEach(item => {
+                bulletsHtml += `
+                    <li class="ent-consequence-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>${item}</span>
+                    </li>
+                `;
+            });
+            conList.innerHTML = bulletsHtml;
+            conBox.style.display = 'block';
+        } else {
+            conBox.style.display = 'none';
+        }
+
+        // Alert Notice
+        if (currentConfig.alert) {
+            alertMsg.innerHTML = currentConfig.alert;
+            alertBox.style.display = 'flex';
+        } else {
+            alertMsg.innerHTML = "This administrative action is executed directly against the live database and will be attributed in the permanent audit ledger.";
+            alertBox.style.display = 'flex';
+        }
+
+        // Acknowledgement Checkbox
+        if (currentConfig.requireAck || currentConfig.severity === 'danger') {
+            ackCheckbox.checked = false;
+            ackLabel.textContent = currentConfig.ackText || "I acknowledge the consequences of this high-impact action.";
+            ackWrapper.style.display = 'flex';
+            confirmBtn.disabled = true;
+        } else {
+            ackWrapper.style.display = 'none';
+            confirmBtn.disabled = false;
+        }
+
+        // Confirm Button
+        confirmTextEl.textContent = currentConfig.confirmText;
+
+        // Show Modal
+        backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+        const backdrop = document.getElementById('enterpriseConfirmModalBackdrop');
+        if (backdrop) backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+        currentConfig = null;
+        pendingForm = null;
+    }
+
+    function handleAckChange(isChecked) {
+        const confirmBtn = document.getElementById('btnEntConfirm');
+        if (confirmBtn) {
+            confirmBtn.disabled = !isChecked;
+        }
+    }
+
+    function handleBackdropClick(e) {
+        if (e.target.id === 'enterpriseConfirmModalBackdrop') {
+            close();
+        }
+    }
+
+    function proceed() {
+        const confirmBtn = document.getElementById('btnEntConfirm');
+        const confirmTextEl = document.getElementById('btnEntConfirmText');
+
+        if (confirmBtn.disabled) return;
+
+        // Visual loading spinner
+        confirmBtn.disabled = true;
+        confirmTextEl.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ent-spin" style="animation: spin 0.8s linear infinite;">
+                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+            </svg>
+            Processing Execution...
+        `;
+
+        if (currentConfig && typeof currentConfig.onConfirm === 'function') {
+            currentConfig.onConfirm();
+            close();
+        } else if (pendingForm) {
+            const f = pendingForm;
+            close();
+            f.submit();
+        } else {
+            close();
+        }
+    }
+
+    // Helper for intercepting standard forms
+    function handleForm(e, config) {
+        e.preventDefault();
+        const form = e.target.closest('form');
+        const cfg = Object.assign({}, config, { form: form });
+        show(cfg);
+        return false;
+    }
+
+    // Listen for Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            close();
+        }
+    });
+
+    return {
+        show: show,
+        close: close,
+        proceed: proceed,
+        handleAckChange: handleAckChange,
+        handleBackdropClick: handleBackdropClick,
+        handleForm: handleForm
+    };
+})();
+</script>
+
+<style>
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>

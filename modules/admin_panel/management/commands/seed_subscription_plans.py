@@ -27,7 +27,7 @@ CANONICAL_PLANS = [
         'features': [
             'Full Top 200 Listed Companies Registry',
             'Verified Official Corporate & CSR Portal URLs',
-            '3,030 Verified Social-Impact Job Listings',
+            'Verified Corporate & Social-Impact Job Openings',
             '5 Donor Matchmaker Queries / Day',
             'Daily Web Crawl Provenance Logs',
             'Standard CSV Exports (up to 25 records / month)',
@@ -228,7 +228,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Seeding canonical subscription plans...")
-        for pdata in CANONICAL_PLANS:
+        for pdata_orig in CANONICAL_PLANS:
+            pdata = pdata_orig.copy()
             entitlements = pdata.pop('entitlements', [])
             plan, created = Plan.objects.update_or_create(code=pdata['code'], defaults=pdata)
             action = "Created" if created else "Updated"

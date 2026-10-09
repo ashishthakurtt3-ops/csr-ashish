@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
 from modules.admin_panel.models import (
@@ -22,6 +22,37 @@ def admin_dashboard_view(request):
     pending_docs = Document.objects.filter(status='PENDING').count()
     total_subscriptions = Subscription.objects.count()
     total_pages_crawled = PageRecord.objects.count()
+
+    # Data Quality Reporting
+    jobs_by_status = list(Job.objects.values('link_status').annotate(count=Count('job_row_id')).order_by('-count'))
+    companies_by_status = list(Company.objects.values('crawl_status').annotate(count=Count('company_id')).order_by('-count'))
+
+    # Work Mode Distribution
+    remote_jobs = Job.objects.filter(work_mode='Remote').count()
+    hybrid_jobs = Job.objects.filter(work_mode='Hybrid').count()
+    onsite_jobs = Job.objects.filter(work_mode='On-site').count()
+
+    # Top Sectors Breakdown
+    top_sectors = list(
+        Company.objects.exclude(sector__isnull=True).exclude(sector='')
+        .values('sector')
+        .annotate(count=Count('company_id'))
+        .order_by('-count')[:5]
+    )
+
+    # Top CSR Project Categories
+    top_causes = list(
+        CSRProject.objects.exclude(category__isnull=True).exclude(category='')
+        .values('category')
+        .annotate(count=Count('csr_id'))
+        .order_by('-count')[:5]
+    )
+
+    # Top Hiring Companies
+    top_hiring_companies = list(
+        Company.objects.annotate(job_count=Count('jobs'))
+        .order_by('-job_count')[:6]
+    )
 
     # Billing & Subscription Prototype Metrics
     active_subscribers = Subscription.objects.filter(status='ACTIVE').count()
@@ -51,9 +82,10 @@ def admin_dashboard_view(request):
         current_period_end__lte=now + timedelta(days=7)
     ).count()
 
-    recent_audits = AuditTrail.objects.order_by('-audit_id')[:10]
+    recent_audits = AuditTrail.objects.order_by('-audit_id')[:8]
     recent_companies = Company.objects.order_by('-company_id')[:6]
-    recent_jobs = Job.objects.order_by('-job_row_id')[:6]
+    recent_jobs = Job.objects.select_related('company').order_by('-job_row_id')[:6]
+    recent_opps = CSROpportunity.objects.select_related('company').order_by('-opp_id')[:5]
     recent_payments = Payment.objects.select_related('user').order_by('-created_at')[:6]
 
     context = {
@@ -67,6 +99,16 @@ def admin_dashboard_view(request):
         'pending_docs': pending_docs,
         'total_subscriptions': total_subscriptions,
         'total_pages_crawled': total_pages_crawled,
+        'jobs_by_status': jobs_by_status,
+        'companies_by_status': companies_by_status,
+        # Distribution
+        'remote_jobs': remote_jobs,
+        'hybrid_jobs': hybrid_jobs,
+        'onsite_jobs': onsite_jobs,
+        'top_sectors': top_sectors,
+        'top_causes': top_causes,
+        'top_hiring_companies': top_hiring_companies,
+        'recent_opps': recent_opps,
         # Billing Metrics
         'active_subscribers': active_subscribers,
         'free_subscribers': free_subscribers,
@@ -85,4 +127,3 @@ def admin_dashboard_view(request):
         'recent_jobs': recent_jobs,
     }
     return render(request, 'admin/dashboard.html', context)
-

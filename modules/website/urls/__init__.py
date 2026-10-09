@@ -8,13 +8,22 @@ urlpatterns = [
     # Top-level website pages & stats
     path('', include('modules.website.urls.home_urls')),
 
-    # Core Intelligence APIs
+    # Core Intelligence APIs (direct root)
     path('', include('modules.website.urls.company_urls')),
     path('', include('modules.website.urls.job_urls')),
     path('', include('modules.website.urls.opportunity_urls')),
     path('', include('modules.website.urls.crawler_urls')),
     path('', include('modules.website.urls.subscription_urls')),
     path('', include('modules.website.urls.auth_urls')),
+
+    # Core Intelligence APIs (api/ prefix alias)
+    path('api/', include('modules.website.urls.home_urls')),
+    path('api/', include('modules.website.urls.company_urls')),
+    path('api/', include('modules.website.urls.job_urls')),
+    path('api/', include('modules.website.urls.opportunity_urls')),
+    path('api/', include('modules.website.urls.crawler_urls')),
+    path('api/', include('modules.website.urls.subscription_urls')),
+    path('api/', include('modules.website.urls.auth_urls')),
 
     # Matching & Prospects CRM
     path('ngo/matches', match_ngo_api, name='ngo_matches'),

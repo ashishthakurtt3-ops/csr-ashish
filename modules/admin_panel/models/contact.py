@@ -1,8 +1,8 @@
 from django.db import models
 from .company import Company
+from .evidence import VerifiableModel
 
-
-class Contact(models.Model):
+class Contact(VerifiableModel):
     contact_id = models.AutoField(primary_key=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='contacts', db_column='company_id')
     name = models.TextField(blank=True, null=True)
@@ -10,7 +10,6 @@ class Contact(models.Model):
     department = models.TextField(blank=True, null=True)
     email = models.TextField(blank=True, null=True)
     phone = models.TextField(blank=True, null=True)
-    source_url = models.TextField(blank=True, null=True)
     confidence = models.FloatField(default=0.0)
     last_verified_date = models.TextField(blank=True, null=True)
     link_status = models.TextField(blank=True, null=True)
@@ -22,14 +21,13 @@ class Contact(models.Model):
         return f"{self.name or 'CSR Contact'} ({self.company.company_name})"
 
 
-class NGOCollaboration(models.Model):
+class NGOCollaboration(VerifiableModel):
     collab_id = models.AutoField(primary_key=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='ngo_collaborations', db_column='company_id')
     ngo_name = models.TextField()
     project_id = models.IntegerField(blank=True, null=True)
     relationship_type = models.TextField(blank=True, null=True)
     location = models.TextField(blank=True, null=True)
-    source_url = models.TextField(blank=True, null=True)
     discovered_date = models.TextField(blank=True, null=True)
     confidence = models.FloatField(default=0.0)
     fingerprint = models.CharField(max_length=64, blank=True, null=True, unique=True)

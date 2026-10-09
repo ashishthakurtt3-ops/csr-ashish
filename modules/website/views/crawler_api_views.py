@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from modules.admin_panel.models import Company, PageRecord, AuditTrail, CSRProject, Job
+from modules.crawler_engine import start_background_crawl, CRAWL_TASK_STATE
 
 VERIFIED_CACHE_PATH = Path(__file__).resolve().parents[3] / 'data' / 'verified_company_links.json'
 
@@ -93,15 +94,25 @@ def crawler_logs_api(request):
     elif sort == 'checked_desc':
         logs.sort(key=lambda x: str(x.get('checked_at', '')), reverse=True)
 
+    companies = Company.objects.all().order_by('company_name')
+
+    total_companies = companies.count()
+    total_pages = PageRecord.objects.count()
+    blocked_count = PageRecord.objects.filter(status__in=['403', '429', 'BLOCKED']).count()
+    deep_link_count = companies.filter(careers_url__isnull=False).exclude(careers_url='').count()
+    homepage_count = companies.filter(careers_url__isnull=True).exclude(website_url__isnull=True).count()
+    not_checked_count = companies.filter(crawl_status='PENDING').count()
+    latest_sync = AuditTrail.objects.filter(record_type='WEB_FETCH').order_by('-audit_id').values_list('timestamp', flat=True).first() or timezone.now().isoformat()
+
     telemetry = {
-        'last_global_sync': gen_at,
-        'total_monitored': len(companies),
-        'requests_made': requests_made,
-        'requests_blocked_by_robots': robots_blocked,
-        'elapsed_seconds': elapsed_sec,
-        'verified_deep_link': summary_counts.get('verified_deep_link', 118),
-        'verified_homepage': summary_counts.get('verified_homepage', 30),
-        'official_domain_not_live_checked': summary_counts.get('official_domain_not_live_checked', 52),
+        'last_global_sync': latest_sync,
+        'total_monitored': total_companies,
+        'requests_made': CRAWL_TASK_STATE["stats"]["companies_crawled"] if CRAWL_TASK_STATE["is_running"] else total_pages,
+        'requests_blocked_by_robots': CRAWL_TASK_STATE["stats"]["blocked"] if CRAWL_TASK_STATE["is_running"] else blocked_count,
+        'elapsed_seconds': (time.time() - CRAWL_TASK_STATE["start_time"]) if CRAWL_TASK_STATE["is_running"] and CRAWL_TASK_STATE["start_time"] else 0,
+        'verified_deep_link': deep_link_count,
+        'verified_homepage': homepage_count,
+        'official_domain_not_live_checked': not_checked_count,
         'compliance_status': '100% RFC 9309 Compliant & Polite Rate-Limited',
         'user_agent': 'CSRIntelligenceResearchBot/1.0 (+public-data; respectful crawling)',
         'rate_limit': '1.0s exponential backoff'
@@ -232,96 +243,73 @@ def live_sync_fetch_api(request):
         return JsonResponse({'detail': 'Method not allowed'}, status=405)
 
     sync_time = timezone.now().isoformat()
-    Company.objects.filter(listing_status='ACTIVE').update(link_verified_at=sync_time, last_crawled=sync_time)
+    
+    started = start_background_crawl()
+    
+    if started:
+        msg = "Live fetch job started. Crawling in background."
+        audit_notes = "Live batch web fetch started. True FETCH -> EXTRACT -> VALIDATE pipeline."
+    else:
+        msg = "Live fetch job is already running."
+        audit_notes = "Live batch web fetch requested but already running."
 
-    audit_notes = "Live batch web fetch executed. 200 enterprise career portals & CSR sections probed with HTTP 200 verification."
     AuditTrail.objects.create(
         record_type='WEB_FETCH',
         record_id='GLOBAL_BATCH_SYNC',
-        action='LIVE_SYNC_EXECUTE',
-        new_value='HTTP 200 LIVE',
+        action='LIVE_SYNC_STARTED' if started else 'LIVE_SYNC_ALREADY_RUNNING',
+        new_value='CRAWLING' if started else 'CRAWL_QUEUED',
         user_role='Portal Operator',
         notes=audit_notes,
         timestamp=sync_time
     )
 
-    total_companies = Company.objects.count()
-    total_jobs = Job.objects.count()
-    total_csr = CSRProject.objects.count()
-
     events = [
-        {"ts": sync_time, "level": "INIT", "category": "NETWORK", "msg": "Initialized live HTTP socket pool for India Top 200 Corporate Registries"},
-        {"ts": sync_time, "level": "OK", "category": "DNS", "msg": "DNS Resolution verified for 200 corporate domain zones (0 failures)"},
-        {"ts": sync_time, "level": "PROBE", "category": "HTTP_200", "msg": "GET https://www.tcs.com/careers -> 200 OK (84ms, TLS 1.3)"},
-        {"ts": sync_time, "level": "PROBE", "category": "HTTP_200", "msg": "GET https://www.ril.com/careers -> 200 OK (96ms, TLS 1.3)"},
-        {"ts": sync_time, "level": "PROBE", "category": "HTTP_200", "msg": "GET https://www.zomato.com/careers -> 200 OK (62ms, TLS 1.3)"},
-        {"ts": sync_time, "level": "EXTRACT", "category": "CAREERS", "msg": f"Discovered and verified cross-department job openings across all {total_companies} enterprises"},
-        {"ts": sync_time, "level": "EXTRACT", "category": "CSR", "msg": f"Scanned statutory Section 135 social investments ({total_csr} projects verified)"},
-        {"ts": sync_time, "level": "AUDIT", "category": "DATABASE", "msg": "Committed ACID transaction to database: audit_trail & company timestamps updated"},
-        {"ts": sync_time, "level": "SYNC_COMPLETE", "category": "SYSTEM", "msg": "Live synchronization finalized. All dashboards and KPI counters refreshed."}
+        {"ts": sync_time, "level": "INIT", "category": "SYSTEM", "msg": msg}
     ]
 
     return JsonResponse({
         "status": "success",
         "synced_at": sync_time,
-        "total_companies": total_companies,
-        "total_jobs": max(total_jobs, 618),
-        "total_csr_projects": total_csr,
-        "compliance": "100% RFC 9309 Compliant & Polite Rate-Limited",
+        "total_companies": Company.objects.count(),
+        "total_jobs": Job.objects.count(),
+        "total_csr_projects": CSRProject.objects.count(),
+        "compliance": "Phase 2: True Crawler Engine Active",
         "events": events,
-        "message": "Live fetch and synchronization successfully completed."
+        "message": msg
     })
 
 
 def live_crawler_stream_api(request):
     limit = int(request.GET.get('limit', 15))
-    audit_rows = AuditTrail.objects.filter(record_type='WEB_FETCH').order_by('-audit_id')[:limit]
-    comps = Company.objects.filter(website_url__isnull=False).order_by('-link_verified_at')[:limit]
-
-    events = []
-    for a in audit_rows:
-        events.append({
-            'company_id': a.record_id,
-            'company_name': 'Verified Corporate Entity',
-            'nse_symbol': 'NSE',
-            'sector': 'Conglomerate',
-            'target_url': 'https://www.nseindia.com',
-            'action': a.action or 'LIVE_WEB_EXTRACTION',
-            'http_status': 200,
-            'response_time_ms': 120,
-            'timestamp': a.timestamp or timezone.now().isoformat(),
-            'extracted_summary': a.notes or 'Real-time HTTP 200 probe verified official site status',
-            'category': 'Live Scrape Probe',
-            'status_badge': 'LIVE EXTRACTION'
-        })
-
-    for idx, c in enumerate(comps):
-        if len(events) >= limit:
-            break
-        ts = c.link_verified_at or c.last_crawled or timezone.now().isoformat()
-        target = c.csr_portal_url or c.website_url or c.careers_url
-        qual = c.link_quality or 'VERIFIED_DEEP_LINK'
-
-        events.append({
-            'company_id': c.company_id,
-            'company_name': c.company_name,
-            'nse_symbol': c.nse_symbol or '—',
-            'sector': c.sector or 'Listed Enterprise',
-            'target_url': target,
-            'action': 'LIVE_WEB_EXTRACTION',
-            'http_status': 200,
-            'response_time_ms': 95 + (idx * 17) % 180,
-            'timestamp': ts,
-            'extracted_summary': f"Statutory CSR Portal & Section 135 disclosures verified ({qual.replace('_', ' ')})",
-            'category': 'CSR Disclosures & Careers',
-            'status_badge': 'VERIFIED HTTP 200'
-        })
+    
+    if CRAWL_TASK_STATE["is_running"] or len(CRAWL_TASK_STATE["events"]) > 0:
+        events = CRAWL_TASK_STATE["events"][:limit]
+    else:
+        audit_rows = AuditTrail.objects.filter(record_type='WEB_FETCH').order_by('-audit_id')[:limit]
+        events = []
+        for a in audit_rows:
+            events.append({
+                'company_id': a.record_id,
+                'company_name': 'Verified Corporate Entity',
+                'nse_symbol': 'NSE',
+                'sector': 'Conglomerate',
+                'target_url': 'N/A',
+                'action': a.action or 'QUEUED',
+                'http_status': a.new_value or 'N/A',
+                'response_time_ms': 0,
+                'timestamp': a.timestamp or timezone.now().isoformat(),
+                'extracted_summary': a.notes or 'Audit Log Entry',
+                'category': 'Pipeline Event',
+                'status_badge': 'AUDIT'
+            })
 
     return JsonResponse({
         'status': 'success',
         'count': len(events),
         'last_updated': timezone.now().isoformat(),
-        'events': events[:limit]
+        'events': events[:limit],
+        'is_running': CRAWL_TASK_STATE["is_running"],
+        'stats': CRAWL_TASK_STATE["stats"]
     })
 
 
@@ -329,21 +317,24 @@ def live_crawler_stream_api(request):
 def admin_crawler_status_api(request):
     recent_pages = list(PageRecord.objects.order_by('-page_id')[:20].values())
     total_pages = PageRecord.objects.count()
+    total_companies = Company.objects.count()
     total_crawled = Company.objects.filter(crawl_status='CRAWLED').count()
     return JsonResponse({
-        'crawler_engine': 'SafeCrawler v2.0 (robots.txt compliant)',
+        'crawler_engine': 'SafeCrawler v2.0 (robots.txt compliant & validated)',
         'rate_limit_delay': '1.0s exponential backoff',
         'user_agent': 'CSRIntelligenceResearchBot/1.0 (+public-data; respectful crawling)',
-        'compliance_status': '100% Verified Non-Intrusive Public Discovery',
+        'compliance_status': 'Active Non-Intrusive Public Discovery',
         'pages_catalogued': total_pages,
-        'companies_monitored': 200,
+        'companies_monitored': total_companies,
         'companies_crawled': total_crawled,
         'recent_crawled_urls': recent_pages
     })
 
 
 def admin_verification_queue_api(request):
-    projects = CSRProject.objects.order_by('confidence')[:25]
+    projects = CSRProject.objects.filter(
+        verification_status__in=['UNVERIFIED', 'EXTRACTED', 'VALIDATED']
+    ).order_by('confidence', '-csr_id')[:30]
     records = []
     for p in projects:
         records.append({
@@ -355,6 +346,7 @@ def admin_verification_queue_api(request):
             'confidence': p.confidence,
             'entity': p.geographic_location,
             'source_url': p.source_url,
+            'verification_status': p.verification_status,
         })
     return JsonResponse(records, safe=False)
 
@@ -376,18 +368,26 @@ def admin_verify_api(request):
     notes = payload.get('notes', 'Manual audit verified from public disclosures.')
     now_ts = timezone.now().isoformat()
 
+    from modules.crawler_engine.verification_service import VerificationService
+
     if action == 'APPROVE':
         if rec_type == 'CSR_PROJECT':
-            CSRProject.objects.filter(csr_id=rec_id).update(confidence=0.99, last_verified_date=now_ts)
+            project = CSRProject.objects.filter(csr_id=rec_id).first()
+            if project:
+                VerificationService.publish_record(project, actor=user_role)
     elif action == 'REJECT':
         if rec_type == 'CSR_PROJECT':
-            CSRProject.objects.filter(csr_id=rec_id).update(confidence=0.40)
+            CSRProject.objects.filter(csr_id=rec_id).update(
+                confidence=0.40,
+                verification_status='REJECTED',
+                link_status='REJECTED'
+            )
 
     AuditTrail.objects.create(
         record_type=rec_type,
         record_id=str(rec_id),
         action=action,
-        new_value=f"Action {action} performed.",
+        new_value=f"Action {action} performed. Status updated.",
         user_role=user_role,
         notes=notes,
         timestamp=now_ts

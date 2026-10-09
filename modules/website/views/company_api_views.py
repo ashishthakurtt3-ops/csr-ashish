@@ -32,12 +32,62 @@ def _normalize_company_dict(d):
 
 
 def serialize_company_list_item(c: Company):
-    # Retrieve pre-fetched or related values
-    primary_project = c.csr_projects.order_by('-confidence').first()
-    primary_job = c.jobs.order_by('-last_checked_date').first()
+    # Strictly verified & published counts
+    verified_jobs_qs = c.jobs.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'], status='ACTIVE')
+    verified_jobs_count = verified_jobs_qs.count()
+    published_csr_qs = c.csr_projects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])
+    published_csr_count = published_csr_qs.count()
+
+    primary_project = published_csr_qs.order_by('-confidence').first()
+    primary_job = verified_jobs_qs.order_by('-last_checked_date').first()
     primary_ngo = c.ngo_collaborations.first()
     score_obj = getattr(c, 'score_record', None)
-    open_opps = c.open_opportunities.filter(status='OPEN').count()
+    open_opps = c.open_opportunities.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED'], status='OPEN').count()
+
+    # 5-State Job Status Rule (PART 12)
+    if c.crawl_status == 'IN_PROGRESS':
+        job_status_label = 'Checking live career source...'
+        job_status_state = 'CRAWL_IN_PROGRESS'
+        job_status_badge = 'badge-amber'
+    elif c.crawl_status == 'FAILED':
+        job_status_label = 'Unable to verify current jobs'
+        job_status_state = 'CRAWL_FAILED'
+        job_status_badge = 'badge-red'
+    elif c.crawl_status == 'CRAWLED':
+        if verified_jobs_count > 0:
+            job_status_label = f'{verified_jobs_count} Current Verified Jobs'
+            job_status_state = 'VERIFIED_JOBS'
+            job_status_badge = 'badge-cyan'
+        elif c.careers_url or c.jobs_page_url or c.ats_url:
+            job_status_label = '0 current verified jobs'
+            job_status_state = 'VERIFIED_ZERO'
+            job_status_badge = 'badge-slate'
+        else:
+            job_status_label = 'Career source could not be verified'
+            job_status_state = 'ATS_DISCOVERY_FAILED'
+            job_status_badge = 'badge-amber'
+    elif not c.careers_url and not c.jobs_page_url and not c.ats_url:
+        job_status_label = 'Career source could not be verified'
+        job_status_state = 'ATS_DISCOVERY_FAILED'
+        job_status_badge = 'badge-amber'
+    else:
+        job_status_label = 'Jobs not yet verified'
+        job_status_state = 'NOT_CRAWLED'
+        job_status_badge = 'badge-slate'
+
+    # CSR Status
+    if published_csr_count > 0:
+        csr_status_label = f'{published_csr_count} Verified CSR Projects'
+        csr_status_state = 'VERIFIED'
+        csr_status_badge = 'badge-emerald'
+    elif c.csr_portal_url or c.sustainability_url:
+        csr_status_label = 'Official CSR Portal Identified'
+        csr_status_state = 'PORTAL_IDENTIFIED'
+        csr_status_badge = 'badge-teal'
+    else:
+        csr_status_label = 'CSR not yet verified'
+        csr_status_state = 'NOT_VERIFIED'
+        csr_status_badge = 'badge-slate'
 
     d = {
         'company_id': c.company_id,
@@ -60,6 +110,7 @@ def serialize_company_list_item(c: Company):
         'csr_portal_url': c.csr_portal_url,
         'link_quality': c.link_quality,
         'link_verified_at': c.link_verified_at,
+        'last_verified_display': c.link_verified_at or c.last_crawled or 'Pending verification',
         'primary_csr_url': primary_project.source_url if primary_project else None,
         'primary_csr_name': primary_project.project_name if primary_project else None,
         'primary_csr_budget': primary_project.budget if primary_project else None,
@@ -67,8 +118,18 @@ def serialize_company_list_item(c: Company):
         'primary_ngo_url': primary_ngo.source_url if primary_ngo else None,
         'opportunity_score': score_obj.score if score_obj else 0.0,
         'open_opportunities_count': open_opps,
+        'job_count': verified_jobs_count,
+        'current_verified_jobs': verified_jobs_count,
+        'job_status_label': job_status_label,
+        'job_status_state': job_status_state,
+        'job_status_badge': job_status_badge,
+        'csr_count': published_csr_count,
+        'csr_status_label': csr_status_label,
+        'csr_status_state': csr_status_state,
+        'csr_status_badge': csr_status_badge,
     }
     return _normalize_company_dict(d)
+
 
 
 def serialize_contact(ct: Contact):
@@ -181,19 +242,21 @@ def company_detail_api(request, company_id):
 def company_dossier_api(request, company_id):
     """
     Unified strategic dossier:
-    Answers WHO, WHY, and HOW for the company.
+    Answers WHO, WHY, and HOW for the company with strict source verification.
     """
+    from modules.website.views.job_api_views import serialize_job_item
     try:
         c = Company.objects.get(company_id=company_id)
     except Company.DoesNotExist:
         return JsonResponse({'detail': 'Company not found'}, status=404)
 
-    projects = list(c.csr_projects.order_by('-confidence').values())
-    jobs = list(c.jobs.order_by('-last_checked_date').values())
+    projects = list(c.csr_projects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).order_by('-confidence').values())
+    jobs = [serialize_job_item(j) for j in c.jobs.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'], status='ACTIVE').order_by('-last_checked_date')]
+    stale_jobs = [serialize_job_item(j) for j in c.jobs.filter(status='EXPIRED').order_by('-last_checked_date')]
     partners = list(c.ngo_collaborations.all().values())
-    contacts = [serialize_contact(ct) for ct in c.contacts.all()]
+    contacts = [serialize_contact(ct) for ct in c.contacts.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])]
     score_obj = getattr(c, 'score_record', None)
-    opps = list(c.open_opportunities.order_by('-opp_id').values())
+    opps = list(c.open_opportunities.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED'], status='OPEN').order_by('-opp_id').values())
     prospect_obj = getattr(c, 'prospect_entry', None)
 
     cname = c.company_name
@@ -208,7 +271,7 @@ def company_dossier_api(request, company_id):
     who_parts = [f"{cname}"]
     if symbol:
         who_parts.append(f"({symbol})")
-    who_parts.append("is a listed corporation")
+    who_parts.append("is an enterprise corporation")
     if hq:
         who_parts.append(f"headquartered in {hq}")
     if sector:
@@ -231,13 +294,12 @@ def company_dossier_api(request, company_id):
         why_parts.append(f"Documented CSR activity in {states_text}.")
     if projects or partner_count:
         why_parts.append(
-            f"The platform has catalogued {len(projects)} CSR project record(s) and "
-            f"{partner_count} recorded NGO collaboration(s) from the company’s public web pages."
+            f"The platform has catalogued {len(projects)} verified CSR project record(s) and "
+            f"{partner_count} recorded NGO collaboration(s) from the company’s official web pages."
         )
     else:
         why_parts.append(
-            "No source-verified CSR project or NGO collaboration records are available yet; "
-            "run the crawler and link verification to build the evidence base."
+            "No source-verified CSR project or NGO collaboration records are available yet."
         )
     if budget_sum and projects:
         why_parts.append(f"Latest publicly stated budget figure on record: {budget_sum}.")
@@ -298,6 +360,7 @@ def company_dossier_api(request, company_id):
         'projects': projects,
         'partners': partners,
         'jobs': jobs,
+        'stale_jobs': stale_jobs,
         'contacts': contacts,
         'opportunities': opps,
         'prospect_info': prospect_dict
@@ -305,12 +368,20 @@ def company_dossier_api(request, company_id):
 
 
 def company_csr_api(request, company_id):
-    projects = list(CSRProject.objects.filter(company_id=company_id).order_by('-confidence').values())
+    projects = list(CSRProject.objects.filter(
+        company_id=company_id,
+        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
+    ).order_by('-confidence').values())
     return JsonResponse(projects, safe=False)
 
 
 def company_jobs_api(request, company_id):
-    jobs = list(Job.objects.filter(company_id=company_id).order_by('-last_checked_date').values())
+    from modules.website.views.job_api_views import serialize_job_item
+    include_stale = request.GET.get('include_stale', '').lower() in ('true', '1')
+    qs = Job.objects.select_related('company').filter(company_id=company_id)
+    if not include_stale:
+        qs = qs.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'], status='ACTIVE')
+    jobs = [serialize_job_item(j) for j in qs.order_by('-last_checked_date')]
     return JsonResponse(jobs, safe=False)
 
 

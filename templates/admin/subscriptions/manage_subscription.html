@@ -1,93 +1,7 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Manage Subscription — {{ sub.user.username|default:sub.tenant_id }}
-<!-- Confirmation Dialog for Admin Actions (Requirement 10 & 19) -->
-<div id="modal-admin-action-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
-    <div style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:12px; width:100%; max-width:480px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); overflow:hidden;">
-        <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4);">
-            <h3 id="admin-confirm-title" style="margin:0; font-size:16px; font-weight:700; color:#fff;">Confirm Action</h3>
-        </div>
-        <div style="padding:20px;">
-            <p id="admin-confirm-msg" style="margin:0; font-size:13.5px; color:#cbd5e1; line-height:1.5;">Are you sure you want to proceed?</p>
-        </div>
-        <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4); display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" onclick="closeAdminConfirmModal()" class="btn-admin btn-admin-secondary" style="padding:7px 16px;">Cancel</button>
-            <button type="button" id="btn-admin-confirm-proceed" class="btn-admin btn-admin-primary" style="padding:7px 20px; font-weight:700;">Confirm Action</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let pendingFormToSubmit = null;
-
-function promptAdminActionConfirm(e, title, message) {
-    e.preventDefault();
-    pendingFormToSubmit = e.target.closest('form');
-    document.getElementById('admin-confirm-title').textContent = title || 'Confirm Action';
-    document.getElementById('admin-confirm-msg').innerHTML = message || 'Are you sure you want to execute this action?';
-    document.getElementById('modal-admin-action-confirm').style.display = 'flex';
-    return false;
-}
-
-function closeAdminConfirmModal() {
-    document.getElementById('modal-admin-action-confirm').style.display = 'none';
-    pendingFormToSubmit = null;
-}
-
-document.getElementById('btn-admin-confirm-proceed').addEventListener('click', function() {
-    if (pendingFormToSubmit) {
-        const f = pendingFormToSubmit;
-        closeAdminConfirmModal();
-        f.submit();
-    }
-});
-</script>
-
-{% endblock %}
-{% block page_title %}Subscription Manager &bull; {{ sub.user.username|default:sub.tenant_id }}
-<!-- Confirmation Dialog for Admin Actions (Requirement 10 & 19) -->
-<div id="modal-admin-action-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
-    <div style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:12px; width:100%; max-width:480px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); overflow:hidden;">
-        <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4);">
-            <h3 id="admin-confirm-title" style="margin:0; font-size:16px; font-weight:700; color:#fff;">Confirm Action</h3>
-        </div>
-        <div style="padding:20px;">
-            <p id="admin-confirm-msg" style="margin:0; font-size:13.5px; color:#cbd5e1; line-height:1.5;">Are you sure you want to proceed?</p>
-        </div>
-        <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4); display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" onclick="closeAdminConfirmModal()" class="btn-admin btn-admin-secondary" style="padding:7px 16px;">Cancel</button>
-            <button type="button" id="btn-admin-confirm-proceed" class="btn-admin btn-admin-primary" style="padding:7px 20px; font-weight:700;">Confirm Action</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let pendingFormToSubmit = null;
-
-function promptAdminActionConfirm(e, title, message) {
-    e.preventDefault();
-    pendingFormToSubmit = e.target.closest('form');
-    document.getElementById('admin-confirm-title').textContent = title || 'Confirm Action';
-    document.getElementById('admin-confirm-msg').innerHTML = message || 'Are you sure you want to execute this action?';
-    document.getElementById('modal-admin-action-confirm').style.display = 'flex';
-    return false;
-}
-
-function closeAdminConfirmModal() {
-    document.getElementById('modal-admin-action-confirm').style.display = 'none';
-    pendingFormToSubmit = null;
-}
-
-document.getElementById('btn-admin-confirm-proceed').addEventListener('click', function() {
-    if (pendingFormToSubmit) {
-        const f = pendingFormToSubmit;
-        closeAdminConfirmModal();
-        f.submit();
-    }
-});
-</script>
-
-{% endblock %}
+{% block title %}Manage Subscription — {{ sub.user.username|default:sub.tenant_id }} | ImpactBridge™{% endblock %}
+{% block page_title %}Subscription Manager &bull; {{ sub.user.username|default:sub.tenant_id }}{% endblock %}
 
 {% block content %}
 {% include "admin/subscriptions/components/sub_nav.html" with active_tab="subscriptions" %}
@@ -104,57 +18,57 @@ document.getElementById('btn-admin-confirm-proceed').addEventListener('click', f
     <div style="display:flex; flex-direction:column; gap:20px;">
         <!-- Status Card -->
         <div class="admin-card">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
                 <div>
-                    <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--admin-muted);">Active Tier</span>
-                    <h2 style="margin:4px 0 0; font-size:22px; color:#fff; display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary); font-weight:700;">Active Tier</span>
+                    <h2 style="margin:4px 0 0; font-size:22px; color:var(--text-primary); display:flex; align-items:center; gap:10px;">
                         {{ sub.plan.name|default:sub.plan_id|upper }}
                         {% if sub.status == "ACTIVE" %}
                         <span class="badge-status badge-active">ACTIVE</span>
                         {% else %}
-                        <span class="badge-status badge-rejected">{{ sub.status }}</span>
+                        <span class="badge-status badge-pending">{{ sub.status }}</span>
                         {% endif %}
                     </h2>
                 </div>
                 <div style="text-align:right;">
-                    <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--admin-muted);">Billing Interval</span>
-                    <div style="font-size:14px; font-weight:700; color:#fff; margin-top:4px;">
-                        {{ sub.billing_interval|default:"Monthly" }}
+                    <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary); font-weight:700;">Billing Interval</span>
+                    <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-top:4px;">
+                        {{ sub.billing_cycle|default:"Monthly" }}
                     </div>
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; padding:12px; background:rgba(15,23,42,0.6); border:1px solid var(--admin-border); border-radius:8px;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
                 <div>
-                    <div style="font-size:11px; color:var(--admin-muted);">User Account</div>
-                    <div style="font-size:13px; font-weight:600; color:#fff; margin-top:2px;">{{ sub.user.username|default:"Unlinked" }}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">User Account</div>
+                    <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-top:2px;">{{ sub.user.username|default:"Unlinked" }}</div>
                 </div>
                 <div>
-                    <div style="font-size:11px; color:var(--admin-muted);">Auto-Renewal</div>
-                    <div style="font-size:13px; font-weight:600; color:{% if sub.auto_renew %}var(--admin-success){% else %}var(--admin-muted){% endif %}; margin-top:2px;">
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Auto-Renewal</div>
+                    <div style="font-size:13px; font-weight:600; color:{% if sub.auto_renew %}var(--admin-success){% else %}var(--text-secondary){% endif %}; margin-top:2px;">
                         {% if sub.auto_renew %}ENABLED{% else %}DISABLED{% endif %}
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:11px; color:var(--admin-muted);">Started On</div>
-                    <div style="font-size:13px; font-weight:600; color:#fff; margin-top:2px;">{{ sub.created_at|date:"M d, Y" }}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Started On</div>
+                    <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-top:2px;">{{ sub.created_at|date:"M d, Y" }}</div>
                 </div>
                 <div>
-                    <div style="font-size:11px; color:var(--admin-muted);">Period End</div>
-                    <div style="font-size:13px; font-weight:600; color:#38bdf8; margin-top:2px;">
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Period End</div>
+                    <div style="font-size:13px; font-weight:600; color:var(--primary-brand); margin-top:2px;">
                         {{ sub.current_period_end|date:"M d, Y"|default:"Indefinite" }}
                     </div>
                 </div>
             </div>
 
             {% if sub.pending_change_plan %}
-            <div style="margin-top:14px; padding:10px 14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:6px; font-size:12.5px; color:#fbbf24;">
+            <div style="margin-top:14px; padding:12px 14px; background:#FEF3C7; border:1px solid #FDE68A; border-radius:var(--radius-sm); font-size:13px; color:#D97706;">
                 <strong>Scheduled Plan Change:</strong> Will transition to <strong>{{ sub.pending_change_plan|upper }}</strong> at current period end ({{ sub.current_period_end|date:"M d, Y" }}).
             </div>
             {% endif %}
 
             {% if sub.cancel_at_period_end %}
-            <div style="margin-top:14px; padding:10px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:6px; font-size:12.5px; color:#f87171;">
+            <div style="margin-top:14px; padding:12px 14px; background:#FEE2E2; border:1px solid #FECACA; border-radius:var(--radius-sm); font-size:13px; color:#DC2626;">
                 <strong>Cancellation Pending:</strong> Subscription will automatically expire on {{ sub.current_period_end|date:"M d, Y" }}.
             </div>
             {% endif %}
@@ -162,71 +76,164 @@ document.getElementById('btn-admin-confirm-proceed').addEventListener('click', f
 
         <!-- Management Actions Forms -->
         <div class="admin-card">
-            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">
+            <h3 style="margin-top:0; font-size:16px; font-weight:700; border-bottom:1px solid var(--border-color); padding-bottom:12px; color:var(--text-primary);">
                 Administrative Controls
             </h3>
 
             <div style="display:flex; flex-direction:column; gap:16px;">
                 <!-- Change Plan -->
-                <form method="POST" onsubmit="return promptAdminActionConfirm(event, 'Confirm Plan Change', 'Change user subscription plan to the selected tier? This will adjust user entitlements immediately.')" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:12px; background:rgba(15,23,42,0.4); border-radius:6px;">
+                <form method="POST" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                    title: 'Confirm Subscription Tier Migration',
+                    subtitle: 'Migrate account plan and dynamically adjust user feature entitlements.',
+                    severity: 'warning',
+                    entity: {
+                        'Account': '{{ sub.user.username|default:sub.tenant_id }}',
+                        'Current Tier': '{{ sub.plan.name|default:sub.plan_id|upper }}',
+                        'Target Tier': this.querySelector('select[name=new_plan]').selectedOptions[0].text
+                    },
+                    impacts: [
+                        'Updates seat capacity, export volume limits, and intelligence quotas',
+                        'Applies new feature permissions immediately to user session',
+                        'Logs tier change event to the subscription audit timeline'
+                    ],
+                    confirmText: 'Apply Tier Change Now'
+                });" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="change_plan">
                     <div style="flex:1; min-width:200px;">
-                        <label style="display:block; font-size:11.5px; font-weight:600; color:var(--admin-muted); margin-bottom:4px;">Change Plan Tier</label>
-                        <select name="new_plan" style="width:100%; box-sizing:border-box; padding:7px 10px; background:rgba(30,41,59,0.8); border:1px solid var(--admin-border); border-radius:4px; color:#fff; font-size:13px;">
+                        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Change Plan Tier</label>
+                        <select name="new_plan" class="select-filter" style="width:100%;">
                             {% for p in plans %}
                             <option value="{{ p.code }}" {% if p.code == sub.plan_id %}selected{% endif %}>{{ p.name }} ({{ p.code }})</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="btn-admin btn-admin-primary" style="font-size:12px; padding:7px 14px;">Apply Plan Change</button>
+                    <button type="submit" class="btn-admin btn-admin-primary" style="font-size:12.5px; padding:8px 16px;">Apply Plan Change</button>
                 </form>
 
                 <!-- Extend Period -->
-                <form method="POST" onsubmit="return promptAdminActionConfirm(event, 'Confirm Extend Validity', 'Extend user subscription expiration date?')" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:12px; background:rgba(15,23,42,0.4); border-radius:6px;">
+                <form method="POST" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                    title: 'Extend Subscription Validity Window',
+                    subtitle: 'Manually prolong active subscription lifecycle.',
+                    severity: 'info',
+                    entity: {
+                        'Account': '{{ sub.user.username|default:sub.tenant_id }}',
+                        'Current Expiry': '{{ sub.current_period_end|default:"Indefinite" }}',
+                        'Extension Days': (this.querySelector('input[name=extend_days]').value || '30') + ' Days'
+                    },
+                    impacts: [
+                        'Pushes current period end forward without billing user wallet',
+                        'Preserves active feature access throughout the extended period',
+                        'Generates an administrative audit log entry'
+                    ],
+                    confirmText: 'Extend Validity Window'
+                });" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="extend_period">
                     <div style="flex:1; min-width:200px;">
-                        <label style="display:block; font-size:11.5px; font-weight:600; color:var(--admin-muted); margin-bottom:4px;">Extend Period (Days)</label>
+                        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Extend Period (Days)</label>
                         <input type="number" name="extend_days" value="30" min="1" max="730"
-                               style="width:100%; box-sizing:border-box; padding:7px 10px; background:rgba(30,41,59,0.8); border:1px solid var(--admin-border); border-radius:4px; color:#fff; font-size:13px;">
+                               style="width:100%; box-sizing:border-box; height:38px; padding:0 10px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:13px;">
                     </div>
-                    <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:7px 14px;">Extend Validity</button>
+                    <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12.5px; padding:8px 16px;">Extend Validity</button>
                 </form>
 
                 <!-- Toggle Auto Renew & Cancel/Reactivate -->
-                <div style="display:flex; gap:10px; flex-wrap:wrap; padding:12px; background:rgba(15,23,42,0.4); border-radius:6px; align-items:center;">
-                    <form method="POST" onsubmit="return promptAdminActionConfirm(event, 'Confirm Auto-Renewal Change', 'Toggle automatic renewal status for this subscription?')" style="margin:0;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); align-items:center;">
+                    <form method="POST" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                        title: '{% if sub.auto_renew %}Disable{% else %}Enable{% endif %} Automatic Renewal',
+                        subtitle: 'Configure automated periodic recurring billing for this subscription.',
+                        severity: 'warning',
+                        entity: {
+                            'Account': '{{ sub.user.username|default:sub.tenant_id }}',
+                            'Current Setting': '{% if sub.auto_renew %}ENABLED{% else %}DISABLED{% endif %}',
+                            'Target Setting': '{% if sub.auto_renew %}DISABLED{% else %}ENABLED{% endif %}'
+                        },
+                        impacts: [
+                            '{% if sub.auto_renew %}System will NOT attempt automatic wallet renewal at period end.{% else %}System will automatically attempt wallet renewal deduction at period end.{% endif %}',
+                            'Customer account billing flag will update immediately'
+                        ],
+                        confirmText: '{% if sub.auto_renew %}Disable Auto-Renew{% else %}Enable Auto-Renew{% endif %}'
+                    });" style="margin:0;">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="toggle_auto_renew">
-                        <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:7px 14px;">
+                        <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12.5px; padding:7px 14px;">
                             {% if sub.auto_renew %}Disable Auto-Renew{% else %}Enable Auto-Renew{% endif %}
                         </button>
                     </form>
 
                     {% if sub.status == "ACTIVE" %}
-                    <form method="POST" style="margin:0;" onsubmit="return promptAdminActionConfirm(event, 'Confirm Cancellation at Period End', 'Are you sure you want to cancel auto-renewal? The user will retain access until current period end.');">
+                    <form method="POST" style="margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                        title: 'Schedule Subscription Expiration',
+                        subtitle: 'Set subscription to terminate cleanly at end of current paid cycle.',
+                        severity: 'warning',
+                        entity: {
+                            'Account': '{{ sub.user.username|default:sub.tenant_id }}',
+                            'Current Tier': '{{ sub.plan.name|default:sub.plan_id|upper }}',
+                            'Cutoff Date': '{{ sub.current_period_end|default:"Current Period End" }}'
+                        },
+                        impacts: [
+                            'Automatic renewal is permanently disabled',
+                            'User retains full access until {{ sub.current_period_end|default:"period end" }}',
+                            'Account will automatically downgrade to Community Starter on expiry'
+                        ],
+                        alert: 'The customer will retain full feature access until their active paid period concludes.',
+                        confirmText: 'Schedule Period-End Expiry'
+                    });">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="cancel">
                         <input type="hidden" name="cancel_now" value="0">
-                        <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:7px 14px; color:#f59e0b;">
+                        <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12.5px; padding:7px 14px; color:#D97706;">
                             Cancel at Period End
                         </button>
                     </form>
 
-                    <form method="POST" style="margin:0;" onsubmit="return promptAdminActionConfirm(event, 'Confirm Immediate Cancellation', 'Immediate Cancellation: This will immediately revoke paid entitlements and mark the subscription cancelled. Proceed?');">
+                    <form method="POST" style="margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                        title: 'Authorize Immediate Subscription Termination',
+                        subtitle: 'Critical Administrative Override: Immediate revocation of all service entitlements.',
+                        severity: 'danger',
+                        entity: {
+                            'Account': '{{ sub.user.username|default:sub.tenant_id }}',
+                            'Tier to Revoke': '{{ sub.plan.name|default:sub.plan_id|upper }}',
+                            'Effective Timestamp': 'Immediate (Zero Grace Period)'
+                        },
+                        impacts: [
+                            'Immediately revokes all seats and enterprise access privileges',
+                            'Deactivates API keys, custom crawlers, and bulk export features immediately',
+                            'Remaining balance for unexpired cycle is forfeit',
+                            'Permanent cancellation logged to statutory audit ledger'
+                        ],
+                        alert: 'HIGH IMPACT: This terminates active service and revokes client credentials immediately.',
+                        requireAck: true,
+                        ackText: 'I authorize immediate termination and complete access revocation for this account.',
+                        confirmText: 'Terminate Subscription Immediately'
+                    });">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="cancel">
                         <input type="hidden" name="cancel_now" value="1">
-                        <button type="submit" class="btn-admin btn-admin-danger" style="font-size:12px; padding:7px 14px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444;">
+                        <button type="submit" class="btn-admin btn-admin-danger" style="font-size:12.5px; padding:7px 14px;">
                             Cancel Immediately
                         </button>
                     </form>
                     {% else %}
-                    <form method="POST" onsubmit="return promptAdminActionConfirm(event, 'Confirm Reactivation', 'Reactivate this subscription and restore active access?')" style="margin:0;">
+                    <form method="POST" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                        title: 'Reactivate Inactive Subscription',
+                        subtitle: 'Restore active account standing and re-enable subscription entitlements.',
+                        severity: 'finance',
+                        entity: {
+                            'Account': '{{ sub.user.username|default:sub.tenant_id }}',
+                            'Plan Tier': '{{ sub.plan.name|default:sub.plan_id|upper }}'
+                        },
+                        impacts: [
+                            'Restores paid entitlements, seat allocations, and API access immediately',
+                            'Recalculates active billing period window',
+                            'Logs reactivation event in the immutable audit trail'
+                        ],
+                        confirmText: 'Reactivate Account Now'
+                    });" style="margin:0;">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="reactivate">
-                        <button type="submit" class="btn-admin btn-admin-primary" style="font-size:12px; padding:7px 14px;">
+                        <button type="submit" class="btn-admin btn-admin-primary" style="font-size:12.5px; padding:7px 14px;">
                             Reactivate Subscription
                         </button>
                     </form>
@@ -237,7 +244,7 @@ document.getElementById('btn-admin-confirm-proceed').addEventListener('click', f
 
         <!-- Invoices & Payments History -->
         <div class="admin-card">
-            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">
+            <h3 style="margin-top:0; font-size:16px; font-weight:700; border-bottom:1px solid var(--border-color); padding-bottom:12px; color:var(--text-primary);">
                 Invoices &amp; Payments History
             </h3>
 
@@ -255,23 +262,23 @@ document.getElementById('btn-admin-confirm-proceed').addEventListener('click', f
                     <tbody>
                         {% for inv in invoices %}
                         <tr>
-                            <td style="font-family:'JetBrains Mono',monospace; color:#fff; font-size:12px;">{{ inv.invoice_id }}</td>
-                            <td style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--admin-success); font-size:13px;">
+                            <td style="font-family:var(--font-mono); color:var(--text-primary); font-size:12px;">{{ inv.invoice_id }}</td>
+                            <td style="font-family:var(--font-mono); font-weight:700; color:var(--admin-success); font-size:13px;">
                                 &#8377; {{ inv.total_amount|floatformat:2 }}
                             </td>
                             <td>
                                 <span class="badge-status badge-active" style="font-size:10.5px;">{{ inv.status }}</span>
                             </td>
-                            <td style="font-size:11.5px; color:var(--admin-muted);">{{ inv.issued_at|date:"M d, Y" }}</td>
+                            <td style="font-size:11.5px; color:var(--text-secondary);">{{ inv.issued_at|date:"M d, Y" }}</td>
                             <td>
-                                <a href="{% url 'admin_subscriptions:invoice_detail' inv.id %}" target="_blank" style="color:var(--admin-accent); font-size:12px;">
+                                <a href="{% url 'admin_subscriptions:invoice_detail' inv.invoice_id %}" target="_blank" style="color:var(--admin-accent); font-size:12px; font-weight:600; text-decoration:none;">
                                     View Receipt &nearr;
                                 </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" style="text-align:center; padding:16px; color:var(--admin-muted); font-size:12px;">
+                            <td colspan="5" style="text-align:center; padding:18px; color:var(--text-secondary); font-size:12px;">
                                 No invoices issued yet.
                             </td>
                         </tr>
@@ -286,66 +293,83 @@ document.getElementById('btn-admin-confirm-proceed').addEventListener('click', f
     <div style="display:flex; flex-direction:column; gap:20px;">
         <!-- Prototype Wallet Card -->
         <div class="admin-card">
-            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px; color:var(--text-primary); display:flex; justify-content:space-between; align-items:center;">
                 <span>User Prototype Wallet</span>
-                <span class="badge-status badge-pending" style="font-size:10px;">TEST WALLET</span>
+                <span class="badge-status badge-active" style="font-size:10px;">TEST WALLET</span>
             </h3>
 
             {% if user_wallet %}
             <div style="text-align:center; padding:16px 0;">
-                <div style="font-size:11px; text-transform:uppercase; color:var(--admin-muted); letter-spacing:0.5px;">Current Balance</div>
-                <div style="font-size:28px; font-weight:800; color:var(--admin-success); font-family:'JetBrains Mono',monospace; margin-top:4px;">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700; letter-spacing:0.5px;">Current Balance</div>
+                <div style="font-size:28px; font-weight:800; color:var(--admin-success); font-family:var(--font-mono); margin-top:4px;">
                     &#8377; {{ user_wallet.balance_inr|floatformat:2 }}
                 </div>
             </div>
 
             <!-- Quick Adjust Form -->
-            <form method="POST" onsubmit="return promptAdminActionConfirm(event, 'Confirm Wallet Adjustment', 'Adjust user wallet balance with this transaction?')" style="display:flex; flex-direction:column; gap:10px; padding:12px; background:rgba(15,23,42,0.6); border-radius:6px;">
+            <form method="POST" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                title: 'Authorize User Wallet Adjustment',
+                subtitle: 'Direct financial ledger mutation on client prototype wallet balance.',
+                severity: 'finance',
+                entity: {
+                    'User Account': '{{ sub.user.username }}',
+                    'Current Balance': '&#8377; {{ user_wallet.balance_inr|floatformat:2 }}',
+                    'Operation': this.querySelector('select[name=wallet_action]').value,
+                    'Adjustment Amount': '&#8377; ' + (this.querySelector('input[name=wallet_amount]').value || '0.00')
+                },
+                impacts: [
+                    'Immediately mutates user in-app wallet balance',
+                    'Appends an immutable entry to the WalletTransaction ledger',
+                    'Attributed to administrator @{{ request.user.username }}'
+                ],
+                alert: 'Financial mutation will be recorded in the permanent audit trail.',
+                confirmText: 'Commit Balance Adjustment'
+            });" style="display:flex; flex-direction:column; gap:10px; padding:12px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="adjust_wallet">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                     <div>
-                        <label style="display:block; font-size:11px; color:var(--admin-muted); margin-bottom:2px;">Type</label>
-                        <select name="wallet_action" style="width:100%; box-sizing:border-box; padding:6px 8px; background:rgba(30,41,59,0.8); border:1px solid var(--admin-border); border-radius:4px; color:#fff; font-size:12px;">
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:2px;">Type</label>
+                        <select name="wallet_action" class="select-filter" style="width:100%; height:36px;">
                             <option value="CREDIT">CREDIT (+)</option>
                             <option value="DEBIT">DEBIT (-)</option>
                         </select>
                     </div>
                     <div>
-                        <label style="display:block; font-size:11px; color:var(--admin-muted); margin-bottom:2px;">Amount (&#8377;)</label>
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:2px;">Amount (&#8377;)</label>
                         <input type="number" step="0.01" name="wallet_amount" placeholder="500.00" required
-                               style="width:100%; box-sizing:border-box; padding:6px 8px; background:rgba(30,41,59,0.8); border:1px solid var(--admin-border); border-radius:4px; color:#fff; font-size:12px; font-family:'JetBrains Mono',monospace;">
+                               style="width:100%; box-sizing:border-box; height:36px; padding:0 8px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:12.5px; font-family:var(--font-mono);">
                     </div>
                 </div>
                 <div>
                     <input type="text" name="wallet_desc" placeholder="Reason (e.g. Test credit)"
-                           style="width:100%; box-sizing:border-box; padding:6px 8px; background:rgba(30,41,59,0.8); border:1px solid var(--admin-border); border-radius:4px; color:#fff; font-size:12px;">
+                           style="width:100%; box-sizing:border-box; height:36px; padding:0 8px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:12.5px;">
                 </div>
-                <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:6px 12px; margin-top:2px;">
+                <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:7px 12px; margin-top:2px;">
                     Update Wallet Balance
                 </button>
             </form>
             {% else %}
-            <p style="color:var(--admin-muted); font-size:12.5px;">User has no prototype wallet created.</p>
+            <p style="color:var(--text-secondary); font-size:12.5px;">User has no prototype wallet created.</p>
             {% endif %}
         </div>
 
         <!-- Active Entitlements -->
         <div class="admin-card">
-            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff;">
+            <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px; color:var(--text-primary);">
                 Assigned Plan Entitlements
             </h3>
 
             <div style="display:flex; flex-direction:column; gap:8px;">
                 {% for ent in entitlements %}
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:rgba(15,23,42,0.4); border-radius:4px; font-size:12px;">
-                    <span style="color:#fff;">{{ ent.name }}</span>
-                    <span style="font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--admin-accent);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:12.5px;">
+                    <span style="color:var(--text-primary);">{{ ent.name }}</span>
+                    <span style="font-family:var(--font-mono); font-weight:700; color:var(--primary-brand);">
                         {{ ent.raw_value }}
                     </span>
                 </div>
                 {% empty %}
-                <div style="color:var(--admin-muted); font-size:12px;">
+                <div style="color:var(--text-secondary); font-size:12px;">
                     No structured entitlements configured for this tier.
                 </div>
                 {% endfor %}
@@ -354,69 +378,27 @@ document.getElementById('btn-admin-confirm-proceed').addEventListener('click', f
 
         <!-- Audit Event History -->
         <div class="admin-card">
-            <h3 style="margin-top:0; font-size:14px; border-bottom:1px solid var(--admin-border); padding-bottom:8px; color:#fff;">
+            <h3 style="margin-top:0; font-size:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px; color:var(--text-primary);">
                 Subscription Audit Log
             </h3>
 
             <div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;">
                 {% for ev in events %}
-                <div style="font-size:11.5px; padding:6px 8px; background:rgba(15,23,42,0.4); border-radius:4px;">
-                    <div style="display:flex; justify-content:space-between; color:#fff; font-weight:600;">
+                <div style="font-size:11.5px; padding:8px 10px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+                    <div style="display:flex; justify-content:space-between; color:var(--text-primary); font-weight:600;">
                         <span>{{ ev.event_type }}</span>
-                        <span style="color:var(--admin-muted); font-size:10px;">{{ ev.created_at|date:"M d, H:i" }}</span>
+                        <span style="color:var(--text-secondary); font-size:10.5px;">{{ ev.created_at|date:"M d, H:i" }}</span>
                     </div>
                     {% if ev.details %}
-                    <div style="color:var(--admin-muted); font-size:10.5px; margin-top:2px;">{{ ev.details }}</div>
+                    <div style="color:var(--text-secondary); font-size:11px; margin-top:2px;">{{ ev.details }}</div>
                     {% endif %}
                 </div>
                 {% empty %}
-                <div style="color:var(--admin-muted); font-size:11px;">No audit events recorded.</div>
+                <div style="color:var(--text-secondary); font-size:11.5px;">No audit events recorded.</div>
                 {% endfor %}
             </div>
         </div>
     </div>
 </div>
-
-<!-- Confirmation Dialog for Admin Actions (Requirement 10 & 19) -->
-<div id="modal-admin-action-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
-    <div style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:12px; width:100%; max-width:480px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); overflow:hidden;">
-        <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4);">
-            <h3 id="admin-confirm-title" style="margin:0; font-size:16px; font-weight:700; color:#fff;">Confirm Action</h3>
-        </div>
-        <div style="padding:20px;">
-            <p id="admin-confirm-msg" style="margin:0; font-size:13.5px; color:#cbd5e1; line-height:1.5;">Are you sure you want to proceed?</p>
-        </div>
-        <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4); display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" onclick="closeAdminConfirmModal()" class="btn-admin btn-admin-secondary" style="padding:7px 16px;">Cancel</button>
-            <button type="button" id="btn-admin-confirm-proceed" class="btn-admin btn-admin-primary" style="padding:7px 20px; font-weight:700;">Confirm Action</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let pendingFormToSubmit = null;
-
-function promptAdminActionConfirm(e, title, message) {
-    e.preventDefault();
-    pendingFormToSubmit = e.target.closest('form');
-    document.getElementById('admin-confirm-title').textContent = title || 'Confirm Action';
-    document.getElementById('admin-confirm-msg').innerHTML = message || 'Are you sure you want to execute this action?';
-    document.getElementById('modal-admin-action-confirm').style.display = 'flex';
-    return false;
-}
-
-function closeAdminConfirmModal() {
-    document.getElementById('modal-admin-action-confirm').style.display = 'none';
-    pendingFormToSubmit = null;
-}
-
-document.getElementById('btn-admin-confirm-proceed').addEventListener('click', function() {
-    if (pendingFormToSubmit) {
-        const f = pendingFormToSubmit;
-        closeAdminConfirmModal();
-        f.submit();
-    }
-});
-</script>
 
 {% endblock %}

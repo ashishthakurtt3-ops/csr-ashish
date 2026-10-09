@@ -68,7 +68,7 @@
                             <strong id="telemetry-companies-count">200</strong> Corporations Monitored
                         </span>
                         <span class="telemetry-divider">&bull;</span>
-                        <span id="header-last-sync" class="telemetry-status">100% Live Verified</span>
+                        <span id="header-last-sync" class="telemetry-status">Sync Status Unknown</span>
                         <span class="telemetry-arrow">↗</span>
                     </div>
                 </div>
@@ -92,6 +92,12 @@
 
                     <!-- Header Utility Action Buttons -->
                     <div class="header-utilities-wrap">
+                        <button class="nav-action-btn" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            <span>Theme</span>
+                        </button>
                         <button class="nav-action-btn" onclick="openModal('modal-ngo-help')" title="Step-by-step documentation for NGOs &amp; applicants">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -145,22 +151,22 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="8" y1="6" x2="8.01" y2="6"/><line x1="16" y1="6" x2="16.01" y2="6"/><line x1="12" y1="6" x2="12.01" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/>
                             </svg>
-                            <span>Corporate Donors</span>
-                            <span class="badge badge-indigo">200</span>
+                            <span>Corporate Registry</span>
+                            <span class="badge badge-indigo" id="nav-companies-badge">201</span>
                         </button>
                         <button class="nav-link-btn" data-nav="active-opps" onclick="switchTab('active-opps')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
                             <span>Open Grants &amp; RFPs</span>
-                            <span class="badge badge-amber-subtle" id="nav-opps-badge">135</span>
+                            <span class="badge badge-amber-subtle" id="nav-opps-badge">6</span>
                         </button>
                         <button class="nav-link-btn" data-nav="jobs" data-tab="jobs" onclick="switchTab('jobs')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                             </svg>
                             <span>Enterprise Jobs</span>
-                            <span class="badge badge-cyan-subtle" id="jobs-count-badge">3,030</span>
+                            <span class="badge badge-cyan-subtle" id="jobs-count-badge">115</span>
                         </button>
                         <button class="nav-link-btn" data-nav="matching" onclick="switchTab('matching')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -212,13 +218,13 @@
 
         <div class="mobile-drawer-telemetry" onclick="switchTab('crawler-logs'); closeMobileNav();">
             <span class="pulse-dot"></span>
-            <span style="font-size:12px; font-weight:600; color:#fff;">200 Corporations Monitored</span>
-            <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">100% Live</span>
+            <span style="font-size:12px; font-weight:600; color:var(--text-primary);"><span id="mobile-companies-count">201</span> Corporations Monitored</span>
+            <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">Monitored</span>
         </div>
 
         <div class="mobile-drawer-telemetry" onclick="openWalletTopupModal(); closeMobileNav();" style="border-color:rgba(16,185,129,0.4); background:rgba(16,185,129,0.12); margin-top:8px; cursor:pointer;">
             <span style="font-size:15px;">💰</span>
-            <span style="font-size:12px; font-weight:700; color:#fff;">Demo Wallet:</span>
+            <span style="font-size:12px; font-weight:700; color:var(--text-primary);">Demo Wallet:</span>
             <strong class="mono" id="mobile-wallet-balance-val" style="color:var(--accent-emerald); font-size:13px; margin-left:4px;">₹0.00</strong>
             <span class="badge badge-emerald" style="margin-left:auto; font-size:10px;">+ TOP UP</span>
         </div>
@@ -227,18 +233,18 @@
             <div class="drawer-nav-section-title">INTELLIGENCE PLATFORM</div>
             <button class="drawer-nav-btn active" data-nav="companies" onclick="switchTab('companies'); closeMobileNav();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
-                <span>Corporate Donors</span>
-                <span class="badge badge-indigo" style="margin-left:auto;">200</span>
+                <span>Corporate Registry</span>
+                <span class="badge badge-indigo" id="mobile-nav-companies-badge" style="margin-left:auto;">201</span>
             </button>
             <button class="drawer-nav-btn" data-nav="active-opps" onclick="switchTab('active-opps'); closeMobileNav();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
                 <span>Open Grants &amp; RFPs</span>
-                <span class="badge badge-amber-subtle" style="margin-left:auto;">135</span>
+                <span class="badge badge-amber-subtle" id="mobile-nav-opps-badge" style="margin-left:auto;">6</span>
             </button>
             <button class="drawer-nav-btn" data-nav="jobs" onclick="switchTab('jobs'); closeMobileNav();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                 <span>Enterprise Jobs</span>
-                <span class="badge badge-cyan-subtle" style="margin-left:auto;">3,030</span>
+                <span class="badge badge-cyan-subtle" id="mobile-nav-jobs-badge" style="margin-left:auto;">115</span>
             </button>
             <button class="drawer-nav-btn" data-nav="matching" onclick="switchTab('matching'); closeMobileNav();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
@@ -285,13 +291,13 @@
         <section class="hero-banner">
             <div class="hero-content">
                 <div class="hero-pill-tag">
-                    <span>Verified Corporate Registry</span> &bull; 200 Top Listed Corporations &bull; 100% Official HTTP Verified Domains
+                    <span>Verified Corporate Registry</span> &bull; 200 Top Listed Corporations &bull; Source Checked Domains
                 </div>
                 <h1 class="hero-title">
                     National CSR Intelligence, Grant Disclosures &amp; Enterprise Careers
                 </h1>
                 <p class="hero-sub">
-                    Authoritative data intelligence across India's Top 200 NSE &amp; BSE corporations. Indexing statutory Section 135 social fund allocations, active corporate grant RFPs, verified foundation portals, and 3,030 live career openings with zero simulated data.
+                    Authoritative data intelligence across India's premier listed corporations. Indexing statutory Section 135 social fund allocations, active corporate grant RFPs, verified foundation portals, and live career openings with zero simulated data.
                 </p>
 
                 <!-- Mobile Guide Toggle Bar (< 768px) -->
@@ -321,7 +327,7 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
                                 Identify Corporate Donors
                             </div>
-                            <div class="ngo-step-txt">Explore 200 NSE listed corporations with over ₹32,195 Cr statutory social investments across healthcare, education, and rural development.</div>
+                            <div class="ngo-step-txt">Explore canonical listed corporations with verified Section 135 social investments across healthcare, education, and rural development.</div>
                         </div>
                         <div class="ngo-step-card" onclick="switchTab('active-opps')">
                             <div class="ngo-step-num">Step 2</div>
@@ -329,7 +335,7 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
                                 Apply for Open Grants
                             </div>
-                            <div class="ngo-step-txt">135 verified corporate RFPs and funding windows currently inviting qualified Section 8 entities and 12A/80G non-profit proposals.</div>
+                            <div class="ngo-step-txt">Verified corporate RFPs and funding windows currently inviting qualified non-profit proposals.</div>
                         </div>
                         <div class="ngo-step-card" onclick="switchTab('jobs')">
                             <div class="ngo-step-num">Step 3</div>
@@ -337,7 +343,7 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>
                                 Corporate Career Portals
                             </div>
-                            <div class="ngo-step-txt">Browse 3,030 active career opportunities across Tech, Operations, Finance, ESG, and Corporate Social Responsibility.</div>
+                            <div class="ngo-step-txt">Browse verified active career opportunities across Tech, Operations, Finance, ESG, and Corporate Social Responsibility.</div>
                         </div>
                     </div>
                 </div>
@@ -356,7 +362,7 @@
                             <span style="font-size:12px; color:#34d399; font-weight:600;"><span class="dot dot-emerald"></span> 200 Corporate Web Zones Verified</span>
                         </div>
                         <p class="live-fetch-explainer">
-                            Initiate an on-demand socket probe across all official corporate domains to recheck HTTP 200 availability, grant deadlines, and career portals.
+                            Initiate an on-demand socket probe across all official corporate domains to recheck source availability, grant deadlines, and career portals.
                         </p>
                     </div>
                     <div class="live-fetch-actions">
@@ -384,7 +390,7 @@
                     <div class="ticker-sep">&bull;</div>
                     <div class="ticker-item">
                         <span class="ticker-label">HTTP Probes:</span>
-                        <strong class="ticker-val text-cyan" id="hero-requests-count">100% Verified HTTP 200</strong>
+                        <strong class="ticker-val text-cyan" id="hero-requests-count">Source Checked</strong>
                     </div>
                     <div class="ticker-sep">&bull;</div>
                     <div class="ticker-item">
@@ -398,73 +404,72 @@
                     </div>
                 </div>
 
-                <!-- 6 PRIMARY KPI METRICS STRIP -->
-                <div class="kpi-grid">
-                    <div class="kpi-card" onclick="switchTab('companies')">
-                        <div class="kpi-top">
-                            <span class="kpi-icon-wrap icon-cyan">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
-                            </span>
-                            <span class="kpi-badge">NSE/BSE</span>
+                <!-- PROFESSIONAL LIVE INTELLIGENCE STATUS BAR (PART 20) -->
+                <div class="enterprise-status-bar" id="enterprise-status-bar">
+                    <div class="status-metric-card" onclick="switchTab('companies')" title="Verified corporate master registry">
+                        <div class="status-metric-top">
+                            <span class="status-metric-label">COMPANIES</span>
+                            <span class="status-metric-badge badge-cyan">Registry</span>
                         </div>
-                        <div class="kpi-number" id="kpi-companies">200</div>
-                        <div class="kpi-title">Listed Corporations</div>
-                        <div class="kpi-desc">Top 200 enterprise market leaders</div>
+                        <div class="status-metric-val">
+                            <span id="status-companies-val"><span id="kpi-companies">201</span> verified / 201 total</span>
+                        </div>
+                        <div class="status-metric-sub">Canonical Corporate Registry</div>
                     </div>
-                    <div class="kpi-card" onclick="switchTab('crawler-logs')">
-                        <div class="kpi-top">
-                            <span class="kpi-icon-wrap icon-emerald">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                            </span>
-                            <span class="kpi-badge badge-green">100% Live</span>
+
+                    <div class="status-metric-card" onclick="switchTab('jobs')" title="Active verified career openings direct from ATS portals">
+                        <div class="status-metric-top">
+                            <span class="status-metric-label">CURRENT JOBS</span>
+                            <span class="status-metric-badge badge-emerald">Direct ATS</span>
                         </div>
-                        <div class="kpi-number" id="kpi-websites">200</div>
-                        <div class="kpi-title">Verified Official Portals</div>
-                        <div class="kpi-desc">Zero broken links &bull; HTTP 200</div>
+                        <div class="status-metric-val">
+                            <span id="status-jobs-val"><span id="kpi-jobs">115</span> verified</span>
+                        </div>
+                        <div class="status-metric-sub">Published Career Postings</div>
                     </div>
-                    <div class="kpi-card" onclick="switchTab('jobs')">
-                        <div class="kpi-top">
-                            <span class="kpi-icon-wrap icon-blue">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                            </span>
-                            <span class="kpi-badge badge-blue">ALL DOMAINS</span>
+
+                    <div class="status-metric-card" onclick="switchTab('companies')" title="Section 135 social development projects disclosed in official reports">
+                        <div class="status-metric-top">
+                            <span class="status-metric-label">CSR PROJECTS</span>
+                            <span class="status-metric-badge badge-amber">Section 135</span>
                         </div>
-                        <div class="kpi-number" id="kpi-jobs">3,030</div>
-                        <div class="kpi-title">Verified Career Openings</div>
-                        <div class="kpi-desc">Direct official portal applications</div>
+                        <div class="status-metric-val">
+                            <span id="status-csr-val"><span id="kpi-csr">241</span> verified</span>
+                        </div>
+                        <div class="status-metric-sub">Published Social Initiatives</div>
                     </div>
-                    <div class="kpi-card" onclick="switchTab('companies')">
-                        <div class="kpi-top">
-                            <span class="kpi-icon-wrap icon-amber">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                            </span>
-                            <span class="kpi-badge badge-amber">Section 135</span>
+
+                    <div class="status-metric-card" onclick="switchTab('active-opps')" title="Active corporate grant RFPs and open NGO funding calls">
+                        <div class="status-metric-top">
+                            <span class="status-metric-label">OPPORTUNITIES</span>
+                            <span class="status-metric-badge badge-rose">Open Calls</span>
                         </div>
-                        <div class="kpi-number" id="kpi-csr">502</div>
-                        <div class="kpi-title">Disclosed CSR Programs</div>
-                        <div class="kpi-desc">Healthcare, STEM, Rural, Green</div>
+                        <div class="status-metric-val">
+                            <span id="status-opps-val"><span id="kpi-opps">6</span> verified</span>
+                        </div>
+                        <div class="status-metric-sub">Active Grant RFPs &amp; Calls</div>
                     </div>
-                    <div class="kpi-card" onclick="switchTab('active-opps')">
-                        <div class="kpi-top">
-                            <span class="kpi-icon-wrap icon-rose">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                            </span>
-                            <span class="kpi-badge badge-red">Active Call</span>
+
+                    <div class="status-metric-card" title="Authoritative timestamp of latest live source verification">
+                        <div class="status-metric-top">
+                            <span class="status-metric-label">LAST LIVE FETCH</span>
+                            <span class="status-metric-badge badge-blue">Sync Audit</span>
                         </div>
-                        <div class="kpi-number" id="kpi-opps">135</div>
-                        <div class="kpi-title">Open Grant RFPs</div>
-                        <div class="kpi-desc">Active grant funding for NGOs</div>
+                        <div class="status-metric-val" id="status-last-fetch-val">
+                            Live Synchronized
+                        </div>
+                        <div class="status-metric-sub" id="status-last-fetch-sub">Authoritative Portal Probe</div>
                     </div>
-                    <div class="kpi-card" onclick="openModal('modal-analytics')">
-                        <div class="kpi-top">
-                            <span class="kpi-icon-wrap icon-purple">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                            </span>
-                            <span class="kpi-badge badge-purple">Statutory</span>
+
+                    <div class="status-metric-card" onclick="switchTab('crawler-logs')" title="Real-time crawler socket &amp; RFC 9309 compliance state">
+                        <div class="status-metric-top">
+                            <span class="status-metric-label">CRAWL STATUS</span>
+                            <span class="pulse-dot"></span>
                         </div>
-                        <div class="kpi-number" id="kpi-pool">₹32,195 Cr</div>
-                        <div class="kpi-title">Disclosed CSR Budget Pool</div>
-                        <div class="kpi-desc">Audited Section 135 allocations</div>
+                        <div class="status-metric-val">
+                            <span class="status-live-pill" id="status-crawl-state-val">LIVE</span>
+                        </div>
+                        <div class="status-metric-sub">Telemetry Active</div>
                     </div>
                 </div>
             </div>
@@ -615,13 +620,13 @@
                     <div>
                         <h2 class="section-title">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                            Verified Corporate Jobs Directory (3,030 Active Openings)
+                            Verified Corporate Jobs &amp; Career Intelligence
                         </h2>
                         <p class="section-subtitle">
-                            Pan-India corporate openings spanning Software Engineering, Plant Operations, Treasury, HR, and CSR Management. Every opening links directly to the official enterprise ATS application portal.
+                            Pan-India corporate openings spanning Software Engineering, Operations, Treasury, HR, and CSR Management. Direct official ATS application links with zero intermediary noise.
                         </p>
                     </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                         <button class="nav-action-btn" onclick="exportJobsCSV()">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             <span>Export Jobs (CSV)</span>
@@ -630,94 +635,385 @@
                 </div>
             </div>
 
-            <!-- Quick Action Bar -->
-            <div class="tab-quick-action-bar">
-                <button class="btn-tab-quick-fetch" onclick="confirmLiveFetch()" title="Synchronize career openings from official portals">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-                    <span>Fetch Latest Openings</span>
-                    <span class="tab-fetch-stamp" id="jobs-tab-fetch-time">(Data fetched at: Live)</span>
+            <!-- Dedicated 3-Way Sub-Navigation (All Jobs, Find Jobs, Company Jobs) -->
+            <div class="jobs-nav-pills" style="margin-top:16px;">
+                <button class="jobs-nav-pill active" id="btn-job-sub-all" onclick="switchJobSubTab('all')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    <span>All Jobs</span>
+                    <span class="badge badge-cyan" id="badge-jobs-total-pill" style="font-size:11px; padding:2px 7px;">115</span>
                 </button>
-                <span class="tab-hint-text">100% Direct Application Links &bull; Zero recruiter intermediaries &bull; Free public career access.</span>
+                <button class="jobs-nav-pill" id="btn-job-sub-find" onclick="switchJobSubTab('find')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                    <span>Find Jobs</span>
+                    <span class="badge badge-emerald" style="font-size:11px; padding:2px 7px;">Discovery</span>
+                </button>
+                <button class="jobs-nav-pill" id="btn-job-sub-company" onclick="switchJobSubTab('company')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
+                    <span>Company Jobs</span>
+                    <span class="badge badge-purple" id="badge-jobs-company-pill" style="font-size:11px; padding:2px 7px;">201 Corps</span>
+                </button>
             </div>
 
-            <!-- Department / Category Quick Pills -->
-            <div class="job-category-pills" id="job-category-pills">
-                <button class="cat-pill active" data-category="all" onclick="selectJobCategory('all')">All Disciplines</button>
-                <button class="cat-pill" data-category="tech" onclick="selectJobCategory('tech')">Software, AI &amp; Cloud</button>
-                <button class="cat-pill" data-category="engineering" onclick="selectJobCategory('engineering')">Engineering &amp; Manufacturing</button>
-                <button class="cat-pill" data-category="finance" onclick="selectJobCategory('finance')">Finance, Audit &amp; Risk</button>
-                <button class="cat-pill" data-category="operations" onclick="selectJobCategory('operations')">Supply Chain &amp; Logistics</button>
-                <button class="cat-pill" data-category="sales" onclick="selectJobCategory('sales')">Commercial &amp; Marketing</button>
-                <button class="cat-pill" data-category="hr" onclick="selectJobCategory('hr')">People &amp; Talent Acquisition</button>
-                <button class="cat-pill" data-category="csr" onclick="selectJobCategory('csr')">CSR, ESG &amp; Sustainability</button>
-                <button class="cat-pill" data-category="healthcare" onclick="selectJobCategory('healthcare')">Healthcare &amp; Clinical R&amp;D</button>
-                <button class="cat-pill" data-category="legal" onclick="selectJobCategory('legal')">Legal &amp; Compliance</button>
-            </div>
-
-            <!-- Job Search & Filters -->
-            <div class="control-bar">
-                <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" id="job-search" class="search-input" placeholder="Search by role title (e.g. Lead Engineer, Plant Manager), company, or skills...">
-                    <button class="search-clear-btn" id="job-search-clear" onclick="clearJobSearch()" style="display:none;">✕</button>
+            <!-- ========================================================= -->
+            <!-- SUB-VIEW 1: ALL JOBS (MASTER DIRECTORY)                   -->
+            <!-- ========================================================= -->
+            <div id="subview-jobs-all">
+                <!-- Quick Action Bar -->
+                <div class="tab-quick-action-bar">
+                    <button class="btn-tab-quick-fetch" onclick="confirmLiveFetch()" title="Synchronize career openings from official portals">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                        <span>Fetch Latest Openings</span>
+                        <span class="tab-fetch-stamp" id="jobs-tab-fetch-time">(Data fetched at: Live)</span>
+                    </button>
+                    <span class="tab-hint-text">Direct Application Links &bull; Zero recruiter intermediaries &bull; Free public career access.</span>
                 </div>
-                <div class="filter-group">
-                    <select id="job-department-filter" class="select-filter">
-                        <option value="all">All Departments</option>
-                    </select>
 
-                    <select id="job-location-filter" class="select-filter">
-                        <option value="all">All Locations (Pan-India)</option>
-                    </select>
+                <!-- Department / Category Quick Pills -->
+                <div class="job-category-pills" id="job-category-pills">
+                    <button class="cat-pill active" data-category="all" onclick="selectJobCategory('all')">All Disciplines</button>
+                    <button class="cat-pill" data-category="tech" onclick="selectJobCategory('tech')">Software, AI &amp; Cloud</button>
+                    <button class="cat-pill" data-category="engineering" onclick="selectJobCategory('engineering')">Engineering &amp; Manufacturing</button>
+                    <button class="cat-pill" data-category="finance" onclick="selectJobCategory('finance')">Finance, Audit &amp; Risk</button>
+                    <button class="cat-pill" data-category="operations" onclick="selectJobCategory('operations')">Supply Chain &amp; Logistics</button>
+                    <button class="cat-pill" data-category="sales" onclick="selectJobCategory('sales')">Commercial &amp; Marketing</button>
+                    <button class="cat-pill" data-category="hr" onclick="selectJobCategory('hr')">People &amp; Talent Acquisition</button>
+                    <button class="cat-pill" data-category="csr" onclick="selectJobCategory('csr')">CSR, ESG &amp; Sustainability</button>
+                    <button class="cat-pill" data-category="healthcare" onclick="selectJobCategory('healthcare')">Healthcare &amp; Clinical R&amp;D</button>
+                    <button class="cat-pill" data-category="legal" onclick="selectJobCategory('legal')">Legal &amp; Compliance</button>
+                </div>
 
-                    <select id="job-mode-filter" class="select-filter">
-                        <option value="all">All Work Styles</option>
-                        <option value="Remote">Remote</option>
-                        <option value="Hybrid">Hybrid</option>
-                        <option value="On-site">On-site</option>
-                    </select>
+                <!-- Job Search & Filters -->
+                <div class="control-bar">
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="job-search" class="search-input" placeholder="Search by role title (e.g. Lead Engineer, Plant Manager), company, or skills...">
+                        <button class="search-clear-btn" id="job-search-clear" onclick="clearJobSearch()" style="display:none;">✕</button>
+                    </div>
+                    <div class="filter-group">
+                        <input list="job-company-list" id="job-company-filter" class="select-filter" style="min-width:210px; max-width:280px;" title="Select or search by corporate employer" placeholder="🏢 Search Company...">
+                        <datalist id="job-company-list"></datalist>
 
-                    <select id="job-exp-filter" class="select-filter" onchange="filterJobs()">
-                        <option value="all">All Experience Tiers</option>
-                        <option value="entry">Entry Level (0-2 Years)</option>
-                        <option value="mid">Mid Level (3-6 Years)</option>
-                        <option value="senior">Senior Level (7-10 Years)</option>
-                        <option value="lead">Lead / Executive (10+ Years)</option>
-                    </select>
+                        <select id="job-department-filter" class="select-filter">
+                            <option value="all">All Departments</option>
+                        </select>
 
-                    <select id="job-sort-filter" class="select-filter">
-                        <option value="relevance">Sort: Most Relevant</option>
-                        <option value="company">Sort: Company (A&ndash;Z)</option>
-                        <option value="title">Sort: Role Title (A&ndash;Z)</option>
-                        <option value="experience">Sort: Experience (High to Low)</option>
-                    </select>
+                        <select id="job-location-filter" class="select-filter">
+                            <option value="all">All Locations (Pan-India)</option>
+                        </select>
 
-                    <label class="toggle-chip" for="job-impact-only">
-                        <input type="checkbox" id="job-impact-only" onchange="filterJobs()">
-                        <span>CSR &amp; Impact Roles</span>
-                    </label>
+                        <select id="job-mode-filter" class="select-filter">
+                            <option value="all">All Work Styles</option>
+                            <option value="Remote">Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="On-site">On-site</option>
+                        </select>
 
-                    <button class="btn-secondary" onclick="resetJobFilters()">Reset</button>
+                        <select id="job-exp-filter" class="select-filter" onchange="filterJobs()">
+                            <option value="all">All Experience Tiers</option>
+                            <option value="entry">Entry Level (0-2 Years)</option>
+                            <option value="mid">Mid Level (3-6 Years)</option>
+                            <option value="senior">Senior Level (7-10 Years)</option>
+                            <option value="lead">Lead / Executive (10+ Years)</option>
+                        </select>
+
+                        <select id="job-sort-filter" class="select-filter">
+                            <option value="relevance">Sort: Most Relevant</option>
+                            <option value="company">Sort: Company (A&ndash;Z)</option>
+                            <option value="title">Sort: Role Title (A&ndash;Z)</option>
+                            <option value="experience">Sort: Experience (High to Low)</option>
+                        </select>
+
+                        <label class="toggle-chip" for="job-impact-only">
+                            <input type="checkbox" id="job-impact-only" onchange="filterJobs()">
+                            <span>CSR &amp; Impact Roles</span>
+                        </label>
+
+                        <button class="btn-secondary" onclick="resetJobFilters()">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Summary Bar & View Mode Toggle -->
+                <div class="summary-bar">
+                    <div id="job-count-label">Querying verified career postings from official portals...</div>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <div class="view-mode-toggle" style="display:flex; gap:4px; background:var(--bg-surface-subtle); padding:2px; border-radius:6px; border:1px solid var(--border-color);">
+                            <button type="button" class="btn-secondary active" id="btn-job-view-table" onclick="setJobViewMode('table')" style="font-size:11px; padding:3px 8px;" title="Table View">
+                                📋 Table
+                            </button>
+                            <button type="button" class="btn-secondary" id="btn-job-view-cards" onclick="setJobViewMode('cards')" style="font-size:11px; padding:3px 8px;" title="Card View">
+                                🗂️ Cards
+                            </button>
+                        </div>
+                        <div class="legend-pills">
+                            <span class="legend-item"><span class="dot dot-emerald"></span> Verified ATS Portal</span>
+                            <span class="legend-item"><span class="dot dot-cyan"></span> Active Posting</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Table Container (Desktop Default - Part 26) -->
+                <div class="table-container" id="jobs-table-container">
+                    <table class="data-table" id="jobs-data-table">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Company</th>
+                                <th>Location</th>
+                                <th>Department</th>
+                                <th>Employment Type</th>
+                                <th>Posted</th>
+                                <th>Last Verified</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobs-table-body">
+                            <!-- Populated dynamically by app.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Job Cards Grid (Mobile / Card Mode) -->
+                <div class="jobs-cards-grid" id="jobs-grid" style="display:none;">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+
+                <!-- Dynamic Pagination for Jobs -->
+                <div id="jobs-pagination" class="pagination-bar-wrapper"></div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- SUB-VIEW 2: FIND JOBS (DEDICATED DISCOVERY SEARCH)        -->
+            <!-- ========================================================= -->
+            <div id="subview-jobs-find" style="display:none;">
+                <!-- Discovery Hero Search Bar -->
+                <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-xl); padding:24px; box-shadow:var(--shadow-card); margin-bottom:24px;">
+                    <div style="margin-bottom:12px;">
+                        <h3 style="font-size:18px; font-weight:800; color:var(--text-primary); margin:0 0 6px;">Find Your Next Role</h3>
+                        <p style="font-size:13.5px; color:var(--text-secondary); margin:0;">
+                            Discover openings by job title, core skill, technology stack, location, department, or company name across India's premier corporate leaders.
+                        </p>
+                    </div>
+
+                    <!-- Prominent Search Input Box -->
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
+                        <div style="position:relative; flex:1; min-width:280px;">
+                            <svg style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="find-jobs-search-input" class="search-input" style="padding-left:42px; height:46px; font-size:15px; border-radius:var(--radius-md);" placeholder="Search by role title, skill (e.g. Python, ESG, Solvency), keyword, location, or company..." onkeydown="if(event.key==='Enter') executeFindJobsSearch()">
+                            <button id="find-jobs-search-clear" onclick="clearFindJobsSearch()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; display:none;">✕</button>
+                        </div>
+                        <button class="btn-primary" style="height:46px; padding:0 24px; font-weight:700; border-radius:var(--radius-md);" onclick="executeFindJobsSearch()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <span>Search Jobs</span>
+                        </button>
+                    </div>
+
+                    <!-- Popular Tags / Quick Chips -->
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Popular:</span>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('CSR & ESG')">🌱 CSR &amp; ESG</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Software Engineer')">💻 Software Engineer</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Data Scientist')">📊 Data Science &amp; AI</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('DevOps')">☁️ Cloud &amp; DevOps</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Finance')">🏦 Finance &amp; Treasury</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Plant Manager')">🏭 Operations &amp; Plant</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Remote')">🏠 Remote</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Bengaluru')">📍 Bengaluru</button>
+                        <button class="skill-pill" style="cursor:pointer;" onclick="setFindJobsQuery('Mumbai')">📍 Mumbai</button>
+                    </div>
+
+                    <!-- Comprehensive Multi-Facet Filter Bar -->
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Company</label>
+                            <input list="find-job-company-list" id="find-job-company-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()" placeholder="🏢 Search Company...">
+                            <datalist id="find-job-company-list"></datalist>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Location</label>
+                            <select id="find-job-location-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()">
+                                <option value="all">All Locations (Pan-India)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Experience Tier</label>
+                            <select id="find-job-exp-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()">
+                                <option value="all">All Experience Levels</option>
+                                <option value="entry">Entry Level (0-2 Years)</option>
+                                <option value="mid">Mid Level (3-6 Years)</option>
+                                <option value="senior">Senior Level (7-10 Years)</option>
+                                <option value="lead">Lead / Executive (10+ Years)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Work Style</label>
+                            <select id="find-job-mode-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()">
+                                <option value="all">All Work Styles</option>
+                                <option value="Remote">100% Remote</option>
+                                <option value="Hybrid">Hybrid Workplace</option>
+                                <option value="On-site">On-site Corporate / Plant</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Department</label>
+                            <select id="find-job-dept-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()">
+                                <option value="all">All Departments</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Sort By</label>
+                            <select id="find-job-sort-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()">
+                                <option value="relevance">Most Relevant</option>
+                                <option value="recent">Recently Verified</option>
+                                <option value="company">Company (A–Z)</option>
+                                <option value="title">Role Title (A–Z)</option>
+                                <option value="experience">Experience (Highest First)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Header & Counter -->
+                <div class="summary-bar">
+                    <div id="find-job-count-label" style="font-weight:700; color:var(--text-primary);">Showing matching career openings...</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <button class="btn-secondary" style="font-size:12px; padding:4px 12px;" onclick="resetFindJobsFilters()">Reset Discovery Filters</button>
+                    </div>
+                </div>
+
+                <!-- Find Jobs Card Grid -->
+                <div class="job-card-grid" id="find-jobs-grid">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+
+                <!-- Find Jobs Pagination -->
+                <div id="find-jobs-pagination" class="pagination-bar-wrapper"></div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- SUB-VIEW 3: COMPANY JOBS (SELECT & DRILL-DOWN DASHBOARD)  -->
+            <!-- ========================================================= -->
+            <div id="subview-jobs-company" style="display:none;">
+                <!-- Mode A: Company Directory Selector -->
+                <div id="company-jobs-directory-view">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-xl); padding:24px; box-shadow:var(--shadow-card); margin-bottom:24px;">
+                        <div style="margin-bottom:14px;">
+                            <h3 style="font-size:18px; font-weight:800; color:var(--text-primary); margin:0 0 6px;">Browse All Jobs by Enterprise</h3>
+                            <p style="font-size:13.5px; color:var(--text-secondary); margin:0;">
+                                Select any of India's Top 200 corporations to inspect their complete live career inventory, open roles, departments, and ATS application portals.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                            <div style="position:relative; flex:1; min-width:260px;">
+                                <svg style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" id="company-jobs-search" class="search-input" style="padding-left:38px; height:42px;" placeholder="Search company by name (e.g. Tata Steel, Infosys, Reliance, HDFC)..." oninput="filterCompanyDirectory()">
+                            </div>
+                            <select id="company-jobs-sector-filter" class="select-filter" style="height:42px;" onchange="filterCompanyDirectory()">
+                                <option value="all">All Industries &amp; Sectors</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="summary-bar">
+                        <div id="company-directory-count-label" style="font-weight:700; color:var(--text-primary);">200 Verified Corporate Employers</div>
+                        <div style="font-size:12.5px; color:var(--text-secondary);">Click any company to open its complete Job Dashboard</div>
+                    </div>
+
+                    <!-- Company Cards Grid -->
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px; margin-bottom:24px;" id="company-jobs-directory-grid">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+                </div>
+
+                <!-- Mode B: Company Job Dashboard (When a company is selected) -->
+                <div id="company-job-dashboard-view" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                        <button class="btn-secondary" onclick="returnToCompanyDirectory()" style="display:inline-flex; align-items:center; gap:6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                            <span>Back to All Companies</span>
+                        </button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-outline" onclick="openCompanyDossierFromJobDashboard()" id="btn-comp-dash-dossier">
+                                🔍 Corporate Dossier
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Company Overview Banner -->
+                    <div class="company-overview-banner" id="company-overview-banner-box">
+                        <div style="display:flex; align-items:center; gap:18px;">
+                            <div class="company-logo-avatar" id="comp-dash-avatar">TCS</div>
+                            <div>
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <h2 id="comp-dash-name" style="margin:0; font-size:22px; font-weight:800; color:var(--text-primary);">Tata Consultancy Services</h2>
+                                    <span class="badge badge-cyan" id="comp-dash-symbol">NSE: TCS</span>
+                                    <span class="badge badge-purple" id="comp-dash-sector">Information Technology</span>
+                                </div>
+                                <div style="display:flex; gap:16px; align-items:center; margin-top:6px; font-size:13px; color:var(--text-secondary); flex-wrap:wrap;">
+                                    <span id="comp-dash-hq">📍 Mumbai, Maharashtra</span>
+                                    <span id="comp-dash-website-link">🌐 <a href="#" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); text-decoration:none;">Website ↗</a></span>
+                                    <span id="comp-dash-careers-link">💼 <a href="#" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); text-decoration:none;">Careers Portal ↗</a></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700;">Verified Openings</div>
+                            <div style="font-size:28px; font-weight:800; color:var(--primary-brand); font-family:var(--font-heading);" id="comp-dash-jobs-count">156</div>
+                        </div>
+                    </div>
+
+                    <!-- Company-Specific Filters -->
+                    <div class="control-bar" style="margin-bottom:18px;">
+                        <div class="search-box">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="comp-job-search" class="search-input" placeholder="Search roles in this company..." oninput="filterSelectedCompanyJobs()">
+                        </div>
+                        <div class="filter-group">
+                            <select id="comp-job-loc-filter" class="select-filter" onchange="filterSelectedCompanyJobs()">
+                                <option value="all">All Locations</option>
+                            </select>
+                            <select id="comp-job-exp-filter" class="select-filter" onchange="filterSelectedCompanyJobs()">
+                                <option value="all">All Experience</option>
+                                <option value="entry">Entry Level</option>
+                                <option value="mid">Mid Level</option>
+                                <option value="senior">Senior Level</option>
+                                <option value="lead">Lead / Executive</option>
+                            </select>
+                            <select id="comp-job-mode-filter" class="select-filter" onchange="filterSelectedCompanyJobs()">
+                                <option value="all">All Work Styles</option>
+                                <option value="Remote">Remote</option>
+                                <option value="Hybrid">Hybrid</option>
+                                <option value="On-site">On-site</option>
+                            </select>
+                            <select id="comp-job-dept-filter" class="select-filter" onchange="filterSelectedCompanyJobs()">
+                                <option value="all">All Departments</option>
+                            </select>
+                            <select id="comp-job-sort-filter" class="select-filter" onchange="filterSelectedCompanyJobs()">
+                                <option value="recent">Recently Added</option>
+                                <option value="title">Role Title (A–Z)</option>
+                                <option value="experience">Experience (High to Low)</option>
+                            </select>
+                            <button class="btn-secondary" onclick="resetSelectedCompanyJobFilters()">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="summary-bar">
+                        <div id="comp-jobs-list-count-label" style="font-weight:700; color:var(--text-primary);">All Jobs</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Direct ATS application integration</div>
+                    </div>
+
+                    <!-- Company Jobs Grid -->
+                    <div class="job-card-grid" id="comp-jobs-grid">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+
+                    <!-- Company Jobs Pagination -->
+                    <div id="comp-jobs-pagination" class="pagination-bar-wrapper"></div>
                 </div>
             </div>
-
-            <!-- Summary Bar -->
-            <div class="summary-bar">
-                <div id="job-count-label">Querying 3,030 verified career postings...</div>
-                <div class="legend-pills">
-                    <span class="legend-item"><span class="dot dot-emerald"></span> Verified ATS Portal</span>
-                    <span class="legend-item"><span class="dot dot-cyan"></span> Active Posting</span>
-                </div>
-            </div>
-
-            <!-- Job Cards Grid -->
-            <div class="jobs-cards-grid" id="jobs-grid">
-                <!-- Populated dynamically by app.js -->
-            </div>
-
-            <!-- Dynamic Pagination for Jobs -->
-            <div id="jobs-pagination" class="pagination-bar-wrapper"></div>
         </section>
+
 
         <!-- ============================================================= -->
         <!-- TAB 3: ACTIVE OPEN CALLS & RFPS (GRANTS)                       -->
@@ -772,11 +1068,11 @@
             <div class="matcher-card">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
                     <div>
-                        <h2 style="font-size:21px; font-weight:800; color:#ffffff; margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+                        <h2 style="font-size:21px; font-weight:800; color:var(--text-primary); margin-bottom:4px; display:flex; align-items:center; gap:8px;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                             Algorithmic Corporate Donor Matchmaker
                         </h2>
-                        <p style="font-size:13.5px; color:#94a3b8; max-width:820px;">
+                        <p style="font-size:13.5px; color:var(--text-secondary); max-width:820px;">
                             Select your organization's core social intervention and operational geography. ImpactBridge's backend scoring engine cross-evaluates unspent Section 135 budgets, historical sector commitments, and active RFP alignment.
                         </p>
                     </div>
@@ -907,7 +1203,7 @@
 
                     <select id="crawler-status-filter" class="select-filter">
                         <option value="all">All HTTP Status Codes</option>
-                        <option value="200">HTTP 200 OK</option>
+                        <option value="200">Source Confirmed</option>
                     </select>
 
                     <select id="crawler-sort-filter" class="select-filter">
@@ -921,7 +1217,7 @@
             <div class="summary-bar">
                 <div id="crawler-count-label">Loading 200 enterprise domain audit records...</div>
                 <div class="legend-pills">
-                    <span class="legend-item"><span class="dot dot-emerald"></span> HTTP 200 Live</span>
+                    <span class="legend-item"><span class="dot dot-emerald"></span> Verified Live</span>
                     <span class="legend-item"><span class="dot dot-cyan"></span> TLS 1.3 Validated</span>
                 </div>
             </div>
@@ -1028,7 +1324,7 @@
                 </div>
                 <h2 class="pricing-headline">Transparent Access for Non-Profits &amp; Institutions</h2>
                 <p class="pricing-subtext">
-                    Comprehensive intelligence tracking verified corporate donation budgets, Section 135 projects, and 3,030 active career openings.
+                    Authoritative intelligence tracking verified corporate donation budgets, Section 135 projects, and active career openings directly from corporate ATS portals.
                 </p>
 
                 <!-- Billing Cycle Selector -->
@@ -1050,31 +1346,31 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
                     <div>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                            <span style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.22); font-size:18px;">💰</span>
-                            <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff;">Enterprise Demo Testing Wallet</h3>
+                            <span style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:rgba(16,185,129,0.15); font-size:18px;">💰</span>
+                            <h3 style="margin:0; font-size:18px; font-weight:800; color:var(--text-primary);">Enterprise Demo Testing Wallet</h3>
                             <span class="badge badge-emerald" style="font-size:10.5px; padding:2px 8px; font-weight:700;">REAL MONEY SIMULATION</span>
                         </div>
                         <p style="margin:0; font-size:13px; color:var(--text-secondary); max-width:640px; line-height:1.5;">
                             Enter any number as money to simulate your funds for demo testing. The amount is immediately credited into your active wallet and counted as real currency to test plan purchases, upgrades, and billing workflows.
                         </p>
                     </div>
-                    <div style="background:rgba(0,0,0,0.45); border:1px solid rgba(16,185,129,0.35); border-radius:12px; padding:12px 22px; text-align:right; min-width:190px;">
-                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#38bdf8; font-weight:700;">Available Wallet Balance</div>
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:12px; padding:12px 22px; text-align:right; min-width:190px;">
+                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary-brand); font-weight:700;">Available Wallet Balance</div>
                         <div class="mono" id="pricing-wallet-balance-val" style="font-size:26px; font-weight:900; color:var(--accent-emerald); margin-top:2px;">₹0.00</div>
-                        <div style="font-size:11px; color:#94a3b8; margin-top:2px;" id="pricing-wallet-status-note">Ready for immediate checkout</div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="pricing-wallet-status-note">Ready for immediate checkout</div>
                     </div>
                 </div>
 
                 <!-- Recharge Controls Row -->
-                <div style="margin-top:20px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-wrap:wrap; align-items:center; gap:12px;">
+                <div style="margin-top:20px; padding-top:18px; border-top:1px solid var(--border-color); display:flex; flex-wrap:wrap; align-items:center; gap:12px;">
                     <div style="position:relative; display:flex; align-items:center; flex:1; min-width:240px; max-width:320px;">
-                        <span style="position:absolute; left:14px; font-weight:800; color:#34d399; font-size:16px; pointer-events:none;">₹</span>
+                        <span style="position:absolute; left:14px; font-weight:800; color:var(--primary-brand); font-size:16px; pointer-events:none;">₹</span>
                         <input type="number" id="inline-wallet-amount-input" min="1" step="any" placeholder="Enter number as money (e.g. 5000)"
-                               style="width:100%; box-sizing:border-box; padding:10px 14px 10px 32px; background:rgba(7,12,26,0.92); border:1.5px solid rgba(16,185,129,0.45); border-radius:8px; color:#fff; font-size:14.5px; font-family:'JetBrains Mono',monospace; outline:none;"
+                               style="width:100%; box-sizing:border-box; padding:10px 14px 10px 32px; background:var(--bg-input); border:1.5px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:14.5px; font-family:'JetBrains Mono',monospace; outline:none;"
                                onkeydown="if(event.key==='Enter') executeInlineWalletRecharge();">
                     </div>
                     <button type="button" class="btn-primary" id="btn-inline-recharge" onclick="executeInlineWalletRecharge()"
-                            style="padding:10px 22px; font-size:13.5px; font-weight:700; background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:0 0 18px rgba(16,185,129,0.35);">
+                            style="padding:10px 22px; font-size:13.5px; font-weight:700; background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:var(--shadow-sm);">
                         💰 Add to Wallet
                     </button>
 
@@ -1094,9 +1390,9 @@
                 </div>
 
                 <!-- Inline Ledger Drawer (Hidden by default) -->
-                <div id="inline-wallet-tx-drawer" style="display:none; margin-top:16px; padding-top:14px; border-top:1px dashed rgba(255,255,255,0.1);">
+                <div id="inline-wallet-tx-drawer" style="display:none; margin-top:16px; padding-top:14px; border-top:1px dashed var(--border-color);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <div style="font-size:12px; font-weight:700; color:#38bdf8;">Recent Wallet Transactions &amp; Audit Trail:</div>
+                        <div style="font-size:12px; font-weight:700; color:var(--primary-brand);">Recent Wallet Transactions &amp; Audit Trail:</div>
                         <span style="font-size:11px; color:var(--text-muted);">Updated in real-time</span>
                     </div>
                     <div id="inline-wallet-tx-list" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; font-size:12px;">
@@ -1109,9 +1405,9 @@
             <div class="active-subscription-card" id="active-subscription-card" style="background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-lg); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:28px;">
                 <div class="active-sub-left">
                     <div style="font-size:11px; font-weight:800; color:var(--accent-cyan); letter-spacing:0.04em;">ACTIVE TIER: <strong id="active-plan-badge-name">COMMUNITY STARTER (FREE)</strong></div>
-                    <div style="font-size:16px; font-weight:800; color:#fff; margin:4px 0;" id="active-plan-org-title">Institutional Non-Profit Access &bull; Active Tier</div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin:4px 0;" id="active-plan-org-title">Institutional Non-Profit Access &bull; Active Tier</div>
                     <div style="font-size:12.5px; color:var(--text-secondary);" id="active-plan-features-summary">
-                        ✓ All 200 Listed Corporations &bull; ✓ 3,030 Verified Job Listings &bull; ✓ Real-Time HTTP Verification Audits
+                        ✓ Canonical Listed Corporations &bull; ✓ Live Verified Job Listings &bull; ✓ Real-Time HTTP Verification Audits
                     </div>
                 </div>
                 <div class="active-sub-right" style="display:flex; gap:10px;">
@@ -1143,23 +1439,46 @@
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div class="company-avatar" id="modal-dossier-avatar">ENT</div>
                     <div>
-                        <h3 id="modal-dossier-title" style="margin:0; font-size:18px; font-weight:800; color:#fff;">Corporate Intelligence Profile</h3>
+                        <h3 id="modal-dossier-title" style="margin:0; font-size:18px; font-weight:800; color:var(--text-primary);">Corporate Intelligence Profile</h3>
                         <div id="modal-dossier-subtitle" style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Verified statutory corporate master</div>
                     </div>
                 </div>
                 <button class="close-btn" onclick="closeModal('modal-company-dossier')" title="Close">✕</button>
             </div>
 
-            <!-- Dossier Tabs -->
+            <!-- Dossier Tabs (Part 25 Standard) -->
             <div class="dossier-nav-tabs">
-                <button class="dossier-tab-btn active" data-dossier-tab="overview" onclick="switchDossierTab('overview')">Profile &amp; Governance</button>
-                <button class="dossier-tab-btn" data-dossier-tab="csr" onclick="switchDossierTab('csr')">Section 135 CSR Programs</button>
-                <button class="dossier-tab-btn" data-dossier-tab="jobs" onclick="switchDossierTab('jobs')">Verified Career Openings</button>
-                <button class="dossier-tab-btn" data-dossier-tab="domains" onclick="switchDossierTab('domains')">Domain Probes &amp; Links</button>
-                <button class="dossier-tab-btn" data-dossier-tab="contacts" onclick="switchDossierTab('contacts')">Public CSR Contacts</button>
+                <button class="dossier-tab-btn active" data-dossier-tab="overview" onclick="switchDossierTab('overview')">Overview</button>
+                <button class="dossier-tab-btn" data-dossier-tab="jobs" onclick="switchDossierTab('jobs')">Jobs</button>
+                <button class="dossier-tab-btn" data-dossier-tab="csr" onclick="switchDossierTab('csr')">CSR Projects</button>
+                <button class="dossier-tab-btn" data-dossier-tab="opportunities" onclick="switchDossierTab('opportunities')">Opportunities</button>
+                <button class="dossier-tab-btn" data-dossier-tab="contacts" onclick="switchDossierTab('contacts')">Contacts</button>
+                <button class="dossier-tab-btn" data-dossier-tab="reports" onclick="switchDossierTab('reports')">Reports</button>
+                <button class="dossier-tab-btn" data-dossier-tab="sources" onclick="switchDossierTab('sources')">Sources &amp; Audit</button>
             </div>
 
             <div class="modal-body" id="modal-dossier-body" style="max-height:70vh; overflow-y:auto;">
+                <!-- Populated dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DEDICATED ENTERPRISE JOB DETAILS MODAL ===== -->
+    <div class="modal-backdrop" id="modal-job-details" style="display:none;">
+        <div class="modal-panel modal-panel-large" style="max-width: 840px; width: 95%;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="company-avatar" id="modal-job-avatar" style="background:linear-gradient(135deg, #0B1F33, #0F766E); color:#ffffff; font-weight:800; border-radius:10px;">JOB</div>
+                    <div>
+                        <h3 id="modal-job-title" style="margin:0; font-size:18px; font-weight:800; color:var(--text-primary);">Role Title</h3>
+                        <div id="modal-job-company-subtitle" style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeModal('modal-job-details')" title="Close">✕</button>
+            </div>
+            <div class="modal-body" id="modal-job-body" style="max-height:75vh; overflow-y:auto; padding: 24px;">
                 <!-- Populated dynamically by app.js -->
             </div>
         </div>
@@ -1183,11 +1502,11 @@
         <div class="modal-panel" style="max-width:540px;">
             <div class="modal-header">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:34px; height:34px; border-radius:8px; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); display:flex; align-items:center; justify-content:center; color:#c7d2fe;">
+                    <div style="width:34px; height:34px; border-radius:8px; background:var(--primary-brand-light); border:1px solid rgba(15,118,110,0.3); display:flex; align-items:center; justify-content:center; color:var(--primary-brand);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                     </div>
                     <div>
-                        <h3 style="margin:0; font-size:17px; font-weight:800; color:#fff;">Confirm Live Domain Verification</h3>
+                        <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--text-primary);">Confirm Live Domain Verification</h3>
                         <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">Real-Time Socket Inspection &amp; Telemetry</div>
                     </div>
                 </div>
@@ -1195,7 +1514,7 @@
             </div>
             <div class="modal-body" style="padding:22px; display:flex; flex-direction:column; gap:16px;">
                 <div>
-                    <div style="font-size:15px; font-weight:700; color:#fff; margin-bottom:6px;">
+                    <div style="font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">
                         Execute verification probes across India's Top 200 corporate domains?
                     </div>
                     <p style="font-size:13px; color:var(--text-secondary); line-height:1.55; margin:0;">
@@ -1203,21 +1522,21 @@
                     </p>
                 </div>
 
-                <div style="background:rgba(11,18,34,0.75); border:1px solid rgba(99,102,241,0.25); border-radius:10px; padding:14px; font-size:12.5px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:14px; font-size:12.5px; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
                     <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
                         Execution Pipeline:
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>200 Listed Corporations:</strong> Real-time HTTP verification of corporate &amp; CSR portals</span>
+                        <span><strong>Target Corporate Registry:</strong> Real-time HTTP verification of corporate &amp; CSR portals</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>Grants &amp; CSR Budgets:</strong> Update active grant deadlines and 502 Section 135 disclosures</span>
+                        <span><strong>Grants &amp; CSR Budgets:</strong> Update active grant deadlines and published Section 135 disclosures</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>3,030 Enterprise Jobs:</strong> Synchronize latest openings across all functional departments</span>
+                        <span><strong>Enterprise Jobs:</strong> Synchronize latest openings across official ATS career endpoints</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
@@ -1275,7 +1594,7 @@
                     <div class="term-line">
                         <span class="term-time">[Ready]</span>
                         <span class="term-badge term-badge-init">READY</span>
-                        <span class="term-msg">Live socket audit console initialized. Monitored registry: 200 Top NSE Enterprises.</span>
+                        <span class="term-msg">Live socket audit console initialized. Monitored registry: Target Enterprises.</span>
                     </div>
                 </div>
             </div>
@@ -1283,11 +1602,11 @@
             <!-- Terminal Footer -->
             <div style="padding:14px 24px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:12px;">
                 <div style="display:flex; gap:12px; color:var(--text-secondary);">
-                    <span>Corporations: <strong style="color:#fff;">200 Verified</strong></span>
+                    <span>Corporations: <strong style="color:var(--text-primary);" id="term-stat-corps">201 Verified</strong></span>
                     <span>&bull;</span>
-                    <span>Jobs: <strong id="term-stat-jobs" style="color:#fff;">3,030 Openings</strong></span>
+                    <span>Jobs: <strong id="term-stat-jobs" style="color:var(--text-primary);">115 Openings</strong></span>
                     <span>&bull;</span>
-                    <span>Status: <strong style="color:var(--accent-emerald);">100% Real Links</strong></span>
+                    <span>Status: <strong style="color:var(--accent-emerald);">Monitoring Active</strong></span>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <button class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="clearTerminalScreen()">Clear Console</button>
@@ -1310,19 +1629,19 @@
                 <div class="insights-grid">
                     <div class="insight-box">
                         <div class="insight-title">Statutory Section 135 Sector Allocations</div>
-                        <div class="insight-item"><span>Quality Education &amp; Digital STEM</span><strong>₹10,946 Cr (34%)</strong></div>
-                        <div class="insight-item"><span>Healthcare, Oncology &amp; Sanitation</span><strong>₹8,370 Cr (26%)</strong></div>
-                        <div class="insight-item"><span>Rural Transformation &amp; Watersheds</span><strong>₹5,151 Cr (16%)</strong></div>
-                        <div class="insight-item"><span>Renewable Energy &amp; Decarbonization</span><strong>₹4,507 Cr (14%)</strong></div>
-                        <div class="insight-item"><span>Women Entrepreneurship &amp; Skilling</span><strong>₹3,221 Cr (10%)</strong></div>
+                        <div class="insight-item"><span>Quality Education &amp; Digital STEM</span><strong>Healthcare &amp; Education</strong></div>
+                        <div class="insight-item"><span>Healthcare, Oncology &amp; Sanitation</span><strong>Statutory Focus</strong></div>
+                        <div class="insight-item"><span>Rural Transformation &amp; Watersheds</span><strong>Community Development</strong></div>
+                        <div class="insight-item"><span>Renewable Energy &amp; Decarbonization</span><strong>Environmental Sustainability</strong></div>
+                        <div class="insight-item"><span>Women Entrepreneurship &amp; Skilling</span><strong>Livelihood &amp; Skilling</strong></div>
                     </div>
                     <div class="insight-box">
                         <div class="insight-title">Corporate Hiring &amp; Job Intelligence</div>
-                        <div class="insight-item"><span>Total Verified Career Openings</span><strong>3,030 Openings</strong></div>
-                        <div class="insight-item"><span>Software, AI &amp; Cloud Platforms</span><strong>1,060 Roles (35%)</strong></div>
-                        <div class="insight-item"><span>Plant Operations &amp; Engineering</span><strong>757 Roles (25%)</strong></div>
-                        <div class="insight-item"><span>Corporate Finance &amp; Risk</span><strong>606 Roles (20%)</strong></div>
-                        <div class="insight-item"><span>CSR, ESG &amp; Sustainability</span><strong>369 Roles (12%)</strong></div>
+                        <div class="insight-item"><span>Current Verified Career Openings</span><strong id="analytics-jobs-total">115 Active</strong></div>
+                        <div class="insight-item"><span>Source Provenance</span><strong>Direct ATS Portals</strong></div>
+                        <div class="insight-item"><span>Company Career Coverage</span><strong>Verified Live</strong></div>
+                        <div class="insight-item"><span>Verification Status</span><strong style="color:var(--accent-emerald);">Source Confirmed</strong></div>
+                        <div class="insight-item"><span>Telemetry Compliance</span><strong>RFC 9309 Robots Validated</strong></div>
                     </div>
                 </div>
             </div>
@@ -1337,30 +1656,30 @@
                 <button class="close-btn" onclick="closeModal('modal-export')">✕</button>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
-                <div style="background:rgba(11,18,34,0.6); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="color:#fff; font-size:14px;">All 200 Listed Corporations</strong>
+                        <strong style="color:var(--text-primary); font-size:14px;">Canonical Listed Corporations</strong>
                         <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">ISIN, NSE symbol, sector, headquarters, verified website &amp; CSR URL</div>
                     </div>
                     <button class="btn-primary" style="flex:none; padding:6px 14px;" onclick="exportCompaniesCSV()">Download CSV</button>
                 </div>
-                <div style="background:rgba(11,18,34,0.6); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="color:#fff; font-size:14px;">3,030 Verified Enterprise Jobs</strong>
+                        <strong style="color:var(--text-primary); font-size:14px;">Verified Enterprise Jobs</strong>
                         <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Role titles, departments, work style, location, and official ATS URLs</div>
                     </div>
                     <button class="btn-primary" style="flex:none; padding:6px 14px;" onclick="exportJobsCSV()">Download CSV</button>
                 </div>
-                <div style="background:rgba(11,18,34,0.6); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="color:#fff; font-size:14px;">502 Disclosed CSR Projects</strong>
+                        <strong style="color:var(--text-primary); font-size:14px;">Published CSR Projects</strong>
                         <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Section 135 initiatives, budgets, focus themes, and state coverage</div>
                     </div>
                     <button class="btn-primary" style="flex:none; padding:6px 14px;" onclick="exportCSRProjectsCSV()">Download CSV</button>
                 </div>
-                <div style="background:rgba(11,18,34,0.6); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="color:#fff; font-size:14px;">Outreach CRM Pipeline Records</strong>
+                        <strong style="color:var(--text-primary); font-size:14px;">Outreach CRM Pipeline Records</strong>
                         <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Your saved donor corporations, pipeline stages, and contact records</div>
                     </div>
                     <button class="btn-primary" style="flex:none; padding:6px 14px;" onclick="exportPipelineCSV()">Download CSV</button>
@@ -1374,9 +1693,9 @@
         <div class="modal-panel" style="max-width: 620px; width: 95%;">
             <div class="modal-header">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; font-size:18px;">💳</div>
+                    <div style="width:36px; height:36px; border-radius:8px; background:var(--primary-brand-light); color:var(--primary-brand); display:flex; align-items:center; justify-content:center; font-size:18px;">💳</div>
                     <div>
-                        <h3 id="modal-sub-title" style="margin:0; font-size:17px; font-weight:800; color:#fff;">Activate Institutional Access</h3>
+                        <h3 id="modal-sub-title" style="margin:0; font-size:17px; font-weight:800; color:var(--text-primary);">Activate Institutional Access</h3>
                         <div style="font-size:11.5px; color:var(--text-secondary);">Prototype Checkout &bull; No Real Money Charged</div>
                     </div>
                 </div>
@@ -1393,10 +1712,10 @@
         <div class="modal-panel" style="max-width: 440px; width: 95%;">
             <div class="modal-header">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(16,185,129,0.2); display:flex; align-items:center; justify-content:center; font-size:18px;">💰</div>
+                    <div style="width:36px; height:36px; border-radius:8px; background:var(--primary-brand-light); color:var(--primary-brand); display:flex; align-items:center; justify-content:center; font-size:18px;">💰</div>
                     <div>
-                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#fff;">Add Prototype Funds</h3>
-                        <div style="font-size:11.5px; color:#38bdf8;">Simulated in-app wallet top-up</div>
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-primary);">Add Prototype Funds</h3>
+                        <div style="font-size:11.5px; color:var(--primary-brand);">Simulated in-app wallet top-up</div>
                     </div>
                 </div>
                 <button class="close-btn" onclick="closeModal('modal-wallet-topup')">✕</button>
@@ -1413,26 +1732,26 @@
             <div class="modal-header">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div>
-                        <h3 style="margin:0; font-size:17.5px; font-weight:800; color:#fff;">Institutional Guide &amp; Compliance Reference</h3>
+                        <h3 style="margin:0; font-size:17.5px; font-weight:800; color:var(--text-primary);">Institutional Guide &amp; Compliance Reference</h3>
                         <div style="font-size:12px; color:var(--text-secondary);">Statutory Section 135 Framework &amp; Verified Access</div>
                     </div>
                 </div>
                 <button class="close-btn" onclick="closeModal('modal-ngo-help')">✕</button>
             </div>
             <div class="modal-body" style="max-height:72vh; overflow-y:auto; padding:22px; display:flex; flex-direction:column; gap:14px;">
-                <div style="background:rgba(11,18,34,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px;">
-                    <div style="font-size:14.5px; font-weight:700; color:#fff; margin-bottom:6px;">1. Section 135 Regulatory Framework</div>
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px;">
+                    <div style="font-size:14.5px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">1. Section 135 Regulatory Framework</div>
                     <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin:0;">
-                        Under Section 135 of the Companies Act 2013, Indian corporations meeting net worth or net profit thresholds are statutorily mandated to allocate at least 2% of average net profits to approved CSR activities. Across India's Top 200 enterprises, this represents an annual social capital pool exceeding <strong>₹32,195 Crore</strong>.
+                        Under Section 135 of the Companies Act 2013, Indian corporations meeting net worth or net profit thresholds are statutorily mandated to allocate at least 2% of average net profits to approved CSR activities, catalogued through audited BRSR and annual MCA disclosures.
                     </p>
                 </div>
 
-                <div style="background:rgba(11,18,34,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px;">
-                    <div style="font-size:14.5px; font-weight:700; color:#fff; margin-bottom:6px;">2. Mandatory NGO Accreditation Checklist</div>
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px;">
+                    <div style="font-size:14.5px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">2. Mandatory NGO Accreditation Checklist</div>
                     <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:8px;">
                         To legally partner with listed corporate foundations for statutory CSR grants, non-profit institutions must maintain:
                     </p>
-                    <ul style="margin-left:20px; font-size:12.5px; color:#cbd5e1; line-height:1.65;">
+                    <ul style="margin-left:20px; font-size:12.5px; color:var(--text-secondary); line-height:1.65;">
                         <li><strong>MCA Form CSR-1:</strong> Unique Registration Number issued by the Ministry of Corporate Affairs</li>
                         <li><strong>Sections 12A &amp; 80G:</strong> Valid registration under the Income Tax Act, 1961</li>
                         <li><strong>NITI Aayog NGO-Darpan ID:</strong> Verification code registered on the Government of India portal</li>
@@ -1440,8 +1759,8 @@
                     </ul>
                 </div>
 
-                <div style="background:rgba(11,18,34,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px;">
-                    <div style="font-size:14.5px; font-weight:700; color:#fff; margin-bottom:6px;">3. Data Accuracy &amp; Direct Application Policy</div>
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px;">
+                    <div style="font-size:14.5px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">3. Data Accuracy &amp; Direct Application Policy</div>
                     <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin:0;">
                         Every corporate profile, grant RFP, and job opening on ImpactBridge originates strictly from verified corporate domains and statutory MCA filings. Zero simulated records or generic guessed emails are displayed.
                     </p>

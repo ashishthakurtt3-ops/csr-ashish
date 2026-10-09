@@ -5,8 +5,8 @@
 
 {% block content %}
 <div class="admin-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <p style="margin:0; font-size:13px; color:var(--admin-muted);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <p style="margin:0; font-size:13px; color:var(--text-secondary);">
             Human-in-the-loop review queue for discovered CSR initiatives with borderline confidence metrics. Verify to promote confidence to 0.99.
         </p>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -23,7 +23,7 @@
                     <th>Project Name</th>
                     <th>Corporate Entity</th>
                     <th>Category</th>
-                    <th>Discovered Confidence</th>
+                    <th>Confidence</th>
                     <th>Budget</th>
                     <th style="text-align:right;">Verification Action</th>
                 </tr>
@@ -32,19 +32,19 @@
                 {% for p in pending_records %}
                 <tr>
                     <td>
-                        <strong style="color:#fff;">{{ p.project_name }}</strong>
+                        <strong style="color:var(--text-primary);">{{ p.project_name }}</strong>
                         {% if p.description %}
-                        <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
                         {% endif %}
                     </td>
                     <td>
                         {% if p.company %}
-                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--admin-accent);">{{ p.company.company_name }}</a>
+                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ p.company.company_name }}</a>
                         {% else %}—{% endif %}
                     </td>
                     <td><span class="badge-status badge-pending">{{ p.category }}</span></td>
-                    <td><span class="badge-status badge-pending">{{ p.confidence|floatformat:2 }}</span></td>
-                    <td style="font-family:'JetBrains Mono',monospace;">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
+                    <td><span class="badge-status badge-info">{{ p.confidence|floatformat:2 }}</span></td>
+                    <td style="font-family:var(--font-mono);">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
                     <td style="text-align:right;">
                         <div style="display:flex; justify-content:flex-end; gap:6px;">
                             <form method="POST" action="{% url 'admin_verification:action' p.csr_id %}" style="display:inline;">
@@ -61,7 +61,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--admin-muted);">All CSR project records are fully audited and verified!</td></tr>
+                <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-secondary);">All CSR project records are fully audited and verified!</td></tr>
                 {% endfor %}
             </tbody>
         </table>

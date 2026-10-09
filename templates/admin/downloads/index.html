@@ -6,24 +6,15 @@
 {% block extra_css %}
 <style>
     .download-hero-card {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%);
-        border: 1px solid rgba(56, 189, 248, 0.25);
+        background: linear-gradient(135deg, #0B1F33 0%, #0F766E 100%);
+        border: 1px solid var(--border-color);
         border-radius: 16px;
         padding: 28px 32px;
         margin-bottom: 28px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 10px 25px -5px rgba(11, 31, 51, 0.15);
         position: relative;
         overflow: hidden;
-    }
-    .download-hero-card::after {
-        content: '';
-        position: absolute;
-        top: -60px;
-        right: -60px;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
-        pointer-events: none;
+        color: #FFFFFF;
     }
     .download-stats-grid {
         display: grid;
@@ -32,13 +23,14 @@
         margin-bottom: 24px;
     }
     .download-stat-item {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid var(--admin-border);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
         border-radius: 12px;
         padding: 16px 20px;
         display: flex;
         align-items: center;
         gap: 14px;
+        box-shadow: var(--shadow-card);
     }
     .download-stat-icon {
         font-size: 26px;
@@ -48,24 +40,24 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(56, 189, 248, 0.1);
-        border: 1px solid rgba(56, 189, 248, 0.2);
+        background: rgba(15, 118, 110, 0.1);
+        border: 1px solid rgba(15, 118, 110, 0.2);
     }
     .download-stat-val {
         font-size: 22px;
         font-weight: 800;
-        color: #fff;
+        color: var(--text-primary);
     }
     .download-stat-lbl {
         font-size: 11.5px;
-        color: var(--admin-muted);
+        color: var(--text-secondary);
         text-transform: uppercase;
         font-weight: 600;
         letter-spacing: 0.5px;
     }
     .quick-master-banner {
-        background: rgba(2, 132, 199, 0.12);
-        border: 1px solid rgba(56, 189, 248, 0.3);
+        background: rgba(15, 118, 110, 0.08);
+        border: 1px solid rgba(15, 118, 110, 0.25);
         border-radius: 12px;
         padding: 18px 24px;
         display: flex;
@@ -81,25 +73,27 @@
         align-items: center;
         flex-wrap: wrap;
         margin-bottom: 24px;
-        background: var(--admin-surface);
+        background: var(--bg-surface);
         padding: 16px;
         border-radius: 12px;
-        border: 1px solid var(--admin-border);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-card);
     }
     .section-search-input {
         flex: 1;
         min-width: 260px;
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid var(--admin-border);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 10px 14px;
-        color: #fff;
+        color: var(--text-primary);
         font-size: 13.5px;
         outline: none;
         transition: border 0.15s ease;
     }
     .section-search-input:focus {
-        border-color: var(--admin-accent);
+        border-color: var(--primary-brand);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
     }
     .section-cards-grid {
         display: grid;
@@ -107,19 +101,20 @@
         gap: 20px;
     }
     .download-section-card {
-        background: var(--admin-surface);
-        border: 1px solid var(--admin-border);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
         border-radius: 14px;
         padding: 22px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        box-shadow: var(--shadow-card);
         transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .download-section-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(56, 189, 248, 0.4);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        transform: translateY(-2px);
+        border-color: var(--primary-brand);
+        box-shadow: var(--shadow-card-hover);
     }
     .card-top-row {
         display: flex;
@@ -134,46 +129,47 @@
     }
     .card-icon-badge {
         font-size: 24px;
-        background: rgba(30, 41, 59, 0.8);
+        background: var(--bg-surface-subtle);
         width: 44px;
         height: 44px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border-subtle);
     }
     .card-title {
         font-size: 16px;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-primary);
         margin: 0 0 2px 0;
     }
     .card-table-meta {
         font-size: 11px;
         font-family: 'JetBrains Mono', monospace;
-        color: var(--admin-accent);
+        color: var(--primary-brand);
+        font-weight: 600;
     }
     .card-desc {
         font-size: 12.5px;
-        color: var(--admin-muted);
+        color: var(--text-secondary);
         line-height: 1.5;
         margin-bottom: 16px;
         min-height: 48px;
     }
     .card-fields-box {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--bg-surface-subtle);
+        border: 1px solid var(--border-subtle);
         border-radius: 8px;
         padding: 8px 12px;
         margin-bottom: 16px;
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--text-secondary);
     }
     .fields-toggle-btn {
         background: none;
         border: none;
-        color: var(--admin-accent);
+        color: var(--primary-brand);
         cursor: pointer;
         font-size: 11px;
         font-weight: 600;
@@ -186,10 +182,10 @@
         display: none;
         margin-top: 8px;
         padding-top: 8px;
-        border-top: 1px dashed var(--admin-border);
+        border-top: 1px dashed var(--border-color);
         font-family: 'JetBrains Mono', monospace;
         font-size: 10.5px;
-        color: #cbd5e1;
+        color: var(--text-secondary);
         word-break: break-word;
         line-height: 1.6;
     }
@@ -273,7 +269,7 @@
                 Enterprise Data Download &amp; Section Export Hub
             </h2>
             <p style="font-size:13.5px; color:var(--admin-muted); margin:0; max-width:760px; line-height:1.5;">
-                Extract 100% verified intelligence datasets from every section of the platform. Supports high-fidelity CSV spreadsheets, structured JSON API payloads, and single-click master archives with ACID database consistency.
+                Extract verified intelligence datasets from every section of the platform. Supports high-fidelity CSV spreadsheets, structured JSON API payloads, and single-click master archives with ACID database consistency.
             </p>
         </div>
         <div>

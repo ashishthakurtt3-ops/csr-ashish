@@ -7,13 +7,13 @@
 <div class="admin-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <form method="GET" style="display:flex; gap:10px; flex:1; max-width:600px;">
-            <select name="type" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="type" style="padding:8px 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
                 <option value="all">All Document Types</option>
                 {% for t_code, t_label in doc_types %}
                 <option value="{{ t_code }}" {% if selected_type == t_code %}selected{% endif %}>{{ t_label }}</option>
                 {% endfor %}
             </select>
-            <select name="status" style="padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="status" style="padding:8px 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
                 <option value="all">All Status</option>
                 {% for s_code, s_label in status_choices %}
                 <option value="{{ s_code }}" {% if selected_status == s_code %}selected{% endif %}>{{ s_label }}</option>
@@ -47,15 +47,15 @@
                 {% for doc in page_obj %}
                 <tr>
                     <td>
-                        <strong style="color:#fff;">{{ doc.title }}</strong>
+                        <strong style="color:var(--text-primary);">{{ doc.title }}</strong>
                         {% if doc.notes %}
-                        <div style="font-size:11px; color:var(--admin-muted);">{{ doc.notes }}</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">{{ doc.notes }}</div>
                         {% endif %}
                     </td>
                     <td><span class="badge-status badge-pending">{{ doc.get_document_type_display }}</span></td>
                     <td>
                         {% if doc.company %}
-                        <a href="{% url 'admin_companies:detail' doc.company.company_id %}" style="color:var(--admin-accent);">{{ doc.company.company_name }}</a>
+                        <a href="{% url 'admin_companies:detail' doc.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ doc.company.company_name }}</a>
                         {% else %}—{% endif %}
                     </td>
                     <td>{{ doc.uploaded_by.username|default:"System" }}</td>

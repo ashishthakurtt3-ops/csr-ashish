@@ -1,6 +1,6 @@
 from django.db import models
 from .company import Company
-
+from .evidence import VerifiableModel
 
 class OpportunityScore(models.Model):
     company = models.OneToOneField(Company, on_delete=models.CASCADE, primary_key=True, related_name='score_record', db_column='company_id')
@@ -23,7 +23,7 @@ class OpportunityScore(models.Model):
         return f"{self.company.company_name}: {self.score}%"
 
 
-class CSRProject(models.Model):
+class CSRProject(VerifiableModel):
     csr_id = models.AutoField(primary_key=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='csr_projects', db_column='company_id')
     project_name = models.TextField(blank=True, null=True)
@@ -32,7 +32,6 @@ class CSRProject(models.Model):
     geographic_location = models.TextField(blank=True, null=True)
     state = models.TextField(blank=True, null=True)
     budget = models.TextField(blank=True, null=True)
-    source_url = models.TextField(blank=True, null=True)
     discovered_date = models.TextField(blank=True, null=True)
     last_verified_date = models.TextField(blank=True, null=True)
     confidence = models.FloatField(default=0.0)
@@ -47,7 +46,7 @@ class CSRProject(models.Model):
         return f"{self.project_name} ({self.company.company_name})"
 
 
-class CSROpportunity(models.Model):
+class CSROpportunity(VerifiableModel):
     opp_id = models.AutoField(primary_key=True)
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='open_opportunities', db_column='company_id')
     title = models.TextField()

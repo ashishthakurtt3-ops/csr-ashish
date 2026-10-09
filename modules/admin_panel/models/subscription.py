@@ -287,6 +287,82 @@ class Payment(models.Model):
     def amount_rupees(self) -> float:
         return round(self.amount_paise / 100.0, 2)
 
+    @property
+    def amount_inr(self) -> float:
+        return self.amount_rupees
+
+    @property
+    def is_successful(self) -> bool:
+        return self.payment_status == self.STATUS_SUCCESS
+
+    @property
+    def plan_record(self):
+        """Resolves the linked Plan model instance."""
+        if self.plan_code:
+            p = Plan.objects.filter(code=self.plan_code).first()
+            if p:
+                return p
+        if self.subscription and getattr(self.subscription, 'plan', None):
+            return self.subscription.plan
+        return None
+
+    @property
+    def plan_name_display(self) -> str:
+        """Formatted human-readable plan name or purpose."""
+        if self.plan_record:
+            return self.plan_record.name
+        if self.plan_code:
+            return self.plan_code.replace('_', ' ').title()
+        if self.payment_type == self.TYPE_TOPUP:
+            return "Wallet Top-Up"
+        return "Standard Service"
+
+    @property
+    def billing_cycle_display(self) -> str:
+        """Billing frequency for subscriptions or one-time."""
+        if self.subscription and self.subscription.billing_cycle:
+            cycle = self.subscription.billing_cycle.lower()
+            if 'year' in cycle or 'annual' in cycle:
+                return "Annual (Yearly)"
+            if 'month' in cycle:
+                return "Monthly"
+            return self.subscription.billing_cycle.title()
+        if self.metadata and isinstance(self.metadata, dict) and self.metadata.get('billing_cycle'):
+            return str(self.metadata['billing_cycle']).title()
+        if self.payment_type == self.TYPE_TOPUP:
+            return "One-Time Credit"
+        return "One-Time Payment"
+
+    @property
+    def processing_duration_display(self) -> str:
+        """Timing duration between creation and completion."""
+        if self.created_at and self.completed_at:
+            delta = self.completed_at - self.created_at
+            total_seconds = delta.total_seconds()
+            if total_seconds < 1:
+                ms = int(total_seconds * 1000)
+                return f"{max(ms, 0)} ms (Instant)"
+            elif total_seconds < 60:
+                return f"{total_seconds:.2f} seconds"
+            else:
+                mins = int(total_seconds // 60)
+                secs = int(total_seconds % 60)
+                return f"{mins}m {secs}s"
+        return "Instant (< 1s)"
+
+    @property
+    def invoice_record(self):
+        """Linked Invoice if generated."""
+        return self.invoices.first()
+
+    @property
+    def wallet_transaction(self):
+        """Linked WalletTransaction ledger entry."""
+        return WalletTransaction.objects.filter(
+            models.Q(reference_id=self.payment_id) |
+            models.Q(transaction_id=self.transaction_reference)
+        ).first()
+
 
 class PromoCode(models.Model):
     code = models.CharField(max_length=40, primary_key=True)

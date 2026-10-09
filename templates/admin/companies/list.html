@@ -6,21 +6,24 @@
 {% block content %}
 <div class="admin-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:800px; flex-wrap:wrap;">
-            <input type="text" name="q" value="{{ q }}" placeholder="Search company name, symbol, sector, HQ..." style="flex:2; min-width:200px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
-            <select name="sector" style="flex:1; min-width:150px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:850px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search company name, symbol, sector, HQ..." class="search-input" style="flex:2; min-width:200px; height:40px;">
+            <select name="sector" class="select-filter" style="flex:1; min-width:150px; height:40px;">
                 <option value="all">All Sectors</option>
                 {% for sec in all_sectors %}
                 <option value="{{ sec }}" {% if selected_sector == sec %}selected{% endif %}>{{ sec }}</option>
                 {% endfor %}
             </select>
-            <select name="status" style="flex:1; min-width:120px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            <select name="status" class="select-filter" style="flex:1; min-width:120px; height:40px;">
                 <option value="all">All Status</option>
                 <option value="CRAWLED" {% if selected_status == "CRAWLED" %}selected{% endif %}>Crawled</option>
                 <option value="PENDING" {% if selected_status == "PENDING" %}selected{% endif %}>Pending</option>
                 <option value="FAILED" {% if selected_status == "FAILED" %}selected{% endif %}>Failed</option>
             </select>
-            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
+            {% if q or selected_sector and selected_sector != 'all' or selected_status and selected_status != 'all' %}
+            <a href="{% url 'admin_companies:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+            {% endif %}
         </form>
         {% include "admin/components/exchange_toolbar.html" with entity="companies" title="Companies" %}
     </div>
@@ -30,11 +33,11 @@
             <thead>
                 <tr>
                     <th>Company Name</th>
-                    <th>NSE Symbol</th>
+                    <th>Ticker</th>
                     <th>Sector</th>
                     <th>Headquarters</th>
+                    <th>Job Openings</th>
                     <th>Crawl Status</th>
-                    <th>Audit Date</th>
                     <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
@@ -42,12 +45,24 @@
                 {% for c in page_obj %}
                 <tr>
                     <td>
-                        <strong style="color:#fff;">{{ c.company_name }}</strong>
-                        <div style="font-size:11px; color:var(--admin-muted);">ID: {{ c.company_id }}</div>
+                        <a href="{% url 'admin_companies:detail' c.company_id %}" style="color:var(--text-primary); font-weight:700; text-decoration:none;">
+                            {{ c.company_name }}
+                        </a>
+                        <div style="font-size:11px; color:var(--text-secondary);">ID: {{ c.company_id }}</div>
                     </td>
-                    <td><span class="badge-status badge-pending" style="font-family:'JetBrains Mono',monospace;">{{ c.nse_symbol|default:"—" }}</span></td>
+                    <td>
+                        {% if c.nse_symbol %}
+                        <span class="badge-status badge-info" style="font-family:var(--font-mono);">{{ c.nse_symbol }}</span>
+                        {% else %}—{% endif %}
+                    </td>
                     <td>{{ c.sector|default:"General" }}</td>
                     <td>{{ c.headquarters|default:"India" }}</td>
+                    <td>
+                        <!-- Seamless Company -> All Jobs integration -->
+                        <a href="{% url 'admin_jobs:company_jobs' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:3px 10px; font-size:11.5px; font-weight:600; text-decoration:none;" title="View all jobs for {{ c.company_name }}">
+                            <span>💼 Browse Jobs &rarr;</span>
+                        </a>
+                    </td>
                     <td>
                         {% if c.crawl_status == "CRAWLED" %}
                         <span class="badge-status badge-active">Crawled</span>
@@ -57,14 +72,13 @@
                         <span class="badge-status badge-rejected">{{ c.crawl_status }}</span>
                         {% endif %}
                     </td>
-                    <td style="font-size:12px; color:var(--admin-muted);">{{ c.last_crawled_date|default:"Recently" }}</td>
-                    <td style="text-align:right;">
-                        <a href="{% url 'admin_companies:detail' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">View</a>
-                        <a href="{% url 'admin_companies:edit' c.company_id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'admin_companies:detail' c.company_id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">Dossier</a>
+                        <a href="{% url 'admin_companies:edit' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No corporate records matched your filters.</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">No corporate records matched your filters.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -72,7 +86,7 @@
 
     {% if page_obj.has_other_pages %}
     <div class="pagination-bar">
-        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total corporations)</div>
         <div class="pagination-links">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&sector={{ selected_sector }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>

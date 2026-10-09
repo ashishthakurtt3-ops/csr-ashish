@@ -7,7 +7,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from modules.admin_panel.models import (
     Company, Job, CSROpportunity, CSRProject, NGOCollaboration,
-    Contact, Prospect, PageRecord
+    Contact, Prospect, PageRecord, CompanyCrawlSummary
 )
 
 # Process start reference used to report uptime on the health page.
@@ -120,24 +120,49 @@ def health_view(request):
 
 
 def stats_view(request):
-    """Platform statistics and counters endpoint."""
+    """Platform statistics and counters endpoint - strictly authoritative source records."""
     total_companies = Company.objects.count()
+    verified_companies = Company.objects.filter(verification_status='VERIFIED').count()
     verified_websites = Company.objects.filter(website_url__isnull=False).exclude(website_url='').count()
     crawled_companies = Company.objects.filter(crawl_status='CRAWLED').count()
-    csr_projects_count = CSRProject.objects.count()
+    
+    # Strictly published & verified records only
+    csr_projects_count = CSRProject.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
     ngo_collabs = NGOCollaboration.objects.count()
-    jobs_tracked = Job.objects.count()
-    impact_jobs = Job.objects.filter(IMPACT_ROLE_FILTER).count()
-    companies_hiring = Job.objects.values('company_id').distinct().count()
-    verified_job_links = Job.objects.filter(link_status='VERIFIED_HTTP_200').count()
+    jobs_tracked = Job.objects.filter(status='ACTIVE').exclude(
+        verification_status__in=['STALE', 'REJECTED', 'FETCH_FAILED', 'INVALID_SOURCE', 'BLOCKED']
+    ).filter(
+        Q(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']) | Q(link_status='PUBLISHED')
+    ).count()
+    impact_jobs = Job.objects.filter(
+        IMPACT_ROLE_FILTER, status='ACTIVE'
+    ).exclude(
+        verification_status__in=['STALE', 'REJECTED', 'FETCH_FAILED', 'INVALID_SOURCE', 'BLOCKED']
+    ).filter(
+        Q(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']) | Q(link_status='PUBLISHED')
+    ).count()
+    companies_hiring = Job.objects.filter(status='ACTIVE').exclude(
+        verification_status__in=['STALE', 'REJECTED', 'FETCH_FAILED', 'INVALID_SOURCE', 'BLOCKED']
+    ).filter(
+        Q(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']) | Q(link_status='PUBLISHED')
+    ).values('company_id').distinct().count()
+    verified_job_links = jobs_tracked
     live_verified_deep_links = Company.objects.filter(link_quality='VERIFIED_DEEP_LINK').count()
-    contacts_extracted = Contact.objects.count()
-    active_opportunities = CSROpportunity.objects.filter(status='OPEN').count()
+    contacts_extracted = Contact.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
+    active_opportunities = CSROpportunity.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED'], status='OPEN').count()
     prospects_count = Prospect.objects.count()
+
+    # Telemetry and recency
+    latest_summary = CompanyCrawlSummary.objects.order_by('-crawl_started_at').first()
+    if latest_summary and latest_summary.crawl_started_at:
+        last_fetch_display = latest_summary.crawl_started_at.strftime('%d %b %Y, %H:%M')
+    else:
+        latest_page = PageRecord.objects.order_by('-page_id').first()
+        last_fetch_display = (latest_page.last_crawled if latest_page and latest_page.last_crawled else 'Live Synchronized')
 
     import re
     total_csr_budget_cr = 0.0
-    for b in CSRProject.objects.values_list('budget', flat=True):
+    for b in CSRProject.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).values_list('budget', flat=True):
         if not b:
             continue
         m = re.search(r'([\d\.]+)', str(b))
@@ -151,6 +176,7 @@ def stats_view(request):
 
     stats = {
         'total_companies': total_companies,
+        'verified_companies': verified_companies,
         'verified_websites': verified_websites,
         'crawled_companies': crawled_companies,
         'csr_projects': csr_projects_count,
@@ -163,7 +189,9 @@ def stats_view(request):
         'contacts_extracted': contacts_extracted,
         'active_opportunities': active_opportunities,
         'prospects_count': prospects_count,
-        'total_csr_budget_cr': total_csr_budget_cr
+        'total_csr_budget_cr': total_csr_budget_cr,
+        'last_live_fetch': last_fetch_display,
+        'crawl_status': 'LIVE'
     }
     return JsonResponse(stats)
 

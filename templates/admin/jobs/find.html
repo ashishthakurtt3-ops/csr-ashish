@@ -1,0 +1,213 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Find Jobs — Job Intelligence Discovery{% endblock %}
+{% block page_title %}Job Market Intelligence Discovery ({{ total_count }} Openings){% endblock %}
+
+{% block content %}
+<!-- Jobs Sub-navigation Pills -->
+<div class="jobs-nav-pills">
+    <a href="{% url 'admin_jobs:list' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>All Jobs (Table)</span>
+    </a>
+    <a href="{% url 'admin_jobs:find' %}" class="jobs-nav-pill active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Find Jobs (Discovery)</span>
+        <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">Active</span>
+    </a>
+    <a href="{% url 'admin_jobs:companies' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Company Jobs</span>
+    </a>
+</div>
+
+<!-- Prominent Search & Filter Section -->
+<div class="admin-card" style="padding:22px; margin-bottom:24px;">
+    <form method="GET" action="{% url 'admin_jobs:find' %}">
+        <!-- Prominent Search Input -->
+        <div style="position:relative; margin-bottom:16px;">
+            <svg style="position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--text-muted);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by job title, skill keywords (e.g. Python, CSR, ESG), location, or company..." style="width:100%; height:46px; padding:10px 16px 10px 42px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-md); color:var(--text-primary); font-size:14px; font-family:var(--font-body);">
+        </div>
+
+        <!-- Faceted Filters Row -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:12px; align-items:center;">
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Location</label>
+                <select name="location" class="select-filter" style="width:100%;">
+                    <option value="all">All Locations</option>
+                    {% for loc in top_locations %}
+                    <option value="{{ loc }}" {% if location == loc %}selected{% endif %}>{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Work Mode</label>
+                <select name="work_mode" class="select-filter" style="width:100%;">
+                    <option value="all">All Work Modes</option>
+                    <option value="Hybrid" {% if work_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                    <option value="On-site" {% if work_mode == "On-site" %}selected{% endif %}>On-site</option>
+                    <option value="Remote" {% if work_mode == "Remote" %}selected{% endif %}>Remote</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Experience</label>
+                <select name="experience" class="select-filter" style="width:100%;">
+                    <option value="all">All Experience Levels</option>
+                    <option value="entry" {% if experience == "entry" %}selected{% endif %}>Entry Level (0-2 Yrs)</option>
+                    <option value="mid" {% if experience == "mid" %}selected{% endif %}>Mid Level (3-5 Yrs)</option>
+                    <option value="senior" {% if experience == "senior" %}selected{% endif %}>Senior (6-9 Yrs)</option>
+                    <option value="lead" {% if experience == "lead" %}selected{% endif %}>Lead / Executive (10+ Yrs)</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Department</label>
+                <select name="department" class="select-filter" style="width:100%;">
+                    <option value="all">All Departments</option>
+                    {% for d in top_departments %}
+                    <option value="{{ d }}" {% if department == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Sort By</label>
+                <select name="sort" class="select-filter" style="width:100%;">
+                    <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest First</option>
+                    <option value="title" {% if sort == "title" %}selected{% endif %}>Job Title (A-Z)</option>
+                    <option value="company" {% if sort == "company" %}selected{% endif %}>Company Name</option>
+                    <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest First</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:flex-end; padding-top:16px;">
+                <button type="submit" class="btn-primary" style="flex:1;">
+                    <span>Filter Jobs</span>
+                </button>
+                <a href="{% url 'admin_jobs:find' %}" class="btn-secondary" style="padding:0 12px;" title="Reset Filters">Reset</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Results Summary Bar -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
+    <div style="font-size:13.5px; color:var(--text-secondary); font-weight:500;">
+        Showing <strong style="color:var(--text-primary);">{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong style="color:var(--text-primary);">{{ total_count }}</strong> corporate job openings
+        {% if q %}for query "<em>{{ q }}</em>"{% endif %}
+    </div>
+    <div>
+        {% include "admin/components/exchange_toolbar.html" with entity="jobs" title="Jobs" %}
+    </div>
+</div>
+
+<!-- Job Cards Grid (Clean Modern SaaS Design) -->
+<div class="job-card-grid">
+    {% for j in page_obj %}
+    <div class="job-discovery-card">
+        <div>
+            <div class="job-header-row">
+                <div>
+                    <h3 class="job-card-title">
+                        <a href="{% url 'admin_jobs:detail' j.job_row_id %}">{{ j.job_title }}</a>
+                    </h3>
+                </div>
+                <span class="badge-status {% if j.status == 'ACTIVE' %}badge-active{% else %}badge-pending{% endif %}">
+                    {{ j.status|default:"ACTIVE" }}
+                </span>
+            </div>
+
+            <!-- Clickable Company link -> Company Jobs Dashboard -->
+            <a href="{% url 'admin_jobs:company_jobs' j.company.company_id %}" class="job-company-badge" title="View all jobs for {{ j.company.company_name }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span>{{ j.company.company_name }}</span>
+            </a>
+
+            <!-- Meta Chips -->
+            <div class="job-meta-chips">
+                <span class="job-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>{{ j.location|default:"India" }}</span>
+                </span>
+                <span class="job-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>
+                    <span>{{ j.work_mode|default:"On-site" }}</span>
+                </span>
+                {% if j.experience %}
+                <span class="job-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ j.experience }}</span>
+                </span>
+                {% endif %}
+                {% if j.department %}
+                <span class="job-chip">
+                    <span>{{ j.department }}</span>
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Skills Chips -->
+            {% if j.skills %}
+            <div class="job-skills-chips">
+                {% for skill in j.skills|slice:":120"|make_list %}
+                {# Displayed via truncate or split #}
+                {% endfor %}
+                <span class="skill-pill">{{ j.skills|truncatechars:65 }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="job-card-footer">
+            <div class="job-post-date">
+                {% if j.last_checked_date %}
+                <span>Updated {{ j.last_checked_date|slice:":10" }}</span>
+                {% else %}
+                <span>Verified Active</span>
+                {% endif %}
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+                <a href="{% url 'admin_jobs:detail' j.job_row_id %}" class="btn-admin btn-admin-primary" style="padding:5px 12px; font-size:12px;">
+                    <span>View Job</span>
+                </a>
+                {% if j.application_url %}
+                <a href="{{ j.application_url }}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:5px 8px; font-size:12px;" title="Official ATS Portal">
+                    <span>↗</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1;">
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <h3 class="empty-state-title">No Job Openings Found</h3>
+            <p class="empty-state-text">No job postings matched your current search filters. Try adjusting your search query, location, or experience criteria.</p>
+            <a href="{% url 'admin_jobs:find' %}" class="btn-primary">Reset Filters &amp; View All Jobs</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="pagination-bar">
+    <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total openings)</div>
+    <div class="pagination-links">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}" class="page-link-btn">&larr; Prev</a>
+        {% endif %}
+
+        <span class="page-link-btn active">{{ page_obj.number }}</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}" class="page-link-btn">Next &rarr;</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

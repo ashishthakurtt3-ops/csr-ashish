@@ -43,10 +43,15 @@ def serialize_job_item(j: Job):
         'sector': c.sector,
         'careers_url': c.careers_url,
         'job_id': j.job_id,
+        'external_job_id': j.external_job_id,
+        'ats_platform': j.ats_platform,
         'job_title': j.job_title,
         'department': j.department,
+        'team': j.team,
+        'business_unit': j.business_unit,
         'function': j.function,
         'location': j.location,
+        'city': j.city,
         'state': j.state,
         'country': j.country,
         'work_mode': j.work_mode,
@@ -55,24 +60,37 @@ def serialize_job_item(j: Job):
         'education': j.education,
         'skills': j.skills,
         'salary': j.salary,
+        'salary_min': str(j.salary_min) if j.salary_min else None,
+        'salary_max': str(j.salary_max) if j.salary_max else None,
+        'salary_currency': j.salary_currency,
         'job_description': j.job_description,
+        'responsibilities': j.responsibilities,
+        'requirements': j.requirements,
+        'qualifications': j.qualifications,
+        'preferred_qualifications': j.preferred_qualifications,
+        'benefits': j.benefits,
         'posted_date': j.posted_date,
         'closing_date': j.closing_date,
         'application_url': app_url,
         'source_url': j.source_url,
+        'source_domain': j.source_domain,
+        'retrieved_at': j.retrieved_at.isoformat() if j.retrieved_at else None,
         'last_checked_date': j.last_checked_date,
         'status': j.status,
+        'verification_status': j.verification_status,
         'confidence': j.confidence,
         'link_status': j.link_status,
         'link_verified_at': j.link_verified_at,
         'data_provenance': j.data_provenance,
         'fingerprint': j.fingerprint,
+        'evidence_text': j.evidence_text,
     }
 
 
 def jobs_list_api(request):
     q = request.GET.get('q', '').strip()
     company_id = request.GET.get('company_id', '').strip()
+    company = request.GET.get('company', '').strip()
     location = request.GET.get('location', '').strip()
     state = request.GET.get('state', '').strip()
     department = request.GET.get('department', '').strip()
@@ -86,7 +104,19 @@ def jobs_list_api(request):
     page_size = request.GET.get('page_size', 12)
     limit = int(request.GET.get('limit', 2000))
 
-    qs = Job.objects.select_related('company').all()
+    if status == 'all':
+        qs = Job.objects.select_related('company').all()
+    elif status:
+        qs = Job.objects.select_related('company').filter(status=status)
+    else:
+        # Default user-facing listing: strictly current ACTIVE and verified/published records
+        qs = Job.objects.select_related('company').filter(
+            status='ACTIVE'
+        ).exclude(
+            verification_status__in=['STALE', 'REJECTED', 'FETCH_FAILED', 'INVALID_SOURCE', 'BLOCKED']
+        ).filter(
+            Q(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']) | Q(link_status='PUBLISHED')
+        )
 
     if q:
         qs = qs.filter(
@@ -98,8 +128,14 @@ def jobs_list_api(request):
             Q(skills__icontains=q) |
             Q(company__nse_symbol__icontains=q)
         )
-    if company_id:
-        qs = qs.filter(company_id=company_id)
+    target_comp = company_id or company
+    if target_comp and target_comp != 'all':
+        qs = qs.filter(
+            Q(company_id=target_comp) |
+            Q(company__company_name__iexact=target_comp) |
+            Q(company__company_name__icontains=target_comp) |
+            Q(company__nse_symbol__iexact=target_comp)
+        )
     if location and location != 'all':
         qs = qs.filter(location__icontains=location)
     if state and state != 'all':
@@ -254,7 +290,7 @@ def jobs_summary_api(request):
     hybrid_roles = Job.objects.filter(work_mode='Hybrid').count()
     onsite_roles = Job.objects.filter(work_mode='On-site').count()
     companies_hiring = Job.objects.values('company_id').distinct().count()
-    live_verified_links = Job.objects.filter(link_status='VERIFIED_HTTP_200').count()
+    live_verified_links = Job.objects.filter(link_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
 
     by_dept = list(
         Job.objects.values('department')
@@ -291,3 +327,26 @@ def jobs_summary_api(request):
         'by_company': by_comp_formatted,
     }
     return JsonResponse(summary)
+
+
+def job_detail_api(request, job_id):
+    """Retrieve detailed information for a specific job along with related openings."""
+    try:
+        job = None
+        if str(job_id).isdigit():
+            job = Job.objects.select_related('company').filter(Q(job_row_id=int(job_id)) | Q(job_id=str(job_id))).first()
+        else:
+            job = Job.objects.select_related('company').filter(job_id=str(job_id)).first()
+
+        if not job:
+            return JsonResponse({'error': 'Job not found'}, status=404)
+
+        data = serialize_job_item(job)
+        # Fetch related jobs from the same company or department
+        related = Job.objects.select_related('company').filter(
+            Q(company_id=job.company_id) | Q(department=job.department)
+        ).exclude(job_row_id=job.job_row_id)[:4]
+        data['related_jobs'] = [serialize_job_item(rj) for rj in related]
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

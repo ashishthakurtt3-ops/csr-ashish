@@ -3,7 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from modules.admin_panel.models import Company, CSRProject, Job, Contact, OpportunityScore
+from modules.admin_panel.models import (
+    Company, CSRProject, Job, Contact, OpportunityScore,
+    CSROpportunity, PageRecord, CompanyCrawlSummary, AuditTrail
+)
 
 
 @login_required
@@ -44,17 +47,78 @@ def company_list_view(request):
 @login_required
 def company_detail_view(request, company_id):
     company = get_object_or_404(Company, company_id=company_id)
-    projects = company.csr_projects.all()[:15]
-    jobs = company.jobs.all()[:15]
-    contacts = company.contacts.all()[:10]
+    
+    # Jobs with optional search & filtering, paginated without artificial limit
+    job_q = request.GET.get('job_q', '').strip()
+    job_dept = request.GET.get('job_dept', '').strip()
+    job_mode = request.GET.get('job_mode', '').strip()
+    job_page_num = request.GET.get('job_page', 1)
+
+    jobs_qs = company.jobs.all()
+    if job_q:
+        jobs_qs = jobs_qs.filter(
+            Q(job_title__icontains=job_q) |
+            Q(department__icontains=job_q) |
+            Q(location__icontains=job_q) |
+            Q(skills__icontains=job_q) |
+            Q(job_description__icontains=job_q)
+        )
+    if job_dept and job_dept != 'all':
+        jobs_qs = jobs_qs.filter(department__icontains=job_dept)
+    if job_mode and job_mode != 'all':
+        jobs_qs = jobs_qs.filter(work_mode=job_mode)
+
+    jobs_qs = jobs_qs.order_by('-last_checked_date', '-job_row_id')
+    jobs_paginator = Paginator(jobs_qs, 25)
+    jobs_page_obj = jobs_paginator.get_page(job_page_num)
+
+    total_company_jobs = company.jobs.count()
+    active_jobs_count = company.jobs.filter(status='ACTIVE').count()
+
+    # All CSR Projects
+    projects = list(company.csr_projects.all().order_by('-confidence', '-csr_id'))
+
+    # All CSR Opportunities / Grants / RFPs
+    opportunities = list(company.open_opportunities.all().order_by('-confidence', '-opp_id'))
+
+    # All Verified Corporate Contacts
+    contacts = list(company.contacts.all().order_by('-confidence', '-contact_id'))
+
+    # Opportunity score
     score = getattr(company, 'score_record', None)
+
+    # Crawl summaries
+    crawl_summaries = list(company.crawl_summaries.all().order_by('-crawl_started_at')[:10])
+    latest_crawl_summary = crawl_summaries[0] if crawl_summaries else None
+
+    # Telemetry crawled pages
+    crawled_pages = list(company.crawled_pages.all().order_by('-page_id')[:30])
+
+    # Company audit trails
+    audit_trails = list(AuditTrail.objects.filter(
+        Q(record_id=str(company.company_id)) | Q(record_type='Company', record_id=company.company_id)
+    ).order_by('-audit_id')[:15])
+
+    # Unique departments for job facet filter
+    company_depts = company.jobs.exclude(department__isnull=True).exclude(department='').values_list('department', flat=True).distinct()
 
     return render(request, 'admin/companies/detail.html', {
         'company': company,
+        'jobs_page_obj': jobs_page_obj,
+        'total_company_jobs': total_company_jobs,
+        'active_jobs_count': active_jobs_count,
+        'job_q': job_q,
+        'job_dept': job_dept,
+        'job_mode': job_mode,
+        'company_depts': sorted(list(set(company_depts)))[:20],
         'projects': projects,
-        'jobs': jobs,
+        'opportunities': opportunities,
         'contacts': contacts,
-        'score': score
+        'score': score,
+        'crawl_summaries': crawl_summaries,
+        'latest_crawl_summary': latest_crawl_summary,
+        'crawled_pages': crawled_pages,
+        'audit_trails': audit_trails,
     })
 
 

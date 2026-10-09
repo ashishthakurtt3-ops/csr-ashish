@@ -183,7 +183,7 @@ class JobsApiTests(TestCase):
             company=cls.company, job_id="J-1",
             job_title="CSR Program Manager",
             department="CSR", location="Mumbai", state="Maharashtra",
-            work_mode="Hybrid", status="ACTIVE", link_status="VERIFIED_HTTP_200",
+            work_mode="Hybrid", status="ACTIVE", link_status="PUBLISHED",
             application_url="https://jobs-test.example/apply/J-1",
         )
         Job.objects.create(
@@ -191,7 +191,7 @@ class JobsApiTests(TestCase):
             job_title="Backend Engineer",
             department="Engineering", location="Bengaluru",
             state="Karnataka", work_mode="Remote", status="ACTIVE",
-            link_status="VERIFIED_HTTP_200",
+            link_status="PUBLISHED",
             application_url="https://jobs-test.example/apply/J-2",
         )
 

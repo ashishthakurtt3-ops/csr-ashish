@@ -1,0 +1,640 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Payment Audit Dossier &bull; {{ payment.payment_id }} | ImpactBridge™{% endblock %}
+{% block page_title %}Payment Audit Dossier &bull; {{ payment.payment_id }}{% endblock %}
+
+{% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="payments" %}
+
+<style>
+    .audit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    @media (max-width: 992px) {
+        .audit-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .metric-ribbon {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .metric-tile {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px 18px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .metric-tile::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--border-color);
+    }
+    .metric-tile.tile-success::before { background: #10B981; }
+    .metric-tile.tile-info::before { background: #0EA5E9; }
+    .metric-tile.tile-purple::before { background: #8B5CF6; }
+    .metric-tile.tile-amber::before { background: #F59E0B; }
+    .metric-tile.tile-danger::before { background: #EF4444; }
+
+    .metric-tile-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .metric-tile-value {
+        font-size: 24px;
+        font-weight: 800;
+        font-family: var(--font-mono, monospace);
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+    .metric-tile-sub {
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .data-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--border-subtle, #F1F5F9);
+        font-size: 13px;
+    }
+    .data-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .data-row:first-child {
+        padding-top: 0;
+    }
+    .data-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        min-width: 150px;
+        flex-shrink: 0;
+    }
+    .data-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        text-align: right;
+        word-break: break-all;
+    }
+    .pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 600;
+    }
+    .pill-success {
+        background: #DCFCE7;
+        color: #15803D;
+        border: 1px solid #BBF7D0;
+    }
+    .pill-pending {
+        background: #FEF3C7;
+        color: #B45309;
+        border: 1px solid #FDE68A;
+    }
+    .pill-failed {
+        background: #FEE2E2;
+        color: #B91C1C;
+        border: 1px solid #FECACA;
+    }
+    .pill-refunded {
+        background: #F3E8FF;
+        color: #6B21A8;
+        border: 1px solid #DDD6FE;
+    }
+    .pill-neutral {
+        background: #F1F5F9;
+        color: #475569;
+        border: 1px solid #E2E8F0;
+    }
+    .pill-brand {
+        background: #CCFBF1;
+        color: #0F766E;
+        border: 1px solid #99F6E4;
+    }
+
+    .readonly-banner {
+        background: linear-gradient(90deg, #F8FAFC 0%, #F1F5F9 100%);
+        border: 1px solid #CBD5E1;
+        border-left: 4px solid #0F766E;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    pre.json-viewer {
+        background: #0B1F33;
+        color: #E2E8F0;
+        padding: 14px 16px;
+        border-radius: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-x: auto;
+        margin: 0;
+        max-height: 280px;
+    }
+
+    @media print {
+        .admin-sidebar, .sidebar-toggle-btn, .sub-nav, .no-print {
+            display: none !important;
+        }
+        .admin-main {
+            margin: 0 !important;
+            width: 100% !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+
+<!-- Top Breadcrumbs & Action Bar -->
+<div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <a href="{% url 'admin_subscriptions:payments_list' %}" class="btn-admin btn-admin-secondary" style="font-size:12.5px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Payments Ledger
+        </a>
+        <span style="color:var(--text-muted); font-size:13px;">/</span>
+        <span style="font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--text-primary);">{{ payment.payment_id }}</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" onclick="window.print()" class="btn-admin btn-admin-secondary" style="font-size:12.5px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Audit Dossier
+        </button>
+
+        {% if payment.invoice_record %}
+        <a href="{% url 'admin_subscriptions:invoice_detail' payment.invoice_record.invoice_id %}" target="_blank" class="btn-admin btn-admin-primary" style="font-size:12.5px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Tax Invoice ({{ payment.invoice_record.invoice_no }}) &nearr;
+        </a>
+        {% endif %}
+
+        {% if subscription %}
+        <a href="{% url 'admin_subscriptions:manage' subscription.subscription_id %}" class="btn-admin btn-admin-secondary" style="font-size:12.5px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Manage Subscription &nearr;
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Read-Only Compliance Banner -->
+<div class="readonly-banner">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <div style="background:#0F766E; color:#FFFFFF; width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+            <div style="font-size:13.5px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                Verified Read-Only Audit Ledger
+                <span class="pill-badge pill-brand" style="font-size:10px;">IMMUTABLE RECORD</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
+                This transaction record is locked and verified. All financial debits/credits, timing timestamps, and plan entitlements are logged for statutory compliance.
+            </div>
+        </div>
+    </div>
+    <div>
+        <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-secondary); background:rgba(0,0,0,0.04); padding:4px 8px; border-radius:4px;">
+            REF: {{ payment.transaction_reference|default:"PROTOTYPE-TXN" }}
+        </span>
+    </div>
+</div>
+
+<!-- Metric Ribbon -->
+<div class="metric-ribbon">
+    <div class="metric-tile tile-success">
+        <div class="metric-tile-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Total Paid (INR)
+        </div>
+        <div class="metric-tile-value" style="color:#059669;">
+            &#8377; {{ payment.amount_inr|floatformat:2 }}
+        </div>
+        <div class="metric-tile-sub">
+            {{ payment.amount_paise }} paise &bull; {{ payment.currency }}
+        </div>
+    </div>
+
+    <div class="metric-tile {% if payment.payment_status == 'SUCCESS' %}tile-success{% elif payment.payment_status == 'PENDING' %}tile-amber{% elif payment.payment_status == 'REFUNDED' %}tile-purple{% else %}tile-danger{% endif %}">
+        <div class="metric-tile-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Payment Status
+        </div>
+        <div class="metric-tile-value" style="font-size:20px;">
+            {% if payment.payment_status == "SUCCESS" %}
+            <span class="pill-badge pill-success">SUCCESS</span>
+            {% elif payment.payment_status == "REFUNDED" %}
+            <span class="pill-badge pill-refunded">REFUNDED</span>
+            {% elif payment.payment_status == "FAILED" %}
+            <span class="pill-badge pill-failed">FAILED</span>
+            {% elif payment.payment_status == "CANCELLED" %}
+            <span class="pill-badge pill-failed">CANCELLED</span>
+            {% else %}
+            <span class="pill-badge pill-pending">{{ payment.payment_status }}</span>
+            {% endif %}
+        </div>
+        <div class="metric-tile-sub">
+            Method: <strong>{{ payment.payment_method }}</strong>
+        </div>
+    </div>
+
+    <div class="metric-tile tile-purple">
+        <div class="metric-tile-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Plan / Purpose
+        </div>
+        <div class="metric-tile-value" style="font-size:19px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ payment.plan_name_display }}
+        </div>
+        <div class="metric-tile-sub">
+            Type: <strong>{{ payment.get_payment_type_display|default:payment.payment_type }}</strong>
+        </div>
+    </div>
+
+    <div class="metric-tile tile-info">
+        <div class="metric-tile-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Processing Turnaround
+        </div>
+        <div class="metric-tile-value" style="font-size:19px; color:#0284C7;">
+            {{ payment.processing_duration_display }}
+        </div>
+        <div class="metric-tile-sub">
+            {{ payment.created_at|timesince }} ago
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Audit Dossier Cards -->
+<div class="audit-grid">
+    <!-- CARD 1: Exact Timing & Chronology Audit -->
+    <div class="admin-card" style="margin:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
+            <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                1. Timing &amp; Chronology Audit
+            </h3>
+            <span class="pill-badge pill-neutral" style="font-size:10.5px;">ISO 8601 UTC</span>
+        </div>
+
+        <div>
+            <div class="data-row">
+                <span class="data-label">Payment Initiated</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    {{ payment.created_at|date:"Y-m-d H:i:s" }} UTC
+                    <div style="font-size:11px; font-weight:normal; color:var(--text-secondary);">({{ payment.created_at|date:"M d, Y h:i A" }})</div>
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Processing Completed</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    {% if payment.completed_at %}
+                    {{ payment.completed_at|date:"Y-m-d H:i:s" }} UTC
+                    <div style="font-size:11px; font-weight:normal; color:var(--text-secondary);">({{ payment.completed_at|date:"M d, Y h:i A" }})</div>
+                    {% else %}
+                    <span style="color:var(--text-muted); font-weight:normal;">In Processing / Pending</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Processing Latency</span>
+                <span class="data-value">
+                    <span class="pill-badge pill-brand">{{ payment.processing_duration_display }}</span>
+                </span>
+            </div>
+
+            {% if subscription %}
+            <div class="data-row">
+                <span class="data-label">Subscription Coverage Start</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    {{ subscription.current_period_start|default:"Immediate" }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Subscription Coverage End</span>
+                <span class="data-value" style="font-family:var(--font-mono); color:var(--primary-brand);">
+                    {{ subscription.current_period_end|default:"Active (Ongoing)" }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Auto-Renewal Scheduled</span>
+                <span class="data-value">
+                    {% if subscription.auto_renew %}
+                    <span class="pill-badge pill-success">ENABLED (Next period will auto-bill)</span>
+                    {% else %}
+                    <span class="pill-badge pill-neutral">DISABLED (Manual renew required)</span>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CARD 2: Plan & Subscription Specifications -->
+    <div class="admin-card" style="margin:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
+            <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                2. Plan &amp; Subscription Specifications
+            </h3>
+            <span class="pill-badge pill-brand" style="font-size:10.5px;">{{ payment.billing_cycle_display }}</span>
+        </div>
+
+        <div>
+            <div class="data-row">
+                <span class="data-label">Plan Tier Name</span>
+                <span class="data-value">
+                    <strong style="color:var(--text-primary); font-size:14px;">{{ payment.plan_name_display }}</strong>
+                    {% if plan %}
+                    <div style="font-size:11.5px; color:var(--text-secondary); font-weight:normal;">Code: <code>{{ plan.code }}</code></div>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Billing Cycle</span>
+                <span class="data-value">
+                    <span class="pill-badge pill-neutral">{{ payment.billing_cycle_display }}</span>
+                </span>
+            </div>
+
+            {% if plan %}
+            <div class="data-row">
+                <span class="data-label">Plan Standard Pricing</span>
+                <span class="data-value">
+                    Monthly: <strong>&#8377; {{ plan.price_monthly|floatformat:2 }}</strong> &bull;
+                    Yearly: <strong>&#8377; {{ plan.price_yearly|floatformat:2 }}</strong>
+                </span>
+            </div>
+            {% endif %}
+
+            {% if subscription %}
+            <div class="data-row">
+                <span class="data-label">Subscription ID</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    <a href="{% url 'admin_subscriptions:manage' subscription.subscription_id %}" style="color:var(--text-link); text-decoration:none;">
+                        {{ subscription.subscription_id }} &nearr;
+                    </a>
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Tenant ID</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    {{ subscription.tenant_id }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Allocated Seats</span>
+                <span class="data-value">
+                    {{ subscription.seats|default:1 }} User Seat(s)
+                </span>
+            </div>
+            {% endif %}
+
+            {% if plan and plan.features %}
+            <div style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border-color);">
+                <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:8px;">
+                    Included Plan Entitlements &amp; Capabilities
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    {% for feat in plan.features %}
+                    <span class="pill-badge pill-neutral" style="font-size:11px;">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" style="margin-right:3px;"><polyline points="20 6 9 17 4 12"/></svg>
+                        {{ feat }}
+                    </span>
+                    {% empty %}
+                    <span style="font-size:12px; color:var(--text-muted);">Standard system entitlements</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CARD 3: Customer & Organization Attribution -->
+    <div class="admin-card" style="margin:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
+            <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                3. Customer &amp; Organization Attribution
+            </h3>
+            <span class="pill-badge pill-neutral" style="font-size:10.5px;">Account Entity</span>
+        </div>
+
+        <div>
+            <div class="data-row">
+                <span class="data-label">Username</span>
+                <span class="data-value">
+                    <strong style="color:var(--text-primary);">{{ user.username|default:"Anonymous / Unassigned" }}</strong>
+                    {% if user %}
+                    <div style="font-size:11px; color:var(--text-secondary); font-weight:normal;">UID #{{ user.id }}</div>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Full Name</span>
+                <span class="data-value">
+                    {{ user.get_full_name|default:user.username|default:"—" }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Email Address</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    {{ user.email|default:"—" }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Organization Name</span>
+                <span class="data-value">
+                    {{ subscription.organization_name|default:"ImpactBridge Enterprise User" }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">User's Wallet Balance</span>
+                <span class="data-value" style="font-family:var(--font-mono); color:var(--admin-success); font-weight:700;">
+                    &#8377; {{ user.wallet.balance_rupees|floatformat:2|default:"0.00" }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD 4: Statutory GST Tax Invoicing Breakdown -->
+    <div class="admin-card" style="margin:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
+            <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                4. Statutory Invoicing &amp; GST Compliance
+            </h3>
+            <span class="pill-badge pill-neutral" style="font-size:10.5px;">18% GST Law</span>
+        </div>
+
+        <div>
+            {% if payment.invoice_record %}
+            <div class="data-row">
+                <span class="data-label">Tax Invoice Number</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    <a href="{% url 'admin_subscriptions:invoice_detail' payment.invoice_record.invoice_id %}" target="_blank" style="color:var(--text-link); text-decoration:none;">
+                        {{ payment.invoice_record.invoice_no }} &nearr;
+                    </a>
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Taxable Base Amount</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    &#8377; {{ payment.invoice_record.taxable_rupees|floatformat:2 }}
+                </span>
+            </div>
+
+            {% if payment.invoice_record.cgst_paise > 0 or payment.invoice_record.sgst_paise > 0 %}
+            <div class="data-row">
+                <span class="data-label">CGST (9%)</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    &#8377; {{ payment.invoice_record.cgst_rupees|floatformat:2 }}
+                </span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">SGST (9%)</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    &#8377; {{ payment.invoice_record.sgst_rupees|floatformat:2 }}
+                </span>
+            </div>
+            {% else %}
+            <div class="data-row">
+                <span class="data-label">IGST (18%)</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    &#8377; {{ payment.invoice_record.igst_rupees|floatformat:2 }}
+                </span>
+            </div>
+            {% endif %}
+
+            <div class="data-row" style="background:var(--bg-surface-subtle); padding:10px 12px; border-radius:6px; margin:8px 0;">
+                <span class="data-label" style="font-weight:700; color:var(--text-primary);">Total Invoiced Amount</span>
+                <span class="data-value" style="font-family:var(--font-mono); color:var(--admin-success); font-size:15px; font-weight:800;">
+                    &#8377; {{ payment.invoice_record.total_rupees|floatformat:2 }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Customer GSTIN</span>
+                <span class="data-value" style="font-family:var(--font-mono);">
+                    {{ payment.invoice_record.gstin|default:"Unregistered Consumer (B2C)" }}
+                </span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Place of Supply</span>
+                <span class="data-value">
+                    State Code: <strong>{{ payment.invoice_record.place_of_supply|default:"27 (Maharashtra)" }}</strong>
+                </span>
+            </div>
+            {% else %}
+            <div style="padding:16px; text-align:center; color:var(--text-secondary); background:var(--bg-surface-subtle); border-radius:8px;">
+                <p style="margin:0 0 6px; font-size:13px; font-weight:600;">Direct Transaction (No standalone tax invoice)</p>
+                <p style="margin:0; font-size:11.5px; color:var(--text-muted);">This transaction was settled via {{ payment.payment_method }} directly. Invoices are generated automatically for subscription tier activations.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- CARD 5: Gateway Credentials & Raw Audit Metadata -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+        <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            5. Gateway Identifiers &amp; Raw Audit Metadata
+        </h3>
+        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('raw-meta-box').innerText); alert('Audit metadata copied to clipboard!');" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 10px;">
+            Copy Metadata JSON
+        </button>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:16px;">
+        <div>
+            <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Transaction Reference</div>
+            <div style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--text-primary); margin-top:3px;">
+                {{ payment.transaction_reference|default:"—" }}
+            </div>
+        </div>
+
+        <div>
+            <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Idempotency Key</div>
+            <div style="font-family:var(--font-mono); font-size:13px; color:var(--text-primary); margin-top:3px; word-break:break-all;">
+                {{ payment.idempotency_key|default:"—" }}
+            </div>
+        </div>
+
+        <div>
+            <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Execution Mode</div>
+            <div style="margin-top:3px;">
+                {% if payment.is_prototype %}
+                <span class="pill-badge pill-neutral">SIMULATED / PROTOTYPE</span>
+                {% else %}
+                <span class="pill-badge pill-success">PRODUCTION LIVE GATEWAY</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if wallet_txn %}
+        <div>
+            <div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Linked Wallet Ledger Entry</div>
+            <div style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-primary); margin-top:3px;">
+                {{ wallet_txn.transaction_id }} ({{ wallet_txn.credit_or_debit }})
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <div style="font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:8px;">
+            Complete Metadata Payload (JSON)
+        </div>
+        <pre class="json-viewer" id="raw-meta-box">{{ metadata_json }}</pre>
+    </div>
+</div>
+{% endblock %}

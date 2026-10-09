@@ -3,6 +3,53 @@
 
 {% block title %}{% if is_new %}Create New Subscription Plan{% else %}Edit Plan: {{ plan.name }}{% endif %} | Admin Control{% endblock %}
 
+{% block extra_css %}
+<style>
+    #plan-admin-form .admin-card {
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    #plan-admin-form .admin-card h3 {
+        color: var(--text-primary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+    #plan-admin-form label {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+    #plan-admin-form input[type="text"],
+    #plan-admin-form input[type="number"],
+    #plan-admin-form select,
+    #plan-admin-form textarea {
+        background: var(--bg-input) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--text-primary) !important;
+        font-family: inherit;
+        box-shadow: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    #plan-admin-form input[type="text"]:focus,
+    #plan-admin-form input[type="number"]:focus,
+    #plan-admin-form select:focus,
+    #plan-admin-form textarea:focus {
+        outline: none !important;
+        border-color: var(--primary-brand) !important;
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+    }
+    #plan-admin-form input[readonly] {
+        background: var(--bg-surface-subtle) !important;
+        color: var(--text-secondary) !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 {% include "admin/subscriptions/components/sub_nav.html" with active_tab="plans" %}
 
@@ -350,30 +397,30 @@
 </form>
 
 <!-- MODAL: Confirmation & Diff Dialog (Requirement 10 & 11) -->
-<div id="modal-plan-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
-    <div style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:12px; width:100%; max-width:560px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); overflow:hidden; animation:fadeIn 0.2s ease;">
-        <div style="padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; background:rgba(15,23,42,0.4);">
-            <h3 id="plan-confirm-title" style="margin:0; font-size:17px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+<div id="modal-plan-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(11,31,51,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:16px; width:100%; max-width:560px; box-shadow:0 20px 25px -5px rgba(15,23,42,0.15); overflow:hidden; animation:fadeIn 0.2s ease;">
+        <div style="padding:18px 24px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; background:#F8FAFC;">
+            <h3 id="plan-confirm-title" style="margin:0; font-size:17px; font-weight:700; color:#0F172A; display:flex; align-items:center; gap:8px;">
                 Confirm Changes
             </h3>
-            <button type="button" onclick="closeConfirmModal()" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer; line-height:1;">&times;</button>
+            <button type="button" onclick="closeConfirmModal()" style="background:none; border:none; color:#64748B; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
         </div>
 
         <div style="padding:24px; max-height:65vh; overflow-y:auto;">
-            <div style="font-size:13.5px; color:#94a3b8; margin-bottom:12px;">
-                Plan: <strong id="plan-confirm-name" style="color:#fff;">{{ plan.name|default:'New Plan' }}</strong>
+            <div style="font-size:13.5px; color:#64748B; margin-bottom:12px;">
+                Plan: <strong id="plan-confirm-name" style="color:#0F172A;">{{ plan.name|default:'New Plan' }}</strong>
             </div>
 
-            <div id="plan-diff-container" style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:14px; margin-bottom:18px;">
+            <div id="plan-diff-container" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px; margin-bottom:18px;">
                 <!-- Diffs rendered dynamically -->
             </div>
 
-            <div style="font-size:13.5px; color:#cbd5e1;">
+            <div style="font-size:13.5px; color:#334155;">
                 Are you sure you want to save these changes?
             </div>
         </div>
 
-        <div style="padding:16px 24px; border-top:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4); display:flex; justify-content:flex-end; gap:10px;">
+        <div style="padding:16px 24px; border-top:1px solid #E2E8F0; background:#F8FAFC; display:flex; justify-content:flex-end; gap:10px;">
             <button type="button" onclick="closeConfirmModal()" class="btn-admin btn-admin-secondary" style="padding:8px 18px;">
                 Cancel
             </button>

@@ -6,11 +6,14 @@
 {% block content %}
 <div class="admin-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:800px; flex-wrap:wrap;">
-            <input type="text" name="q" value="{{ q }}" placeholder="Search project name, company, sector, state..." style="flex:2; min-width:200px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
-            <input type="text" name="category" value="{{ selected_category }}" placeholder="Category..." style="flex:1; min-width:140px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
-            <input type="text" name="state" value="{{ selected_state }}" placeholder="State..." style="flex:1; min-width:140px; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
-            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:850px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search project name, company, sector, state..." class="search-input" style="flex:2; min-width:200px; height:40px;">
+            <input type="text" name="category" value="{{ selected_category }}" placeholder="Category (e.g. Education)..." class="search-input" style="flex:1; min-width:140px; height:40px;">
+            <input type="text" name="state" value="{{ selected_state }}" placeholder="State (e.g. Maharashtra)..." class="search-input" style="flex:1; min-width:140px; height:40px;">
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
+            {% if q or selected_category or selected_state %}
+            <a href="{% url 'admin_opportunities:projects' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+            {% endif %}
         </form>
         <div style="display:flex; gap:10px; align-items:center;">
             {% include "admin/components/exchange_toolbar.html" with entity="projects" title="CSR Projects" %}
@@ -28,29 +31,29 @@
                     <th>State</th>
                     <th>Budget</th>
                     <th>Confidence</th>
-                    <th>Verified Status</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for p in page_obj %}
                 <tr>
                     <td>
-                        <strong style="color:#fff;">{{ p.project_name }}</strong>
+                        <strong style="color:var(--text-primary);">{{ p.project_name }}</strong>
                         {% if p.description %}
-                        <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
                         {% endif %}
                     </td>
                     <td>
                         {% if p.company %}
-                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--admin-accent); font-weight:600;">{{ p.company.company_name }}</a>
+                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ p.company.company_name }}</a>
                         {% else %}—{% endif %}
                     </td>
                     <td><span class="badge-status badge-pending">{{ p.category }}</span></td>
                     <td>{{ p.state|default:"Pan India" }}</td>
-                    <td style="font-family:'JetBrains Mono',monospace;">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
+                    <td style="font-family:var(--font-mono);">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
                     <td><span class="badge-status badge-active">{{ p.confidence|floatformat:2 }}</span></td>
                     <td>
-                        {% if p.link_status == "VERIFIED_HTTP_200" %}
+                        {% if p.link_status == "PUBLISHED" or p.link_status == "SOURCE_CONFIRMED" %}
                         <span class="badge-status badge-active">Verified</span>
                         {% else %}
                         <span class="badge-status badge-pending">{{ p.link_status|default:"Pending" }}</span>
@@ -58,7 +61,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No CSR projects found matching query.</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">No CSR projects found matching query.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -66,7 +69,7 @@
 
     {% if page_obj.has_other_pages %}
     <div class="pagination-bar">
-        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total projects)</div>
         <div class="pagination-links">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&category={{ selected_category }}&state={{ selected_state }}" class="page-link-btn">&larr; Prev</a>

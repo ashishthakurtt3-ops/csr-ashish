@@ -9,6 +9,8 @@ urlpatterns = [
     path('health/', health_view, name='health_slash'),
     path('stats', stats_view, name='stats'),
     path('stats/', stats_view, name='stats_slash'),
+    path('api/stats', stats_view, name='api_stats'),
+    path('api/stats/', stats_view, name='api_stats_slash'),
     path('search', search_view, name='search'),
     path('search/', search_view, name='search_slash'),
 ]

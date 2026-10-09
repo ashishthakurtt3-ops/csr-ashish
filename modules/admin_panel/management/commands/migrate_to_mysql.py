@@ -44,7 +44,7 @@ class Command(BaseCommand):
             self._gap_fill_from_legacy(legacy_rows)
         self._import_companies_from_csv()
         from django.core.management import call_command
-        call_command('seed_authentic_enterprise_jobs')
+        # Seeding logic removed to prevent synthetic data generation
         self.stdout.write(
             self.style.SUCCESS("[OK] Database migrated: merged dataset loaded.")
         )

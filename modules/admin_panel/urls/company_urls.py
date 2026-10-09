@@ -8,5 +8,6 @@ app_name = 'admin_companies'
 urlpatterns = [
     path('', company_list_view, name='list'),
     path('<str:company_id>/', company_detail_view, name='detail'),
+    path('<str:company_id>/intelligence/', company_detail_view, name='intelligence'),
     path('<str:company_id>/edit/', company_edit_view, name='edit'),
 ]

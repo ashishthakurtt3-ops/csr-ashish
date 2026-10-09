@@ -150,26 +150,28 @@ def user_profile_view(request):
     wallet = get_or_create_wallet(user)
 
     # Get active subscription or create fallback starter
-    sub = Subscription.objects.filter(user=user, status='ACTIVE').order_by('-id').first()
+    sub = Subscription.objects.filter(user=user, status='ACTIVE').order_by('-created_at').first()
     if not sub:
         # Check by tenant_id
-        sub = Subscription.objects.filter(tenant_id=f"user_{user.id}", status='ACTIVE').order_by('-id').first()
+        sub = Subscription.objects.filter(tenant_id=f"user_{user.id}", status='ACTIVE').order_by('-created_at').first()
         if sub and not sub.user:
             sub.user = user
             sub.save(update_fields=['user'])
 
     if not sub:
-        starter_plan = get_plan('starter')
+        plan_obj = Plan.objects.filter(code='starter').first()
+        import uuid
         sub = Subscription.objects.create(
+            subscription_id=f"sub_{uuid.uuid4().hex[:12]}",
             user=user,
             tenant_id=f"user_{user.id}",
-            plan_record=starter_plan,
+            plan_record=plan_obj,
             plan_id='starter',
             status='ACTIVE',
-            billing_interval='Monthly',
+            billing_cycle='monthly',
             auto_renew=False,
-            current_period_start=timezone.now(),
-            current_period_end=timezone.now() + timedelta(days=3650)
+            current_period_start=timezone.now().isoformat(),
+            current_period_end=(timezone.now() + timedelta(days=3650)).isoformat()
         )
 
     # Handle Profile Actions (Top-up, Auto-renew, Cancel, Reactivate)
@@ -215,7 +217,8 @@ def user_profile_view(request):
             return redirect('website:user_profile')
 
     plan = get_plan(sub.plan_id)
-    entitlements = plan.entitlements.all() if plan else []
+    plan_obj = Plan.objects.filter(code=sub.plan_id).first()
+    entitlements = plan_obj.entitlements.all() if plan_obj else []
     wallet_txs = WalletTransaction.objects.filter(user=user).order_by('-created_at')[:20]
     payments = Payment.objects.filter(user=user).order_by('-created_at')[:20]
     invoices = Invoice.objects.filter(user=user).order_by('-issued_at')[:20]

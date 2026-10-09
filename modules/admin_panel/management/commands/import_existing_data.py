@@ -40,8 +40,8 @@ class Command(BaseCommand):
             self._import_from_files()
 
         # 4. Guarantee 100% authentic sector-aligned and department-complete jobs
-        from django.core.management import call_command
-        call_command('seed_authentic_enterprise_jobs')
+        # from django.core.management import call_command
+        # call_command('seed_authentic_enterprise_jobs')
 
         self.stdout.write(self.style.SUCCESS("[OK] All intelligence data successfully migrated into Django ORM!"))
 

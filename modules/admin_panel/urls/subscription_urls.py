@@ -8,6 +8,7 @@ from modules.admin_panel.views.subscription_views import (
     plan_toggle_status_view,
     plan_delete_view,
     payment_list_view,
+    payment_detail_view,
     admin_payment_refund_view,
     wallet_list_view,
     admin_wallet_adjust_view,
@@ -35,6 +36,7 @@ urlpatterns = [
 
     # Payments & Transactions
     path('payments/', payment_list_view, name='payments_list'),
+    path('payments/<str:payment_id>/', payment_detail_view, name='payment_detail'),
     path('payments/<str:payment_id>/refund/', admin_payment_refund_view, name='payment_refund'),
 
     # Wallets

@@ -550,37 +550,65 @@ def plan_delete_view(request, code):
     return redirect('admin_subscriptions:plans')
 
 
-# ── PAYMENT MANAGEMENT ────────────────────────────────────────────────────────
+# ── PAYMENT MANAGEMENT (READ-ONLY FINANCIAL AUDIT) ───────────────────────────
 @login_required
 def payment_list_view(request):
+    """
+    Read-only payment ledger for administrators.
+    Displays all payments, timing breakdown, customer attribution, plan details, and transaction audits.
+    """
     if not _is_admin(request.user):
         messages.error(request, "Access restricted to administrators.")
         return redirect('admin_portal:dashboard')
 
     status_filter = request.GET.get('status', '').strip().upper()
     type_filter = request.GET.get('type', '').strip().upper()
+    method_filter = request.GET.get('method', '').strip().upper()
+    plan_filter = request.GET.get('plan', '').strip().lower()
+    sort_filter = request.GET.get('sort', 'newest').strip().lower()
     search = request.GET.get('q', '').strip()
     page_num = request.GET.get('page', 1)
 
-    qs = Payment.objects.select_related('user', 'subscription').all().order_by('-created_at')
+    qs = Payment.objects.select_related('user', 'subscription', 'subscription__plan_record').all()
 
+    # Filters
     if status_filter and status_filter != 'ALL':
         qs = qs.filter(payment_status=status_filter)
     if type_filter and type_filter != 'ALL':
         qs = qs.filter(payment_type=type_filter)
+    if method_filter and method_filter != 'ALL':
+        qs = qs.filter(payment_method__iexact=method_filter)
+    if plan_filter and plan_filter != 'all':
+        qs = qs.filter(Q(plan_code__iexact=plan_filter) | Q(subscription__plan_id__iexact=plan_filter))
     if search:
         qs = qs.filter(
             Q(payment_id__icontains=search) |
             Q(user__username__icontains=search) |
             Q(user__email__icontains=search) |
             Q(transaction_reference__icontains=search) |
-            Q(plan_code__icontains=search)
+            Q(plan_code__icontains=search) |
+            Q(subscription__tenant_id__icontains=search) |
+            Q(subscription__organization_name__icontains=search)
         )
 
-    # Aggregates
+    # Sorting
+    if sort_filter == 'oldest':
+        qs = qs.order_by('created_at')
+    elif sort_filter == 'amount_high':
+        qs = qs.order_by('-amount_paise', '-created_at')
+    elif sort_filter == 'amount_low':
+        qs = qs.order_by('amount_paise', '-created_at')
+    else:  # newest
+        qs = qs.order_by('-created_at')
+
+    # Aggregates across the entire database for KPI cards
     totals = Payment.objects.aggregate(
+        total_vol=Sum('amount_paise'),
+        total_cnt=Count('payment_id'),
         success_sum=Sum('amount_paise', filter=Q(payment_status='SUCCESS')),
         success_cnt=Count('payment_id', filter=Q(payment_status='SUCCESS')),
+        pending_sum=Sum('amount_paise', filter=Q(payment_status='PENDING')),
+        pending_cnt=Count('payment_id', filter=Q(payment_status='PENDING')),
         failed_cnt=Count('payment_id', filter=Q(payment_status='FAILED')),
         refund_sum=Sum('amount_paise', filter=Q(payment_status='REFUNDED')),
         refund_cnt=Count('payment_id', filter=Q(payment_status='REFUNDED')),
@@ -589,19 +617,112 @@ def payment_list_view(request):
     paginator = Paginator(qs, 20)
     page_obj = paginator.get_page(page_num)
 
+    all_plans = Plan.objects.all().order_by('display_order', 'monthly_price_paise')
+
     return render(request, 'admin/subscriptions/payments.html', {
         'page_obj': page_obj,
         'status_filter': status_filter,
         'type_filter': type_filter,
+        'method_filter': method_filter,
+        'plan_filter': plan_filter,
+        'sort_filter': sort_filter,
+        'selected_status': status_filter,
+        'selected_type': type_filter,
+        'selected_method': method_filter,
+        'selected_plan': plan_filter,
         'search_query': search,
         'total_count': paginator.count,
+        'all_plans': all_plans,
         'totals': {
+            'total_vol_display': format_inr(totals['total_vol'] or 0),
+            'total_cnt': totals['total_cnt'] or 0,
             'success_sum_display': format_inr(totals['success_sum'] or 0),
             'success_cnt': totals['success_cnt'] or 0,
+            'pending_sum_display': format_inr(totals['pending_sum'] or 0),
+            'pending_cnt': totals['pending_cnt'] or 0,
             'failed_cnt': totals['failed_cnt'] or 0,
             'refund_sum_display': format_inr(totals['refund_sum'] or 0),
             'refund_cnt': totals['refund_cnt'] or 0,
         }
+    })
+
+
+@login_required
+def payment_detail_view(request, payment_id):
+    """
+    Dedicated, strictly read-only audit dossier for an individual payment.
+    Displays complete financial, timing, customer, and subscription plan specifications.
+    """
+    if not _is_admin(request.user):
+        messages.error(request, "Access restricted to administrators.")
+        return redirect('admin_portal:dashboard')
+
+    payment = get_object_or_404(
+        Payment.objects.select_related('user', 'subscription', 'subscription__plan_record'),
+        payment_id=payment_id
+    )
+
+    # Linked objects
+    user = payment.user
+    subscription = payment.subscription
+    plan = payment.plan_record
+    invoices = payment.invoices.all().order_by('-invoice_id')
+    wallet_txn = payment.wallet_transaction
+
+    # Format raw metadata
+    metadata_json = "{}"
+    if payment.metadata:
+        try:
+            metadata_json = json.dumps(payment.metadata, indent=2, default=str)
+        except Exception:
+            metadata_json = str(payment.metadata)
+
+    # Support JSON response for quick-view modal AJAX requests
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
+        return JsonResponse({
+            'payment_id': payment.payment_id,
+            'amount_inr': payment.amount_inr,
+            'amount_paise': payment.amount_paise,
+            'currency': payment.currency,
+            'payment_status': payment.payment_status,
+            'payment_type': payment.payment_type,
+            'payment_method': payment.payment_method,
+            'transaction_reference': payment.transaction_reference or '—',
+            'created_at': payment.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if payment.created_at else '—',
+            'completed_at': payment.completed_at.strftime('%Y-%m-%d %H:%M:%S UTC') if payment.completed_at else '—',
+            'duration': payment.processing_duration_display,
+            'user': {
+                'username': user.username if user else 'Anonymous',
+                'email': user.email if user else '—',
+                'organization': getattr(user, 'organization_name', None) or (subscription.organization_name if subscription else None) or '—',
+            },
+            'plan': {
+                'name': payment.plan_name_display,
+                'code': payment.plan_code or (plan.code if plan else 'N/A'),
+                'tier': plan.code if plan else (payment.plan_code or 'N/A'),
+                'monthly_price_inr': plan.price_monthly if plan else None,
+                'yearly_price_inr': plan.price_yearly if plan else None,
+                'billing_cycle': payment.billing_cycle_display,
+            },
+            'subscription': {
+                'subscription_id': subscription.subscription_id if subscription else None,
+                'tenant_id': subscription.tenant_id if subscription else None,
+                'status': subscription.status if subscription else None,
+                'current_period_start': subscription.current_period_start if subscription else None,
+                'current_period_end': subscription.current_period_end if subscription else None,
+                'seats': subscription.seats if subscription else 1,
+            } if subscription else None,
+            'metadata': payment.metadata or {},
+        })
+
+    return render(request, 'admin/subscriptions/payment_detail.html', {
+        'payment': payment,
+        'user': user,
+        'subscription': subscription,
+        'plan': plan,
+        'invoices': invoices,
+        'wallet_txn': wallet_txn,
+        'metadata_json': metadata_json,
     })
 
 
@@ -618,7 +739,7 @@ def admin_payment_refund_view(request, payment_id):
     except Exception as e:
         messages.error(request, f"Refund failed: {str(e)}")
 
-    return redirect('admin_subscriptions:payments')
+    return redirect('admin_subscriptions:payments_list')
 
 
 # ── WALLET MANAGEMENT ────────────────────────────────────────────────────────

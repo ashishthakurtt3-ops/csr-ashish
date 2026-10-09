@@ -1,365 +1,371 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Executive Intelligence Dashboard{% endblock %}
-{% block page_title %}Executive Intelligence &amp; Governance Dashboard{% endblock %}
-
-{% block extra_css %}
-<style>
-    .admin-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin-bottom: 28px;
-    }
-    .admin-dashboard-two-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        margin-bottom: 32px;
-    }
-    @media (max-width: 1023px) {
-        .admin-dashboard-two-col {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-    }
-    @media (max-width: 640px) {
-        .admin-kpi-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .admin-kpi-card {
-            padding: 12px 10px !important;
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 8px !important;
-        }
-        .admin-kpi-icon {
-            width: 40px !important;
-            height: 40px !important;
-            font-size: 22px !important;
-        }
-    }
-</style>
-{% endblock %}
+{% block title %}Executive Intelligence &amp; Governance Dashboard{% endblock %}
+{% block page_title %}Executive ESG Intelligence &amp; Governance Dashboard{% endblock %}
 
 {% block content %}
-<!-- KPI METRIC CARDS -->
-<div class="admin-kpi-grid">
-    <div class="admin-card" style="padding:20px; display:flex; align-items:center; gap:16px;">
-        <div style="font-size:32px; background:rgba(2, 132, 199, 0.15); width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:12px;">🏢</div>
+<!-- 1. GREETING & EXECUTIVE HEADER SECTION -->
+<div class="admin-card" style="padding: 24px 28px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 118, 110, 0.04) 0%, rgba(20, 184, 166, 0.08) 100%); border-left: 4px solid var(--primary-brand);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-            <div style="font-size:12px; color:var(--admin-muted); font-weight:600; text-transform:uppercase;">Monitored Companies</div>
-            <div style="font-size:26px; font-weight:800; color:#fff;">{{ total_companies }}</div>
-            <div style="font-size:11.5px; color:#34d399;">100% Verified Sites</div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="padding:20px; display:flex; align-items:center; gap:16px;">
-        <div style="font-size:32px; background:rgba(16, 185, 129, 0.15); width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:12px;">💼</div>
-        <div>
-            <div style="font-size:12px; color:var(--admin-muted); font-weight:600; text-transform:uppercase;">Active Careers Tracked</div>
-            <div style="font-size:26px; font-weight:800; color:#fff;">{{ total_jobs }}</div>
-            <div style="font-size:11.5px; color:#38bdf8;">{{ active_jobs }} Active Jobs</div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="padding:20px; display:flex; align-items:center; gap:16px;">
-        <div style="font-size:32px; background:rgba(245, 158, 11, 0.15); width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:12px;">🌱</div>
-        <div>
-            <div style="font-size:12px; color:var(--admin-muted); font-weight:600; text-transform:uppercase;">CSR Projects Catalogued</div>
-            <div style="font-size:26px; font-weight:800; color:#fff;">{{ csr_projects_count }}</div>
-            <div style="font-size:11.5px; color:#fbbf24;">₹14,000+ Cr Social Capital</div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="padding:20px; display:flex; align-items:center; gap:16px;">
-        <div style="font-size:32px; background:rgba(168, 85, 247, 0.15); width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:12px;">📢</div>
-        <div>
-            <div style="font-size:12px; color:var(--admin-muted); font-weight:600; text-transform:uppercase;">Open Grant RFPs / EOIs</div>
-            <div style="font-size:26px; font-weight:800; color:#fff;">{{ open_opps_count }}</div>
-            <div style="font-size:11.5px; color:#c084fc;">Active NGO Calls</div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="padding:20px; display:flex; align-items:center; gap:16px;">
-        <div style="font-size:32px; background:rgba(239, 68, 68, 0.15); width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:12px;">📁</div>
-        <div>
-            <div style="font-size:12px; color:var(--admin-muted); font-weight:600; text-transform:uppercase;">Pending Documents</div>
-            <div style="font-size:26px; font-weight:800; color:#fff;">{{ pending_docs }}</div>
-            <div style="font-size:11.5px; color:#f87171;">Awaiting Audit Review</div>
-        </div>
-    </div>
-
-    <div class="admin-card" style="padding:20px; display:flex; align-items:center; gap:16px;">
-        <div style="font-size:32px; background:rgba(56, 189, 248, 0.15); width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:12px;">👥</div>
-        <div>
-            <div style="font-size:12px; color:var(--admin-muted); font-weight:600; text-transform:uppercase;">System Users</div>
-            <div style="font-size:26px; font-weight:800; color:#fff;">{{ users_count }}</div>
-            <div style="font-size:11.5px; color:#38bdf8;">{{ active_subscribers }} Active Subs</div>
-        </div>
-    </div>
-</div>
-
-<!-- PROTOTYPE BILLING METRICS -->
-<div class="admin-card" style="margin-bottom:28px; border:1px solid rgba(99, 102, 241, 0.3); background: linear-gradient(180deg, rgba(17, 23, 41, 0.95) 0%, rgba(12, 16, 26, 0.98) 100%);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--admin-border); padding-bottom:14px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:36px; height:36px; border-radius:8px; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; font-size:18px;">
-                💳
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="badge-status badge-active">● Active Telemetry</span>
+                <span style="font-size: 12px; color: var(--text-secondary);">National Section 135 &amp; Careers Registry</span>
             </div>
-            <div>
-                <h2 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">
-                    PROTOTYPE BILLING &amp; SUBSCRIPTION INTELLIGENCE
-                </h2>
-                <div style="font-size:12px; color:var(--admin-muted);">
-                    Simulated prototype ledger &bull; Integer paise accounting &bull; GST auto-compliance
-                </div>
-            </div>
-        </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px;">Manage Plans</a>
-            <a href="{% url 'admin_subscriptions:payments_list' %}" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px;">Payments</a>
-            <a href="{% url 'admin_subscriptions:wallets_list' %}" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px;">User Wallets</a>
-            <form method="POST" action="{% url 'admin_subscriptions:run_renewals' %}" style="margin:0;" onsubmit="return confirm('Run scheduled renewal engine now?');">
-                {% csrf_token %}
-                <button type="submit" class="btn-admin btn-admin-accent" style="font-size:12px; padding:6px 12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); color:#38bdf8;">
-                    Run Renewals Now
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Metrics Grid -->
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:16px;">
-        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--admin-border); border-radius:8px; padding:14px;">
-            <div style="font-size:11px; text-transform:uppercase; color:var(--admin-muted); font-weight:600;">Proto Revenue</div>
-            <div style="font-size:22px; font-weight:800; color:var(--admin-success); font-family:'JetBrains Mono',monospace; margin-top:4px;">
-                &#8377; {{ total_proto_revenue_inr|floatformat:0 }}
-            </div>
-            <div style="font-size:11px; color:#38bdf8; margin-top:2px;">{{ successful_payments }} Success Payments</div>
-        </div>
-
-        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--admin-border); border-radius:8px; padding:14px;">
-            <div style="font-size:11px; text-transform:uppercase; color:var(--admin-muted); font-weight:600;">Active Subscribers</div>
-            <div style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">
-                {{ active_subscribers }}
-            </div>
-            <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">
-                <span style="color:#a5b4fc;">{{ paid_subscribers }} Paid</span> &bull; {{ free_subscribers }} Free
-            </div>
-        </div>
-
-        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--admin-border); border-radius:8px; padding:14px;">
-            <div style="font-size:11px; text-transform:uppercase; color:var(--admin-muted); font-weight:600;">Total Wallet Balances</div>
-            <div style="font-size:22px; font-weight:800; color:#38bdf8; font-family:'JetBrains Mono',monospace; margin-top:4px;">
-                &#8377; {{ total_wallet_balance_inr|floatformat:0 }}
-            </div>
-            <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">Prototype Funds In-System</div>
-        </div>
-
-        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--admin-border); border-radius:8px; padding:14px;">
-            <div style="font-size:11px; text-transform:uppercase; color:var(--admin-muted); font-weight:600;">Auto-Renewals</div>
-            <div style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">
-                {{ active_auto_renewals }}
-            </div>
-            <div style="font-size:11px; color:var(--admin-success); margin-top:2px;">{{ upcoming_renewals_count }} Due This Week</div>
-        </div>
-
-        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--admin-border); border-radius:8px; padding:14px;">
-            <div style="font-size:11px; text-transform:uppercase; color:var(--admin-muted); font-weight:600;">Payment Health</div>
-            <div style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">
-                {{ successful_payments }}
-            </div>
-            <div style="font-size:11px; color:var(--admin-muted); margin-top:2px;">
-                <span style="color:#ef4444;">{{ failed_payments }} Failed</span> &bull; <span style="color:#f59e0b;">{{ refunded_payments }} Refunded</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ENTERPRISE DATA EXTRACTION & IMPORT CENTER -->
-<div class="admin-card" style="margin-bottom:32px; border:1px solid rgba(56, 189, 248, 0.25); background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(11, 17, 32, 0.95) 100%);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--admin-border); padding-bottom:14px;">
-        <div>
-            <h2 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 4px; display:flex; align-items:center; gap:8px;">
-                <span>⚡</span> <span>Enterprise Data Intelligence Exchange (Extract &amp; Import)</span>
+            <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">
+                Good day, {{ request.user.username|title }} — ESG Governance Console
             </h2>
-            <div style="font-size:12.5px; color:var(--admin-muted);">
-                Extract real, unadulterated database records or import validated datasets in CSV / JSON format with ACID transaction integrity.
+            <div style="font-size: 13.5px; color: var(--text-secondary);">
+                Active real-time index covering <strong>{{ total_companies }}</strong> NSE-listed corporations, <strong>{{ csr_projects_count }}</strong> statutory social initiatives, and <strong>{{ total_jobs }}</strong> corporate career positions.
             </div>
-        </div>
-        <div style="font-size:12px; color:var(--admin-accent); font-family:'JetBrains Mono',monospace;">
-            System Time: 2026-09-30 | Live DB Connected
-        </div>
-    </div>
-
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
-        <!-- Companies -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">🏢 Top 200 Companies</strong>
-                    <span class="badge-status badge-active">{{ total_companies }} Records</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">NSE symbols, CIN, verified websites, crawl status & confidence.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="companies" title="Enterprise Companies" %}
         </div>
 
-        <!-- Jobs -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">💼 Job Openings</strong>
-                    <span class="badge-status badge-active">{{ total_jobs }} Records</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">Cross-department listings, work modes, skills, application URLs.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="jobs" title="Job Openings" %}
-        </div>
-
-        <!-- CSR Opportunities -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">📢 CSR Opportunities</strong>
-                    <span class="badge-status badge-active">{{ open_opps_count }} Open</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">Statutory grant calls, partnership requirements, deadlines & portals.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="opportunities" title="CSR Opportunities" %}
-        </div>
-
-        <!-- CSR Projects -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">🌱 CSR Projects (500+)</strong>
-                    <span class="badge-status badge-active">{{ csr_projects_count }} Records</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">Section 135 social investments, budgets, locations & confidence.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="projects" title="CSR Projects" %}
-        </div>
-
-        <!-- User Accounts -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">👥 User Accounts</strong>
-                    <span class="badge-status badge-active">{{ users_count }} Users</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">Admin, Staff, NGO Representatives & Corporate Partner profiles.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="users" title="User Accounts" %}
-        </div>
-
-        <!-- Subscriptions -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">💎 Subscriptions &amp; GST</strong>
-                    <span class="badge-status badge-active">{{ total_subscriptions }} Tenants</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">B2B SaaS subscription tiers, billing cycles, GST calculations.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="subscriptions" title="Subscriptions" %}
-        </div>
-
-        <!-- Crawler Web Pages -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">🌐 Crawler Web Pages</strong>
-                    <span class="badge-status badge-active">{{ total_pages_crawled }} Pages</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">Indexed careers & CSR URLs, HTTP status codes, content hashes.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="pages" title="Crawled Web Pages" %}
-        </div>
-
-        <!-- Audit Trail -->
-        <div style="background:rgba(30,41,59,0.45); border:1px solid var(--admin-border); border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <strong style="color:#fff; font-size:14px;">📜 System Audit Trail</strong>
-                    <span class="badge-status badge-active">Immutable Log</span>
-                </div>
-                <div style="font-size:12px; color:var(--admin-muted);">Comprehensive audit events, data changes, actor roles & timestamps.</div>
-            </div>
-            {% include "admin/components/exchange_toolbar.html" with entity="audits" title="System Audit Trail" %}
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="{% url 'admin_jobs:find' %}" class="btn-admin btn-admin-primary">
+                <span>🔍 Find Jobs Discovery</span>
+            </a>
+            <a href="{% url 'admin_jobs:companies' %}" class="btn-admin btn-admin-secondary">
+                <span>🏢 Company Jobs</span>
+            </a>
+            <a href="{% url 'admin_portal:download_hub' %}" class="btn-admin btn-admin-secondary">
+                <span>📥 Data Hub</span>
+            </a>
         </div>
     </div>
 </div>
 
-<!-- 2 COLUMN LAYOUT: RECENT COMPANIES & RECENT AUDITS -->
-<div class="admin-dashboard-two-col">
-    <!-- RECENT AUDITS -->
-    <div class="admin-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h2 style="font-size:16px; font-weight:700; margin:0;">📜 Recent System Audit Trail</h2>
-            <a href="{% url 'admin_verification:audit_trail' %}" class="btn-admin btn-admin-secondary" style="font-size:11.5px;">View All &rarr;</a>
+<!-- 2. ALERTS / IMPORTANT ACTIONS (If pending items exist) -->
+{% if pending_docs > 0 or upcoming_renewals_count > 0 %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    {% if pending_docs > 0 %}
+    <div style="background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius-md); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">📁</span>
+            <div>
+                <strong style="color: #92400E; font-size: 13.5px;">{{ pending_docs }} Documents Pending Review</strong>
+                <div style="font-size: 12px; color: #B45309;">Statutory CSR filings awaiting administrative audit approval.</div>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Action</th>
-                        <th>User Role</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in recent_audits %}
-                    <tr>
-                        <td><strong>{{ a.record_type }}</strong></td>
-                        <td><span class="badge-status badge-active">{{ a.action }}</span></td>
-                        <td>{{ a.user_role|default:"System" }}</td>
-                        <td style="font-size:11.5px; color:var(--admin-muted);">{{ a.timestamp|slice:":19" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="4" style="text-align:center; color:var(--admin-muted);">No audit events recorded yet.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <a href="{% url 'admin_documents:list' %}" class="btn-admin btn-admin-secondary" style="font-size: 11.5px; padding: 4px 10px;">Review</a>
+    </div>
+    {% endif %}
+
+    {% if upcoming_renewals_count > 0 %}
+    <div style="background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--radius-md); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">⚡</span>
+            <div>
+                <strong style="color: #0369A1; font-size: 13.5px;">{{ upcoming_renewals_count }} Upcoming Subscriptions</strong>
+                <div style="font-size: 12px; color: #0284C7;">Institutional subscriptions renewing within the next 7 days.</div>
+            </div>
+        </div>
+        <a href="{% url 'admin_subscriptions:list' %}" class="btn-admin btn-admin-secondary" style="font-size: 11.5px; padding: 4px 10px;">Manage</a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- 3. TOP KPI CARDS WITH VISUAL HIERARCHY -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px;">
+    <!-- 1. Companies Monitored -->
+    <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(15, 118, 110, 0.1); color: var(--primary-brand); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+            🏢
+        </div>
+        <div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Monitored Companies</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ total_companies }}</div>
+            <div style="font-size: 11.5px; color: var(--success); font-weight: 600;">{{ verified_websites }} Official Sites</div>
         </div>
     </div>
 
-    <!-- RECENT MONITORED COMPANIES -->
-    <div class="admin-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h2 style="font-size:16px; font-weight:700; margin:0;">🏢 Monitored NSE Corporations</h2>
-            <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary" style="font-size:11.5px;">View All (200) &rarr;</a>
+    <!-- 2. Active Careers -->
+    <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(20, 184, 166, 0.12); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+            💼
         </div>
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Company</th>
-                        <th>Sector</th>
-                        <th>Crawl Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in recent_companies %}
-                    <tr>
-                        <td>
-                            <a href="{% url 'admin_companies:detail' c.company_id %}" style="color:#fff; text-decoration:none; font-weight:600;">
-                                {{ c.company_name }}
-                            </a>
-                            <div style="font-size:11px; color:var(--admin-muted);">{{ c.nse_symbol|default:"NSE" }}</div>
-                        </td>
-                        <td>{{ c.sector|default:"General" }}</td>
-                        <td><span class="badge-status badge-active">{{ c.crawl_status }}</span></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="3" style="text-align:center; color:var(--admin-muted);">No companies available.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Tracked Careers</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ total_jobs }}</div>
+            <div style="font-size: 11.5px; color: var(--primary-brand); font-weight: 600;">
+                <a href="{% url 'admin_jobs:find' %}" style="color: var(--primary-brand); text-decoration: none;">{{ active_jobs }} Active Jobs &rarr;</a>
+            </div>
         </div>
+    </div>
+
+    <!-- 3. CSR Projects Catalogued -->
+    <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(22, 163, 74, 0.1); color: var(--success); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+            🌱
+        </div>
+        <div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">CSR Projects</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ csr_projects_count }}</div>
+            <div style="font-size: 11.5px; color: var(--success); font-weight: 600;">Section 135 Disclosures</div>
+        </div>
+    </div>
+
+    <!-- 4. Open Grant RFPs -->
+    <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(217, 119, 6, 0.1); color: var(--warning); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+            📢
+        </div>
+        <div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Open Grants / RFPs</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ open_opps_count }}</div>
+            <div style="font-size: 11.5px; color: var(--warning); font-weight: 600;">Active NGO Calls</div>
+        </div>
+    </div>
+
+    <!-- 5. Subscribers & Platform Revenue -->
+    <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(124, 58, 237, 0.1); color: var(--ai-purple); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+            💳
+        </div>
+        <div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Platform Revenue</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.2; font-family: var(--font-mono);">
+                &#8377;{{ total_proto_revenue_inr|floatformat:0 }}
+            </div>
+            <div style="font-size: 11.5px; color: var(--ai-purple); font-weight: 600;">{{ active_subscribers }} Active Subscribers</div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. ANALYTICS & STATISTICAL BREAKDOWNS (2 COLUMNS) -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px;">
+    <!-- LEFT: CSR & Sector Intelligence -->
+    <div class="admin-card" style="margin-bottom: 0; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                🌱 Thematic CSR Allocation Areas
+            </h3>
+            <span class="badge-status badge-active">{{ csr_projects_count }} Projects</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+            {% for cause in top_causes %}
+            <div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                    <span style="color: var(--text-primary);">{{ cause.category }}</span>
+                    <span style="color: var(--text-secondary); font-family: var(--font-mono);">{{ cause.count }} Projects</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--bg-surface-subtle); border-radius: var(--radius-full); overflow: hidden;">
+                    <div style="height: 100%; width: {% widthratio cause.count csr_projects_count 100 %}%; background: linear-gradient(90deg, var(--primary-brand), var(--accent)); border-radius: var(--radius-full);"></div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="color: var(--text-muted); font-size: 13px;">No category statistics available.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Job Intelligence & Work Mode Breakdown -->
+    <div class="admin-card" style="margin-bottom: 0; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                💼 Employment Intelligence &amp; Work Modes
+            </h3>
+            <a href="{% url 'admin_jobs:find' %}" style="font-size: 12px; color: var(--primary-brand); font-weight: 600; text-decoration: none;">
+                Explore All Jobs &rarr;
+            </a>
+        </div>
+
+        <!-- Work Mode Metric Bars -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+            <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; text-align: center;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700;">On-site</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">{{ onsite_jobs }}</div>
+            </div>
+            <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; text-align: center;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700;">Hybrid</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--accent); margin-top: 2px;">{{ hybrid_jobs }}</div>
+            </div>
+            <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; text-align: center;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700;">Remote</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--success); margin-top: 2px;">{{ remote_jobs }}</div>
+            </div>
+        </div>
+
+        <!-- Top Sectors -->
+        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px;">
+            Corporate Hiring Activity By Industry
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% for s in top_sectors %}
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                <span style="color: var(--text-primary); font-weight: 600;">{{ s.sector }}</span>
+                <span class="badge-status badge-info">{{ s.count }} Enterprises</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- 5. TOP HIRING COMPANIES & RECENT OPPORTUNITIES (2 COLUMNS) -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px;">
+    <!-- Top Hiring Companies with Direct Link to Company Jobs -->
+    <div class="admin-card" style="margin-bottom: 0; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                🏢 Top Hiring Corporations
+            </h3>
+            <a href="{% url 'admin_jobs:companies' %}" style="font-size: 12px; color: var(--primary-brand); font-weight: 600; text-decoration: none;">
+                All Companies &rarr;
+            </a>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for comp in top_hiring_companies %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <div>
+                    <!-- Clickable Company -> Company Jobs Dashboard -->
+                    <a href="{% url 'admin_jobs:company_jobs' comp.company_id %}" style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); text-decoration: none;">
+                        {{ comp.company_name }}
+                    </a>
+                    <div style="font-size: 11.5px; color: var(--text-secondary);">{{ comp.sector|default:"Diversified" }}</div>
+                </div>
+                <a href="{% url 'admin_jobs:company_jobs' comp.company_id %}" class="btn-admin btn-admin-primary" style="padding: 4px 10px; font-size: 11.5px; text-decoration: none;">
+                    <span>{{ comp.job_count }} Openings &rarr;</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Opportunities / Grants -->
+    <div class="admin-card" style="margin-bottom: 0; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                📢 Active Grant RFPs &amp; EOIs
+            </h3>
+            <a href="{% url 'admin_opportunities:list' %}" style="font-size: 12px; color: var(--primary-brand); font-weight: 600; text-decoration: none;">
+                View All RFPs &rarr;
+            </a>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for opp in recent_opps %}
+            <div style="padding: 10px 14px; background: var(--bg-surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <strong style="font-size: 13.5px; color: var(--text-primary);">{{ opp.title }}</strong>
+                    <span class="badge-status badge-active">{{ opp.status }}</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between;">
+                    {% if opp.company %}
+                    <span>🏢 {{ opp.company.company_name }}</span>
+                    {% endif %}
+                    {% if opp.deadline %}
+                    <span>Deadline: {{ opp.deadline }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">
+                No open RFPs currently listed.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- 5.5 DATA QUALITY REPORTING -->
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
+        <div>
+            <h3 style="margin: 0 0 2px; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                📊 Data Quality Reporting
+            </h3>
+            <div style="font-size: 12px; color: var(--text-secondary);">
+                Track total records vs. verified, stale, broken, or unsourced statuses.
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div>
+            <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Jobs by Verification Status</h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for st in jobs_by_status %}
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <span style="color: var(--text-secondary);">{{ st.link_status|default:"UNVERIFIED" }}</span>
+                    <strong style="color: var(--text-primary);">{{ st.count }}</strong>
+                </div>
+                {% empty %}
+                <div style="font-size: 13px; color: var(--text-muted);">No job records found.</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div>
+            <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Companies by Crawl Status</h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for cst in companies_by_status %}
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <span style="color: var(--text-secondary);">{{ cst.crawl_status|default:"UNVERIFIED" }}</span>
+                    <strong style="color: var(--text-primary);">{{ cst.count }}</strong>
+                </div>
+                {% empty %}
+                <div style="font-size: 13px; color: var(--text-muted);">No company records found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. RECENT IMMUTABLE SYSTEM AUDIT TRAIL -->
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h3 style="margin: 0 0 2px; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                🛡️ Immutable System Governance &amp; Audit Trail
+            </h3>
+            <div style="font-size: 12px; color: var(--text-secondary);">
+                Every data transaction, crawl verification, and administrative mutation is timestamped and checksummed.
+            </div>
+        </div>
+        <a href="{% url 'admin_verification:audit_trail' %}" class="btn-admin btn-admin-secondary" style="font-size: 12px;">
+            View Complete Audit Log &rarr;
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Action</th>
+                    <th>Actor / Operator</th>
+                    <th>Target Entity</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in recent_audits %}
+                <tr>
+                    <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">#{{ a.audit_id }}</td>
+                    <td><strong style="color: var(--text-primary);">{{ a.action }}</strong></td>
+                    <td>{{ a.performed_by|default:"System Engine" }}</td>
+                    <td><span class="skill-pill">{{ a.target_entity }}</span></td>
+                    <td>
+                        <span class="badge-status {% if a.status == 'SUCCESS' %}badge-active{% else %}badge-pending{% endif %}">
+                            {{ a.status|default:"VERIFIED" }}
+                        </span>
+                    </td>
+                    <td style="text-align: right; font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);">
+                        {{ a.timestamp|default:"Live" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-secondary);">
+                        Audit engine initialized. All upcoming mutations will be recorded here.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

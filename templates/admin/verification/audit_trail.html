@@ -30,12 +30,12 @@
                 {% for a in page_obj %}
                 <tr>
                     <td><span class="badge-status badge-pending">{{ a.record_type }}</span></td>
-                    <td style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#fff;">{{ a.record_id }}</td>
-                    <td><strong style="color:var(--admin-accent);">{{ a.action }}</strong></td>
-                    <td style="font-size:12px; color:var(--admin-muted);">{{ a.previous_value|default:"—"|truncatechars:30 }}</td>
-                    <td style="font-size:12px; color:#fff;">{{ a.new_value|default:"—"|truncatechars:35 }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-primary); font-weight:600;">{{ a.record_id }}</td>
+                    <td><strong style="color:var(--primary-brand);">{{ a.action }}</strong></td>
+                    <td style="font-size:12px; color:var(--text-secondary);">{{ a.previous_value|default:"—"|truncatechars:30 }}</td>
+                    <td style="font-size:12px; color:var(--text-primary);">{{ a.new_value|default:"—"|truncatechars:35 }}</td>
                     <td><span class="badge-status badge-active">{{ a.user_role }}</span></td>
-                    <td style="font-size:12px; color:var(--admin-muted);">{{ a.timestamp|truncatechars:20 }}</td>
+                    <td style="font-size:12px; color:var(--text-secondary);">{{ a.timestamp|truncatechars:20 }}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No audit events recorded yet.</td></tr>
