@@ -13,6 +13,7 @@ import time
 import hashlib
 import urllib.parse
 import re
+import json
 import requests
 from bs4 import BeautifulSoup
 from django.utils import timezone
@@ -165,7 +166,8 @@ def save_job(company, job_data, content_hash, html_content, parser_used, now_iso
         return
 
     app_url = job_data.get('application_url') or ''
-    fingerprint = generate_fingerprint(title + app_url)
+    # Company-scoped fingerprint prevents unique collisions across conglomerate portals (e.g. Adani/Tata group)
+    fingerprint = generate_fingerprint(f"{company.company_id}_{title}_{app_url}")
     seen_fingerprints.add(fingerprint)
 
     # Base fields — only from job_data, never invented
@@ -175,6 +177,7 @@ def save_job(company, job_data, content_hash, html_content, parser_used, now_iso
         'team': job_data.get('team'),
         'business_unit': job_data.get('business_unit'),
         'job_family': job_data.get('job_family'),
+        'function': job_data.get('function'),
         'location': job_data.get('location'),
         'city': job_data.get('city'),
         'state': job_data.get('state'),
@@ -187,12 +190,19 @@ def save_job(company, job_data, content_hash, html_content, parser_used, now_iso
         'salary_min': job_data.get('salary_min'),
         'salary_max': job_data.get('salary_max'),
         'salary_currency': job_data.get('salary_currency'),
+        'pay_band': job_data.get('pay_band'),
         'job_description': job_data.get('job_description') or job_data.get('description'),
+        'role_purpose': job_data.get('role_purpose'),
         'responsibilities': job_data.get('responsibilities'),
+        'day_in_the_life': job_data.get('day_in_the_life'),
         'requirements': job_data.get('requirements'),
         'qualifications': job_data.get('qualifications'),
         'preferred_qualifications': job_data.get('preferred_qualifications'),
+        'technical_skills': job_data.get('technical_skills'),
+        'behavioural_skills': job_data.get('behavioural_skills'),
         'benefits': job_data.get('benefits'),
+        'employer_info': job_data.get('employer_info'),
+        'structured_details': job_data.get('structured_details'),
         'travel_required': job_data.get('travel_required'),
         'shift': job_data.get('shift'),
         'work_authorization': job_data.get('work_authorization'),
@@ -203,16 +213,30 @@ def save_job(company, job_data, content_hash, html_content, parser_used, now_iso
         'ats_platform': job_data.get('ats_platform'),
         'external_job_id': job_data.get('external_job_id'),
         'last_checked_date': now_iso,
-        'status': 'ACTIVE',
+        'status': 'INACTIVE',
         'verification_status': 'EXTRACTED',
         'retrieved_at': timezone.now(),
         'last_seen_at': timezone.now(),
         'data_provenance': f'Crawler ({parser_used.get_extraction_method()})',
-        'evidence_text': job_data.get('evidence_text', ''),
+        'evidence_text': json.dumps({
+            k: v for k, v in {
+                'title': title,
+                'department': job_data.get('department'),
+                'function': job_data.get('function'),
+                'location': job_data.get('location'),
+                'pay_band': job_data.get('pay_band'),
+                'salary': job_data.get('salary'),
+                'employment_type': job_data.get('employment_type'),
+                'external_id': job_data.get('external_job_id'),
+                'raw_evidence': (job_data.get('evidence_text') or '')[:1500]
+            }.items() if v is not None
+        }),
         'content_hash': content_hash,
         'extraction_method': parser_used.get_extraction_method(),
         'source_snapshot': html_content[:5000],
         'detail_fetched': job_data.get('detail_fetched', False),
+        'detail_fetch_status': job_data.get('detail_fetch_status', 'FETCHED' if job_data.get('detail_fetched') else 'NOT_FETCHED'),
+        'detail_fetched_at': now_iso if job_data.get('detail_fetched') else None,
     }
 
     resolved_source_url = (
@@ -224,10 +248,11 @@ def save_job(company, job_data, content_hash, html_content, parser_used, now_iso
     )
     defaults['source_url'] = resolved_source_url
 
-    existing = Job.objects.filter(fingerprint=fingerprint, company=company).first()
+    existing = Job.objects.filter(fingerprint=fingerprint).first()
     if existing:
         for field, value in defaults.items():
-            setattr(existing, field, value)
+            if value is not None or getattr(existing, field, None) is None:
+                setattr(existing, field, value)
         existing.save()
         if VerificationService.publish_record(existing, actor="CrawlerLifecycle"):
             CRAWL_TASK_STATE["stats"]["updated_jobs"] += 1
@@ -236,19 +261,22 @@ def save_job(company, job_data, content_hash, html_content, parser_used, now_iso
         else:
             summary.jobs_rejected += 1
     else:
-        new_job = Job(
-            job_id=f"JOB_{fingerprint[:8]}",
-            company=company,
-            fingerprint=fingerprint,
-            first_seen_at=timezone.now(),
-            **defaults
-        )
-        new_job.save()
-        if VerificationService.publish_record(new_job, actor="CrawlerLifecycle"):
-            CRAWL_TASK_STATE["stats"]["new_jobs"] += 1
-            summary.jobs_published += 1
-            summary.jobs_validated += 1
-        else:
+        try:
+            new_job = Job(
+                job_id=f"JOB_{company.company_id}_{fingerprint[:12]}",
+                company=company,
+                fingerprint=fingerprint,
+                first_seen_at=timezone.now(),
+                **defaults
+            )
+            new_job.save()
+            if VerificationService.publish_record(new_job, actor="CrawlerLifecycle"):
+                CRAWL_TASK_STATE["stats"]["new_jobs"] += 1
+                summary.jobs_published += 1
+                summary.jobs_validated += 1
+            else:
+                summary.jobs_rejected += 1
+        except Exception:
             summary.jobs_rejected += 1
 
 
@@ -293,6 +321,7 @@ def process_company(company):
     if summary.career_url_found:
         company.careers_url = summary.career_url_found
     company.save()
+    return summary
 
 
 def _process_careers(company, summary, seen_job_fingerprints, now_iso):
@@ -469,7 +498,9 @@ def _process_csr(company, summary, now_iso):
         company.foundation_url,
     ]))
 
-    if not csr_start_urls:
+    if not csr_start_urls and company.website_url:
+        csr_start_urls = [company.website_url]
+    elif not csr_start_urls:
         return
 
     all_csr_pages = set()
@@ -514,7 +545,15 @@ def _process_csr(company, summary, now_iso):
                     category=p.get('category'),
                     budget=p.get('budget'),
                     geographic_location=p.get('geographic_location'),
-                    evidence_text=p.get('evidence_text'),
+                    evidence_text=json.dumps({
+                        k: v for k, v in {
+                            'project_name': p['project_name'],
+                            'category': p.get('category'),
+                            'budget': p.get('budget'),
+                            'geographic_location': p.get('geographic_location'),
+                            'raw_evidence': (p.get('evidence_text') or '')[:1000]
+                        }.items() if v is not None
+                    }),
                     fingerprint=fp,
                     source_url=csr_final_url,
                     retrieved_at=timezone.now(),
@@ -589,7 +628,15 @@ def _process_csr(company, summary, now_iso):
                     description=proj.get('description'),
                     budget=proj.get('budget'),
                     geographic_location=proj.get('geographic_location'),
-                    evidence_text=proj.get('evidence_text'),
+                    evidence_text=json.dumps({
+                        k: v for k, v in {
+                            'project_name': proj['project_name'],
+                            'category': proj.get('category'),
+                            'budget': proj.get('budget'),
+                            'geographic_location': proj.get('geographic_location'),
+                            'raw_evidence': (proj.get('evidence_text') or '')[:1000]
+                        }.items() if v is not None
+                    }),
                     evidence_locator=proj.get('evidence_locator'),
                     fingerprint=fp,
                     source_url=pdf_url,

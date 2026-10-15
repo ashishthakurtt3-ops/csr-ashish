@@ -1,0 +1,330 @@
+[
+  {
+    "company_id": "COMP_TOP200_001",
+    "name": "Reliance Industries Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L93810MH1977PLC126225",
+    "new_cin": "L17110MH1973PLC019786",
+    "evidence": "Official RIL BRSR Report FY 2023-24 (General Disclosures A.1). Incorporated 1973."
+  },
+  {
+    "company_id": "COMP_TOP200_002",
+    "name": "HDFC Bank Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L55082MH2008PLC377370",
+    "new_cin": "L65920MH1994PLC080618",
+    "evidence": "Official HDFC Bank BRSR Report FY 2023-24 (Section A.1). Incorporated 1994."
+  },
+  {
+    "company_id": "COMP_TOP200_003",
+    "name": "ICICI Bank Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L99733MH1990PLC983794",
+    "new_cin": "L65190GJ1994PLC021012",
+    "evidence": "Official ICICI Bank BRSR Report FY 2023-24 (Section A.1). Incorporated in Gujarat 1994."
+  },
+  {
+    "company_id": "COMP_TOP200_004",
+    "name": "State Bank of India",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L30033MH2010PLC267753",
+    "new_cin": null,
+    "evidence": "State Bank of India Act, 1955 (Statutory Corporation; Not registered under Companies Act; No MCA CIN)."
+  },
+  {
+    "company_id": "COMP_TOP200_005",
+    "name": "Tata Consultancy Services Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L52487MH2001PLC120422",
+    "new_cin": "L22210MH1995PLC084781",
+    "evidence": "Official TCS BRSR Report FY 2023-24 (Section A.1). Incorporated 1995."
+  },
+  {
+    "company_id": "COMP_TOP200_006",
+    "name": "Bajaj Finance Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L92719MH1973PLC340062",
+    "new_cin": "L65910MH1987PLC042961",
+    "evidence": "Official Bajaj Finance BRSR FY 2023-24 (Section A.1). Incorporated 1987."
+  },
+  {
+    "company_id": "COMP_TOP200_007",
+    "name": "Larsen & Toubro Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L24322MH1985PLC300896",
+    "new_cin": "L99999MH1946PLC004768",
+    "evidence": "Official L&T BRSR Report FY 2023-24 (Section A.1). Incorporated 1946."
+  },
+  {
+    "company_id": "COMP_TOP200_008",
+    "name": "Life Insurance Corporation Of India",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L17492MH1973PLC712554",
+    "new_cin": "L66010MH1956GOI009807",
+    "evidence": "Official LIC BRSR Report FY 2023-24. Incorporated 1956."
+  },
+  {
+    "company_id": "COMP_TOP200_009",
+    "name": "Hindustan Unilever Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L19508MH1970PLC580547",
+    "new_cin": "L15140MH1933PLC002030",
+    "evidence": "Official HUL BRSR Report FY 2023-24 (Section A.1) and Annual Report 2023-24 (p. 344). Incorporated 17 Oct 1933."
+  },
+  {
+    "company_id": "COMP_TOP200_010",
+    "name": "Infosys Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L54942MH1983PLC820892",
+    "new_cin": "L85110KA1981PLC013115",
+    "evidence": "Official Infosys BRSR Report FY 2023-24 (Section A.1). Incorporated in Karnataka 1981."
+  },
+  {
+    "company_id": "COMP_TOP200_011",
+    "name": "Mahindra & Mahindra Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L63264MH2009PLC885884",
+    "new_cin": "L65990MH1945PLC004558",
+    "evidence": "Official M&M BRSR Report FY 2023-24 (Section A.1). Incorporated 1945."
+  },
+  {
+    "company_id": "COMP_TOP200_012",
+    "name": "Adani Power Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L76768MH1995PLC812526",
+    "new_cin": "L40100GJ1996PLC030533",
+    "evidence": "Official Adani Power BRSR Report FY 2023-24 (Section A.1). Incorporated in Gujarat 1996."
+  },
+  {
+    "company_id": "COMP_TOP200_013",
+    "name": "Adani Ports and Special Economic Zone Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L48752MH2005PLC233470",
+    "new_cin": "L63090GJ1998PLC034182",
+    "evidence": "Official APSEZ BRSR Report FY 2023-24 (Section A.1). Incorporated in Gujarat 1998."
+  },
+  {
+    "company_id": "COMP_TOP200_014",
+    "name": "HCL Technologies Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L92544MH2006PLC303880",
+    "new_cin": "L74140DL1991PLC046369",
+    "evidence": "Official HCLTech BRSR Report FY 2023-24 (Section A.1). Incorporated in Delhi 1991."
+  },
+  {
+    "company_id": "COMP_TOP200_015",
+    "name": "ITC Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L47450MH1985PLC384913",
+    "new_cin": "L16005WB1910PLC001985",
+    "evidence": "Official ITC BRSR Report FY 2023-24 (Section A.1). Incorporated in West Bengal 1910."
+  },
+  {
+    "company_id": "COMP_TOP200_016",
+    "name": "UltraTech Cement Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L80545MH2004PLC938722",
+    "new_cin": "L26940MH2000PLC128420",
+    "evidence": "Official UltraTech Cement BRSR Report FY 2023-24 (Section A.1). Incorporated 2000."
+  },
+  {
+    "company_id": "COMP_TOP200_017",
+    "name": "Adani Enterprises Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L59692MH1987PLC888539",
+    "new_cin": "L51100GJ1993PLC019067",
+    "evidence": "Official Adani Enterprises BRSR Report FY 2023-24 (Section A.1). Incorporated in Gujarat 1993."
+  },
+  {
+    "company_id": "COMP_TOP200_018",
+    "name": "NTPC Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L35995MH1974PLC720859",
+    "new_cin": "L40101DL1975GOI007966",
+    "evidence": "Official NTPC BRSR Report FY 2023-24 (Section A.1). Incorporated in Delhi 1975."
+  },
+  {
+    "company_id": "COMP_TOP200_019",
+    "name": "Hindustan Aeronautics Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L87656MH1987PLC437960",
+    "new_cin": "L35301KA1963GOI001622",
+    "evidence": "Official HAL BRSR Report FY 2023-24 (Section A.1). Incorporated in Karnataka 1963."
+  },
+  {
+    "company_id": "COMP_TOP200_020",
+    "name": "Bajaj Auto Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L94659MH2015PLC614663",
+    "new_cin": "L65993PN2007PLC130076",
+    "evidence": "Official Bajaj Auto BRSR Report FY 2023-24 (Section A.1). Incorporated in Pune 2007."
+  },
+  {
+    "company_id": "COMP_TOP200_021",
+    "name": "Bajaj Finserv Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L35105MH1983PLC874483",
+    "new_cin": "L65923PN2007PLC130075",
+    "evidence": "Official Bajaj Finserv BRSR Report FY 2023-24 (Section A.1). Incorporated in Pune 2007."
+  },
+  {
+    "company_id": "COMP_TOP200_022",
+    "name": "JSW Steel Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L49824MH1975PLC360247",
+    "new_cin": "L27102MH1994PLC152925",
+    "evidence": "Official JSW Steel BRSR Report FY 2023-24 (Section A.1). Incorporated 1994."
+  },
+  {
+    "company_id": "COMP_TOP200_023",
+    "name": "Oil & Natural Gas Corporation Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L91927MH2007PLC793300",
+    "new_cin": "L74899DL1993GOI054155",
+    "evidence": "Official ONGC BRSR Report FY 2023-24 (Section A.1). Incorporated in Delhi 1993."
+  },
+  {
+    "company_id": "COMP_TOP200_024",
+    "name": "Nestle India Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L21970MH1984PLC807053",
+    "new_cin": "L15202DL1959PLC003250",
+    "evidence": "Official Nestle India BRSR Report FY 2023-24 (Section A.1). Incorporated in Delhi 1959."
+  },
+  {
+    "company_id": "COMP_TOP200_026",
+    "name": "Bharat Electronics Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L75323MH2015PLC406039",
+    "new_cin": "L32309KA1954GOI000787",
+    "evidence": "Official BEL BRSR Report FY 2023-24 (Section A.1). Incorporated in Karnataka 1954."
+  },
+  {
+    "company_id": "COMP_TOP200_028",
+    "name": "Coal India Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L40771MH2010PLC817644",
+    "new_cin": "L23109WB1973GOI028844",
+    "evidence": "Official Coal India BRSR Report FY 2023-24 (Section A.1). Incorporated in West Bengal 1973."
+  },
+  {
+    "company_id": "COMP_TOP200_029",
+    "name": "Avenue Supermarts Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L86435MH1979PLC343467",
+    "new_cin": "L51900MH2000PLC126164",
+    "evidence": "Official Avenue Supermarts (DMart) BRSR Report FY 2023-24 (Section A.1). Incorporated 2000."
+  },
+  {
+    "company_id": "COMP_TOP200_030",
+    "name": "Power Grid Corporation of India Limited",
+    "action": "UPDATED_AUTHORITATIVE",
+    "old_cin": "L89482MH2001PLC973294",
+    "new_cin": "L40101DL1989GOI038121",
+    "evidence": "Official Power Grid BRSR Report FY 2023-24 (Section A.1). Incorporated in Delhi 1989."
+  },
+  {
+    "company_id": "COMP_TOP200_038",
+    "name": "Wipro Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L77154MH1977PLC461939",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_051",
+    "name": "Tech Mahindra Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L57381MH2002PLC335134",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_087",
+    "name": "Oracle Financial Services Software Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L70960MH1988PLC911102",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_097",
+    "name": "Dixon Technologies (India) Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L70956MH1986PLC337232",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_098",
+    "name": "Persistent Systems Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L35260MH1978PLC144748",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_160",
+    "name": "3i Infotech Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L49666MH1983PLC650607",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_162",
+    "name": "63 moons technologies limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L45527MH1979PLC838568",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_166",
+    "name": "AAA Technologies Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L10110MH2015PLC687234",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_170",
+    "name": "ACS Technologies Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L75004MH1996PLC907789",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_173",
+    "name": "AGS Transact Technologies Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L24212MH1979PLC666893",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_175",
+    "name": "AION-TECH SOLUTIONS LIMITED",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L80851MH2011PLC422679",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_190",
+    "name": "AXISCADES Technologies Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L51901MH1999PLC826959",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  },
+  {
+    "company_id": "COMP_TOP200_197",
+    "name": "Aartech Solonics Limited",
+    "action": "CLEARED_SYNTHETIC_CIN",
+    "old_cin": "L80848MH2004PLC118528",
+    "new_cin": null,
+    "reason": "Headquarters (Bengaluru / Hyderabad) mismatch with synthetic MH CIN."
+  }
+]

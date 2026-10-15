@@ -12,8 +12,10 @@ from .subscription import (
 )
 from .document import Document
 from .service import ServiceCatalog
+from .coverage import CompanyCompletenessRegister
 
 __all__ = [
+    'CompanyCompletenessRegister',
     'User',
     'VerifiableModel',
     'Company',

@@ -38,14 +38,21 @@ class Job(VerifiableModel):
     salary_min = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     salary_max = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     salary_currency = models.CharField(max_length=10, blank=True, null=True)
+    pay_band = models.CharField(max_length=120, blank=True, null=True)  # Source pay band/grade e.g. E4 to M2
 
     # Job content — extracted from detail page
     job_description = models.TextField(blank=True, null=True)
+    role_purpose = models.TextField(blank=True, null=True)
     responsibilities = models.TextField(blank=True, null=True)
+    day_in_the_life = models.TextField(blank=True, null=True)
     requirements = models.TextField(blank=True, null=True)
     qualifications = models.TextField(blank=True, null=True)
     preferred_qualifications = models.TextField(blank=True, null=True)
+    technical_skills = models.TextField(blank=True, null=True)
+    behavioural_skills = models.TextField(blank=True, null=True)
     benefits = models.TextField(blank=True, null=True)
+    employer_info = models.TextField(blank=True, null=True)
+    structured_details = models.JSONField(blank=True, null=True)
 
     # Work conditions
     travel_required = models.CharField(max_length=120, blank=True, null=True)
@@ -72,6 +79,7 @@ class Job(VerifiableModel):
     # Detail page fetch flag
     detail_fetched = models.BooleanField(default=False)
     detail_fetched_at = models.TextField(blank=True, null=True)
+    detail_fetch_status = models.CharField(max_length=50, default='NOT_FETCHED')  # NOT_FETCHED / FETCHED / EXTRACTION_FAILED / SOURCE_UNAVAILABLE
 
     class Meta:
         ordering = ['-last_checked_date', '-job_row_id']

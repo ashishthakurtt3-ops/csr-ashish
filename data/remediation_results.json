@@ -1,0 +1,29 @@
+{
+  "total_attempted": 749,
+  "successfully_enriched": 721,
+  "fetched_no_new_fields": 25,
+  "extraction_failed": 3,
+  "source_unavailable": 0,
+  "errors": 0,
+  "fields_updated": {
+    "closing_date": 277,
+    "city": 132,
+    "state": 217,
+    "employment_type": 315,
+    "job_description": 308,
+    "structured_details": 543,
+    "responsibilities": 199,
+    "qualifications": 173,
+    "education": 101,
+    "experience": 17,
+    "role_purpose": 29,
+    "technical_skills": 2,
+    "skills": 1,
+    "application_deadline": 146,
+    "department": 123,
+    "function": 65,
+    "employer_info": 28,
+    "work_mode": 5,
+    "behavioural_skills": 1
+  }
+}

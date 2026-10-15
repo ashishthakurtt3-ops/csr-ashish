@@ -54,7 +54,12 @@ def company_detail_view(request, company_id):
     job_mode = request.GET.get('job_mode', '').strip()
     job_page_num = request.GET.get('job_page', 1)
 
-    jobs_qs = company.jobs.all()
+    show_historical = request.GET.get('historical', '').lower() in ('true', '1')
+    if show_historical:
+        jobs_qs = company.jobs.all()
+    else:
+        jobs_qs = company.jobs.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])
+
     if job_q:
         jobs_qs = jobs_qs.filter(
             Q(job_title__icontains=job_q) |
@@ -72,17 +77,17 @@ def company_detail_view(request, company_id):
     jobs_paginator = Paginator(jobs_qs, 25)
     jobs_page_obj = jobs_paginator.get_page(job_page_num)
 
-    total_company_jobs = company.jobs.count()
-    active_jobs_count = company.jobs.filter(status='ACTIVE').count()
+    total_company_jobs = company.jobs.exclude(verification_status='LEGACY_UNVERIFIED').count()
+    active_jobs_count = company.jobs.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
 
-    # All CSR Projects
-    projects = list(company.csr_projects.all().order_by('-confidence', '-csr_id'))
+    # All CSR Projects (published & verified)
+    projects = list(company.csr_projects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).order_by('-confidence', '-csr_id'))
 
-    # All CSR Opportunities / Grants / RFPs
-    opportunities = list(company.open_opportunities.all().order_by('-confidence', '-opp_id'))
+    # All CSR Opportunities / Grants / RFPs (published & verified)
+    opportunities = list(company.open_opportunities.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED']).order_by('-confidence', '-opp_id'))
 
     # All Verified Corporate Contacts
-    contacts = list(company.contacts.all().order_by('-confidence', '-contact_id'))
+    contacts = list(company.contacts.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED']).order_by('-confidence', '-contact_id'))
 
     # Opportunity score
     score = getattr(company, 'score_record', None)

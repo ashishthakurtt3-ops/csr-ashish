@@ -39,13 +39,19 @@
                     NSE: {{ company.nse_symbol }}
                 </span>
                 {% endif %}
+                {% if verified_jobs_count > 0 %}
                 <span class="badge-status badge-active">
-                    {{ total_company_jobs }} Active Jobs Tracked
+                    {{ verified_jobs_count }} Verified Active Openings
                 </span>
+                {% else %}
+                <span class="badge-status badge-pending" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">
+                    0 Verified Openings
+                </span>
+                {% endif %}
             </div>
             <div style="font-size:13.5px; color:var(--text-secondary); display:flex; gap:16px; flex-wrap:wrap;">
                 <span>🏢 <strong>Industry:</strong> {{ company.sector|default:"Diversified" }}</span>
-                <span>📍 <strong>Location:</strong> {{ company.headquarters|default:"India" }}</span>
+                <span>📍 <strong>Headquarters:</strong> {{ company.headquarters|default:"India" }}</span>
                 {% if company.cin %}
                 <span style="font-family:var(--font-mono);">CIN: {{ company.cin }}</span>
                 {% endif %}
@@ -76,11 +82,31 @@
 <!-- JOBS INVENTORY HEADER & FILTERING -->
 <div class="admin-card" style="padding:22px; margin-bottom:24px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid var(--border-color); padding-bottom:14px; flex-wrap:wrap; gap:10px;">
-        <h3 style="margin:0; font-size:17px; font-weight:700; color:var(--text-primary);">
-            All Jobs ({{ total_company_jobs }})
-        </h3>
-        <div style="font-size:12.5px; color:var(--text-secondary);">
-            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ filtered_count }} openings
+        <div>
+            <h3 style="margin:0; font-size:17px; font-weight:700; color:var(--text-primary);">
+                Verified Active Openings ({{ verified_jobs_count }})
+            </h3>
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                {% if verified_jobs_count > 0 %}
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ filtered_count }} authentic openings
+                {% else %}
+                No live vacancies currently indexed on employer career site
+                {% endif %}
+            </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{% url 'admin_jobs:company_jobs' company.company_id %}"
+               class="btn-admin btn-admin-primary"
+               style="padding:6px 12px; font-size:12px;">
+                Verified Live Openings ({{ verified_jobs_count }})
+            </a>
+            {% if company.careers_url %}
+            <a href="{{ company.careers_url }}" target="_blank"
+               class="btn-admin btn-admin-secondary"
+               style="padding:6px 12px; font-size:12px;">
+                Visit Official Careers Site ↗
+            </a>
+            {% endif %}
         </div>
     </div>
 
@@ -199,29 +225,44 @@
     </div>
     {% empty %}
     <div class="empty-state">
-        {% if total_company_jobs == 0 and company.crawl_status == 'PENDING' %}
-            <div class="empty-state-icon">⏳</div>
-            <h3 class="empty-state-title">Crawl Pending for {{ company.company_name }}</h3>
-            <p class="empty-state-text">This company is registered in the master directory and queued for crawl. Trigger "Fetch Live Data" or wait for the background crawler to index its official career portal.</p>
-            {% if company.careers_url %}
-            <a href="{{ company.careers_url }}" target="_blank" class="btn-primary" style="margin-top:10px;">Visit Official Careers Portal ↗</a>
-            {% endif %}
-        {% elif total_company_jobs == 0 and company.crawl_status in 'FAILED BLOCKED REDIRECT_BLOCKED' %}
-            <div class="empty-state-icon">⚠️</div>
-            <h3 class="empty-state-title">Career Source Verification Pending / Blocked</h3>
-            <p class="empty-state-text">{{ company.company_name }}'s official career source returned an access restriction or connection timeout. Jobs are not currently verified.</p>
-            {% if company.careers_url %}
-            <a href="{{ company.careers_url }}" target="_blank" class="btn-primary" style="margin-top:10px;">Open Careers Portal Manually ↗</a>
-            {% endif %}
-        {% elif total_company_jobs == 0 and company.crawl_status == 'CRAWLED' %}
-            <div class="empty-state-icon">✅</div>
-            <h3 class="empty-state-title">0 Verified Openings Available</h3>
-            <p class="empty-state-text">The crawler completed inspection of {{ company.company_name }}'s verified career source ({{ company.careers_url|default:company.website_url }}) and confirmed zero active postings listed at this time.</p>
-        {% else %}
+        {% if not show_all and verified_jobs_count == 0 %}
+            <div class="empty-state-icon">🛡️</div>
+            <h3 class="empty-state-title">0 Live Verified Openings Indexed</h3>
+            <p class="empty-state-text" style="max-width:620px; margin:0 auto 16px; line-height:1.6;">
+                The platform strictly enforces a <strong>Zero-Fabrication Real-Data Mandate</strong>. {{ company.company_name }}'s official career portal currently has zero verified live job postings indexed.
+                {% if legacy_jobs_count > 0 %}
+                <br><span style="color:var(--text-muted); font-size:12px;">({{ legacy_jobs_count }} legacy synthetic mock records were quarantined into the audit archive to prevent displaying artificial data).</span>
+                {% endif %}
+            </p>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                {% if company.careers_url %}
+                <a href="{{ company.careers_url }}" target="_blank" class="btn-primary">Visit Official Careers Portal ↗</a>
+                {% endif %}
+                {% if legacy_jobs_count > 0 %}
+                <a href="{% url 'admin_jobs:company_jobs' company.company_id %}?show_all=true" class="btn-secondary">
+                    Inspect Quarantined Seed Records ({{ legacy_jobs_count }}) &rarr;
+                </a>
+                {% endif %}
+            </div>
+        {% elif q or location and location != 'all' or work_mode and work_mode != 'all' or experience and experience != 'all' or department and department != 'all' %}
             <div class="empty-state-icon">📋</div>
             <h3 class="empty-state-title">No Openings Match Selected Filters</h3>
             <p class="empty-state-text">No job openings found matching your criteria for {{ company.company_name }}. Try resetting your search filters.</p>
-            <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-primary">Reset Filters</a>
+            <a href="{% url 'admin_jobs:company_jobs' company.company_id %}{% if show_all %}?show_all=true{% endif %}" class="btn-primary">Reset Filters</a>
+        {% elif company.crawl_status in 'FAILED BLOCKED REDIRECT_BLOCKED' %}
+            <div class="empty-state-icon">⚠️</div>
+            <h3 class="empty-state-title">Career Source Verification Pending / Blocked</h3>
+            <p class="empty-state-text">{{ company.company_name }}'s official career source returned an access restriction or connection timeout. Live jobs could not be automatically extracted.</p>
+            {% if company.careers_url %}
+            <a href="{{ company.careers_url }}" target="_blank" class="btn-primary" style="margin-top:10px;">Open Careers Portal Manually ↗</a>
+            {% endif %}
+        {% else %}
+            <div class="empty-state-icon">📋</div>
+            <h3 class="empty-state-title">No Job Openings Available</h3>
+            <p class="empty-state-text">No job openings are currently listed for {{ company.company_name }}.</p>
+            {% if company.careers_url %}
+            <a href="{{ company.careers_url }}" target="_blank" class="btn-primary" style="margin-top:10px;">Visit Official Careers Portal ↗</a>
+            {% endif %}
         {% endif %}
     </div>
     {% endfor %}
@@ -233,11 +274,11 @@
     <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ filtered_count }} total jobs for {{ company.company_name }})</div>
     <div class="pagination-links">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}" class="page-link-btn">&larr; Prev</a>
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}{% if show_all %}&show_all=true{% endif %}" class="page-link-btn">&larr; Prev</a>
         {% endif %}
         <span class="page-link-btn active">{{ page_obj.number }}</span>
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}" class="page-link-btn">Next &rarr;</a>
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}{% if show_all %}&show_all=true{% endif %}" class="page-link-btn">Next &rarr;</a>
         {% endif %}
     </div>
 </div>

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
 from modules.admin_panel.models import (
@@ -14,8 +14,8 @@ from modules.admin_panel.models import (
 def admin_dashboard_view(request):
     total_companies = Company.objects.count()
     verified_websites = Company.objects.filter(website_url__isnull=False).count()
-    total_jobs = Job.objects.count()
-    active_jobs = Job.objects.filter(status='ACTIVE').count()
+    total_jobs = Job.objects.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
+    active_jobs = total_jobs
     csr_projects_count = CSRProject.objects.count()
     open_opps_count = CSROpportunity.objects.filter(status='OPEN').count()
     users_count = User.objects.count()
@@ -48,9 +48,12 @@ def admin_dashboard_view(request):
         .order_by('-count')[:5]
     )
 
-    # Top Hiring Companies
+    # Top Hiring Companies (Authentic verified active jobs only)
     top_hiring_companies = list(
-        Company.objects.annotate(job_count=Count('jobs'))
+        Company.objects.annotate(
+            job_count=Count('jobs', filter=Q(jobs__status='ACTIVE', jobs__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']))
+        )
+        .filter(job_count__gt=0)
         .order_by('-job_count')[:6]
     )
 

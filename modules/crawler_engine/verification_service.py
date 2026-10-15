@@ -27,7 +27,29 @@ class VerificationService:
         # 1. Job Title check
         if not job.job_title:
             return False, "Empty job title."
-        
+
+        # Check against interactive UI navigation defect patterns
+        title_lower = job.job_title.strip().lower()
+        ui_defect_patterns = [
+            'how to apply',
+            'discover more',
+            'faqs & support',
+            'review accommodations',
+            'upload resume',
+            'submit resume',
+            'know more',
+            'learn more',
+            'apply now',
+            'click here',
+            'view details',
+            'read more',
+            'search jobs',
+            'next >>',
+            'previous <<',
+        ]
+        if any(p == title_lower or p in title_lower for p in ui_defect_patterns):
+            return False, f"Job title '{job.job_title}' is an interactive UI navigation defect, not a genuine job opening."
+
         # Check title in evidence (case-insensitive substring or stripped)
         title_words = [w for w in job.job_title.lower().split() if len(w) > 3]
         if title_words:
@@ -46,11 +68,14 @@ class VerificationService:
 
         # 3. Salary check (if populated)
         if job.salary and job.salary.lower() not in ev_lower:
-            return False, f"Populated salary '{job.salary}' not found in source evidence."
+            job.salary = None
+            job.salary_min = None
+            job.salary_max = None
+            job.salary_currency = None
 
         # 4. Department check (if populated)
         if job.department and job.department.lower() not in ev_lower:
-            return False, f"Populated department '{job.department}' not found in source evidence."
+            job.department = None
 
         return True, "All populated fields verified against raw source evidence."
 
@@ -77,11 +102,11 @@ class VerificationService:
 
         # Budget check (if populated)
         if project.budget and project.budget.lower() not in ev_lower:
-            return False, f"Populated budget '{project.budget}' not found in source evidence."
+            project.budget = None
 
         # Location check (if populated)
         if project.geographic_location and project.geographic_location.lower() not in ev_lower:
-            return False, f"Populated location '{project.geographic_location}' not found in source evidence."
+            project.geographic_location = None
 
         return True, "CSR project fields verified against source evidence."
 
@@ -97,10 +122,13 @@ class VerificationService:
         ev_lower = contact.evidence_text.lower()
 
         if contact.email and contact.email.lower() not in ev_lower:
-            return False, f"Email '{contact.email}' not found in source evidence."
+            contact.email = None
 
         if contact.phone and contact.phone.lower() not in ev_lower:
-            return False, f"Phone '{contact.phone}' not found in source evidence."
+            contact.phone = None
+
+        if not contact.email and not contact.phone:
+            return False, "Neither email nor phone found in source evidence."
 
         return True, "Contact information verified against source evidence."
 
@@ -128,6 +156,8 @@ class VerificationService:
         else:
             record.verification_status = 'REJECTED'
             record.verification_reason = reason
+            if hasattr(record, 'status'):
+                record.status = 'INACTIVE'
             record.save()
             return False
 
@@ -169,6 +199,8 @@ class VerificationService:
             record.verification_status = 'PUBLISHED'
             if hasattr(record, 'link_status'):
                 record.link_status = 'PUBLISHED'
+            if hasattr(record, 'status'):
+                record.status = 'ACTIVE'
             record.save()
 
             AuditTrail.objects.create(

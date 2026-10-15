@@ -1,0 +1,932 @@
+[951] (COMP_TOP200_199) Title: Sustainability & ESG Initiatives in Chemical Manufacturing | Aarti Industries
+     Cat: Sustainability & ESG | Bud: None | Loc: None | State: None
+     URL: https://www.aarti-industries.com/sustainability
+
+[952] (COMP_TOP200_199) Title: Environmental Leadership in Speciality Chemicals Manufacturing
+     Cat: Sustainability & ESG | Bud: None | Loc: None | State: None
+     URL: https://www.aarti-industries.com/sustainability/environment
+
+[953] (COMP_TOP200_199) Title: Occupational Health, Safety & Employee Well-Being
+     Cat: Sustainability & ESG | Bud: None | Loc: None | State: None
+     URL: https://www.aarti-industries.com/sustainability/social-health-and-safety
+
+[954] (COMP_TOP200_199) Title: Responsible Supply Chain and Sustainable Procurement
+     Cat: Sustainability & ESG | Bud: None | Loc: None | State: None
+     URL: https://www.aarti-industries.com/sustainability/responsible-supply-chain
+
+[999] (COMP_TOP200_040) Title: Area Of Initiatives
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.sbilife.co.in/about-us/csr
+
+[1010] (COMP_TOP200_048) Title: We strengthen the communities we operate in, and they strengthen us.
+     Cat: Women & Inclusive Growth | Bud: None | Loc: None | State: None
+     URL: https://www.cummins.com/en-in/company/esg/social
+
+[1012] (COMP_TOP200_048) Title: We recognize the power of diversity, equity and inclusion both inside and outside the company.
+     Cat: Women & Inclusive Growth | Bud: None | Loc: None | State: None
+     URL: https://www.cummins.com/en-in/company/esg/social
+
+[1014] (COMP_TOP200_048) Title: We strive for integrity and follow the law everywhere
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.cummins.com/en-in/company/esg/governance
+
+[1015] (COMP_TOP200_048) Title: We recognize and support fundamental human rights
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.cummins.com/en-in/company/esg/governance
+
+[1016] (COMP_TOP200_049) Title: SHIKSHA KENDRA SCHOOL FOR UNDERPRIVILEGED CHILDREN
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.varunbeverages.com/sustainability/
+
+[1028] (COMP_TOP200_051) Title: The Terra Carta Seal
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/about-us/sustainability/
+
+[1032] (COMP_TOP200_051) Title: Carbon Disclosure Project (CDP) 2024
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/about-us/sustainability/
+
+[1035] (COMP_TOP200_051) Title: Businessworld The Sustainable World Conclave 2025
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/about-us/sustainability/
+
+[1037] (COMP_TOP200_051) Title: FTSE4Good Index Series
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/about-us/sustainability/
+
+[1038] (COMP_TOP200_051) Title: From Vision to Strategy
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1039] (COMP_TOP200_051) Title: Blueprint for Change
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1040] (COMP_TOP200_051) Title: Seamless Execution, Impactful Results
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1041] (COMP_TOP200_051) Title: Intelligence that Drives Efficiency
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1042] (COMP_TOP200_051) Title: Transparency That Builds Trust
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1043] (COMP_TOP200_051) Title: ESG Data Management
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1044] (COMP_TOP200_051) Title: Carbon Neutrality Roadmap
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1045] (COMP_TOP200_051) Title: Data Vendor Feed & Domain Consulting
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1047] (COMP_TOP200_051) Title: Double Materiality
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.techmahindra.com/services/sustainability-services/
+
+[1058] (COMP_TOP200_058) Title: 60.33%renewable energy adoption, 52% green commute fleet
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1059] (COMP_TOP200_058) Title: 97.21%waste recycled. Reduced landfill waste by 82%
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1060] (COMP_TOP200_058) Title: 2.8×water positivity. Delivered 58% freshwater reduction
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1061] (COMP_TOP200_058) Title: 94%facilities certified for ISO 14001 & ISO 45001
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1067] (COMP_TOP200_058) Title: Watershed development renews 600 acres of farmlands in Beed, Maharashtra
+     Cat: Environmental Stewardship | Bud: None | Loc: Maharashtra | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1068] (COMP_TOP200_058) Title: 200 household toilets help restore dignity for 500 residents of Surgana, Nashik
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: Maharashtra | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1069] (COMP_TOP200_058) Title: Community service centre eases access to government schemes in Gujarat
+     Cat: Education & Skill Building | Bud: None | Loc: Gujarat | State: None
+     URL: https://www.ltm.com/services/esg
+
+[1073] (COMP_TOP200_063) Title: The Apollo Foundation
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.apollohospitals.com/corporate-social-responsibility
+
+[1074] (COMP_TOP200_063) Title: Total Health
+     Cat: Education & Skill Building | Bud: None | Loc: Karnataka | State: None
+     URL: https://www.apollohospitals.com/corporate-social-responsibility
+
+[1075] (COMP_TOP200_063) Title: Billion Hearts Beating
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: Karnataka | State: None
+     URL: https://www.apollohospitals.com/corporate-social-responsibility
+
+[1076] (COMP_TOP200_063) Title: SACHi
+     Cat: Corporate Social Responsibility | Bud: None | Loc: Tamil Nadu | State: None
+     URL: https://www.apollohospitals.com/corporate-social-responsibility
+
+[1077] (COMP_TOP200_064) Title: Bosch Limited CSR Projects FY2023-24 S
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.bosch.in/media/our_company/corporate_social_responsibility/bosch_limited_csr_projects_fy2023-24.pdf
+
+[1078] (COMP_TOP200_066) Title: Environmental Impact
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.lodhagroup.com/esg-sustainablity-environmental-social-governance
+
+[1080] (COMP_TOP200_066) Title: SBTi validated Net-Zero Targets
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.lodhagroup.com/esg-sustainablity-environmental-social-governance
+
+[1081] (COMP_TOP200_066) Title: FTSE4Good Index Series
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lodhagroup.com/esg-sustainablity-environmental-social-governance
+
+[1083] (COMP_TOP200_066) Title: Building A Sustainable Future: The Need For Greener Supply Chains In The Real…
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.lodhagroup.com/esg-sustainablity-environmental-social-governance
+
+[1084] (COMP_TOP200_066) Title: Building Green Homes: Planet Over Profit
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.lodhagroup.com/esg-sustainablity-environmental-social-governance
+
+[1085] (COMP_TOP200_066) Title: Embodied carbon in high rise buildings - Insights from a baselining study
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.lodhagroup.com/esg-sustainablity-environmental-social-governance
+
+[1089] (COMP_TOP200_156) Title: List of CSR projects 360 ONE WAM Limited FY 2025-26 Sr
+     Cat: Education & Literacy | Bud: None | Loc: Maharashtra | State: None
+     URL: https://s3.ap-south-1.amazonaws.com/x-web-s3.360.one/200226_FY_25_CSR_Projects_Approved_by_Hold_Co_Board_WAM_3be67a255c.pdf
+
+[1091] (COMP_TOP200_157) Title: 3B BLACKBIO DX LIMITED Regd
+     Cat: Healthcare & Sanitation | Bud: None | Loc: None | State: None
+     URL: https://3bblackbio.com/cimages/CSR%20Policy%20-%20New.pdf
+
+[1093] (COMP_TOP200_157) Title: Modes of implementation Sl
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://3bblackbio.com/cimages/CSR%20Policy%20-%20New.pdf
+
+[1097] (COMP_TOP200_171) Title: 1 Annual Action Plan for CSR activities/projects/programs for F
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://adf-foods.com/wp-content/uploads/2025/05/CSR-Annual-Action-Plan-FY-2025-26.pdf
+
+[1107] (COMP_TOP200_179) Title: Making a lasting impact on communities
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://andhrapaper.com/apl-csr-new/
+
+[1111] (COMP_TOP200_180) Title: Performance Snapshot and Key Highlights Net Zero Commitment We have committed to become net zero by 2050
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://media.aplapollo.com/files/ESG_REPORT.pdf
+
+[1113] (COMP_TOP200_184) Title: Our Initiatives
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1114] (COMP_TOP200_184) Title: AU Ignite
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1115] (COMP_TOP200_184) Title: AU Bano Champion
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1116] (COMP_TOP200_184) Title: AU Udyogini
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1117] (COMP_TOP200_184) Title: AU Kartavya
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1118] (COMP_TOP200_184) Title: Our Efforts are Being Recognised
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1121] (COMP_TOP200_184) Title: Green Parrot, Social & Environment concerns
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.au.bank.in/csr
+
+[1123] (COMP_TOP200_186) Title: CNG, LNG & Electric Fleets
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://avglogistics.com/sustainability-esg
+
+[1124] (COMP_TOP200_186) Title: Tree Plantation Drives
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://avglogistics.com/sustainability-esg
+
+[1125] (COMP_TOP200_186) Title: Tech-Driven Efficiency
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://avglogistics.com/sustainability-esg
+
+[1126] (COMP_TOP200_186) Title: Increased Transparency & Trust
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://avglogistics.com/sustainability-esg
+
+[1127] (COMP_TOP200_186) Title: Eco-Friendly Warehousing
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://avglogistics.com/sustainability-esg
+
+[1134] (COMP_TOP200_138) Title: International Presence
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.alkemlabs.com/sustainability/csr
+
+[1142] (COMP_TOP200_138) Title: Contents Introduction Introduction
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://admin.alkemlabs.com/uploads/Sustainability_Report_2024_25_19da116339.pdf
+
+[1146] (COMP_TOP200_093) Title: Rural Safe Drinking Water Systems
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.aurobindo.com/sustainability/aurobindo-foundation
+
+[1147] (COMP_TOP200_093) Title: Responsible Manufacturing
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.aurobindo.com/sustainability
+
+[1149] (COMP_TOP200_101) Title: Inclusive & Equitable Economy
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1150] (COMP_TOP200_101) Title: Thriving Community
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1151] (COMP_TOP200_101) Title: Healthier Planet
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1152] (COMP_TOP200_101) Title: ESG Commitments
+     Cat: Education & Skill Building | Bud: rs, | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1155] (COMP_TOP200_101) Title: Sustainable Financing Framework
+     Cat: Environmental Stewardship | Bud: rs, | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1156] (COMP_TOP200_101) Title: ESG Policy for Lending
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1158] (COMP_TOP200_101) Title: Read the Bank's Sustainability Disclosures
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/csr
+
+[1159] (COMP_TOP200_101) Title: Zero balance account with flexible services:
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/corporate/custodial-capital-account/unspent-csr-account-services
+
+[1160] (COMP_TOP200_101) Title: Instant account opening:
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/corporate/custodial-capital-account/unspent-csr-account-services
+
+[1161] (COMP_TOP200_101) Title: Chequebook facilities:
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/corporate/custodial-capital-account/unspent-csr-account-services
+
+[1163] (COMP_TOP200_101) Title: Internet banking/digital platforms to transact:
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.axis.bank.in/corporate/custodial-capital-account/unspent-csr-account-services
+
+[1170] (COMP_TOP200_020) Title: Bajaj Auto Limited, Akurdi, Pune 411 035, India
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.bajajauto.com/-/media/bajaj-auto/corporate-social-responsibility/bal---csr-projects---fy2021-2022-final.pdf
+
+[1174] (COMP_TOP200_064) Title: Bosch Limited CSR Projects FY2021-22 S
+     Cat: Healthcare & Sanitation | Bud: rs, | Loc: None | State: None
+     URL: https://www.bosch.in/media/our_company/corporate_social_responsibility/bosch_limited_csr_projects_fy2021-22.pdf
+
+[1178] (COMP_TOP200_136) Title: S&P Global Sustainability
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1179] (COMP_TOP200_136) Title: National Energy Conservation
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1181] (COMP_TOP200_136) Title: 50% GHG Scope 1 & 2 Emission Reduction by 2035
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1182] (COMP_TOP200_136) Title: 60% Emission Intensity Reduction Per Unit Sales by 2035
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1183] (COMP_TOP200_136) Title: Ecolabel Certification for Representative Product by 2030
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1184] (COMP_TOP200_136) Title: Design for Sustainability (DFS) Program Drive
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1186] (COMP_TOP200_136) Title: Infrastructure and Facilities
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1187] (COMP_TOP200_136) Title: Business Supply Chain
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.crompton.co.in/pages/esg-page
+
+[1200] (COMP_TOP200_142) Title: Community Health Program
+     Cat: Education & Skill Building | Bud: rs, | Loc: Uttar Pradesh | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1201] (COMP_TOP200_142) Title: Research in Healthcare at IIMA
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1202] (COMP_TOP200_142) Title: Health Education in Schools
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1203] (COMP_TOP200_142) Title: Life-skills for Differently Abled Children
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1204] (COMP_TOP200_142) Title: Support to Underprivileged Community
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1205] (COMP_TOP200_142) Title: Support During COVID-19
+     Cat: Corporate Social Responsibility | Bud: Rs 70 | Loc: Assam | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1206] (COMP_TOP200_142) Title: Strengthening Primary Health Care Delivery Services
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.lalpathlabs.com/csr
+
+[1221] (COMP_TOP200_014) Title: Our ESG Focus Areas
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1222] (COMP_TOP200_014) Title: Our three guiding principles:
+     Cat: Education & Skill Building | Bud: rs, | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1228] (COMP_TOP200_014) Title: Pact with clients
+     Cat: Education & Skill Building | Bud: INR 95.75 crore | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1229] (COMP_TOP200_014) Title: Pact with societies and communities
+     Cat: Education & Skill Building | Bud: INR 95.75 crore | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1231] (COMP_TOP200_014) Title: Pact with partners
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1232] (COMP_TOP200_014) Title: The Climate Pledge –
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1234] (COMP_TOP200_014) Title: ESG data and disclosures
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1235] (COMP_TOP200_014) Title: Recognised by TIME Magazine as one of the World’s Most Sustainable Companies 2025
+     Cat: Environmental Stewardship | Bud: rs, | Loc: None | State: None
+     URL: https://www.hcltech.com/sustainability
+
+[1236] (COMP_TOP200_014) Title: Digital Foundation Services is Not a Collection of Capabilities
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1237] (COMP_TOP200_014) Title: Continuous automation. Absolute control
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1238] (COMP_TOP200_014) Title: Zero fragmentation — by design
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1239] (COMP_TOP200_014) Title: Resilience is not a feature. It’s engineered
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1240] (COMP_TOP200_014) Title: Enterprises were not designed to pause. Neither do we.
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1241] (COMP_TOP200_014) Title: Measured in experience, not systems
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1242] (COMP_TOP200_014) Title: One Foundation. Delivered Through Many Capabilities.
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1244] (COMP_TOP200_014) Title: Next-Gen Networks
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1246] (COMP_TOP200_014) Title: Digital Workplace
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1247] (COMP_TOP200_014) Title: Unified Service Management
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1248] (COMP_TOP200_014) Title: Platform-Based Services
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1249] (COMP_TOP200_014) Title: When the Foundation is Built Right, Outcomes Follow — Always
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1250] (COMP_TOP200_014) Title: Leading Multi-Asset Exchange
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.hcltech.com/digital-foundation
+
+[1253] (COMP_TOP200_002) Title: Driving ESG through Structured Governance Framework
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hdfc.bank.in/esg
+
+[1254] (COMP_TOP200_135) Title: Our Initiatives
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://havells.com/corporate/csr/csr-overview
+
+[1256] (COMP_TOP200_135) Title: Havells Product Range Is Radioactive Free
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://havells.com/corporate/sustainability/sustainability-overview
+
+[1257] (COMP_TOP200_135) Title: Health & Nutrition
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://havells.com/corporate/csr/health-nutrition
+
+[1258] (COMP_TOP200_135) Title: Project Baala : Sensitization towards behavior change
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://havells.com/corporate/csr/sanitation
+
+[1262] (COMP_TOP200_124) Title: Children’s well-being and education
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1263] (COMP_TOP200_124) Title: Sustainable livelihoods and skilling
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1265] (COMP_TOP200_124) Title: Healthcare, water and sanitation
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1266] (COMP_TOP200_124) Title: Sports and culture
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1267] (COMP_TOP200_124) Title: Environment and safety
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1268] (COMP_TOP200_124) Title: Animal welfare and community development
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1269] (COMP_TOP200_124) Title: Explore the many ways we are making an impact
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/csr/overview
+
+[1270] (COMP_TOP200_124) Title: Health and safety
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/sustainability/overview
+
+[1271] (COMP_TOP200_124) Title: Learn more about Hindustan Zinc
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/sustainability/our-sustainability-framework
+
+[1280] (COMP_TOP200_003) Title: Watch how ICICI Bank has created positive impact on the environment and society
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.icici.bank.in/about-us/esg
+
+[1281] (COMP_TOP200_003) Title: 34.37 bn litres
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.icicifoundation.org/
+
+[1286] (COMP_TOP200_117) Title: Livelihood Programs
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=CSR
+
+[1287] (COMP_TOP200_117) Title: Education Programs
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=CSR
+
+[1288] (COMP_TOP200_117) Title: Karma FIRST Donation Programs
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=CSR
+
+[1289] (COMP_TOP200_117) Title: Lend A Shoulder Volunteering Programs
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=CSR
+
+[1291] (COMP_TOP200_117) Title: IDFC FIRST Bank MBA Scholarship
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1293] (COMP_TOP200_117) Title: Engineering Scholarship
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1294] (COMP_TOP200_117) Title: M.A. Economics Scholarship
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1295] (COMP_TOP200_117) Title: — Abhishek Tukaram Sontakke, MBA Scholar 25-27
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1296] (COMP_TOP200_117) Title: — Sonali, MA Economics Scholar 25-27
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1297] (COMP_TOP200_117) Title: Watch to learn about Ek Prayaas Program in Karnataka & WB
+     Cat: Corporate Social Responsibility | Bud: None | Loc: Karnataka | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1298] (COMP_TOP200_117) Title: Ek Prayaas Program: Its conception and impact in India
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1299] (COMP_TOP200_117) Title: A glimpse on how Kamyaab Scholarship is making a difference
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.idfcfirst.bank.in/csr-activities/educational-initiatives?utm_source=website&utm_medium=L1TheBankESG&utm_campaign=Education
+
+[1315] (COMP_TOP200_131) Title: Interior wall paints
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.nerolac.com/sustainability.html
+
+[1316] (COMP_TOP200_131) Title: Exterior Wall Paints
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.nerolac.com/sustainability.html
+
+[1318] (COMP_TOP200_131) Title: Metal enamel paints
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.nerolac.com/sustainability.html
+
+[1319] (COMP_TOP200_131) Title: Paint ancillary
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.nerolac.com/sustainability.html
+
+[1321] (COMP_TOP200_131) Title: Hygine care range
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.nerolac.com/sustainability.html
+
+[1329] (COMP_TOP200_081) Title: Waste Management
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1330] (COMP_TOP200_081) Title: Water Management
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1332] (COMP_TOP200_081) Title: Diversity and Inclusion
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1333] (COMP_TOP200_081) Title: Employee Volunteering
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1334] (COMP_TOP200_081) Title: Employee Well-Being
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1335] (COMP_TOP200_081) Title: Supplier Sustainability
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1337] (COMP_TOP200_081) Title: Product Launches
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1338] (COMP_TOP200_081) Title: Patient Assistance Programs
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1339] (COMP_TOP200_081) Title: Education and Awareness Initiatives
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.lupin.com/sustainability
+
+[1340] (COMP_TOP200_128) Title: Marico’s Sustainability Program Proﬁle Marico’s sustainability goals are not just environmental targets
+     Cat: Environmental Sustainability | Bud: None | Loc: None | State: None
+     URL: https://sustainability.marico.com/pdfs/Marico_Sustainability_Program_Profile.pdf
+
+[1341] (COMP_TOP200_128) Title: On June 5th, 2022, the 50th anniversary of World Environment Day, Marico launched its sustainability vision for 2030
+     Cat: Environmental Sustainability | Bud: None | Loc: None | State: None
+     URL: https://sustainability.marico.com/pdfs/Marico_Sustainability_Program_Profile.pdf
+
+[1342] (COMP_TOP200_143) Title: Dr. Sushil Shah
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.metropolisindia.com/aboutus#csr
+
+[1343] (COMP_TOP200_143) Title: Ms. Ameera Shah
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.metropolisindia.com/aboutus#csr
+
+[1344] (COMP_TOP200_143) Title: Building the Foundations for Growth
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.metropolisindia.com/aboutus#csr
+
+[1345] (COMP_TOP200_143) Title: Scaling Capabilities for Expansion
+     Cat: Corporate Social Responsibility | Bud: None | Loc: Kerala | State: None
+     URL: https://www.metropolisindia.com/aboutus#csr
+
+[1346] (COMP_TOP200_143) Title: Strengthening Leadership through Reach
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.metropolisindia.com/aboutus#csr
+
+[1347] (COMP_TOP200_143) Title: Accelerating Growth through Science & Innovation
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.metropolisindia.com/aboutus#csr
+
+[1349] (COMP_TOP200_123) Title: OIL's Social Footprints
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.oil-india.com/csr-projects
+
+[1351] (COMP_TOP200_132) Title: Dear Shareholders,
+     Cat: Environmental Stewardship | Bud: rs, | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-esg
+
+[1352] (COMP_TOP200_132) Title: Responsibility, Built Into the Business
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-esg
+
+[1355] (COMP_TOP200_132) Title: Mid- Day Meal Program - Akshaya Patra Foundation
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1356] (COMP_TOP200_132) Title: PAGE HealthCare Initiatives - Heart Surgeries
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1357] (COMP_TOP200_132) Title: PAGE HealthCare Initiatives - Advanced Life Support Ambulance Vehicles
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1358] (COMP_TOP200_132) Title: PAGE HealthCare Initiatives - Medical Equipments
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1359] (COMP_TOP200_132) Title: PAGE EduCare Program
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1360] (COMP_TOP200_132) Title: Free - Education @ Christel House India
+     Cat: Education & Skill Building | Bud: None | Loc: Karnataka | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1361] (COMP_TOP200_132) Title: PAGE scholarship program
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://pageind.com/pages/sustainability-csr
+
+[1363] (COMP_TOP200_061) Title: Corporate Social Responsibility Practice” for the second time in a row
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://pnb.bank.in/document/csr-activities/Reports2010-11.pdf
+
+[1370] (COMP_TOP200_153) Title: Featured Capabilities
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.siemens.com/en-gb/products/sustaira-sustainability-disclosures-and-reporting-solution/
+
+[1371] (COMP_TOP200_103) Title: Further, the Company has a Policy on remuneration of Directors, Key Managerial Personnel and other Employees
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://sunpharma.com/wp-content/uploads/2023/07/SPIL-AR2022-23-Boards-Report-and-Corporate-Governance.pdf
+
+[1376] (COMP_TOP200_078) Title: Want to find out more?
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.diageoindia.com/en/esg/spirit-of-progress-plan
+
+[1377] (COMP_TOP200_078) Title: Our Spirit of Progress targets
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.diageoindia.com/en/esg/spirit-of-progress-plan
+
+[1380] (COMP_TOP200_078) Title: Champion Inclusion & Diversity
+     Cat: Environmental Stewardship | Bud: rs, | Loc: None | State: None
+     URL: https://www.diageoindia.com/en/esg/promote-positive-drinking
+
+[1381] (COMP_TOP200_078) Title: Pioneer grain-to-glass sustainability
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.diageoindia.com/en/esg/promote-positive-drinking
+
+[1382] (COMP_TOP200_078) Title: Doing business therightway
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.diageoindia.com/en/esg/promote-positive-drinking
+
+[1392] (COMP_TOP200_009) Title: Corporate Affairs and Issues
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/communications-corporate-affairs-and-sustainability
+
+[1399] (COMP_TOP200_034) Title: Grasim Sustainability Data book FY 20-21 Sr
+     Cat: Environmental Sustainability | Bud: None | Loc: None | State: None
+     URL: https://www.grasim.com/Upload/PDF/grasim-sustainability-data-book-fy-2020-21.pdf
+
+[1400] (COMP_TOP200_033) Title: adani --- -- Renewables Document No
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.adanigreenenergy.com/-/media/Project/GreenEnergy/Corporate-Governance/Policy/Biodiversity-Policy.pdf
+
+[1406] (COMP_TOP200_013) Title: 2 Contents Preface
+     Cat: Skill Development & Livelihoods | Bud: None | Loc: None | State: None
+     URL: https://www.adaniports.com/-/media/project/ports/sustainability/apsez_-information-memorandum-on-esg.pdf
+
+[1411] (COMP_TOP200_061) Title: 12 Embroidery, Computer courses etc
+     Cat: Rural Development | Bud: Rs. 1 crore | Loc: Uttar Pradesh | State: None
+     URL: https://pnb.bank.in/document/csr-activities/PNB_CSR.pdf
+
+[1412] (COMP_TOP200_064) Title: Bosch Limited CSR Projects FY2022-23 S
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.bosch.in/media/our_company/corporate_social_responsibility/bosch_limited_csr_projects_fy2022-23.pdf
+
+[1421] (COMP_TOP200_095) Title: Corporate Office - One Skymark, Tower-D, Plot No
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://paytm.com/document/ir/csr/CSR-projects-for-FY-27.pdf
+
+[1424] (COMP_TOP200_082) Title: ESG Performance Highlights
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.ambujacement.com/sustainability
+
+[1437] (COMP_TOP200_124) Title: HINDUSTAN ZINC Policy on Diversity Equity and Inclusion 1
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.hzlindia.com/uploads/Policy_on_Diversity_Equity_and_Inclusion_upd2025_bb9f37c166.pdf
+
+[1441] (COMP_TOP200_146) Title: CSR Projects for FY 2024-25 Info Edge India Ltd
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://www.infoedge.in/pdfs/CSR-Projects-FY2024-25.pdf
+
+[1442] (COMP_TOP200_146) Title: supported is called The Second Innings: Career incubator for sportsperson with disabilities
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.infoedge.in/pdfs/CSR-Projects-FY2024-25.pdf
+
+[1448] (COMP_TOP200_192) Title: Transparency and Disclosures Compliances 25
+     Cat: Environmental Sustainability | Bud: rs, | Loc: None | State: None
+     URL: https://prodwebsite-static.aadharhousing.com/s3/investor_relations_assets/AHFL%20BRSR%20FY%202025-26_0.pdf
+
+[1451] (COMP_TOP200_192) Title: Disclosure Questions P 1 P 2 P 3 P 4 P 5 P 6 P 7 P 8 P 9 Policy and management processes 1
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://prodwebsite-static.aadharhousing.com/s3/investor_relations_assets/AHFL%20BRSR%20FY%202025-26_0.pdf
+
+[1454] (COMP_TOP200_200) Title: AARTI PHARMALABS LIMITED ENVIRONMENT POLICY DOCUMENT NUMBER:APL/P0L/05/00 Effective From 01/04/2024 1
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://www.aartipharmalabs.com/files/environmente-policy.pdf
+
+[1455] (COMP_TOP200_169) Title: ESG Performance Highlights
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.acclimited.com/sustainability
+
+[1458] (COMP_TOP200_169) Title: Material Issues for Enterprise Value Creation
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.acclimited.com/sustainability/materiality-assessment
+
+[1460] (COMP_TOP200_169) Title: Impacts Identified
+     Cat: Environmental Stewardship | Bud: None | Loc: None | State: None
+     URL: https://www.acclimited.com/sustainability/materiality-assessment
+
+[1461] (COMP_TOP200_169) Title: Key Performance Indicators
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.acclimited.com/sustainability/materiality-assessment
+
+[1471] (COMP_TOP200_020) Title: 2 Bajaj Auto Limited (K In Crore) Sr
+     Cat: Education & Literacy | Bud: rs 0.94 | Loc: Maharashtra | State: None
+     URL: https://www.bajajauto.com/-/media/bajaj-auto/corporate-social-responsibility/bal_csr_final_for_web_2016.pdf
+
+[1472] (COMP_TOP200_020) Title: 7 d) Environment JBGVS programmes focus on five major aspects, i
+     Cat: Education & Literacy | Bud: None | Loc: Maharashtra | State: None
+     URL: https://www.bajajauto.com/-/media/bajaj-auto/corporate-social-responsibility/bal_csr_final_for_web_2016.pdf
+
+[1473] (COMP_TOP200_009) Title: L.I.M.E & FinAce Access(For B-School)
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1474] (COMP_TOP200_009) Title: TechTonic Access(For Tech-School)
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1475] (COMP_TOP200_009) Title: Explore Our Brands
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1476] (COMP_TOP200_009) Title: Immersive Workshop
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1477] (COMP_TOP200_009) Title: Build Your Network
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1478] (COMP_TOP200_009) Title: Tell Us About Yourself
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1479] (COMP_TOP200_009) Title: We Review Your Application
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1480] (COMP_TOP200_009) Title: Gamified Assessment
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1481] (COMP_TOP200_009) Title: Show Us Your Potential
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1482] (COMP_TOP200_009) Title: Join Foundation School
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://careers.unilever.com/en/early-careers-india-2026
+
+[1486] (COMP_TOP200_041) Title: R E C O M M E N D A T I O N S ( 1 / 2 ) 1
+     Cat: Education & Literacy | Bud: None | Loc: Assam | State: None
+     URL: https://www.hyundai.com/content/dam/hyundai/in/en/data/hyundai-story/csr/impact-assessment-2026.pdf
+
+[1487] (COMP_TOP200_045) Title: CSR Activities Area as per Sch VII of the Act Location D
+     Cat: Education & Literacy | Bud: None | Loc: Gujarat | State: None
+     URL: https://www.torrentpharma.com/docs/CSR_Activities_FY_2025_26_587ce97038.pdf
+
+[1490] (COMP_TOP200_052) Title: Sustaining Growth
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.bhel.com/sites/default/files/BHEL%20Annual%20Report%202010-11.pdf
+
+[1492] (COMP_TOP200_074) Title: Synergy for Green energy 6 NOTES 1
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://gailebank.gail.co.in/InvestorsZone/AnnualReports/38thAGMNotice.pdf
+
+[1493] (COMP_TOP200_042) Title: Case Study Sustainability - People
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.motherson.com/storage/Sustainability/people/pdfs/Case Study_People_India.pdf
+
+[1494] (COMP_TOP200_042) Title: Case Study Sustainability - People Empowering Communities Through Digital Education in India 2 1
+     Cat: Education & Literacy | Bud: None | Loc: None | State: None
+     URL: https://www.motherson.com/storage/Sustainability/people/pdfs/Case Study_People_India.pdf
+
+[1496] (COMP_TOP200_081) Title: Statement Number: DNV-2026-ASR-874964 Page 1 of 5 DNV Headquarters, Veritasveien 1, P
+     Cat: Environmental Sustainability | Bud: rs, | Loc: None | State: None
+     URL: https://www.lupin.com/uploads/Independent_Assurance_Statement_BRSR_80d091e841.pdf
+
+[1499] (COMP_TOP200_118) Title: mechanisms and other incidental and ancillary aspects relating to the CSR projects
+     Cat: Education & Literacy | Bud: rs, | Loc: None | State: None
+     URL: https://webassets.rbl.bank.in/document/Social%20Responsibility%20Policy/csr-policy-rbl-bank.pdf
+
+[1503] (COMP_TOP200_125) Title: Catalysing Economic Growth
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1504] (COMP_TOP200_125) Title: Tomorrow Makers
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1505] (COMP_TOP200_125) Title: India Included
+     Cat: Education & Skill Building | Bud: rs, | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1506] (COMP_TOP200_125) Title: Tomorrow Grants
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1507] (COMP_TOP200_125) Title: What theatre knows: From the rehearsal room into the world
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1508] (COMP_TOP200_125) Title: Foundation for Economic Development
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1509] (COMP_TOP200_125) Title: Agami
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1510] (COMP_TOP200_125) Title: Teach for India
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1511] (COMP_TOP200_125) Title: Avanti Fellows
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1512] (COMP_TOP200_125) Title: SEARCH
+     Cat: Healthcare & Community Well-being | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1513] (COMP_TOP200_125) Title: Prosperiti
+     Cat: Corporate Social Responsibility | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1514] (COMP_TOP200_125) Title: Jaljeevika
+     Cat: Rural & Community Empowerment | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1515] (COMP_TOP200_125) Title: Dakshana
+     Cat: Education & Skill Building | Bud: None | Loc: None | State: None
+     URL: https://www.godrejfoundation.com/
+
+[1517] (COMP_TOP200_126) Title: The year was also marked by an important milestone in Dabur’s manufacturing and growth journey
+     Cat: Healthcare & Sanitation | Bud: rs 3 | Loc: Tamil Nadu | State: None
+     URL: https://www.dabur.com/digital-annual-report-2025-26/reports/dabur-mda.pdf
+
+[1518] (COMP_TOP200_063) Title: 1 BUSINESS RESPONSIBILITY & SUSTAINABILITY REPORTING SECTION A: GENERAL DISCLOSURES I
+     Cat: Healthcare & Sanitation | Bud: Rs. 719 Million | Loc: None | State: None
+     URL: https://www.apollohospitals.com/sites/default/files/2025-03/brsr_fy2024.pdf
+

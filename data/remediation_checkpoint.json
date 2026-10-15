@@ -1,0 +1,7181 @@
+{
+  "processed": {
+    "5982": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:18.619803+00:00"
+    },
+    "5988": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:18.636791+00:00"
+    },
+    "5986": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:18.650876+00:00"
+    },
+    "5984": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:18.663101+00:00"
+    },
+    "5985": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:18.675626+00:00"
+    },
+    "5989": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:19.356305+00:00"
+    },
+    "5990": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.013090+00:00"
+    },
+    "5991": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.056627+00:00"
+    },
+    "5994": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:20.072544+00:00"
+    },
+    "5992": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.089470+00:00"
+    },
+    "5995": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.105138+00:00"
+    },
+    "5993": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.115893+00:00"
+    },
+    "5996": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.949074+00:00"
+    },
+    "5997": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.962053+00:00"
+    },
+    "5998": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:20.985616+00:00"
+    },
+    "6000": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:21.715010+00:00"
+    },
+    "6001": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:21.726803+00:00"
+    },
+    "5999": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:21.742025+00:00"
+    },
+    "6002": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:22.519911+00:00"
+    },
+    "6004": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:22.534382+00:00"
+    },
+    "6003": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:22.549169+00:00"
+    },
+    "6005": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:22.562401+00:00"
+    },
+    "6006": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:22.573801+00:00"
+    },
+    "6007": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:22.586012+00:00"
+    },
+    "6010": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:23.330786+00:00"
+    },
+    "6008": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:23.342843+00:00"
+    },
+    "6009": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:23.355630+00:00"
+    },
+    "6011": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.124196+00:00"
+    },
+    "6012": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.135666+00:00"
+    },
+    "6013": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.148596+00:00"
+    },
+    "6014": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.928078+00:00"
+    },
+    "6016": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.939345+00:00"
+    },
+    "6021": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.953317+00:00"
+    },
+    "6015": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.971905+00:00"
+    },
+    "6023": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.983653+00:00"
+    },
+    "6022": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:24.995921+00:00"
+    },
+    "6025": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:25.776741+00:00"
+    },
+    "6024": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:25.803070+00:00"
+    },
+    "6027": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:25.950943+00:00"
+    },
+    "6026": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:25.966815+00:00"
+    },
+    "6028": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:27.851633+00:00"
+    },
+    "6032": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:27.863539+00:00"
+    },
+    "6029": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:27.876650+00:00"
+    },
+    "6033": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:27.889086+00:00"
+    },
+    "6030": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:27.900903+00:00"
+    },
+    "6031": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:27.914831+00:00"
+    },
+    "6036": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:29.284676+00:00"
+    },
+    "6034": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:29.296765+00:00"
+    },
+    "6037": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:29.308527+00:00"
+    },
+    "6039": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:29.322012+00:00"
+    },
+    "6038": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:29.332930+00:00"
+    },
+    "6040": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:29.346812+00:00"
+    },
+    "6048": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:30.703465+00:00"
+    },
+    "6049": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:30.717305+00:00"
+    },
+    "6046": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:30.737023+00:00"
+    },
+    "6044": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:30.749603+00:00"
+    },
+    "6050": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:30.760948+00:00"
+    },
+    "6051": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:30.775060+00:00"
+    },
+    "6055": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:32.213139+00:00"
+    },
+    "6053": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:32.227347+00:00"
+    },
+    "6056": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:32.238967+00:00"
+    },
+    "6057": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:32.252595+00:00"
+    },
+    "6058": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:32.265560+00:00"
+    },
+    "6054": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:32.279734+00:00"
+    },
+    "6059": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:33.030805+00:00"
+    },
+    "6060": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:33.051014+00:00"
+    },
+    "6062": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:33.067261+00:00"
+    },
+    "6061": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:33.089361+00:00"
+    },
+    "6064": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:33.282655+00:00"
+    },
+    "6063": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:33.374532+00:00"
+    },
+    "6066": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:34.332731+00:00"
+    },
+    "6065": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:34.346680+00:00"
+    },
+    "6068": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:34.440658+00:00"
+    },
+    "6069": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:34.454669+00:00"
+    },
+    "6070": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:34.889652+00:00"
+    },
+    "6072": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:34.906356+00:00"
+    },
+    "6073": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:35.532087+00:00"
+    },
+    "6074": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:35.564751+00:00"
+    },
+    "6076": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:35.979644+00:00"
+    },
+    "6075": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:35.992870+00:00"
+    },
+    "6079": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:38.234952+00:00"
+    },
+    "6081": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:38.252590+00:00"
+    },
+    "6082": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:38.265227+00:00"
+    },
+    "6080": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:38.279193+00:00"
+    },
+    "6077": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:38.293482+00:00"
+    },
+    "6078": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:38.307045+00:00"
+    },
+    "6085": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:39.406010+00:00"
+    },
+    "6083": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:39.421824+00:00"
+    },
+    "6087": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:39.442832+00:00"
+    },
+    "6086": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:39.458644+00:00"
+    },
+    "6084": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:39.472784+00:00"
+    },
+    "6088": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:39.498893+00:00"
+    },
+    "6091": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:41.246429+00:00"
+    },
+    "6090": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:41.278422+00:00"
+    },
+    "6094": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:41.316285+00:00"
+    },
+    "6095": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:41.418928+00:00"
+    },
+    "6089": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:41.433871+00:00"
+    },
+    "6093": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:42.123052+00:00"
+    },
+    "6096": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:42.177697+00:00"
+    },
+    "6098": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:42.979302+00:00"
+    },
+    "6097": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:43.012765+00:00"
+    },
+    "6100": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:43.040964+00:00"
+    },
+    "6099": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:43.056656+00:00"
+    },
+    "6102": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:43.070688+00:00"
+    },
+    "6103": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:43.759673+00:00"
+    },
+    "6104": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:44.444616+00:00"
+    },
+    "6107": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:44.457743+00:00"
+    },
+    "6105": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:44.469548+00:00"
+    },
+    "6106": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:44.577882+00:00"
+    },
+    "6108": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:44.700838+00:00"
+    },
+    "6109": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:14:44.812423+00:00"
+    },
+    "6110": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:45.540860+00:00"
+    },
+    "6111": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:46.166191+00:00"
+    },
+    "6112": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:46.176781+00:00"
+    },
+    "6113": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:46.189713+00:00"
+    },
+    "6115": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:46.202961+00:00"
+    },
+    "6114": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:46.251674+00:00"
+    },
+    "6116": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:47.033825+00:00"
+    },
+    "6117": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:47.046491+00:00"
+    },
+    "6118": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:47.074142+00:00"
+    },
+    "6120": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:49.050564+00:00"
+    },
+    "6119": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:49.070884+00:00"
+    },
+    "6121": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:49.085021+00:00"
+    },
+    "6122": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:49.098069+00:00"
+    },
+    "6123": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:49.111854+00:00"
+    },
+    "6124": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:49.125084+00:00"
+    },
+    "6125": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:50.367875+00:00"
+    },
+    "6127": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:50.382237+00:00"
+    },
+    "6130": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:50.395825+00:00"
+    },
+    "6128": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:50.407717+00:00"
+    },
+    "6129": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:50.419395+00:00"
+    },
+    "6126": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:50.512064+00:00"
+    },
+    "6132": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:51.810830+00:00"
+    },
+    "6133": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:51.831029+00:00"
+    },
+    "6134": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:51.848958+00:00"
+    },
+    "6135": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:51.862887+00:00"
+    },
+    "6143": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:51.876966+00:00"
+    },
+    "6144": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "closing_date",
+        "city",
+        "state",
+        "employment_type",
+        "job_description"
+      ],
+      "timestamp": "2026-10-13T12:14:51.922051+00:00"
+    },
+    "6154": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "city",
+        "state",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:14:52.858282+00:00"
+    },
+    "6230": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:55.096654+00:00"
+    },
+    "6231": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:55.123116+00:00"
+    },
+    "6232": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:55.137074+00:00"
+    },
+    "6229": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:55.234086+00:00"
+    },
+    "6233": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:55.822310+00:00"
+    },
+    "6239": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:56.510685+00:00"
+    },
+    "6241": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:56.523205+00:00"
+    },
+    "6243": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:56.727394+00:00"
+    },
+    "6234": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:57.371768+00:00"
+    },
+    "6244": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:57.390858+00:00"
+    },
+    "6240": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:58.051270+00:00"
+    },
+    "6242": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:58.068331+00:00"
+    },
+    "6247": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:58.082698+00:00"
+    },
+    "6253": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:59.454733+00:00"
+    },
+    "6248": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:14:59.466879+00:00"
+    },
+    "6249": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:00.695619+00:00"
+    },
+    "6251": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:00.739857+00:00"
+    },
+    "6250": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:00.751029+00:00"
+    },
+    "6252": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:00.763027+00:00"
+    },
+    "6254": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:02.246170+00:00"
+    },
+    "6255": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:03.131026+00:00"
+    },
+    "6257": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:05.711947+00:00"
+    },
+    "6256": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:05.728137+00:00"
+    },
+    "6259": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:05.740188+00:00"
+    },
+    "6262": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:06.948392+00:00"
+    },
+    "6261": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:08.084103+00:00"
+    },
+    "6260": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:09.174520+00:00"
+    },
+    "6265": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:09.195659+00:00"
+    },
+    "6264": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:09.210698+00:00"
+    },
+    "6258": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:10.232563+00:00"
+    },
+    "6266": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:10.244395+00:00"
+    },
+    "6263": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:10.257616+00:00"
+    },
+    "6269": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:11.292611+00:00"
+    },
+    "6267": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:12.352245+00:00"
+    },
+    "6270": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:12.364084+00:00"
+    },
+    "6271": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:12.410550+00:00"
+    },
+    "6268": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:12.421228+00:00"
+    },
+    "6273": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:12.433006+00:00"
+    },
+    "6272": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:13.492037+00:00"
+    },
+    "6274": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:13.506357+00:00"
+    },
+    "6276": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:13.520623+00:00"
+    },
+    "6275": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:13.537976+00:00"
+    },
+    "6277": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:14.359233+00:00"
+    },
+    "6279": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:14.374733+00:00"
+    },
+    "6280": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:15.402351+00:00"
+    },
+    "6281": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:15.418841+00:00"
+    },
+    "6282": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:15.436130+00:00"
+    },
+    "6278": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:16.389647+00:00"
+    },
+    "6283": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:16.403304+00:00"
+    },
+    "6289": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:17.271078+00:00"
+    },
+    "6286": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:18.240827+00:00"
+    },
+    "6288": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:19.028153+00:00"
+    },
+    "6290": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:19.041153+00:00"
+    },
+    "6285": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:19.054024+00:00"
+    },
+    "6287": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:19.068683+00:00"
+    },
+    "6304": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:20.710577+00:00"
+    },
+    "6297": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:20.827299+00:00"
+    },
+    "6301": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:20.844518+00:00"
+    },
+    "6306": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:21.617486+00:00"
+    },
+    "6302": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:22.450905+00:00"
+    },
+    "6295": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:25.039012+00:00"
+    },
+    "6318": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:28.246216+00:00"
+    },
+    "6317": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:28.260148+00:00"
+    },
+    "6316": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:28.273232+00:00"
+    },
+    "6310": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:28.285233+00:00"
+    },
+    "6315": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:29.134063+00:00"
+    },
+    "6308": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:29.145976+00:00"
+    },
+    "6321": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:29.260467+00:00"
+    },
+    "6320": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:30.830551+00:00"
+    },
+    "6325": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:30.846160+00:00"
+    },
+    "6328": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:31.633790+00:00"
+    },
+    "6322": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:31.649141+00:00"
+    },
+    "6319": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:32.455590+00:00"
+    },
+    "6334": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:32.472087+00:00"
+    },
+    "6340": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:32.487227+00:00"
+    },
+    "6341": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:33.120947+00:00"
+    },
+    "6342": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:33.147458+00:00"
+    },
+    "6345": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:34.040417+00:00"
+    },
+    "6329": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:34.279774+00:00"
+    },
+    "6346": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:35.132987+00:00"
+    },
+    "6347": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:35.462688+00:00"
+    },
+    "6348": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:35.890653+00:00"
+    },
+    "6351": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:36.220880+00:00"
+    },
+    "6353": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:36.853134+00:00"
+    },
+    "6354": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:37.154058+00:00"
+    },
+    "6362": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:37.887594+00:00"
+    },
+    "6356": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:37.904362+00:00"
+    },
+    "6355": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:38.547307+00:00"
+    },
+    "6364": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:15:39.216431+00:00"
+    },
+    "6363": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:39.228387+00:00"
+    },
+    "6373": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:39.924451+00:00"
+    },
+    "6352": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:40.007665+00:00"
+    },
+    "6365": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:40.019083+00:00"
+    },
+    "6381": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:40.032007+00:00"
+    },
+    "6383": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:40.719949+00:00"
+    },
+    "6385": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:40.739400+00:00"
+    },
+    "6392": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:42.332133+00:00"
+    },
+    "6386": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:42.455660+00:00"
+    },
+    "6390": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:42.466722+00:00"
+    },
+    "6391": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:43.882788+00:00"
+    },
+    "6393": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:52.564641+00:00"
+    },
+    "6402": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:57.003654+00:00"
+    },
+    "6403": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:57.036678+00:00"
+    },
+    "6394": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:57.051131+00:00"
+    },
+    "6395": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:57.064756+00:00"
+    },
+    "6400": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:57.079631+00:00"
+    },
+    "6406": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:57.884416+00:00"
+    },
+    "6411": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:59.620512+00:00"
+    },
+    "6419": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:15:59.704101+00:00"
+    },
+    "6407": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:00.468271+00:00"
+    },
+    "6415": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:00.480471+00:00"
+    },
+    "6421": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:01.121883+00:00"
+    },
+    "6413": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:01.591267+00:00"
+    },
+    "6426": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:01.602236+00:00"
+    },
+    "6417": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:02.117990+00:00"
+    },
+    "6427": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:16:02.203403+00:00"
+    },
+    "6429": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:03.137586+00:00"
+    },
+    "6428": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:16:04.153207+00:00"
+    },
+    "7112": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:04.165160+00:00"
+    },
+    "7115": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:05.924384+00:00"
+    },
+    "7113": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:05.939485+00:00"
+    },
+    "7116": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:05.952096+00:00"
+    },
+    "7117": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:05.968654+00:00"
+    },
+    "7118": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:06.122679+00:00"
+    },
+    "7114": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:07.215009+00:00"
+    },
+    "7119": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:07.225130+00:00"
+    },
+    "7121": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:08.440516+00:00"
+    },
+    "7122": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:08.452530+00:00"
+    },
+    "7123": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:08.463768+00:00"
+    },
+    "7124": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:09.483695+00:00"
+    },
+    "7120": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:09.507700+00:00"
+    },
+    "7126": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:10.487793+00:00"
+    },
+    "7125": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:10.500026+00:00"
+    },
+    "7127": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:11.484560+00:00"
+    },
+    "7128": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:11.500717+00:00"
+    },
+    "7130": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:11.518067+00:00"
+    },
+    "7131": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:12.658345+00:00"
+    },
+    "7132": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:12.673287+00:00"
+    },
+    "7133": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:12.686735+00:00"
+    },
+    "7134": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:13.569923+00:00"
+    },
+    "7129": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:30.323331+00:00"
+    },
+    "7138": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:33.872418+00:00"
+    },
+    "7139": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:33.886439+00:00"
+    },
+    "7137": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:33.966745+00:00"
+    },
+    "7135": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:33.980488+00:00"
+    },
+    "7136": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:34.864271+00:00"
+    },
+    "7140": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:34.881252+00:00"
+    },
+    "7141": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:35.790397+00:00"
+    },
+    "7144": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:35.804530+00:00"
+    },
+    "7145": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:35.817016+00:00"
+    },
+    "7147": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:37.188005+00:00"
+    },
+    "7143": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:37.202673+00:00"
+    },
+    "7142": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:37.214826+00:00"
+    },
+    "7148": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:37.228565+00:00"
+    },
+    "7146": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:37.241529+00:00"
+    },
+    "7151": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:38.730604+00:00"
+    },
+    "7153": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:38.742527+00:00"
+    },
+    "7149": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:38.754938+00:00"
+    },
+    "7150": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:39.533799+00:00"
+    },
+    "7155": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "technical_skills",
+        "skills",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:39.549086+00:00"
+    },
+    "7152": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:39.654037+00:00"
+    },
+    "7156": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:40.320223+00:00"
+    },
+    "7154": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:40.341495+00:00"
+    },
+    "7157": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:40.356162+00:00"
+    },
+    "7158": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:41.028281+00:00"
+    },
+    "7160": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:41.042508+00:00"
+    },
+    "7159": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:41.054472+00:00"
+    },
+    "7161": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:41.790570+00:00"
+    },
+    "7163": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:41.809915+00:00"
+    },
+    "7164": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:41.866135+00:00"
+    },
+    "7166": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:42.304361+00:00"
+    },
+    "7162": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:42.530576+00:00"
+    },
+    "7167": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:42.600268+00:00"
+    },
+    "7168": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:42.685746+00:00"
+    },
+    "7165": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:42.836887+00:00"
+    },
+    "7169": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:43.157071+00:00"
+    },
+    "7170": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:43.877887+00:00"
+    },
+    "6155": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:43.969022+00:00"
+    },
+    "7171": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:44.450444+00:00"
+    },
+    "7173": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:45.264208+00:00"
+    },
+    "7172": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:45.980382+00:00"
+    },
+    "6160": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:48.496014+00:00"
+    },
+    "6159": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:48.511399+00:00"
+    },
+    "6162": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:48.528344+00:00"
+    },
+    "6157": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:48.600332+00:00"
+    },
+    "6161": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:48.832670+00:00"
+    },
+    "6158": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:48.864191+00:00"
+    },
+    "6163": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:49.544459+00:00"
+    },
+    "6164": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:49.557626+00:00"
+    },
+    "6165": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:50.272046+00:00"
+    },
+    "6997": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:50.289691+00:00"
+    },
+    "6999": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:50.304981+00:00"
+    },
+    "6998": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:50.319206+00:00"
+    },
+    "7000": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:50.334800+00:00"
+    },
+    "7001": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:51.009087+00:00"
+    },
+    "7003": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:51.116476+00:00"
+    },
+    "7002": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:51.134183+00:00"
+    },
+    "7005": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:51.273330+00:00"
+    },
+    "7004": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:51.291055+00:00"
+    },
+    "7006": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:51.992327+00:00"
+    },
+    "7007": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:52.008547+00:00"
+    },
+    "7008": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.038418+00:00"
+    },
+    "7009": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.055658+00:00"
+    },
+    "7010": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.070657+00:00"
+    },
+    "7012": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.083718+00:00"
+    },
+    "7011": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.099477+00:00"
+    },
+    "7013": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.116079+00:00"
+    },
+    "7014": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:53.937622+00:00"
+    },
+    "7015": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:54.643290+00:00"
+    },
+    "7019": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:54.658868+00:00"
+    },
+    "7017": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:54.674559+00:00"
+    },
+    "7016": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:54.690225+00:00"
+    },
+    "7018": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:54.704152+00:00"
+    },
+    "7020": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:54.842489+00:00"
+    },
+    "7023": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:55.521614+00:00"
+    },
+    "7021": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:55.535132+00:00"
+    },
+    "7025": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:55.550429+00:00"
+    },
+    "7022": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:55.570275+00:00"
+    },
+    "7024": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:55.585324+00:00"
+    },
+    "7026": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:56.267591+00:00"
+    },
+    "7027": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:56.278876+00:00"
+    },
+    "6327": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:58.091069+00:00"
+    },
+    "6332": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:58.104598+00:00"
+    },
+    "6326": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:58.120304+00:00"
+    },
+    "6300": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:58.224524+00:00"
+    },
+    "6307": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:58.240417+00:00"
+    },
+    "6296": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:58.942903+00:00"
+    },
+    "6336": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:59.888073+00:00"
+    },
+    "6338": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:59.905306+00:00"
+    },
+    "6382": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:59.928938+00:00"
+    },
+    "7058": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:59.946790+00:00"
+    },
+    "6333": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:16:59.963289+00:00"
+    },
+    "7059": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:00.667600+00:00"
+    },
+    "7060": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:00.684694+00:00"
+    },
+    "7062": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:01.361325+00:00"
+    },
+    "7061": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:01.387175+00:00"
+    },
+    "7063": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:01.402997+00:00"
+    },
+    "7064": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:01.418720+00:00"
+    },
+    "7065": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:01.434331+00:00"
+    },
+    "7066": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:02.148744+00:00"
+    },
+    "7068": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:02.162562+00:00"
+    },
+    "7067": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:02.180557+00:00"
+    },
+    "7070": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:02.265365+00:00"
+    },
+    "7069": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:02.318018+00:00"
+    },
+    "7071": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:02.772900+00:00"
+    },
+    "7072": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:03.302576+00:00"
+    },
+    "6482": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:03.741223+00:00"
+    },
+    "6480": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:03.812427+00:00"
+    },
+    "6484": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:03.827709+00:00"
+    },
+    "6486": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:03.843222+00:00"
+    },
+    "6487": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:04.135832+00:00"
+    },
+    "6488": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:05.222198+00:00"
+    },
+    "6489": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:05.590188+00:00"
+    },
+    "6491": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:05.632366+00:00"
+    },
+    "6493": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:05.824237+00:00"
+    },
+    "6490": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:05.914441+00:00"
+    },
+    "6492": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:06.027163+00:00"
+    },
+    "6494": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:06.524668+00:00"
+    },
+    "6495": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:07.460724+00:00"
+    },
+    "7109": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:07.475112+00:00"
+    },
+    "7110": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:07.487759+00:00"
+    },
+    "6506": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:09.920228+00:00"
+    },
+    "6504": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:09.935141+00:00"
+    },
+    "6509": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:09.952008+00:00"
+    },
+    "7111": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:09.967420+00:00"
+    },
+    "6511": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:09.982154+00:00"
+    },
+    "6512": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:09.997712+00:00"
+    },
+    "6515": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:10.772558+00:00"
+    },
+    "6513": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:10.786815+00:00"
+    },
+    "6516": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:10.804033+00:00"
+    },
+    "6514": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:10.821713+00:00"
+    },
+    "7174": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:10.837439+00:00"
+    },
+    "6525": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:10.854078+00:00"
+    },
+    "7176": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:11.924209+00:00"
+    },
+    "7175": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:11.940541+00:00"
+    },
+    "7178": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:11.965199+00:00"
+    },
+    "7177": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:12.024526+00:00"
+    },
+    "7180": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:12.143767+00:00"
+    },
+    "7179": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:12.158781+00:00"
+    },
+    "7181": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:13.732939+00:00"
+    },
+    "7182": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:13.748282+00:00"
+    },
+    "7183": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:13.763153+00:00"
+    },
+    "7184": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:13.778878+00:00"
+    },
+    "7186": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:13.793829+00:00"
+    },
+    "7185": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:13.810171+00:00"
+    },
+    "7187": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:14.117684+00:00"
+    },
+    "7188": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:14.264586+00:00"
+    },
+    "6526": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:15.156096+00:00"
+    },
+    "6527": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:15.173945+00:00"
+    },
+    "6528": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:15.190559+00:00"
+    },
+    "6530": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:17:15.207275+00:00"
+    },
+    "6531": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:17:15.324563+00:00"
+    },
+    "6532": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:17:16.242572+00:00"
+    },
+    "6533": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:16.258748+00:00"
+    },
+    "6536": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:16.275592+00:00"
+    },
+    "6540": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:16.364193+00:00"
+    },
+    "6542": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:17.095132+00:00"
+    },
+    "6547": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:17.107585+00:00"
+    },
+    "6550": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:17.126023+00:00"
+    },
+    "7189": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:17:17.140921+00:00"
+    },
+    "7190": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:17.242394+00:00"
+    },
+    "7191": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:19.524224+00:00"
+    },
+    "7194": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:19.541455+00:00"
+    },
+    "7195": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:17:19.556387+00:00"
+    },
+    "7196": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:17:19.572054+00:00"
+    },
+    "7192": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:19.587317+00:00"
+    },
+    "7193": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:17:19.602710+00:00"
+    },
+    "7197": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:17:20.306451+00:00"
+    },
+    "7198": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:17:20.335321+00:00"
+    },
+    "7200": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:20.350738+00:00"
+    },
+    "7201": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:17:20.367738+00:00"
+    },
+    "7199": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:20.391294+00:00"
+    },
+    "7218": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:21.777002+00:00"
+    },
+    "7219": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:21.886577+00:00"
+    },
+    "7220": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:22.581883+00:00"
+    },
+    "7221": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:22.600335+00:00"
+    },
+    "7222": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:22.615812+00:00"
+    },
+    "7223": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:22.633528+00:00"
+    },
+    "7224": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:23.365006+00:00"
+    },
+    "6710": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:23.428221+00:00"
+    },
+    "6705": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:23.540874+00:00"
+    },
+    "6715": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:24.536631+00:00"
+    },
+    "7225": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:24.552262+00:00"
+    },
+    "7226": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:24.569739+00:00"
+    },
+    "6721": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:24.585501+00:00"
+    },
+    "6723": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:24.679767+00:00"
+    },
+    "6725": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:24.768723+00:00"
+    },
+    "6727": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:25.532690+00:00"
+    },
+    "6728": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:25.571762+00:00"
+    },
+    "6730": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:25.587233+00:00"
+    },
+    "6748": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:25.602995+00:00"
+    },
+    "7203": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:26.323561+00:00"
+    },
+    "7202": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:26.338962+00:00"
+    },
+    "7204": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:26.356862+00:00"
+    },
+    "7205": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:26.469451+00:00"
+    },
+    "7206": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:27.216016+00:00"
+    },
+    "7207": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:27.245654+00:00"
+    },
+    "7208": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:27.261659+00:00"
+    },
+    "7209": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:27.386012+00:00"
+    },
+    "7210": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:27.497159+00:00"
+    },
+    "7211": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:27.510365+00:00"
+    },
+    "6576": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:17:29.135620+00:00"
+    },
+    "7212": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:29.983176+00:00"
+    },
+    "7213": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:30.092512+00:00"
+    },
+    "7216": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:30.108386+00:00"
+    },
+    "7215": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:30.124746+00:00"
+    },
+    "7214": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:30.139287+00:00"
+    },
+    "6627": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:31.091356+00:00"
+    },
+    "6631": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:31.945122+00:00"
+    },
+    "6629": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:31.962435+00:00"
+    },
+    "6626": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:31.977448+00:00"
+    },
+    "6630": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:31.992120+00:00"
+    },
+    "6628": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:32.808769+00:00"
+    },
+    "6632": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:32.828663+00:00"
+    },
+    "6634": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:34.344906+00:00"
+    },
+    "6633": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:34.451632+00:00"
+    },
+    "6636": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:34.467564+00:00"
+    },
+    "6638": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:34.481431+00:00"
+    },
+    "6635": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:34.567148+00:00"
+    },
+    "6639": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:35.578234+00:00"
+    },
+    "6641": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:36.145931+00:00"
+    },
+    "6642": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:36.583286+00:00"
+    },
+    "6643": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:36.596575+00:00"
+    },
+    "6644": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:37.045193+00:00"
+    },
+    "6645": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:37.908532+00:00"
+    },
+    "6648": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:38.684964+00:00"
+    },
+    "6649": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:38.796319+00:00"
+    },
+    "6650": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:40.321866+00:00"
+    },
+    "6651": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:40.338603+00:00"
+    },
+    "6653": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:41.420106+00:00"
+    },
+    "6654": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:42.200859+00:00"
+    },
+    "6647": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:43.023259+00:00"
+    },
+    "6637": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:43.057761+00:00"
+    },
+    "6655": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:44.335384+00:00"
+    },
+    "6656": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:44.355648+00:00"
+    },
+    "6658": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:45.282403+00:00"
+    },
+    "6659": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:45.300384+00:00"
+    },
+    "6652": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:46.172984+00:00"
+    },
+    "6660": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:46.192874+00:00"
+    },
+    "6661": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:47.321961+00:00"
+    },
+    "6640": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:47.353885+00:00"
+    },
+    "6667": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:51.208628+00:00"
+    },
+    "6665": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:51.310527+00:00"
+    },
+    "6663": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:51.343942+00:00"
+    },
+    "6666": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:52.058685+00:00"
+    },
+    "6662": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:52.760755+00:00"
+    },
+    "6664": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:52.780369+00:00"
+    },
+    "6670": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:53.473855+00:00"
+    },
+    "6668": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:53.495825+00:00"
+    },
+    "6669": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:54.235142+00:00"
+    },
+    "6671": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:54.252933+00:00"
+    },
+    "6672": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:55.114352+00:00"
+    },
+    "6673": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:55.131579+00:00"
+    },
+    "6675": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:56.042253+00:00"
+    },
+    "6676": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:56.064338+00:00"
+    },
+    "6677": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:56.084709+00:00"
+    },
+    "6674": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:56.194104+00:00"
+    },
+    "6679": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:17:57.116206+00:00"
+    },
+    "6678": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:57.198698+00:00"
+    },
+    "6680": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:58.270133+00:00"
+    },
+    "6681": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:59.033969+00:00"
+    },
+    "6683": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:59.052235+00:00"
+    },
+    "6682": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:59.072173+00:00"
+    },
+    "6684": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:59.885213+00:00"
+    },
+    "6685": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:17:59.906566+00:00"
+    },
+    "6688": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:02.001921+00:00"
+    },
+    "6687": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:02.215680+00:00"
+    },
+    "6691": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:02.881996+00:00"
+    },
+    "6686": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:02.916649+00:00"
+    },
+    "6690": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:02.936621+00:00"
+    },
+    "6692": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:05.036672+00:00"
+    },
+    "6693": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:05.051200+00:00"
+    },
+    "6694": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:05.251262+00:00"
+    },
+    "6695": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:05.570450+00:00"
+    },
+    "6696": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:05.588734+00:00"
+    },
+    "6698": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:06.738342+00:00"
+    },
+    "6697": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:07.040828+00:00"
+    },
+    "6701": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:07.062115+00:00"
+    },
+    "6704": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:07.121875+00:00"
+    },
+    "6699": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:07.422633+00:00"
+    },
+    "6706": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:07.727356+00:00"
+    },
+    "6714": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:10.400748+00:00"
+    },
+    "6712": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:10.615911+00:00"
+    },
+    "6707": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:11.360023+00:00"
+    },
+    "6716": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:11.383651+00:00"
+    },
+    "6718": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:11.402515+00:00"
+    },
+    "6709": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:11.424070+00:00"
+    },
+    "6719": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:12.215510+00:00"
+    },
+    "6722": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:13.579368+00:00"
+    },
+    "6724": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:13.764487+00:00"
+    },
+    "6729": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:13.782595+00:00"
+    },
+    "6731": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:14.490683+00:00"
+    },
+    "6726": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:14.512070+00:00"
+    },
+    "6732": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:15.166289+00:00"
+    },
+    "6734": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:15.930668+00:00"
+    },
+    "6737": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:15.951660+00:00"
+    },
+    "6736": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:15.970183+00:00"
+    },
+    "6740": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:16.640400+00:00"
+    },
+    "6742": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:16.686746+00:00"
+    },
+    "6744": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:17.354013+00:00"
+    },
+    "6750": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:18.220043+00:00"
+    },
+    "6747": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:18.238295+00:00"
+    },
+    "6751": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:18.871266+00:00"
+    },
+    "6749": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:18.890200+00:00"
+    },
+    "6753": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:19.772757+00:00"
+    },
+    "6755": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:21.315397+00:00"
+    },
+    "6754": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:22.737105+00:00"
+    },
+    "6756": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "work_mode",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:22.755113+00:00"
+    },
+    "6757": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:22.774175+00:00"
+    },
+    "6758": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:22.794786+00:00"
+    },
+    "6759": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:23.450306+00:00"
+    },
+    "6752": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:24.754518+00:00"
+    },
+    "6762": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:25.458643+00:00"
+    },
+    "6763": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:25.516672+00:00"
+    },
+    "6760": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:25.535287+00:00"
+    },
+    "6761": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:25.554245+00:00"
+    },
+    "6764": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:25.572725+00:00"
+    },
+    "6766": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:27.230440+00:00"
+    },
+    "6774": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:27.998470+00:00"
+    },
+    "6775": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:28.030578+00:00"
+    },
+    "6773": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:28.065651+00:00"
+    },
+    "6776": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:31.193146+00:00"
+    },
+    "6777": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:31.232649+00:00"
+    },
+    "6778": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:31.270294+00:00"
+    },
+    "6780": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:31.950642+00:00"
+    },
+    "6781": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:31.969999+00:00"
+    },
+    "6779": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:33.390305+00:00"
+    },
+    "6783": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:33.497538+00:00"
+    },
+    "6784": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:33.532255+00:00"
+    },
+    "6782": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:33.650388+00:00"
+    },
+    "6785": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:34.262560+00:00"
+    },
+    "7229": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "work_mode",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "experience",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:34.278999+00:00"
+    },
+    "7230": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "work_mode",
+        "role_purpose",
+        "qualifications",
+        "education",
+        "experience",
+        "employer_info",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:36.093240+00:00"
+    },
+    "7256": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "work_mode",
+        "role_purpose",
+        "responsibilities",
+        "employer_info",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:36.112239+00:00"
+    },
+    "7257": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "work_mode",
+        "role_purpose",
+        "qualifications",
+        "education",
+        "experience",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:36.132455+00:00"
+    },
+    "6810": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:38.513296+00:00"
+    },
+    "6805": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:40.534647+00:00"
+    },
+    "6831": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "education",
+        "technical_skills",
+        "behavioural_skills",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:41.577230+00:00"
+    },
+    "6838": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:42.494769+00:00"
+    },
+    "6841": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:43.613270+00:00"
+    },
+    "6842": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:44.695589+00:00"
+    },
+    "6846": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:46.300159+00:00"
+    },
+    "6809": {
+      "outcome": "EXTRACTION_FAILED",
+      "timestamp": "2026-10-13T12:18:47.157520+00:00"
+    },
+    "6847": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:48.079249+00:00"
+    },
+    "6837": {
+      "outcome": "EXTRACTION_FAILED",
+      "timestamp": "2026-10-13T12:18:49.055205+00:00"
+    },
+    "6848": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:49.790207+00:00"
+    },
+    "6850": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:50.606336+00:00"
+    },
+    "6849": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:51.327536+00:00"
+    },
+    "6851": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:51.436640+00:00"
+    },
+    "6843": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:51.455280+00:00"
+    },
+    "6852": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:52.225548+00:00"
+    },
+    "6844": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:52.947066+00:00"
+    },
+    "6845": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:52.967510+00:00"
+    },
+    "6853": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:52.986316+00:00"
+    },
+    "6856": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:53.202158+00:00"
+    },
+    "6854": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:53.221974+00:00"
+    },
+    "6859": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:53.923168+00:00"
+    },
+    "6858": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:54.646065+00:00"
+    },
+    "6861": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:54.723650+00:00"
+    },
+    "6864": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:54.820087+00:00"
+    },
+    "6863": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:54.841919+00:00"
+    },
+    "6867": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:57.272371+00:00"
+    },
+    "6871": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:58.010298+00:00"
+    },
+    "6866": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:58.030195+00:00"
+    },
+    "6868": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:58.047979+00:00"
+    },
+    "6865": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:58.068103+00:00"
+    },
+    "6870": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:18:58.121715+00:00"
+    },
+    "6872": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:59.683962+00:00"
+    },
+    "7231": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:59.710464+00:00"
+    },
+    "7233": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:18:59.730434+00:00"
+    },
+    "7232": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:59.747357+00:00"
+    },
+    "7234": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:59.765423+00:00"
+    },
+    "6873": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "state",
+        "role_purpose",
+        "qualifications",
+        "employer_info",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:18:59.880983+00:00"
+    },
+    "7235": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:00.704838+00:00"
+    },
+    "7236": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:00.724288+00:00"
+    },
+    "7238": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:01.480334+00:00"
+    },
+    "7237": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:01.501927+00:00"
+    },
+    "7239": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:01.524485+00:00"
+    },
+    "7240": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:01.540849+00:00"
+    },
+    "7241": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:02.286396+00:00"
+    },
+    "7242": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:02.307662+00:00"
+    },
+    "7243": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:02.327142+00:00"
+    },
+    "7244": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:02.361450+00:00"
+    },
+    "7246": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:03.175691+00:00"
+    },
+    "7245": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:03.304993+00:00"
+    },
+    "7247": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:03.323133+00:00"
+    },
+    "7248": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:04.141781+00:00"
+    },
+    "7250": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:04.162800+00:00"
+    },
+    "7249": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:04.181868+00:00"
+    },
+    "7251": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:05.101917+00:00"
+    },
+    "7253": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:05.123670+00:00"
+    },
+    "7254": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:05.140671+00:00"
+    },
+    "7252": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:05.232157+00:00"
+    },
+    "7255": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:05.688646+00:00"
+    },
+    "6886": {
+      "outcome": "EXTRACTION_FAILED",
+      "timestamp": "2026-10-13T12:19:06.070114+00:00"
+    },
+    "6912": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:06.510219+00:00"
+    },
+    "6916": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:06.841165+00:00"
+    },
+    "6913": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:06.859803+00:00"
+    },
+    "6917": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:06.878047+00:00"
+    },
+    "6918": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:06.977175+00:00"
+    },
+    "6919": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:07.433088+00:00"
+    },
+    "6922": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:10.155110+00:00"
+    },
+    "6923": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:10.174169+00:00"
+    },
+    "6924": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:11.622093+00:00"
+    },
+    "6920": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:11.640073+00:00"
+    },
+    "6921": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:11.658305+00:00"
+    },
+    "6925": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:11.676645+00:00"
+    },
+    "6927": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:12.451965+00:00"
+    },
+    "6926": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:12.471291+00:00"
+    },
+    "6928": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:13.154767+00:00"
+    },
+    "6929": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:13.174261+00:00"
+    },
+    "6930": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:13.310179+00:00"
+    },
+    "6931": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:13.331937+00:00"
+    },
+    "6933": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:13.540041+00:00"
+    },
+    "6932": {
+      "outcome": "FETCHED",
+      "fields_updated": [],
+      "timestamp": "2026-10-13T12:19:14.201470+00:00"
+    },
+    "7263": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:14.872285+00:00"
+    },
+    "7264": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:14.890119+00:00"
+    },
+    "7265": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:14.907940+00:00"
+    },
+    "7266": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:14.928879+00:00"
+    },
+    "6944": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department"
+      ],
+      "timestamp": "2026-10-13T12:19:14.963717+00:00"
+    },
+    "7267": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "education",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:15.627288+00:00"
+    },
+    "6945": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department"
+      ],
+      "timestamp": "2026-10-13T12:19:16.294018+00:00"
+    },
+    "6950": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department"
+      ],
+      "timestamp": "2026-10-13T12:19:17.010088+00:00"
+    },
+    "6953": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:19:17.053832+00:00"
+    },
+    "6960": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:19:17.071937+00:00"
+    },
+    "6959": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:17.089790+00:00"
+    },
+    "6961": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "department",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:19:17.106776+00:00"
+    },
+    "6964": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:17.956929+00:00"
+    },
+    "6967": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:19:17.986632+00:00"
+    },
+    "6965": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:18.076913+00:00"
+    },
+    "6966": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type"
+      ],
+      "timestamp": "2026-10-13T12:19:18.110146+00:00"
+    },
+    "7274": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:18.196075+00:00"
+    },
+    "7275": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:18.211982+00:00"
+    },
+    "7277": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:19.910220+00:00"
+    },
+    "7276": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:19.938444+00:00"
+    },
+    "7281": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "education",
+        "employer_info",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:20.609696+00:00"
+    },
+    "7278": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:20.626087+00:00"
+    },
+    "7280": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:20.641234+00:00"
+    },
+    "7279": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:20.660634+00:00"
+    },
+    "7282": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:21.346040+00:00"
+    },
+    "7283": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:21.361263+00:00"
+    },
+    "7286": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:24.058012+00:00"
+    },
+    "7285": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:24.207106+00:00"
+    },
+    "7287": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:24.469741+00:00"
+    },
+    "7284": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "function",
+        "department",
+        "employment_type",
+        "education"
+      ],
+      "timestamp": "2026-10-13T12:19:24.496142+00:00"
+    },
+    "6977": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:24.600642+00:00"
+    },
+    "6975": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:24.704278+00:00"
+    },
+    "6982": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:25.812181+00:00"
+    },
+    "6980": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:25.831218+00:00"
+    },
+    "6985": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:26.657682+00:00"
+    },
+    "6983": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:26.676728+00:00"
+    },
+    "6984": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:26.693767+00:00"
+    },
+    "6986": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:26.712086+00:00"
+    },
+    "6987": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:27.411901+00:00"
+    },
+    "6996": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:27.430226+00:00"
+    },
+    "7290": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:28.102048+00:00"
+    },
+    "7291": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:28.120038+00:00"
+    },
+    "7292": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:28.156717+00:00"
+    },
+    "7293": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:28.839486+00:00"
+    },
+    "7294": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "function",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:28.923046+00:00"
+    },
+    "7295": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:28.941123+00:00"
+    },
+    "7296": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:29.621791+00:00"
+    },
+    "7297": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:30.487349+00:00"
+    },
+    "7298": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:30.503462+00:00"
+    },
+    "7299": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:30.521322+00:00"
+    },
+    "7300": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:30.562104+00:00"
+    },
+    "7301": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:31.254602+00:00"
+    },
+    "7302": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:31.280151+00:00"
+    },
+    "7304": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:31.974084+00:00"
+    },
+    "7303": {
+      "outcome": "FETCHED",
+      "fields_updated": [
+        "application_deadline",
+        "closing_date",
+        "department",
+        "employment_type",
+        "responsibilities",
+        "qualifications",
+        "job_description",
+        "structured_details"
+      ],
+      "timestamp": "2026-10-13T12:19:32.006281+00:00"
+    }
+  },
+  "stats": {
+    "total_attempted": 749,
+    "successfully_enriched": 721,
+    "fetched_no_new_fields": 25,
+    "extraction_failed": 3,
+    "source_unavailable": 0,
+    "errors": 0,
+    "fields_updated": {
+      "closing_date": 277,
+      "city": 132,
+      "state": 217,
+      "employment_type": 315,
+      "job_description": 308,
+      "structured_details": 543,
+      "responsibilities": 199,
+      "qualifications": 173,
+      "education": 101,
+      "experience": 17,
+      "role_purpose": 29,
+      "technical_skills": 2,
+      "skills": 1,
+      "application_deadline": 146,
+      "department": 123,
+      "function": 65,
+      "employer_info": 28,
+      "work_mode": 5,
+      "behavioural_skills": 1
+    }
+  },
+  "last_saved": "2026-10-13T12:19:32.610051+00:00",
+  "completed_at": "2026-10-13T12:19:32.609515+00:00",
+  "elapsed_seconds": 315.4
+}

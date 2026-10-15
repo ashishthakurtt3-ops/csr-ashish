@@ -242,12 +242,12 @@
                 {% if company.nse_symbol %}
                 <div>📈 <strong>NSE Ticker:</strong> {{ company.nse_symbol }}</div>
                 {% endif %}
-                <div>💼 <strong>Active Openings:</strong> {{ company.jobs.count }} Jobs</div>
+                <div>💼 <strong>Active Openings:</strong> {{ company_verified_jobs_count|default:0 }} Verified Jobs</div>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border-subtle); padding-top:12px;">
                 <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-admin btn-admin-primary" style="justify-content:center;">
-                    <span>Browse All {{ company.jobs.count }} Jobs &rarr;</span>
+                    <span>Browse All {{ company_verified_jobs_count|default:0 }} Openings &rarr;</span>
                 </a>
                 <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary" style="justify-content:center;">
                     <span>View Company Profile &amp; CSR</span>

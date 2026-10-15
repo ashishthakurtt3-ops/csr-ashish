@@ -12,7 +12,19 @@ CSR_THEMES = [
     ('Women & Inclusive Growth', ['women', 'gender', 'empowerment', 'shg', 'inclusion', 'diversity']),
 ]
 
-BUDGET_REGEX = re.compile(r'(?:INR|Rs\.?|₹)\s*([\d,]+(?:\.\d+)?)\s*(?:Cr(?:ore)?|Lakh)?', re.IGNORECASE)
+BUDGET_REGEX = re.compile(
+    r'(?:INR|Rs\.?|₹)\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)\s*(?:Cr(?:ore)?|Lakh|Million|Billion)?',
+    re.IGNORECASE
+)
+
+# Reject headings that represent marketing slogans, awards, table of contents, or navigation
+JUNK_CSR_TITLE_PATTERNS = [
+    re.compile(r'initiative\s*[-—]\s*[A-Za-z]', re.IGNORECASE),
+    re.compile(r'\b(award|awards|conclave|djsi|cdp\b|msci\b|sustainalytics|ftse4good|peacock|yearbook|certified|certification|great place to work|accreditation)\b', re.IGNORECASE),
+    re.compile(r'\b(p\s*a\s*g\s*e|contents|preface|data book|annual report|document no|declaration|compliances|notice of|general meeting|agm|committee|composition|terms of reference)\b', re.IGNORECASE),
+    re.compile(r'^(we\s|our\s(esg|efforts|initiatives|three|spirit)|about us|quick links|career|social$|sustainability$|safety first|zero harm)', re.IGNORECASE),
+    re.compile(r'\b(calculator|predictor|store locator|workplace|networks|management framework)\b', re.IGNORECASE),
+]
 
 INDIAN_STATES = [
     'Maharashtra', 'Karnataka', 'Tamil Nadu', 'Gujarat', 'Uttar Pradesh',
@@ -82,7 +94,7 @@ class CorporateHTMLParser(BaseParser):
                         'email': None,
                         'name': None,
                         'phone': phone,
-                        'department': 'General Corporate',
+                        'department': None,
                         'evidence_text': f"Anchor: {str(a)[:500]} | Context: {parent_text[:300]}"
                     })
                     
@@ -112,8 +124,12 @@ class CorporateHTMLParser(BaseParser):
             h = block.find(['h2', 'h3', 'h4', 'h5', 'strong'])
             if not h:
                 continue
-            heading_text = h.get_text(strip=True)
+            heading_text = ' '.join(h.get_text(strip=True).split())
             if len(heading_text) < 5 or len(heading_text) > 120 or heading_text in seen_titles:
+                continue
+
+            # Verify against non-project junk patterns (awards, slogans, templates, page artifacts)
+            if any(pat.search(heading_text) for pat in JUNK_CSR_TITLE_PATTERNS):
                 continue
 
             block_text = block.get_text(separator=' ', strip=True)
@@ -127,11 +143,14 @@ class CorporateHTMLParser(BaseParser):
                     matched_theme = theme_name
                     break
 
-            # Budget detection in block
+            # Budget detection in block - strictly requiring digits and never allowing malformed strings like 'rs,'
             budget_val = None
             b_match = BUDGET_REGEX.search(block_text)
             if b_match:
-                budget_val = b_match.group(0).strip()
+                candidate_budget = b_match.group(0).strip()
+                # Ensure candidate has actual numeric digits
+                if any(c.isdigit() for c in candidate_budget) and candidate_budget.lower() not in ('rs,', 'inr,', 'nan', 'none'):
+                    budget_val = candidate_budget
 
             # Location detection in block
             loc_val = None
@@ -152,23 +171,6 @@ class CorporateHTMLParser(BaseParser):
 
             if len(csr_projects) >= 15:
                 break
-
-        # 2. Fallback to meta description if no granular cards found
-        if not csr_projects:
-            meta_desc = soup.find('meta', attrs={'name': 'description'})
-            if meta_desc and meta_desc.get('content'):
-                desc = meta_desc['content'].strip()
-                title_tag = soup.find('title')
-                title = title_tag.text.strip() if title_tag else f"{self.company.company_name} Sustainability Initiative"
-
-                csr_projects.append({
-                    'project_name': title,
-                    'category': 'Sustainability & ESG',
-                    'description': desc,
-                    'geographic_location': None,
-                    'budget': None,
-                    'evidence_text': f"{str(meta_desc)[:1000]} | {str(title_tag)[:500]}"
-                })
 
         return csr_projects
 

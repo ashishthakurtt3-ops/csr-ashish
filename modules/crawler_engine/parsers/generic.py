@@ -231,5 +231,23 @@ class GenericHTMLParser(BaseParser):
             if len(jobs) >= 150:  # Safety cap per single page
                 break
 
+        if jobs:
+            from .detail_extractor import UniversalJobDetailExtractor
+            enriched_count = 0
+            for job in jobs:
+                app_url = job.get('application_url')
+                if enriched_count < 30 and app_url and app_url.startswith('http') and not job.get('job_description'):
+                    det = UniversalJobDetailExtractor.extract_from_url(app_url)
+                    for k, v in det.items():
+                        if v is not None and not job.get(k):
+                            job[k] = v
+                    job['detail_fetched'] = det.get('detail_fetched', True)
+                    job['detail_fetch_status'] = det.get('detail_fetch_status', 'FETCHED')
+                    enriched_count += 1
+                else:
+                    if not job.get('detail_fetched'):
+                        job['detail_fetched'] = False
+                        job['detail_fetch_status'] = job.get('detail_fetch_status') or 'NOT_FETCHED'
+
         return jobs
 

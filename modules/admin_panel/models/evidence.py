@@ -53,8 +53,8 @@ class VerifiableModel(models.Model):
                 raise ValueError("Strict Enforcement: Cannot confirm/publish a record without actual evidence (evidence_text, source_snapshot, or content_hash). HTTP 200 alone is never enough.")
             
             if self.verification_status == 'PUBLISHED':
-                if self.pk:
-                    orig = self.__class__.objects.get(pk=self.pk)
+                orig = self.__class__.objects.filter(pk=self.pk).first() if self.pk else None
+                if orig:
                     if orig.verification_status not in ['SOURCE_CONFIRMED', 'PUBLISHED']:
                         raise ValueError(f"Strict Enforcement: State transition to PUBLISHED is only allowed from SOURCE_CONFIRMED. Current state was {orig.verification_status}.")
                 else:

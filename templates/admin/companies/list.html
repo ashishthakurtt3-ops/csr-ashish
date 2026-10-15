@@ -56,7 +56,7 @@
                         {% else %}—{% endif %}
                     </td>
                     <td>{{ c.sector|default:"General" }}</td>
-                    <td>{{ c.headquarters|default:"India" }}</td>
+                    <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ c.headquarters }}">{{ c.headquarters }}</td>
                     <td>
                         <!-- Seamless Company -> All Jobs integration -->
                         <a href="{% url 'admin_jobs:company_jobs' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:3px 10px; font-size:11.5px; font-weight:600; text-decoration:none;" title="View all jobs for {{ c.company_name }}">

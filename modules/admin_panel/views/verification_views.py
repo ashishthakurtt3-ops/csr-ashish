@@ -93,11 +93,12 @@ def crawler_telemetry_view(request):
     coverage_page_num = request.GET.get('coverage_page', 1)
 
     coverage_qs = Company.objects.annotate(
-        total_jobs=Count('jobs'),
-        active_jobs=Count('jobs', filter=Q(jobs__status='ACTIVE')),
-        expired_jobs=Count('jobs', filter=Q(jobs__status='EXPIRED')),
-        validated_jobs=Count('jobs', filter=Q(jobs__verification_status__in=['VALIDATED', 'EXTRACTED', 'VERIFIED'])),
-    ).all().order_by('company_name')
+        jobs_found=Count('jobs', filter=~Q(jobs__verification_status='LEGACY_UNVERIFIED')),
+        jobs_published=Count('jobs', filter=Q(jobs__status='ACTIVE', jobs__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])),
+        csr_records=Count('csr_projects', filter=Q(csr_projects__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])),
+        stale_jobs=Count('jobs', filter=Q(jobs__status='EXPIRED')),
+        validated_jobs=Count('jobs', filter=Q(jobs__verification_status__in=['VALIDATED', 'SOURCE_CONFIRMED', 'PUBLISHED'])),
+    ).all().order_by('-jobs_published', '-csr_records', 'company_name')
 
     if coverage_q:
         coverage_qs = coverage_qs.filter(
@@ -109,23 +110,50 @@ def crawler_telemetry_view(request):
     if coverage_status and coverage_status != 'all':
         coverage_qs = coverage_qs.filter(crawl_status=coverage_status)
 
+    # Evaluate to list and attach explanation for zero records
+    coverage_list = list(coverage_qs)
+    for c in coverage_list:
+        reasons = []
+        if c.jobs_published == 0:
+            if c.crawl_status == 'PENDING':
+                reasons.append("Jobs: Crawl pending")
+            elif c.crawl_status == 'NO_CAREER_URL':
+                reasons.append("Jobs: Official careers URL not discoverable")
+            elif c.crawl_status == 'BLOCKED':
+                reasons.append("Jobs: Source blocked by bot firewall (HTTP 403)")
+            elif c.crawl_status == 'FAILED':
+                reasons.append("Jobs: Source connection unreachable")
+            elif c.crawl_status == 'CRAWLED':
+                reasons.append("Jobs: Verified checked; no active openings listed")
+            else:
+                reasons.append("Jobs: Verification pending")
+        if c.csr_records == 0:
+            if c.crawl_status == 'PENDING':
+                reasons.append("CSR: Scan pending")
+            elif c.crawl_status == 'CRAWLED':
+                reasons.append("CSR: Verified checked; Schedule VII breakdown in PDF")
+            else:
+                reasons.append("CSR: Portal pending")
+        c.zero_explanation = " | ".join(reasons) if reasons else "Fully Verified & Published"
+
     # Optional CSV Export of the Complete Coverage Report
     if request.GET.get('export') == 'csv':
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="company_job_coverage_report.csv"'
         writer = csv.writer(response)
-        writer.writerow(['Company ID', 'Company Name', 'NSE Symbol', 'Website', 'Careers URL', 'ATS Platform', 'Jobs Found', 'Validated', 'Published', 'Stale', 'Crawl Status', 'Last Crawl'])
-        for c in coverage_qs:
+        writer.writerow(['Company ID', 'Company Name', 'NSE Symbol', 'Website', 'Careers Source', 'ATS Platform', 'Jobs Found', 'Jobs Published', 'CSR Records', 'Crawl Status', 'Last Verified', 'Reason / Notes'])
+        for c in coverage_list:
             writer.writerow([
                 c.company_id, c.company_name, c.nse_symbol or '',
                 c.website_url or '', c.careers_url or '',
                 c.ats_platform or 'Direct/HTML',
-                c.total_jobs, c.validated_jobs, c.active_jobs, c.expired_jobs,
-                c.crawl_status or 'PENDING', c.last_crawled or ''
+                c.jobs_found, c.jobs_published, c.csr_records,
+                c.crawl_status or 'PENDING', c.last_crawled or '',
+                c.zero_explanation
             ])
         return response
 
-    paginator = Paginator(coverage_qs, 25)
+    paginator = Paginator(coverage_list, 25)
     coverage_page_obj = paginator.get_page(coverage_page_num)
 
     return render(request, 'admin/verification/crawler_status.html', {

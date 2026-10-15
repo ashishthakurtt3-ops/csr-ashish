@@ -43,3 +43,8 @@ class Company(VerifiableModel):
     def __str__(self):
         sym = f" ({self.nse_symbol})" if self.nse_symbol else ""
         return f"{self.company_name}{sym}"
+
+    @property
+    def verified_jobs_count(self):
+        return self.jobs.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
+

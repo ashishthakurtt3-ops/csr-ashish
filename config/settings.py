@@ -84,21 +84,45 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-# Database — MySQL is the one and only primary database.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ.get("MYSQL_DB", "csr_intelligence_django"),
-        "USER": os.environ.get("MYSQL_USER", "root"),
-        "PASSWORD": os.environ.get("MYSQL_PASSWORD", "MyNewPassword123!"),
-        "HOST": os.environ.get("MYSQL_HOST", "localhost"),
-        "PORT": os.environ.get("MYSQL_PORT", "3306"),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+def _can_connect_mysql(host, port):
+    if os.environ.get("FORCE_SQLITE") == "1":
+        return False
+    import socket
+    try:
+        s = socket.create_connection((host, int(port)), timeout=0.5)
+        s.close()
+        return True
+    except Exception:
+        return False
+
+_mysql_host = os.environ.get("MYSQL_HOST", "localhost")
+_mysql_port = os.environ.get("MYSQL_PORT", "3306")
+
+if _can_connect_mysql(_mysql_host, _mysql_port):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.environ.get("MYSQL_DB", "csr_intelligence_django"),
+            "USER": os.environ.get("MYSQL_USER", "root"),
+            "PASSWORD": os.environ.get("MYSQL_PASSWORD", "MyNewPassword123!"),
+            "HOST": _mysql_host,
+            "PORT": _mysql_port,
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+            "OPTIONS": {
+                "timeout": 30,
+            },
+        }
+    }
 
 # Legacy (read-only) business database kept for one-time gap-fill imports.
 # It is NEVER used as the application database.

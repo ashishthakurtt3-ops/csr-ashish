@@ -48,139 +48,11 @@ def safe_post(url: str, **kwargs) -> Optional[requests.Response]:
 
 def fetch_job_detail(detail_url: str) -> Dict[str, Any]:
     """
-    Fetches an individual job detail page and extracts the enriched fields.
-    Returns only fields that are actually present on the page.
-    All absent fields remain None (not fabricated).
+    Fetches an individual job detail page and extracts all factual fields using
+    UniversalJobDetailExtractor.
     """
-    enriched: Dict[str, Any] = {
-        'responsibilities': None,
-        'requirements': None,
-        'qualifications': None,
-        'preferred_qualifications': None,
-        'benefits': None,
-        'salary': None,
-        'salary_min': None,
-        'salary_max': None,
-        'salary_currency': None,
-        'skills': None,
-        'experience': None,
-        'education': None,
-        'employment_type': None,
-        'work_mode': None,
-        'application_deadline': None,
-        'location': None,
-        'city': None,
-        'state': None,
-        'department': None,
-        'job_description': None,
-        'evidence_text': None,
-        'external_job_id': None,
-        'team': None,
-        'business_unit': None,
-    }
-
-    if not detail_url or not detail_url.startswith('http'):
-        return enriched
-
-    resp = safe_get(detail_url)
-    if not resp or not resp.ok:
-        return enriched
-
-    html = resp.text
-    soup = BeautifulSoup(html, 'lxml')
-    enriched['evidence_text'] = html[:3000]  # Store first 3000 chars as evidence
-
-    # --- Try JSON-LD first (most reliable) ---
-    for script in soup.find_all('script', type='application/ld+json'):
-        try:
-            data = json.loads(script.string or '')
-            if isinstance(data, list):
-                data = next((d for d in data if d.get('@type') == 'JobPosting'), {})
-            if data.get('@type') == 'JobPosting':
-                desc = data.get('description', '')
-                enriched['job_description'] = desc or None
-                enriched['employment_type'] = data.get('employmentType') or None
-                enriched['application_deadline'] = data.get('validThrough') or None
-
-                # Salary
-                base_sal = data.get('baseSalary', {})
-                if isinstance(base_sal, dict):
-                    val = base_sal.get('value', {})
-                    if isinstance(val, dict):
-                        enriched['salary_min'] = val.get('minValue') or None
-                        enriched['salary_max'] = val.get('maxValue') or None
-                        enriched['salary_currency'] = base_sal.get('currency') or None
-                        if enriched['salary_min'] and enriched['salary_max']:
-                            enriched['salary'] = f"{enriched['salary_currency'] or ''} {enriched['salary_min']} - {enriched['salary_max']}".strip()
-
-                # Location
-                loc = data.get('jobLocation', {})
-                if isinstance(loc, dict):
-                    addr = loc.get('address', {})
-                    if isinstance(addr, dict):
-                        enriched['city'] = addr.get('addressLocality') or None
-                        enriched['state'] = addr.get('addressRegion') or None
-
-                # Education / skills
-                edreqs = data.get('educationRequirements', {})
-                if isinstance(edreqs, dict):
-                    enriched['education'] = edreqs.get('credentialCategory') or None
-                elif isinstance(edreqs, str):
-                    enriched['education'] = edreqs or None
-
-                skills_data = data.get('skills')
-                if skills_data:
-                    enriched['skills'] = skills_data if isinstance(skills_data, str) else ', '.join(skills_data)
-
-                exp_reqs = data.get('experienceRequirements')
-                if isinstance(exp_reqs, dict):
-                    enriched['experience'] = str(exp_reqs.get('monthsOfExperience', '')) or None
-                elif isinstance(exp_reqs, str):
-                    enriched['experience'] = exp_reqs or None
-
-                break
-        except (json.JSONDecodeError, AttributeError):
-            continue
-
-    # --- HTML section-based extraction (fallback / complement to JSON-LD) ---
-    SECTION_PATTERNS = {
-        'responsibilities': ['responsibilities', 'what you', 'll do', 'role overview', 'key responsibilities', 'your role'],
-        'requirements': ['requirements', 'what we', 're looking for', 'minimum qualifications', 'required qualifications', 'must have'],
-        'qualifications': ['qualifications', 'basic qualifications', 'essential'],
-        'preferred_qualifications': ['preferred qualifications', 'nice to have', 'preferred skills', 'bonus'],
-        'benefits': ['benefits', 'what we offer', 'perks', 'compensation', 'why join'],
-    }
-
-    headings = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'strong', 'b'])
-    for heading in headings:
-        heading_text = heading.get_text(strip=True).lower()
-        for field, patterns in SECTION_PATTERNS.items():
-            if enriched[field]:
-                continue  # already found from JSON-LD, don't overwrite
-            if any(p in heading_text for p in patterns):
-                # Collect the subsequent sibling content until next heading
-                content_parts = []
-                sibling = heading.find_next_sibling()
-                while sibling and sibling.name not in ['h1', 'h2', 'h3', 'h4', 'h5']:
-                    text = sibling.get_text(separator='\n', strip=True)
-                    if text:
-                        content_parts.append(text)
-                    sibling = sibling.find_next_sibling()
-                    if len(content_parts) > 15:  # cap at 15 blocks per section
-                        break
-                if content_parts:
-                    enriched[field] = '\n'.join(content_parts)[:3000]
-
-    # If no structured description yet, use full page text
-    if not enriched['job_description']:
-        # Try to find a job-description div
-        for div in soup.find_all('div', class_=re.compile(r'(description|job-detail|content|posting)', re.I)):
-            text = div.get_text(separator='\n', strip=True)
-            if len(text) > 200:
-                enriched['job_description'] = text[:5000]
-                break
-
-    return enriched
+    from .detail_extractor import UniversalJobDetailExtractor
+    return UniversalJobDetailExtractor.extract_from_url(detail_url)
 
 
 class BaseATSAdapter:
@@ -207,10 +79,16 @@ class GreenhouseAdapter(BaseATSAdapter):
         return 'greenhouse.io' in url.lower()
 
     def extract_jobs(self, link: str, company: Any) -> List[Dict[str, Any]]:
-        match = re.search(r'greenhouse\.io/([^/?#]+)', link, re.IGNORECASE)
-        if not match:
+        token = None
+        for_match = re.search(r'[?&]for=([^&#]+)', link, re.IGNORECASE)
+        if for_match:
+            token = for_match.group(1)
+        if not token:
+            match = re.search(r'greenhouse\.io/([^/?#]+)', link, re.IGNORECASE)
+            if match and match.group(1) not in ('embed', 'js', 'api'):
+                token = match.group(1)
+        if not token:
             return []
-        token = match.group(1)
         api_url = f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true"
         jobs = []
         resp = safe_get(api_url)
@@ -323,7 +201,7 @@ class LeverAdapter(BaseATSAdapter):
                 'source_url': api_url,
                 'external_job_id': job.get('id'),
                 'ats_platform': 'Lever',
-                'evidence_text': json.dumps({'id': job.get('id'), 'title': title, 'location': cats.get('location')})
+                'evidence_text': json.dumps({'id': job.get('id'), 'title': title, 'department': cats.get('department'), 'location': cats.get('location')})
             })
         return jobs
 
@@ -431,10 +309,21 @@ class SmartRecruitersAdapter(BaseATSAdapter):
         return 'smartrecruiters.com' in url.lower()
 
     def extract_jobs(self, link: str, company: Any) -> List[Dict[str, Any]]:
-        match = re.search(r'smartrecruiters\.com/([^/?#]+)', link, re.IGNORECASE)
-        if not match:
+        token = None
+        dcr_match = re.search(r'[?&]dcr_ci=([^&#]+)', link, re.IGNORECASE)
+        if dcr_match:
+            token = dcr_match.group(1)
+        elif 'my-applications/' in link.lower():
+            my_match = re.search(r'my-applications/([^/?#]+)', link, re.IGNORECASE)
+            if my_match:
+                token = my_match.group(1)
+        if not token:
+            match = re.search(r'smartrecruiters\.com/([^/?#]+)', link, re.IGNORECASE)
+            if match and match.group(1) not in ('my-applications', 'job', 'postings'):
+                token = match.group(1)
+        if not token:
             return []
-        token = match.group(1)
+
         base_api = f"https://api.smartrecruiters.com/v1/companies/{token}/postings"
 
         jobs = []
@@ -462,12 +351,13 @@ class SmartRecruitersAdapter(BaseATSAdapter):
                 city = loc.get('city') if isinstance(loc, dict) else None
                 country = loc.get('country') if isinstance(loc, dict) else None
                 location_str = ', '.join(filter(None, [city, country])) or None
+                dept_val = item.get('department', {}).get('label') if isinstance(item.get('department'), dict) else None
 
                 jobs.append({
                     'title': name.strip(),
                     'location': location_str,
                     'city': city,
-                    'department': item.get('department', {}).get('label') if isinstance(item.get('department'), dict) else None,
+                    'department': dept_val,
                     'employment_type': item.get('typeOfEmployment', {}).get('label') if isinstance(item.get('typeOfEmployment'), dict) else None,
                     'experience': item.get('experienceLevel', {}).get('label') if isinstance(item.get('experienceLevel'), dict) else None,
                     'salary': None,
@@ -479,7 +369,7 @@ class SmartRecruitersAdapter(BaseATSAdapter):
                     'source_url': base_api,
                     'external_job_id': item.get('id'),
                     'ats_platform': 'SmartRecruiters',
-                    'evidence_text': json.dumps({'id': item.get('id'), 'name': name, 'location': location_str})
+                    'evidence_text': json.dumps({'id': item.get('id'), 'title': name.strip(), 'department': dept_val, 'location': location_str})
                 })
 
             # Check if more pages
@@ -551,7 +441,15 @@ class SuccessFactorsAdapter(BaseATSAdapter):
 
     @classmethod
     def matches(cls, url: str) -> bool:
-        return 'successfactors.com' in url.lower() or 'successfactors.eu' in url.lower()
+        u = url.lower()
+        return (
+            'successfactors.com' in u or
+            'successfactors.eu' in u or
+            'mahindracareers.com' in u or
+            'tatamotorscareers' in u or
+            'heromotocorp' in u or
+            'jobs.heromotocorp' in u
+        )
 
     def extract_jobs(self, link: str, company: Any) -> List[Dict[str, Any]]:
         jobs = []
@@ -564,7 +462,6 @@ class SuccessFactorsAdapter(BaseATSAdapter):
         """Try the SuccessFactors OData v2 job requisition endpoint."""
         parsed = urllib.parse.urlparse(link)
         host = parsed.netloc
-        # e.g. https://performancemanager5.successfactors.com/odata/v2/JobRequisitionPosting?$top=100&$skip=0
         base_api = f"https://{host}/odata/v2/JobRequisitionPosting"
         jobs = []
         skip = 0
@@ -602,7 +499,7 @@ class SuccessFactorsAdapter(BaseATSAdapter):
                     'source_url': base_api,
                     'external_job_id': str(item.get('JobReqId', '')),
                     'ats_platform': 'SuccessFactors',
-                    'evidence_text': json.dumps({'JobReqId': item.get('JobReqId'), 'JobTitle': title})
+                    'evidence_text': json.dumps({'JobReqId': item.get('JobReqId'), 'title': title, 'department': item.get('DepartmentName'), 'location': item.get('City')})
                 })
             skip += top
             if len(results) < top:
@@ -610,18 +507,27 @@ class SuccessFactorsAdapter(BaseATSAdapter):
         return jobs
 
     def _scrape_html_pages(self, link: str) -> List[Dict[str, Any]]:
-        """HTML scrape fallback for SuccessFactors career pages."""
+        """HTML scrape fallback for SuccessFactors career pages (including Career Site Builder)."""
         jobs = []
         page = 0
+        search_base = link if '/search/' in link else link.rstrip('/') + '/search/'
+
         while True:
-            url = f"{link}?pageSize=20&start={page * 20}" if '?' not in link else f"{link}&start={page * 20}"
+            url = f"{search_base}?q=&startrow={page * 20}"
             resp = safe_get(url)
             if not resp or not resp.ok:
-                break
-            soup = BeautifulSoup(resp.text, 'lxml')
+                if page == 0:
+                    url = f"{link}?pageSize=20&start={page * 20}" if '?' not in link else f"{link}&start={page * 20}"
+                    resp = safe_get(url)
+                    if not resp or not resp.ok:
+                        break
+                else:
+                    break
 
-            # Try JSON-LD
+            soup = BeautifulSoup(resp.text, 'lxml')
             found_this_page = False
+
+            # 1. Try JSON-LD first
             for script in soup.find_all('script', type='application/ld+json'):
                 try:
                     data = json.loads(script.string or '')
@@ -629,9 +535,11 @@ class SuccessFactorsAdapter(BaseATSAdapter):
                         data = [data]
                     for item in data:
                         if item.get('@type') == 'JobPosting' and item.get('title'):
+                            loc_str = item.get('jobLocation', {}).get('address', {}).get('addressLocality') if isinstance(item.get('jobLocation'), dict) else None
                             jobs.append({
                                 'title': item['title'].strip(),
-                                'location': item.get('jobLocation', {}).get('address', {}).get('addressLocality'),
+                                'location': loc_str,
+                                'city': loc_str,
                                 'employment_type': item.get('employmentType'),
                                 'posted_date': item.get('datePosted'),
                                 'closing_date': item.get('validThrough'),
@@ -640,16 +548,57 @@ class SuccessFactorsAdapter(BaseATSAdapter):
                                 'application_url': link, 'source_url': link,
                                 'external_job_id': None,
                                 'ats_platform': 'SuccessFactors',
-                                'evidence_text': json.dumps({'title': item['title']})
+                                'evidence_text': json.dumps({'title': item['title'], 'location': loc_str})
                             })
                             found_this_page = True
                 except Exception:
                     pass
 
+            # 2. Career Site Builder (CSB) /job/ link extraction
             if not found_this_page:
-                break  # No more structured data
+                seen_on_page = set()
+                for a in soup.find_all('a', href=True):
+                    href = a['href']
+                    if '/job/' in href:
+                        title_text = a.get_text(strip=True)
+                        if not title_text or len(title_text) < 3 or title_text.lower() in ('apply now', 'more', 'view'):
+                            continue
+                        job_url = urllib.parse.urljoin(url, href)
+                        if job_url in seen_on_page:
+                            continue
+                        seen_on_page.add(job_url)
+
+                        id_m = re.search(r'/job/.*?/(\d+)', href)
+                        ext_id = id_m.group(1) if id_m else None
+
+                        row_parent = a.find_parent(['tr', 'div', 'li'])
+                        loc_str = None
+                        if row_parent:
+                            loc_elem = row_parent.find(class_=re.compile(r'location|city|country', re.I))
+                            if loc_elem:
+                                loc_str = loc_elem.get_text(strip=True)
+
+                        jobs.append({
+                            'title': title_text,
+                            'location': loc_str,
+                            'city': loc_str.split(',')[0].strip() if loc_str else None,
+                            'employment_type': None,
+                            'posted_date': None,
+                            'closing_date': None,
+                            'job_description': None,
+                            'salary': None, 'experience': None, 'education': None, 'skills': None,
+                            'application_url': job_url,
+                            'source_url': url,
+                            'external_job_id': ext_id,
+                            'ats_platform': 'SuccessFactors',
+                            'evidence_text': json.dumps({'title': title_text, 'id': ext_id, 'url': href, 'location': loc_str})
+                        })
+                        found_this_page = True
+
+            if not found_this_page:
+                break
             page += 1
-            if page > 50:  # Safety cap at 1000 jobs per company
+            if page >= 25:  # Cap at 500 jobs per company
                 break
             time.sleep(0.3)
         return jobs
@@ -753,7 +702,7 @@ class OracleTaleoAdapter(BaseATSAdapter):
                     'source_url': api_url,
                     'external_job_id': str(req_id) if req_id else None,
                     'ats_platform': 'Oracle_Cloud',
-                    'evidence_text': json.dumps({'id': req_id, 'title': title, 'location': loc, 'dept': req.get('Department')})
+                    'evidence_text': json.dumps({'id': req_id, 'title': title, 'location': loc, 'dept': req.get('Department'), 'job_family': req.get('JobFamily')})
                 })
 
             offset += limit
@@ -852,25 +801,34 @@ class ATSParser(BaseParser):
 
     def _enrich_with_detail_pages(self, jobs: List[Dict]) -> List[Dict]:
         """
-        For each job that has an application_url, fetch the detail page and
-        merge in any additional fields (description, responsibilities, requirements, etc.)
-        Fields are ONLY updated if the detail page has a non-None value for them.
+        For jobs that have an application_url, fetch the detail page and
+        merge in all additional fields (description, responsibilities, qualifications,
+        pay_band, function, role_purpose, day_in_the_life, technical/behavioural skills, etc.)
+        Fields are ONLY updated if the detail page provides the information.
         """
         enriched = []
+        detail_count = 0
         for job in jobs:
             detail_url = job.get('application_url')
-            # Skip detail fetch if no URL, or if description is already rich, or if Oracle Cloud SPA
-            if (detail_url and detail_url.startswith('http') 
-                and not job.get('job_description')
+            # Fetch detail if URL present and not rich yet
+            if (detail_count < 50
+                and detail_url and detail_url.startswith('http') 
+                and not job.get('responsibilities')
                 and 'hcmui' not in detail_url.lower()
                 and 'oraclecloud.com' not in detail_url.lower()):
-                time.sleep(0.1)  # polite delay between detail fetches
+                time.sleep(0.05)  # polite delay between detail fetches
                 detail_data = fetch_job_detail(detail_url)
-                # Merge: only update fields that are currently None in the job
+                # Merge: update fields where detail_data has valid content
                 for field, value in detail_data.items():
-                    if value is not None and job.get(field) is None:
+                    if value is not None and (job.get(field) is None or not str(job.get(field)).strip()):
                         job[field] = value
-                job['detail_fetched'] = True
+                job['detail_fetched'] = detail_data.get('detail_fetched', True)
+                job['detail_fetch_status'] = detail_data.get('detail_fetch_status', 'FETCHED')
+                detail_count += 1
+            else:
+                if not job.get('detail_fetched'):
+                    job['detail_fetched'] = False
+                    job['detail_fetch_status'] = job.get('detail_fetch_status') or 'NOT_FETCHED'
             enriched.append(job)
         return enriched
 
@@ -887,6 +845,8 @@ class ATSParser(BaseParser):
             'ashbyhq.com',
             'successfactors.com',
             'successfactors.eu',
+            'heromotocorp.com',
+            'jobs.heromotocorp.com',
             'taleo.net',
             'oraclecloud.com',
             'icims.com',
@@ -937,6 +897,13 @@ class ATSParser(BaseParser):
             host_url = oracle_match.group(0)
             ats_links.add(host_url)
             link_scores[host_url] = link_scores.get(host_url, 1)
+
+        # 5. Check for embedded SuccessFactors scripts in HTML
+        if 'successfactors.com' in self.html_content.lower() or 'successfactors.eu' in self.html_content.lower():
+            target_url = self.final_url or self.url
+            if target_url:
+                ats_links.add(target_url)
+                link_scores[target_url] = max(link_scores.get(target_url, 0), 10)
 
         # Sort by relevance score descending
         return sorted(list(ats_links), key=lambda x: link_scores.get(x, 0), reverse=True)

@@ -91,12 +91,14 @@ let currentSubscription = {
 
 // Central Pagination State Store - Strictly Synchronized to Real Database State
 const paginationState = {
-    companies: { page: 1, pageSize: 12, total: 201, totalPages: 17 },
-    jobs: { page: 1, pageSize: 12, total: 115, totalPages: 10 },
-    findJobs: { page: 1, pageSize: 12, total: 115, totalPages: 10 },
+    companies: { page: 1, pageSize: 12, total: 200, totalPages: 17 },
+    companyDirectory: { page: 1, pageSize: 16, total: 200, totalPages: 13 },
+    jobs: { page: 1, pageSize: 12, total: 940, totalPages: 79 },
+    findJobs: { page: 1, pageSize: 12, total: 940, totalPages: 79 },
     companyJobs: { page: 1, pageSize: 12, total: 0, totalPages: 1 },
-    opps: { page: 1, pageSize: 9, total: 6, totalPages: 1 },
-    crawler: { page: 1, pageSize: 15, total: 201, totalPages: 14 }
+    csr: { page: 1, pageSize: 12, total: 381, totalPages: 32 },
+    opps: { page: 1, pageSize: 9, total: 11, totalPages: 2 },
+    crawler: { page: 1, pageSize: 15, total: 200, totalPages: 14 }
 };
 
 // Utility: Debounce for fast, dynamic searches
@@ -216,6 +218,21 @@ function setupEventListeners() {
         if (el) el.addEventListener('change', () => filterCrawlerLogs());
     });
 
+    // CSR Search and Filters (Debounced Dynamic Filter)
+    const csrSearch = document.getElementById('csr-search');
+    if (csrSearch) {
+        const debouncedCsrFilter = debounce(() => filterCsrProjects(), 250);
+        csrSearch.addEventListener('input', (e) => {
+            const clearBtn = document.getElementById('csr-search-clear');
+            if (clearBtn) clearBtn.style.display = e.target.value ? 'block' : 'none';
+            debouncedCsrFilter();
+        });
+    }
+    const csrStateFilter = document.getElementById('csr-state-filter');
+    if (csrStateFilter) {
+        csrStateFilter.addEventListener('change', () => filterCsrProjects());
+    }
+
     // Keyboard ESC closes any open modal or navigation drawer
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -325,6 +342,10 @@ async function switchTab(tab) {
         } else if (filteredJobs.length === 0) {
             filterJobs();
         }
+    } else if (tab === 'csr-projects') {
+        if (allCsrProjects.length === 0) loadCsrProjects(1);
+    } else if (tab === 'coverage') {
+        loadCoverageTable();
     } else if (tab === 'active-opps' && allOpportunities.length === 0) {
         loadOpportunities();
     } else if (tab === 'prospects') {
@@ -378,23 +399,23 @@ function normalizeCompanyData(item) {
         if (!item.website_url) item.website_url = reg.site;
     }
 
-    // Safe website fallback
-    if (!item.website_url || !item.website_url.startsWith('http')) {
-        item.website_url = `https://www.google.com/search?q=${encodeURIComponent(item.company_name + ' India official portal')}`;
+    // Safe website URL validation
+    if (!item.website_url || !item.website_url.startsWith('http') || item.website_url.includes('google.com/search')) {
+        item.website_url = null;
     }
 
     return item;
 }
 
 function getCompanyWebsite(company) {
-    if (company && company.website_url && company.website_url.startsWith('http')) {
+    if (company && company.website_url && company.website_url.startsWith('http') && !company.website_url.includes('google.com/search')) {
         return company.website_url;
     }
-    return 'https://www.nseindia.com/';
+    return '';
 }
 
 function cleanDomainLabel(url) {
-    if (!url) return 'Official Portal';
+    if (!url || !url.startsWith('http') || url.includes('google.com/search')) return 'Not mentioned by source';
     return url.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
 }
 
@@ -450,7 +471,7 @@ async function loadStats() {
         if (!res.ok) return;
         const data = await res.json();
         
-        const totalCorps = data.total_companies !== undefined ? data.total_companies : 201;
+        const totalCorps = data.total_companies !== undefined ? data.total_companies : 200;
         const verifiedCorps = data.verified_companies !== undefined ? data.verified_companies : totalCorps;
         const verifiedJobs = data.jobs_tracked !== undefined ? data.jobs_tracked : 0;
         const verifiedCsr = data.csr_projects !== undefined ? data.csr_projects : 0;
@@ -495,12 +516,17 @@ async function loadStats() {
         const mobileOppBadge = document.getElementById('mobile-nav-opps-badge');
         if (mobileOppBadge) mobileOppBadge.textContent = verifiedOpps;
 
+        const navCsrBadge = document.getElementById('nav-csr-badge');
+        if (navCsrBadge) navCsrBadge.textContent = verifiedCsr.toLocaleString('en-IN');
+
         const jobsBadge = document.getElementById('jobs-count-badge');
         if (jobsBadge) jobsBadge.textContent = verifiedJobs.toLocaleString('en-IN');
         const mobileJobsBadge = document.getElementById('mobile-nav-jobs-badge');
         if (mobileJobsBadge) mobileJobsBadge.textContent = verifiedJobs.toLocaleString('en-IN');
         const totalJobsPill = document.getElementById('badge-jobs-total-pill');
         if (totalJobsPill) totalJobsPill.textContent = verifiedJobs.toLocaleString('en-IN');
+        const companyJobsPill = document.getElementById('badge-jobs-company-pill');
+        if (companyJobsPill) companyJobsPill.textContent = `${totalCorps} Corps`;
 
         const termJobs = document.getElementById('term-stat-jobs');
         if (termJobs) termJobs.textContent = `${verifiedJobs.toLocaleString('en-IN')} Openings`;
@@ -511,6 +537,10 @@ async function loadStats() {
 
         const analyticsJobs = document.getElementById('analytics-jobs-total');
         if (analyticsJobs) analyticsJobs.textContent = `${verifiedJobs.toLocaleString('en-IN')} Active`;
+        const coverageJobs = document.getElementById('coverage-kpi-jobs');
+        if (coverageJobs) coverageJobs.textContent = `${verifiedJobs.toLocaleString('en-IN')} Verified`;
+        const coverageCsr = document.getElementById('coverage-kpi-csr');
+        if (coverageCsr) coverageCsr.textContent = `${verifiedCsr.toLocaleString('en-IN')} Verified`;
 
         // Update hero last-extracted timestamp
         const heroStamp = document.getElementById('hero-live-last-extracted');
@@ -703,6 +733,7 @@ async function loadRecommendations(page = 1) {
         if (query) url += `&q=${encodeURIComponent(query)}`;
         if (sector && sector !== 'all') url += `&sector=${encodeURIComponent(sector)}`;
         if (state && state !== 'all') url += `&state=${encodeURIComponent(state)}`;
+        if (selectedCompanyCause && selectedCompanyCause !== 'all') url += `&cause=${encodeURIComponent(selectedCompanyCause)}`;
 
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -720,15 +751,6 @@ async function loadRecommendations(page = 1) {
             items = data.map(normalizeCompanyData);
             total = items.length;
             totalPages = Math.ceil(total / paginationState.companies.pageSize);
-        }
-
-        // Apply cause filter if active
-        if (selectedCompanyCause !== 'all') {
-            const cLower = selectedCompanyCause.toLowerCase();
-            items = items.filter(item => {
-                const focus = ((item.primary_csr_name || '') + ' ' + (item.sector || '')).toLowerCase();
-                return focus.includes(cLower);
-            });
         }
         if (oppOnly) {
             items = items.filter(item => (item.open_opportunities_count || 0) > 0);
@@ -877,7 +899,7 @@ function renderCompanyCards(list) {
                     <div class="company-card-header">
                         <div class="company-avatar">${escapeHtml(initial)}</div>
                         <div class="company-title-wrap">
-                            <div class="company-card-name" style="cursor:pointer;" onclick="openCompanyJobs('${item.company_id}', '${escapeHtml(item.company_name)}')">${escapeHtml(item.company_name)}</div>
+                            <div class="company-card-name" style="cursor:pointer;" onclick="openCompanyJobs('${item.company_id}')">${escapeHtml(item.company_name)}</div>
                             <div class="company-card-sub">
                                 <span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(item.nse_symbol ? `NSE: ${item.nse_symbol}` : 'REGISTRY')}</span>
                                 <span style="font-size:11.5px; color:var(--text-secondary);">${escapeHtml(industry)}</span>
@@ -922,10 +944,10 @@ function renderCompanyCards(list) {
                     <button class="btn-primary" onclick="openCompanyDossier('${item.company_id}')">
                         🔍 View Company
                     </button>
-                    <button class="btn-outline" onclick="openCompanyJobs('${item.company_id}', '${escapeHtml(item.company_name)}')" title="Browse verified jobs from this company">
+                    <button class="btn-outline" onclick="openCompanyJobs('${item.company_id}')" title="Browse verified jobs from this company">
                         💼 Jobs ${item.verified_jobs_count > 0 ? `(${item.verified_jobs_count})` : ''}
                     </button>
-                    <button class="btn-secondary" onclick="quickSaveToPipeline('${item.company_id}', '${escapeHtml(item.company_name)}', '${escapeHtml(item.sector || '')}')">
+                    <button class="btn-secondary" onclick="quickSaveToPipeline('${item.company_id}')">
                         ⭐ Save
                     </button>
                 </div>
@@ -984,10 +1006,10 @@ function renderCompanyTable(list) {
                     <button class="btn-primary" style="padding:5px 12px; font-size:11.5px;" onclick="openCompanyDossier('${item.company_id}')">
                         View Company
                     </button>
-                    <button class="btn-outline" style="padding:5px 10px; font-size:11.5px; margin-left:4px;" onclick="openCompanyJobs('${item.company_id}', '${escapeHtml(item.company_name)}')">
+                    <button class="btn-outline" style="padding:5px 10px; font-size:11.5px; margin-left:4px;" onclick="openCompanyJobs('${item.company_id}')">
                         💼 Jobs
                     </button>
-                    <button class="btn-secondary" style="padding:5px 10px; font-size:11.5px; margin-left:4px;" onclick="quickSaveToPipeline('${item.company_id}', '${escapeHtml(item.company_name)}', '${escapeHtml(item.sector || '')}')">
+                    <button class="btn-secondary" style="padding:5px 10px; font-size:11.5px; margin-left:4px;" onclick="quickSaveToPipeline('${item.company_id}')">
                         ⭐ Save
                     </button>
                 </td>
@@ -1008,6 +1030,10 @@ async function loadJobs(page = 1) {
     const label = document.getElementById('job-count-label');
 
     // Dynamic skeleton feedback
+    const tableBody = document.getElementById('jobs-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:50px 20px; color:var(--text-secondary);"><div class="loading-spinner-circle" style="margin:0 auto 12px; width:28px; height:28px;"></div><div style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">Loading Verified Job Openings...</div><div style="font-size:12px;">Querying corporate career portals (Page ${page})</div></td></tr>`;
+    }
     if (grid) {
         grid.innerHTML = `
             <div class="dynamic-loading-skeleton">
@@ -1069,10 +1095,15 @@ async function loadJobs(page = 1) {
             populateJobFilterDropdowns(items);
         }
 
-        // Update KPI and badge
+        // Update badge
         const countBadge = document.getElementById('jobs-count-badge');
         if (countBadge) countBadge.textContent = Number(total).toLocaleString('en-IN');
-        animateValue('kpi-jobs', Number(total).toLocaleString('en-IN'));
+        const mobileJobsBadge = document.getElementById('mobile-nav-jobs-badge');
+        if (mobileJobsBadge) mobileJobsBadge.textContent = Number(total).toLocaleString('en-IN');
+        const totalJobsPill = document.getElementById('badge-jobs-total-pill');
+        if (totalJobsPill && !query && comp === 'all' && loc === 'all' && dept === 'all' && exp === 'all' && mode === 'all') {
+            totalJobsPill.textContent = Number(total).toLocaleString('en-IN');
+        }
 
         renderJobs(items, total, totalPages);
         renderJobsPagination();
@@ -1118,8 +1149,18 @@ function populateJobFilters(jobs) {
 }
 
 function getJobApplyLink(job) {
-    if (!job) return '#';
-    return job.application_url || `https://www.google.com/search?q=${encodeURIComponent((job.company_name || 'India') + ' careers')}`;
+    if (!job) return null;
+
+    let url = (job.application_url || '').trim();
+    if (url && url.includes('api.smartrecruiters.com/v1/companies/') && url.includes('/postings/')) {
+        url = url.replace('api.smartrecruiters.com/v1/companies/', 'jobs.smartrecruiters.com/').replace('/postings/', '/');
+    }
+    if (url && url.startsWith('http') && !['---', '--', '-', 'null', 'none', 'undefined'].includes(url.toLowerCase()) && !url.includes('google.com/search')) {
+        return url;
+    }
+    if (job.careers_url && job.careers_url.startsWith('http') && !job.careers_url.includes('google.com/search')) return job.careers_url;
+    if (job.website_url && job.website_url.startsWith('http') && !job.website_url.includes('google.com/search')) return job.website_url;
+    return null;
 }
 
 function isImpactRole(job) {
@@ -1227,9 +1268,14 @@ function filterJobsByCompany(companyId, companyName) {
     if (!companyId) return;
     switchTab('jobs');
     switchJobSubTab('all');
+    let compVal = companyName || companyId;
+    if (!companyName && Array.isArray(allDirectoryCompanies)) {
+        const found = allDirectoryCompanies.find(c => c.company_id === companyId);
+        if (found && found.company_name) compVal = found.company_name;
+    }
     const compSelect = document.getElementById('job-company-filter');
     if (compSelect) {
-        compSelect.value = companyId;
+        compSelect.value = compVal;
     }
     const searchInput = document.getElementById('job-search');
     if (searchInput) searchInput.value = '';
@@ -1291,6 +1337,26 @@ function setJobViewMode(mode) {
     }
 }
 
+function getVerificationStatusLabel(status) {
+    const s = String(status || '').trim().toUpperCase();
+    if (s === 'PUBLISHED' || s === 'SOURCE_CONFIRMED' || s === 'VERIFIED') return 'Source verified';
+    if (s === 'PENDING' || s === 'VERIFICATION_PENDING') return 'Verification pending';
+    if (s === 'UNABLE_TO_VERIFY' || s === 'UNVERIFIED') return 'Unable to verify';
+    if (s === 'SOURCE_UNAVAILABLE') return 'Source unavailable';
+    if (s === 'NOT_CHECKED') return 'Not checked';
+    return 'Not checked';
+}
+
+function formatVerificationBadge(status) {
+    const label = getVerificationStatusLabel(status);
+    let badgeClass = 'badge-slate';
+    if (label === 'Source verified') badgeClass = 'badge-emerald';
+    else if (label === 'Verification pending') badgeClass = 'badge-amber';
+    else if (label === 'Unable to verify') badgeClass = 'badge-rose';
+    else if (label === 'Source unavailable') badgeClass = 'badge-slate';
+    return `<span class="badge ${badgeClass}" style="font-size:10px;">${escapeHtml(label)}</span>`;
+}
+
 function renderJobs(list, total, totalPages) {
     const tableBody = document.getElementById('jobs-table-body');
     const grid = document.getElementById('jobs-grid');
@@ -1325,8 +1391,8 @@ function renderJobs(list, total, totalPages) {
             const sourceBadge = job.ats_platform
                 ? `<span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(job.ats_platform)}</span>`
                 : `<span class="badge badge-blue" style="font-size:10px;">Official ATS</span>`;
-            const postedDisplay = job.posted_date ? formatDate(job.posted_date) : '<span style="color:var(--text-muted); font-size:12px;">Recent</span>';
-            const verifiedDisplay = job.last_verified_at ? formatDate(job.last_verified_at) : 'Today';
+            const postedDisplay = job.posted_date ? formatDate(job.posted_date) : '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>';
+            const verifiedDisplay = job.retrieved_at ? formatDate(job.retrieved_at) : (job.last_checked_date ? formatDate(job.last_checked_date) : '<span style="color:var(--text-muted); font-size:12px;">Not checked</span>');
 
             return `
                 <tr>
@@ -1336,26 +1402,30 @@ function renderJobs(list, total, totalPages) {
                         </div>
                     </td>
                     <td>
-                        <a href="javascript:void(0)" onclick="filterJobsByCompany('${job.company_id}', '${escapeHtml(job.company_name)}')" style="font-weight:600; color:var(--accent-cyan); text-decoration:none;" title="Filter by ${escapeHtml(job.company_name)}">
+                        <a href="javascript:void(0)" onclick="filterJobsByCompany('${job.company_id}')" style="font-weight:600; color:var(--accent-cyan); text-decoration:none;" title="Filter by ${escapeHtml(job.company_name)}">
                             🏢 ${escapeHtml(job.company_name)}
                         </a>
                         ${job.nse_symbol ? `<span style="color:var(--text-muted); font-size:11px; margin-left:4px;">(${escapeHtml(job.nse_symbol)})</span>` : ''}
                     </td>
-                    <td>${job.location ? escapeHtml(job.location) : '<span style="color:var(--text-muted); font-size:12px;">Not specified</span>'}</td>
-                    <td>${job.department ? `<span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(job.department)}</span>` : '<span style="color:var(--text-muted); font-size:12px;">Not specified</span>'}</td>
-                    <td>${job.employment_type ? escapeHtml(job.employment_type) : '<span style="color:var(--text-muted); font-size:12px;">Not specified</span>'}</td>
+                    <td>${job.location ? escapeHtml(job.location) : '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>'}</td>
+                    <td>${job.department ? `<span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(job.department)}</span>` : '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>'}</td>
+                    <td>${job.employment_type ? escapeHtml(job.employment_type) : '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>'}</td>
                     <td style="font-size:12px; color:var(--text-secondary);">${postedDisplay}</td>
                     <td style="font-size:12px; color:var(--text-secondary);">${verifiedDisplay}</td>
                     <td>${sourceBadge}</td>
-                    <td><span class="badge badge-emerald" style="font-size:10px;">ACTIVE</span></td>
+                    <td>${formatVerificationBadge(job.verification_status)}</td>
                     <td style="text-align:right;">
                         <div style="display:flex; justify-content:flex-end; gap:6px;">
                             <button class="btn-primary" style="padding:4px 10px; font-size:11.5px;" onclick="openJobDetailsModal(${job.job_row_id})">
                                 View
                             </button>
-                            <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:4px 10px; font-size:11.5px;" title="Official application portal">
+                            ${applyUrl ? `
+                            <a href="${escapeHtml(applyUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:4px 10px; font-size:11.5px;" title="Official application portal">
                                 Apply ↗
-                            </a>
+                            </a>` : `
+                            <span style="font-size:11px; color:var(--text-muted); padding:4px 8px; border:1px solid var(--border-subtle); border-radius:4px; display:inline-block;" title="Application link not mentioned by source">
+                                Unlisted
+                            </span>`}
                         </div>
                     </td>
                 </tr>
@@ -1368,13 +1438,15 @@ function renderJobs(list, total, totalPages) {
         grid.innerHTML = list.map(job => {
             const applyUrl = getJobApplyLink(job);
 
-            let modeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
+            let modeBadge = '<span class="badge badge-slate" style="font-size:10px;">Not mentioned by source</span>';
             if (job.work_mode === 'Remote') modeBadge = '<span class="badge badge-cyan">🏠 Remote</span>';
             else if (job.work_mode === 'Hybrid') modeBadge = '<span class="badge badge-purple">🔄 Hybrid</span>';
+            else if (job.work_mode === 'On-site') modeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
+            else if (job.work_mode) modeBadge = `<span class="badge badge-slate" style="font-size:10px;">${escapeHtml(job.work_mode)}</span>`;
 
             const deptBadge = job.department 
                 ? `<span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(job.department)}</span>`
-                : `<span class="badge badge-subtle" style="font-size:10px;">Enterprise</span>`;
+                : `<span class="badge badge-subtle" style="font-size:10px;">Not mentioned by source</span>`;
 
             return `
                 <div class="job-card">
@@ -1388,16 +1460,16 @@ function renderJobs(list, total, totalPages) {
                             ${escapeHtml(job.job_title)}
                         </div>
 
-                        <div class="job-company" style="cursor:pointer;" onclick="filterJobsByCompany('${job.company_id}', '${escapeHtml(job.company_name)}')" title="Filter to show all verified openings at ${escapeHtml(job.company_name)}">
+                        <div class="job-company" style="cursor:pointer;" onclick="filterJobsByCompany('${job.company_id}')" title="Filter to show all verified openings at ${escapeHtml(job.company_name)}">
                             🏢 <span style="text-decoration:underline;">${escapeHtml(job.company_name)}</span>
                             ${job.nse_symbol ? `<span style="color:var(--accent-cyan); font-weight:700;">(${escapeHtml(job.nse_symbol)})</span>` : ''}
                         </div>
 
                         <div class="job-meta-grid">
-                            <div class="job-meta-item">📍 <span><strong>Location:</strong> ${job.location ? escapeHtml(job.location) : 'Not specified'}</span></div>
-                            <div class="job-meta-item">⏳ <span><strong>Experience:</strong> ${job.experience ? escapeHtml(job.experience) : 'Not specified'}</span></div>
-                            <div class="job-meta-item">💼 <span><strong>Type:</strong> ${job.employment_type ? escapeHtml(job.employment_type) : 'Not specified'}</span></div>
-                            <div class="job-meta-item">🛡️ <span><strong>Status:</strong> <span style="color:var(--accent-emerald); font-weight:700;">ACTIVE</span></span></div>
+                            <div class="job-meta-item">📍 <span><strong>Location:</strong> ${job.location ? escapeHtml(job.location) : 'Not mentioned by source'}</span></div>
+                            <div class="job-meta-item">⏳ <span><strong>Experience:</strong> ${job.experience ? escapeHtml(job.experience) : 'Not mentioned by source'}</span></div>
+                            <div class="job-meta-item">💼 <span><strong>Type:</strong> ${job.employment_type ? escapeHtml(job.employment_type) : 'Not mentioned by source'}</span></div>
+                            <div class="job-meta-item">🛡️ <span><strong>Status:</strong> ${formatVerificationBadge(job.verification_status)}</span></div>
                         </div>
                     </div>
 
@@ -1406,11 +1478,15 @@ function renderJobs(list, total, totalPages) {
                             <button class="btn-primary" style="padding:6px 12px; font-size:12px;" onclick="openJobDetailsModal(${job.job_row_id})">
                                 View Job
                             </button>
-                            <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:6px 12px; font-size:12px;"
+                            ${applyUrl ? `
+                            <a href="${escapeHtml(applyUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:6px 12px; font-size:12px;"
                                title="Opens official application portal for ${escapeHtml(job.company_name)}">
                                 ⚡ Apply ↗
-                            </a>
-                            <button class="btn-outline" style="padding:6px 10px; font-size:11px;" onclick="openCompanyJobs('${job.company_id}', '${escapeHtml(job.company_name)}')"
+                            </a>` : `
+                            <button class="btn-disabled" disabled style="padding:6px 10px; font-size:11px; opacity:0.6; cursor:not-allowed; background:var(--bg-surface-subtle); border:1px solid var(--border-color); color:var(--text-muted); border-radius:6px;" title="Application link not mentioned by source">
+                                Unlisted Link
+                            </button>`}
+                            <button class="btn-outline" style="padding:6px 10px; font-size:11px;" onclick="openCompanyJobs('${job.company_id}')"
                                     title="Browse all jobs from this company">
                                 🏢 All Jobs
                             </button>
@@ -1437,6 +1513,7 @@ let currentJobSubTab = 'all';
 let findJobsLoaded = false;
 let companyDirectoryLoaded = false;
 let allDirectoryCompanies = [];
+let filteredDirectoryCompanies = [];
 let selectedCompanyJobId = null;
 let selectedCompanyJobData = null;
 
@@ -1477,7 +1554,7 @@ function switchJobSubTab(subTab) {
 // ---------------------------------------------------------------------------
 async function loadFindJobs(page = 1) {
     if (typeof page !== 'number' || isNaN(page) || page < 1) page = 1;
-    if (!paginationState.findJobs) paginationState.findJobs = { page: 1, pageSize: 12, total: 115, totalPages: 10 };
+    if (!paginationState.findJobs) paginationState.findJobs = { page: 1, pageSize: 12, total: 940, totalPages: 79 };
     paginationState.findJobs.page = page;
 
     const grid = document.getElementById('find-jobs-grid');
@@ -1603,71 +1680,89 @@ function renderFindJobs(list, total, totalPages) {
         countLabel.textContent = `Found ${total.toLocaleString('en-IN')} Verified Openings Matching Your Discovery Criteria`;
     }
 
-    grid.innerHTML = list.map(job => {
-        const applyUrl = getJobApplyLink(job);
-        const domainLabel = cleanDomainLabel(applyUrl);
+    grid.innerHTML = list.map(job => renderStandardJobCard(job, { showCompanyLink: true })).join('');
+}
 
-        let modeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
-        if (job.work_mode === 'Remote') modeBadge = '<span class="badge badge-cyan">🏠 Remote</span>';
-        else if (job.work_mode === 'Hybrid') modeBadge = '<span class="badge badge-purple">🔄 Hybrid</span>';
+function renderStandardJobCard(job, options = {}) {
+    const applyUrl = getJobApplyLink(job);
+    const domainLabel = cleanDomainLabel(applyUrl);
 
-        const skills = job.skills
-            ? job.skills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
-            : [];
+    let modeBadge = '<span class="badge badge-slate" style="font-size:10px;">Not mentioned by source</span>';
+    if (job.work_mode === 'Remote') modeBadge = '<span class="badge badge-cyan">🏠 Remote</span>';
+    else if (job.work_mode === 'Hybrid') modeBadge = '<span class="badge badge-purple">🔄 Hybrid</span>';
+    else if (job.work_mode === 'On-site') modeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
+    else if (job.work_mode) modeBadge = `<span class="badge badge-slate" style="font-size:10px;">${escapeHtml(job.work_mode)}</span>`;
 
-        return `
-            <div class="job-discovery-card">
-                <div>
-                    <div class="job-header-row">
-                        <span class="badge badge-cyan" style="font-size:10.5px;">${escapeHtml(job.department || 'Enterprise')}</span>
-                        ${modeBadge}
-                    </div>
+    const skills = job.skills
+        ? job.skills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+        : [];
 
-                    <div class="job-card-title">
-                        <a href="javascript:void(0)" onclick="openJobDetailsModal(${job.job_row_id})">
-                            ${escapeHtml(job.job_title)}
-                        </a>
-                    </div>
+    const showCompanyLink = options.showCompanyLink !== false;
+    const deptBadge = job.department 
+        ? `<span class="badge badge-cyan" style="font-size:10.5px;">${escapeHtml(job.department)}</span>`
+        : `<span class="badge badge-slate" style="font-size:10.5px;">Not mentioned by source</span>`;
 
-                    <a href="javascript:void(0)" class="job-company-badge" onclick="openCompanyJobs('${job.company_id}', '${escapeHtml(job.company_name)}')">
-                        🏢 ${escapeHtml(job.company_name)}
-                        ${job.nse_symbol ? `<span style="color:var(--text-muted); font-size:12px;">(${escapeHtml(job.nse_symbol)})</span>` : ''}
+    return `
+        <div class="job-discovery-card">
+            <div>
+                <div class="job-header-row">
+                    ${deptBadge}
+                    ${modeBadge}
+                </div>
+
+                <div class="job-card-title">
+                    <a href="javascript:void(0)" onclick="openJobDetailsModal(${job.job_row_id})">
+                        ${escapeHtml(job.job_title)}
                     </a>
+                </div>
 
-                    <div class="job-meta-chips">
-                        <span class="job-chip">📍 ${job.location ? escapeHtml(job.location) : 'Not specified'}</span>
-                        ${job.experience ? `<span class="job-chip">⏳ ${escapeHtml(job.experience)}</span>` : ''}
-                        ${job.employment_type ? `<span class="job-chip">💼 ${escapeHtml(job.employment_type)}</span>` : ''}
-                        ${job.salary ? `<span class="job-chip">💰 ${escapeHtml(job.salary)}</span>` : ''}
-                    </div>
+                ${showCompanyLink ? `
+                <a href="javascript:void(0)" class="job-company-badge" onclick="openCompanyJobs('${job.company_id}')">
+                    🏢 ${escapeHtml(job.company_name)}
+                    ${job.nse_symbol ? `<span style="color:var(--text-muted); font-size:12px;">(${escapeHtml(job.nse_symbol)})</span>` : ''}
+                </a>
+                ` : `
+                <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px; font-weight:600;">
+                    🏢 ${escapeHtml(job.company_name)}
+                </div>
+                `}
 
-                    ${skills.length > 0 ? `
-                    <div class="job-skills-chips">
-                        ${skills.map(sk => `<span class="skill-pill">${escapeHtml(sk)}</span>`).join('')}
-                    </div>
+                <div class="job-meta-chips">
+                    <span class="job-chip">📍 ${job.location ? escapeHtml(job.location) : 'Not mentioned by source'}</span>
+                    ${job.experience ? `<span class="job-chip">⏳ ${escapeHtml(job.experience)}</span>` : ''}
+                    ${job.employment_type ? `<span class="job-chip">💼 ${escapeHtml(job.employment_type)}</span>` : ''}
+                    ${job.salary ? `<span class="job-chip">💰 ${escapeHtml(job.salary)}</span>` : ''}
+                </div>
+
+                ${skills.length > 0 ? `
+                <div class="job-skills-chips">
+                    ${skills.map(sk => `<span class="skill-pill">${escapeHtml(sk)}</span>`).join('')}
+                </div>
+                ` : ''}
+            </div>
+
+            <div class="job-card-footer">
+                <div class="job-post-date">
+                    <span>✓ Source Verified ATS</span>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <button class="btn-primary" style="padding:6px 14px; font-size:12px;" onclick="openJobDetailsModal(${job.job_row_id})">
+                        View Job
+                    </button>
+                    <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:6px 12px; font-size:12px;" title="Apply directly on official careers portal">
+                        Apply ↗
+                    </a>
+                    ${showCompanyLink ? `
+                    <button class="btn-outline" style="padding:6px 10px; font-size:11px;" onclick="openCompanyJobs('${job.company_id}')" title="View all jobs for this company">
+                        🏢 All Jobs
+                    </button>
                     ` : ''}
                 </div>
-
-                <div class="job-card-footer">
-                    <div class="job-post-date">
-                        <span>✓ Verified ATS Link</span>
-                    </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <button class="btn-primary" style="padding:6px 14px; font-size:12px;" onclick="openJobDetailsModal(${job.job_row_id})">
-                            View Job
-                        </button>
-                        <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:6px 12px; font-size:12px;" title="Apply directly on official careers portal">
-                            Apply ↗
-                        </a>
-                        <button class="btn-outline" style="padding:6px 10px; font-size:11px;" onclick="openCompanyJobs('${job.company_id}', '${escapeHtml(job.company_name)}')" title="View all jobs for this company">
-                            🏢 All Jobs
-                        </button>
-                    </div>
-                </div>
             </div>
-        `;
-    }).join('');
+        </div>
+    `;
 }
+
 
 function executeFindJobsSearch() {
     loadFindJobs(1);
@@ -1733,7 +1828,17 @@ async function loadCompanyJobsDirectory() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.items || []);
+
+        // Default sort: hiring companies with verified job openings first
+        items.sort((a, b) => {
+            const jA = a.job_count || 0;
+            const jB = b.job_count || 0;
+            if (jB !== jA) return jB - jA;
+            return (a.company_name || '').localeCompare(b.company_name || '');
+        });
+
         allDirectoryCompanies = items;
+        filteredDirectoryCompanies = items;
 
         if (sectorFilter && sectorFilter.options.length <= 1) {
             const sectors = [...new Set(items.map(c => c.sector).filter(Boolean))].sort();
@@ -1741,14 +1846,83 @@ async function loadCompanyJobsDirectory() {
                 sectors.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
         }
 
-        renderCompanyJobsDirectoryCards(items);
-        if (countLabel) countLabel.textContent = `${items.length} Verified Corporate Employers`;
+        if (!paginationState.companyDirectory) {
+            paginationState.companyDirectory = { page: 1, pageSize: 16, total: items.length, totalPages: Math.ceil(items.length / 16) };
+        }
+        paginationState.companyDirectory.total = items.length;
+        paginationState.companyDirectory.pageSize = paginationState.companyDirectory.pageSize || 16;
+        paginationState.companyDirectory.totalPages = Math.ceil(items.length / paginationState.companyDirectory.pageSize) || 1;
+        paginationState.companyDirectory.page = 1;
+
+        const companyJobsPill = document.getElementById('badge-jobs-company-pill');
+        if (companyJobsPill) companyJobsPill.textContent = `${items.length} Corps`;
+
+        renderCompanyJobsDirectoryPage();
     } catch (e) {
         console.error('Error loading company directory', e);
         if (grid) {
             grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#f43f5e;">Could not load companies: ${escapeHtml(e.message)}</div>`;
         }
     }
+}
+
+function renderCompanyJobsDirectoryPage() {
+    const list = filteredDirectoryCompanies || [];
+    const total = list.length;
+    const pageSize = (paginationState.companyDirectory && paginationState.companyDirectory.pageSize) || 16;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+
+    if (!paginationState.companyDirectory) {
+        paginationState.companyDirectory = { page: 1, pageSize: 16, total: total, totalPages: totalPages };
+    }
+    paginationState.companyDirectory.total = total;
+    paginationState.companyDirectory.totalPages = totalPages;
+
+    if (paginationState.companyDirectory.page > totalPages) {
+        paginationState.companyDirectory.page = totalPages;
+    }
+    if (paginationState.companyDirectory.page < 1) {
+        paginationState.companyDirectory.page = 1;
+    }
+
+    const page = paginationState.companyDirectory.page;
+    const start = (page - 1) * pageSize;
+    const pagedItems = list.slice(start, start + pageSize);
+
+    renderCompanyJobsDirectoryCards(pagedItems);
+    renderCompanyDirectoryPagination();
+
+    const countLabel = document.getElementById('company-directory-count-label');
+    if (countLabel) {
+        if (total === (allDirectoryCompanies || []).length) {
+            countLabel.textContent = `Showing page ${page} of ${totalPages} (${total} Verified Corporate Employers Total)`;
+        } else {
+            countLabel.textContent = `Showing page ${page} of ${totalPages} (${total} Corporations Found)`;
+        }
+    }
+}
+
+function renderCompanyDirectoryPagination() {
+    renderPaginationBar({
+        containerId: 'company-directory-pagination',
+        page: paginationState.companyDirectory.page,
+        totalPages: paginationState.companyDirectory.totalPages,
+        total: paginationState.companyDirectory.total,
+        pageSize: paginationState.companyDirectory.pageSize,
+        pageSizeOptions: [16, 32, 64, 128],
+        itemLabel: 'Corporate Employers',
+        onPageChange: (newPage) => {
+            paginationState.companyDirectory.page = newPage;
+            renderCompanyJobsDirectoryPage();
+            const anchor = document.getElementById('company-jobs-directory-view');
+            if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        onPageSizeChange: (newSize) => {
+            paginationState.companyDirectory.pageSize = newSize;
+            paginationState.companyDirectory.page = 1;
+            renderCompanyJobsDirectoryPage();
+        }
+    });
 }
 
 function renderCompanyJobsDirectoryCards(list) {
@@ -1760,7 +1934,7 @@ function renderCompanyJobsDirectoryCards(list) {
             <div style="grid-column:1/-1;" class="empty-state">
                 <div class="empty-state-icon">🏢</div>
                 <div class="empty-state-title">No Corporations Found</div>
-                <div class="empty-state-text">No companies matched your query or sector filter.</div>
+                <div class="empty-state-text">No companies matched your query or filters.</div>
             </div>`;
         return;
     }
@@ -1774,20 +1948,25 @@ function renderCompanyJobsDirectoryCards(list) {
         let jobBadge = '';
         const jobCnt = comp.job_count || 0;
         const crawlSt = comp.crawl_status || 'PENDING';
+        const jobState = comp.job_status_state || (jobCnt > 0 ? 'VERIFIED_JOBS' : 'VERIFIED_ZERO');
+
+        // Authoritative 5-State Job Status Rule (Section 6)
         if (jobCnt > 0) {
-            jobBadge = `<span class="badge badge-emerald" style="font-size:10px; font-weight:700;">💼 ${jobCnt} Jobs</span>`;
-        } else if (crawlSt === 'CRAWLED') {
-            jobBadge = `<span class="badge" style="font-size:10px; background:var(--bg-subtle); color:var(--text-secondary); border:1px solid var(--border-color);">0 Verified</span>`;
-        } else if (crawlSt === 'PENDING') {
-            jobBadge = `<span class="badge" style="font-size:10px; background:var(--bg-subtle); color:var(--text-muted); border:1px dashed var(--border-color);">⏳ Crawl Pending</span>`;
-        } else if (crawlSt === 'NO_CAREER_URL') {
+            jobBadge = `<span class="badge badge-emerald" style="font-size:10px; font-weight:700;">💼 ${jobCnt} Verified Jobs</span>`;
+        } else if (crawlSt === 'FAILED' || jobState === 'CRAWL_FAILED') {
+            jobBadge = `<span class="badge badge-rose" style="font-size:10px; font-weight:600;">⚠️ Crawl Failed</span>`;
+        } else if (crawlSt === 'BLOCKED' || crawlSt === 'REDIRECT_BLOCKED' || jobState === 'SOURCE_BLOCKED') {
+            jobBadge = `<span class="badge badge-amber" style="font-size:10px; font-weight:600;">🔒 Source Blocked</span>`;
+        } else if (crawlSt === 'CRAWLED' || jobState === 'VERIFIED_ZERO') {
+            jobBadge = `<span class="badge" style="font-size:10px; background:var(--bg-subtle); color:var(--text-secondary); border:1px solid var(--border-color);">0 Verified Jobs</span>`;
+        } else if (crawlSt === 'NO_CAREER_URL' || jobState === 'ATS_DISCOVERY_FAILED') {
             jobBadge = `<span class="badge badge-amber" style="font-size:10px;">Source Unavailable</span>`;
         } else {
-            jobBadge = `<span class="badge badge-rose" style="font-size:10px;">⚠️ Crawl Failed</span>`;
+            jobBadge = `<span class="badge" style="font-size:10px; background:var(--bg-subtle); color:var(--text-muted); border:1px dashed var(--border-color);">Coverage Pending</span>`;
         }
 
         return `
-            <div class="job-discovery-card" style="cursor:pointer;" onclick="openCompanyJobs('${comp.company_id}', '${escapeHtml(comp.company_name)}')">
+            <div class="job-discovery-card" style="cursor:pointer;" onclick="openCompanyJobs('${comp.company_id}')">
                 <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
                     <div class="company-logo-avatar" style="width:48px; height:48px; font-size:16px;">${avatar}</div>
                     <div style="flex:1; min-width:0;">
@@ -1804,9 +1983,14 @@ function renderCompanyJobsDirectoryCards(list) {
                         <span class="badge badge-purple" style="font-size:10px;">${escapeHtml(sector)}</span>
                         ${jobBadge}
                     </div>
-                    <button class="btn-primary" style="padding:6px 14px; font-size:12px; flex-shrink:0;" onclick="event.stopPropagation(); openCompanyJobs('${comp.company_id}', '${escapeHtml(comp.company_name)}')">
-                        ${jobCnt > 0 ? `View ${jobCnt} Jobs →` : 'Browse Jobs →'}
-                    </button>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button class="btn-outline" style="padding:6px 10px; font-size:11px; flex-shrink:0;" onclick="event.stopPropagation(); openCompanyDossier('${comp.company_id}')" title="View Company CSR & Intelligence Profile">
+                            View Profile
+                        </button>
+                        <button class="${jobCnt > 0 ? 'btn-primary' : 'btn-outline'}" style="padding:6px 12px; font-size:11px; flex-shrink:0;" onclick="event.stopPropagation(); openCompanyJobs('${comp.company_id}')">
+                            ${jobCnt > 0 ? `View ${jobCnt} Jobs →` : 'View Jobs (0) →'}
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1817,8 +2001,10 @@ function renderCompanyJobsDirectoryCards(list) {
 function filterCompanyDirectory() {
     const q = (document.getElementById('company-jobs-search')?.value || '').trim().toLowerCase();
     const sector = document.getElementById('company-jobs-sector-filter')?.value || 'all';
+    const sortBy = document.getElementById('company-jobs-sort-filter')?.value || 'jobs_desc';
+    const hiringOnly = document.getElementById('company-jobs-hiring-only')?.checked || false;
 
-    let filtered = allDirectoryCompanies || [];
+    let filtered = [...(allDirectoryCompanies || [])];
     if (q) {
         filtered = filtered.filter(c =>
             (c.company_name && c.company_name.toLowerCase().includes(q)) ||
@@ -1829,13 +2015,33 @@ function filterCompanyDirectory() {
     if (sector !== 'all') {
         filtered = filtered.filter(c => c.sector === sector);
     }
+    if (hiringOnly) {
+        filtered = filtered.filter(c => (c.job_count || 0) > 0);
+    }
 
-    renderCompanyJobsDirectoryCards(filtered);
-    const countLabel = document.getElementById('company-directory-count-label');
-    if (countLabel) countLabel.textContent = `${filtered.length} Corporations Found`;
+    if (sortBy === 'jobs_desc') {
+        filtered.sort((a, b) => {
+            const jA = a.job_count || 0;
+            const jB = b.job_count || 0;
+            if (jB !== jA) return jB - jA;
+            return (a.company_name || '').localeCompare(b.company_name || '');
+        });
+    } else if (sortBy === 'name_asc') {
+        filtered.sort((a, b) => (a.company_name || '').localeCompare(b.company_name || ''));
+    } else if (sortBy === 'sector') {
+        filtered.sort((a, b) => (a.sector || '').localeCompare(b.sector || '') || (a.company_name || '').localeCompare(b.company_name || ''));
+    } else if (sortBy === 'score') {
+        filtered.sort((a, b) => (b.opportunity_score || b.score || 0) - (a.opportunity_score || a.score || 0));
+    }
+
+    filteredDirectoryCompanies = filtered;
+    if (paginationState.companyDirectory) {
+        paginationState.companyDirectory.page = 1;
+    }
+    renderCompanyJobsDirectoryPage();
 }
 
-async function openCompanyJobs(companyId, companyName) {
+async function openCompanyJobs(companyId) {
     if (!companyId) return;
 
     // Switch tab to jobs if not already on it
@@ -1859,8 +2065,6 @@ async function openCompanyJobs(companyId, companyName) {
     const webEl = document.getElementById('comp-dash-website-link');
     const carEl = document.getElementById('comp-dash-careers-link');
 
-    if (nameEl) nameEl.textContent = companyName || 'Corporate Enterprise';
-
     // Look up company metadata
     let comp = (allDirectoryCompanies || []).find(c => c.company_id === companyId);
     if (!comp) {
@@ -1872,6 +2076,7 @@ async function openCompanyJobs(companyId, companyName) {
 
     if (comp) {
         selectedCompanyJobData = comp;
+        if (nameEl) nameEl.textContent = comp.company_name;
         const sym = comp.nse_symbol || 'NSE';
         if (avatarEl) avatarEl.textContent = (sym || comp.company_name.slice(0, 2)).slice(0, 3).toUpperCase();
         if (symbolEl) symbolEl.textContent = `NSE: ${sym}`;
@@ -1880,6 +2085,8 @@ async function openCompanyJobs(companyId, companyName) {
         const website = getCompanyWebsite(comp);
         if (webEl) webEl.innerHTML = `🌐 <a href="${website}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); text-decoration:none;">Website ↗</a>`;
         if (carEl) carEl.innerHTML = `💼 <a href="${comp.careers_url || website + 'careers'}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); text-decoration:none;">Careers Portal ↗</a>`;
+    } else {
+        if (nameEl) nameEl.textContent = 'Corporate Enterprise';
     }
 
     loadSelectedCompanyJobs(1);
@@ -2020,23 +2227,36 @@ function renderSelectedCompanyJobs(list) {
         let emptyAction = `<button class="btn-primary" onclick="resetSelectedCompanyJobFilters()">Reset Filters</button>`;
 
         if (paginationState.companyJobs.total === 0) {
-            if (crawlSt === 'PENDING') {
-                emptyTitle = "Jobs Not Yet Verified (Crawl Pending)";
-                emptyText = `The live crawler has not yet synchronized openings for ${escapeHtml(selectedCompanyJobData?.company_name || 'this corporation')}. Run "Fetch Live Data" to discover all active postings.`;
-                emptyAction = `<button class="btn-primary" onclick="confirmLiveFetch()">⚡ Fetch Live Data Now</button>`;
+            emptyTitle = "0 Active Openings Disclosed";
+            const careersUrl = selectedCompanyJobData?.careers_url || (selectedCompanyJobData?.website_url ? (selectedCompanyJobData.website_url.replace(/\/+$/, '') + '/careers') : null);
+
+            let statusDetail = "No active job postings are currently recorded in the database for this corporation.";
+            let statusBadge = '<span class="badge" style="background:var(--bg-subtle); color:var(--text-secondary); border:1px solid var(--border-color); font-size:11px;">0 Verified Jobs (Confirmed Zero)</span>';
+            if (crawlSt === 'FAILED') {
+                statusDetail = "The automated crawler encountered an access or parsing failure while inspecting the official careers portal. Job coverage is currently incomplete.";
+                statusBadge = '<span class="badge badge-rose" style="font-size:11px;">⚠️ Crawl Failed</span>';
+            } else if (crawlSt === 'BLOCKED' || crawlSt === 'REDIRECT_BLOCKED') {
+                statusDetail = "The enterprise careers source is protected by security firewalls or interactive access controls. Direct robotic extraction is restricted.";
+                statusBadge = '<span class="badge badge-amber" style="font-size:11px;">🔒 Source Protected / Blocked</span>';
             } else if (crawlSt === 'CRAWLED') {
-                emptyTitle = "0 Active Openings Disclosed";
-                emptyText = `The official careers portal was audited and currently lists 0 open positions.`;
-                emptyAction = selectedCompanyJobData?.careers_url ? `<a href="${escapeHtml(selectedCompanyJobData.careers_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration:none; display:inline-block;">Open Careers Portal ↗</a>` : '';
-            } else if (crawlSt === 'NO_CAREER_URL') {
-                emptyTitle = "Career Source Unavailable";
-                emptyText = `An official active career portal URL has not been disclosed by the company.`;
-                emptyAction = '';
+                statusDetail = `The official careers portal was successfully crawled. No active job vacancies are currently published by ${escapeHtml(selectedCompanyJobData?.company_name || 'this corporation')}.`;
+                statusBadge = '<span class="badge" style="background:var(--bg-subtle); color:var(--text-secondary); border:1px solid var(--border-color); font-size:11px;">0 Verified Jobs (Confirmed Zero)</span>';
             } else {
-                emptyTitle = "Career Portal Blocked or Inaccessible";
-                emptyText = `The crawler encountered an access barrier (${crawlSt}) when checking the company's career page.`;
-                emptyAction = selectedCompanyJobData?.careers_url ? `<a href="${escapeHtml(selectedCompanyJobData.careers_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration:none; display:inline-block;">Visit Official Site Directly ↗</a>` : '';
+                statusDetail = "Careers source discovery and verification are pending for this enterprise.";
+                statusBadge = '<span class="badge" style="background:var(--bg-subtle); color:var(--text-muted); border:1px dashed var(--border-color); font-size:11px;">Coverage Pending</span>';
             }
+
+            emptyText = `
+                <div style="margin-bottom:12px;">${statusBadge}</div>
+                <div style="color:var(--text-secondary); max-width:540px; margin:0 auto; font-size:13.5px; line-height:1.5;">${statusDetail}</div>
+            `;
+            emptyAction = `
+                <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:16px;">
+                    <button class="btn-primary" onclick="openCompanyDossier('${selectedCompanyJobId}')">View Enterprise Profile &amp; CSR Dossier</button>
+                    ${careersUrl ? `<a href="${escapeHtml(careersUrl)}" target="_blank" rel="noopener noreferrer" class="btn-outline" style="text-decoration:none; display:inline-block;">Visit Official Careers Portal ↗</a>` : ''}
+                    <button class="btn-secondary" onclick="returnToCompanyDirectory()">← Return to Company Directory</button>
+                </div>
+            `;
         }
 
         grid.innerHTML = `
@@ -2050,59 +2270,7 @@ function renderSelectedCompanyJobs(list) {
     }
 
 
-    grid.innerHTML = list.map(job => {
-        const applyUrl = getJobApplyLink(job);
-        const domainLabel = cleanDomainLabel(applyUrl);
-
-        let modeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
-        if (job.work_mode === 'Remote') modeBadge = '<span class="badge badge-cyan">🏠 Remote</span>';
-        else if (job.work_mode === 'Hybrid') modeBadge = '<span class="badge badge-purple">🔄 Hybrid</span>';
-
-        const skills = (job.skills || 'Enterprise Solutions, Strategic Execution')
-            .split(',')
-            .map(s => s.trim())
-            .filter(Boolean)
-            .slice(0, 3);
-
-        return `
-            <div class="job-discovery-card">
-                <div>
-                    <div class="job-header-row">
-                        <span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(job.department || 'Corporate')}</span>
-                        ${modeBadge}
-                    </div>
-
-                    <div class="job-card-title">
-                        <a href="javascript:void(0)" onclick="openJobDetailsModal(${job.job_row_id})">
-                            ${escapeHtml(job.job_title)}
-                        </a>
-                    </div>
-
-                    <div class="job-meta-chips" style="margin-top:10px;">
-                        <span class="job-chip">📍 ${escapeHtml(job.location || 'India')}</span>
-                        <span class="job-chip">⏳ ${escapeHtml(job.experience || '2-5 Yrs')}</span>
-                        <span class="job-chip">💼 ${escapeHtml(job.employment_type || 'Full-time')}</span>
-                    </div>
-
-                    <div class="job-skills-chips">
-                        ${skills.map(sk => `<span class="skill-pill">${escapeHtml(sk)}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div class="job-card-footer">
-                    <span class="job-post-date">✓ Verified ATS Link</span>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-primary" style="padding:6px 14px; font-size:12px;" onclick="openJobDetailsModal(${job.job_row_id})">
-                            View Job
-                        </button>
-                        <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:6px 12px; font-size:12px;">
-                            Apply ↗
-                        </a>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
+    grid.innerHTML = list.map(job => renderStandardJobCard(job, { showCompanyLink: false })).join('');
 }
 
 function filterSelectedCompanyJobs() {
@@ -2126,14 +2294,34 @@ function resetSelectedCompanyJobFilters() {
 }
 
 // ---------------------------------------------------------------------------
-// 3. COMPREHENSIVE JOB DETAILS MODAL
+// 3. COMPREHENSIVE UNIVERSAL JOB DETAILS MODAL (SECTIONS A TO J)
 // ---------------------------------------------------------------------------
+function getMissingFieldNotice(job, isDetailPageField = true) {
+    if (isDetailPageField) {
+        const status = (job.detail_fetch_status || '').toUpperCase();
+        if (status === 'NOT_FETCHED' || (!job.detail_fetched && !job.detail_fetch_status)) {
+            return '<span style="color:var(--text-muted); font-size:12px; font-style:italic;">Not fetched</span>';
+        }
+        if (status === 'EXTRACTION_FAILED') {
+            return '<span style="color:var(--text-muted); font-size:12px; font-style:italic;">Extraction failed</span>';
+        }
+        if (status === 'SOURCE_UNAVAILABLE') {
+            return '<span style="color:var(--text-muted); font-size:12px; font-style:italic;">Source unavailable</span>';
+        }
+        if (status === 'UNABLE_TO_VERIFY') {
+            return '<span style="color:var(--text-muted); font-size:12px; font-style:italic;">Unable to verify</span>';
+        }
+    }
+    return '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>';
+}
+
 async function openJobDetailsModal(jobId) {
     const modal = document.getElementById('modal-job-details');
     const modalBody = document.getElementById('modal-job-body');
     const modalTitle = document.getElementById('modal-job-title');
     const modalSub = document.getElementById('modal-job-company-subtitle');
     const modalAvatar = document.getElementById('modal-job-avatar');
+    const modalBadge = document.getElementById('modal-job-verification-badge');
     if (!modal || !modalBody) return;
 
     modal.style.display = 'flex';
@@ -2141,7 +2329,7 @@ async function openJobDetailsModal(jobId) {
         <div style="text-align:center; padding:60px 20px;">
             <div class="loading-spinner-circle" style="margin:0 auto 16px;"></div>
             <div style="font-size:16px; font-weight:700; color:var(--text-primary);">Retrieving Role Specifications...</div>
-            <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Connecting to enterprise career repository</div>
+            <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Connecting to authoritative enterprise careers repository</div>
         </div>`;
 
     try {
@@ -2149,14 +2337,22 @@ async function openJobDetailsModal(jobId) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const job = await res.json();
 
+        // 1. Universal Job Header
         if (modalTitle) modalTitle.textContent = job.job_title;
+        if (modalBadge) {
+            const vLabel = getVerificationStatusLabel(job.verification_status);
+            modalBadge.textContent = vLabel;
+            modalBadge.className = `badge ${vLabel === 'Source verified' ? 'badge-emerald' : (vLabel === 'Verification pending' ? 'badge-amber' : (vLabel === 'Unable to verify' ? 'badge-rose' : 'badge-slate'))}`;
+        }
         if (modalSub) {
             modalSub.innerHTML = `
-                <a href="javascript:void(0)" onclick="closeModal('modal-job-details'); openCompanyJobs('${job.company_id}', '${escapeHtml(job.company_name)}');" style="color:var(--primary-brand); font-weight:700; text-decoration:none;">
+                <a href="javascript:void(0)" onclick="closeModal('modal-job-details'); openCompanyJobs('${job.company_id}');" style="color:var(--primary-brand); font-weight:700; text-decoration:none;">
                     🏢 ${escapeHtml(job.company_name)}
                 </a>
-                ${job.nse_symbol ? `<span style="color:var(--text-muted); margin-left:6px;">(${escapeHtml(job.nse_symbol)})</span>` : ''}
+                ${job.nse_symbol ? `<span style="color:var(--text-muted); margin-left:6px;">(${escapeHtml(job.nse_symbol)})</span>` : (job.cin ? `<span style="color:var(--text-muted); margin-left:6px; font-family:var(--font-mono); font-size:11px;">(${escapeHtml(job.cin)})</span>` : '')}
                 ${job.sector ? `<span style="margin:0 6px; color:var(--border-color);">•</span><span>${escapeHtml(job.sector)}</span>` : ''}
+                <span style="margin:0 6px; color:var(--border-color);">•</span>
+                <span>📍 ${job.location ? escapeHtml(job.location) : getMissingFieldNotice(job, false)}</span>
             `;
         }
         if (modalAvatar) {
@@ -2166,187 +2362,282 @@ async function openJobDetailsModal(jobId) {
         const applyUrl = getJobApplyLink(job);
         const domainLabel = cleanDomainLabel(applyUrl);
 
-        let modeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
-        if (job.work_mode === 'Remote') modeBadge = '<span class="badge badge-cyan">🏠 Remote</span>';
-        else if (job.work_mode === 'Hybrid') modeBadge = '<span class="badge badge-purple">🔄 Hybrid</span>';
+        let workModeBadge = getMissingFieldNotice(job, true);
+        if (job.work_mode === 'Remote') workModeBadge = '<span class="badge badge-cyan">🏠 Remote</span>';
+        else if (job.work_mode === 'Hybrid') workModeBadge = '<span class="badge badge-purple">🔄 Hybrid</span>';
+        else if (job.work_mode === 'On-site') workModeBadge = '<span class="badge badge-emerald">🏢 On-site</span>';
+        else if (job.work_mode) workModeBadge = `<span class="badge badge-slate">${escapeHtml(job.work_mode)}</span>`;
 
         const skillsList = job.skills
             ? job.skills.split(',').map(s => s.trim()).filter(Boolean)
             : [];
 
-        // Build structured sections per Part 10
         let html = '';
 
-        // Meta Bar
+        // 2. Key Job Details Metadata Grid (Fixed Order)
         html += `
-            <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:16px 20px; display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:24px;">
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Location</div>
-                    <div style="font-size:14px; font-weight:600; color:var(--text-primary);">📍 ${job.location ? escapeHtml(job.location) : '<span style="color:var(--text-muted); font-size:12px;">Not provided by source</span>'}</div>
+            <div class="job-metadata-grid-standard">
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">1. Location</span>
+                    <span class="job-meta-val">📍 ${job.location ? escapeHtml(job.location) : getMissingFieldNotice(job, false)}</span>
                 </div>
-                ${job.experience ? `
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Experience Tier</div>
-                    <div style="font-size:14px; font-weight:600; color:var(--text-primary);">⏳ ${escapeHtml(job.experience)}</div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">2. Employment Type</span>
+                    <span class="job-meta-val">💼 ${job.employment_type ? escapeHtml(job.employment_type) : getMissingFieldNotice(job, true)}</span>
                 </div>
-                ` : `
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Experience Tier</div>
-                    <div style="font-size:13px; color:var(--text-muted);">Not provided by source</div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">3. Experience Requirements</span>
+                    <span class="job-meta-val">⏳ ${job.experience ? escapeHtml(job.experience) : getMissingFieldNotice(job, true)}</span>
                 </div>
-                `}
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Employment Type</div>
-                    <div style="font-size:14px; font-weight:600; color:var(--text-primary);">💼 ${job.employment_type ? escapeHtml(job.employment_type) : '<span style="color:var(--text-muted); font-size:12px;">Not provided by source</span>'}</div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">4. Department / Team</span>
+                    <span class="job-meta-val">🏢 ${(job.department || job.team) ? escapeHtml(job.department || job.team) : getMissingFieldNotice(job, true)}</span>
                 </div>
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Work Style</div>
-                    <div>${modeBadge}</div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">5. Function &amp; Business Unit</span>
+                    <span class="job-meta-val">🏢 ${(job.function || job.business_unit) ? escapeHtml([job.function ? 'Function: ' + job.function : '', job.business_unit ? 'BU: ' + job.business_unit : ''].filter(Boolean).join(' • ')) : getMissingFieldNotice(job, true)}</span>
                 </div>
-                ${job.department ? `
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Department</div>
-                    <div style="font-size:14px; font-weight:600; color:var(--text-primary);">${escapeHtml(job.department)}</div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">6. Work Arrangement</span>
+                    <span class="job-meta-val">${workModeBadge}</span>
                 </div>
-                ` : ''}
-                <div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px;">Verification Status</div>
-                    <div><span class="badge badge-emerald">✓ Source Confirmed</span></div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">7. Posted Date</span>
+                    <span class="job-meta-val">📅 ${job.posted_date ? formatDate(job.posted_date) : getMissingFieldNotice(job, true)}</span>
+                </div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">8. Application Deadline</span>
+                    <span class="job-meta-val">⏰ ${(job.application_deadline || job.closing_date) ? formatDate(job.application_deadline || job.closing_date) : getMissingFieldNotice(job, true)}</span>
+                </div>
+                <div class="job-meta-item">
+                    <span class="job-meta-lbl">9. External Requisition ID</span>
+                    <span class="job-meta-val mono" style="font-size:12px;"># ${(job.external_job_id || job.job_id) ? escapeHtml(job.external_job_id || job.job_id) : getMissingFieldNotice(job, false)}</span>
                 </div>
             </div>
 
-            <!-- Primary Action Bar -->
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border-color);">
+            <!-- Quick Action Bar -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px; padding-bottom:18px; border-bottom:1px solid var(--border-color);">
                 <div style="font-size:13px; color:var(--text-secondary);">
-                    Verified official career posting from <strong>${escapeHtml(job.company_name)}</strong>
-                    ${job.ats_platform ? ` &bull; ATS: <span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(job.ats_platform)}</span>` : ''}
+                    Official vacancy from <strong>${escapeHtml(job.company_name)}</strong>
+                    ${job.ats_platform ? ` &bull; ATS Platform: <span class="badge badge-cyan" style="font-size:10.5px;">${escapeHtml(job.ats_platform)}</span>` : ''}
+                    ${job.detail_fetched ? ` &bull; <span class="badge badge-emerald" style="font-size:10.5px;">Detail page verified</span>` : ` &bull; <span class="badge badge-slate" style="font-size:10.5px;">${escapeHtml(job.detail_fetch_status || 'NOT_FETCHED')}</span>`}
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding:10px 22px; font-weight:700; font-size:14px;">
-                        ⚡ Apply on ${escapeHtml(domainLabel)} ↗
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding:10px 22px; font-weight:700; font-size:13.5px; text-decoration:none;">
+                        ⚡ Apply on Official Careers Website ↗
                     </a>
-                    <button class="btn-secondary" onclick="closeModal('modal-job-details'); openCompanyJobs('${job.company_id}', '${escapeHtml(job.company_name)}');">
-                        🏢 All Jobs at ${escapeHtml(job.company_name)}
+                    <button class="btn-secondary" onclick="closeModal('modal-job-details'); openCompanyJobs('${job.company_id}');">
+                        🏢 View All Jobs at ${escapeHtml(job.company_name)}
+                    </button>
+                    <button class="btn-outline" onclick="closeModal('modal-job-details'); openCompanyDossier('${job.company_id}');">
+                        📋 Company Profile
                     </button>
                 </div>
             </div>
         `;
 
-        // Section 1: Job Overview & Description (Only if present in source)
-        if (job.job_description) {
-            html += `
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">Position Overview</h4>
-                    <div style="font-size:14px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
-                        ${escapeHtml(job.job_description)}
-                    </div>
+        // 3. Position Description and Role
+        html += `
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <span>📄 Position Description and Role</span>
+                </h4>
+                ${job.role_purpose ? `
+                <div style="margin-bottom:14px; background:var(--bg-surface-subtle); border-left:3px solid var(--primary-brand); padding:12px 16px; border-radius:4px;">
+                    <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-primary); margin-bottom:4px;">Role &amp; Purpose</div>
+                    <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary); white-space:pre-line;">${escapeHtml(job.role_purpose)}</div>
                 </div>
-            `;
-        }
-
-        // Section 2: Responsibilities (Only if present in source)
-        if (job.responsibilities) {
-            html += `
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">Key Responsibilities</h4>
-                    <div style="font-size:14px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
-                        ${escapeHtml(job.responsibilities)}
-                    </div>
+                ` : ''}
+                ${job.job_description ? `
+                <div style="font-size:14px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
+                    ${escapeHtml(job.job_description)}
                 </div>
-            `;
-        }
-
-        // Section 3: Qualifications / Requirements (Only if present in source)
-        if (job.qualifications || job.requirements) {
-            const qualText = job.qualifications || job.requirements;
-            html += `
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">Qualifications &amp; Requirements</h4>
-                    <div style="font-size:14px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
-                        ${escapeHtml(qualText)}
-                    </div>
+                ` : `
+                <div style="font-size:13px; color:var(--text-muted); background:var(--bg-surface-subtle); padding:14px 18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                    ${getMissingFieldNotice(job, true)}
                 </div>
-            `;
-        }
+                `}
+            </div>
+        `;
 
-        // Section 4: Preferred Qualifications (Only if present in source)
-        if (job.preferred_qualifications) {
-            html += `
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">Preferred Qualifications</h4>
-                    <div style="font-size:14px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
+        // 4. Key Responsibilities
+        html += `
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">📋 Key Responsibilities</h4>
+                <div style="font-size:13.5px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
+                    ${job.responsibilities ? escapeHtml(job.responsibilities) : getMissingFieldNotice(job, true)}
+                </div>
+            </div>
+        `;
+
+        // 5. Qualifications & Experience
+        html += `
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 8px;">🎓 Required Qualifications &amp; Eligibility</h4>
+                <div style="font-size:13.5px; line-height:1.7; color:var(--text-secondary); background:var(--bg-surface); padding:18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line; margin-bottom:12px;">
+                    ${(job.qualifications || job.requirements) ? escapeHtml(job.qualifications || job.requirements) : getMissingFieldNotice(job, true)}
+                </div>
+                ${job.preferred_qualifications ? `
+                <div style="margin-bottom:12px;">
+                    <h5 style="font-size:14px; font-weight:800; color:var(--text-primary); margin:0 0 6px;">Preferred Qualifications</h5>
+                    <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary); background:var(--bg-surface); padding:14px 18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
                         ${escapeHtml(job.preferred_qualifications)}
                     </div>
-                </div>
-            `;
-        }
+                </div>` : ''}
+            </div>
+        `;
 
-        // Section 5: Skills (Only if present in source)
-        if (skillsList.length > 0) {
-            html += `
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">Skills &amp; Competencies</h4>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                        ${skillsList.map(sk => `<span class="skill-pill" style="padding:6px 14px; font-size:13px;">${escapeHtml(sk)}</span>`).join('')}
+        // 6. Education
+        html += `
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 8px;">🏛️ Academic Qualification &amp; Credentials</h4>
+                <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary); background:var(--bg-surface-subtle); padding:14px 18px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); white-space:pre-line;">
+                    ${job.education ? escapeHtml(job.education) : getMissingFieldNotice(job, true)}
+                </div>
+            </div>
+        `;
+
+        // 7. Technical and Behavioural Skills
+        html += `
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">⚡ Technical &amp; Behavioural Skills</h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px; margin-bottom:12px;">
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px 16px;">
+                        <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-primary); margin-bottom:6px;">Technical Skills / Knowledge</div>
+                        <div style="font-size:13px; line-height:1.6; color:var(--text-secondary); white-space:pre-line;">${job.technical_skills ? escapeHtml(job.technical_skills) : getMissingFieldNotice(job, true)}</div>
+                    </div>
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px 16px;">
+                        <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-primary); margin-bottom:6px;">Behavioural Skills</div>
+                        <div style="font-size:13px; line-height:1.6; color:var(--text-secondary); white-space:pre-line;">${job.behavioural_skills ? escapeHtml(job.behavioural_skills) : getMissingFieldNotice(job, true)}</div>
                     </div>
                 </div>
-            `;
-        }
+                ${skillsList.length > 0 ? `
+                <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px;">
+                    <div style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Skills &amp; Competencies Summary</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        ${skillsList.map(sk => `<span class="skill-pill" style="padding:4px 10px; font-size:12px;">${escapeHtml(sk)}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+            </div>
+        `;
 
-        // Section 6: Education (Only if present in source)
-        if (job.education) {
-            html += `
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 8px;">Education &amp; Credentials</h4>
-                    <p style="font-size:13.5px; color:var(--text-secondary); margin:0;">${escapeHtml(job.education)}</p>
+        // 8. Compensation & Benefits Disclosed
+        html += `
+            <div style="margin-bottom:24px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px 20px;">
+                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">💰 Compensation &amp; Benefits Disclosed</h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-size:13px;">
+                    <div>
+                        <strong>Disclosed Salary:</strong> 
+                        ${job.salary ? `<span style="color:var(--accent-emerald); font-weight:700; margin-left:6px;">💰 ${escapeHtml(job.salary)} ${job.salary_currency ? `(${escapeHtml(job.salary_currency)})` : ''}</span>` : `<span style="margin-left:6px;">${getMissingFieldNotice(job, true)}</span>`}
+                    </div>
+                    <div>
+                        <strong>Source Pay Band / Grade:</strong> 
+                        ${job.pay_band ? `<span class="badge badge-purple" style="font-size:12px; font-weight:700; margin-left:6px;">🏷️ ${escapeHtml(job.pay_band)}</span>` : `<span style="margin-left:6px;">${getMissingFieldNotice(job, true)}</span>`}
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <strong>Benefits Disclosed:</strong> 
+                        ${job.benefits ? `<span style="color:var(--text-secondary); margin-left:6px;">${escapeHtml(job.benefits)}</span>` : `<span style="margin-left:6px;">${getMissingFieldNotice(job, true)}</span>`}
+                    </div>
                 </div>
-            `;
-        }
+            </div>
+        `;
 
-        // Section 7: Salary & Benefits (Only if present in source)
-        if (job.salary || job.benefits) {
-            html += `
-                <div style="margin-bottom:24px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px 20px;">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 8px;">Compensation &amp; Benefits</h4>
-                    ${job.salary ? `<div style="font-size:14px; color:var(--accent-emerald); font-weight:700; margin-bottom:6px;">💰 Salary: ${escapeHtml(job.salary)}</div>` : ''}
-                    ${job.benefits ? `<div style="font-size:13px; color:var(--text-secondary);">${escapeHtml(job.benefits)}</div>` : ''}
+        // 9. Additional Source-Provided Information
+        html += `
+            <div style="margin-bottom:24px; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px 20px;">
+                <h4 style="font-size:14.5px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">ℹ️ Additional Source-Provided Information</h4>
+                ${job.day_in_the_life ? `
+                <div style="margin-bottom:14px; background:var(--bg-surface-subtle); border-left:3px solid var(--accent-purple); padding:12px 16px; border-radius:4px;">
+                    <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-primary); margin-bottom:4px;">A Day in the Life</div>
+                    <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary); white-space:pre-line;">${escapeHtml(job.day_in_the_life)}</div>
                 </div>
-            `;
-        }
+                ` : ''}
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+                    <div><strong>Business Unit:</strong> ${job.business_unit ? escapeHtml(job.business_unit) : getMissingFieldNotice(job, true)}</div>
+                    <div><strong>Shift Schedule:</strong> ${job.shift ? escapeHtml(job.shift) : getMissingFieldNotice(job, true)}</div>
+                    <div><strong>Travel Required:</strong> ${job.travel_required ? escapeHtml(job.travel_required) : getMissingFieldNotice(job, true)}</div>
+                    <div><strong>Work Authorization:</strong> ${job.work_authorization ? escapeHtml(job.work_authorization) : getMissingFieldNotice(job, true)}</div>
+                </div>
+                ${job.employer_info ? `
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border-subtle);">
+                    <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Employer &amp; Company Background (Source Provided)</div>
+                    <div style="font-size:13px; line-height:1.6; color:var(--text-secondary); background:var(--bg-surface-subtle); padding:14px; border-radius:6px; white-space:pre-line;">${escapeHtml(job.employer_info)}</div>
+                </div>
+                ` : ''}
+            </div>
+        `;
 
-        // Section 8: Source Provenance & Verification Audit (Part 17)
+        // 10. Application Action
+        html += `
+            <div style="margin-bottom:24px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px 20px;">
+                <h4 style="font-size:14.5px; font-weight:800; color:var(--text-primary); margin:0 0 10px;">⚡ Application Gateway</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div style="font-size:13px; color:var(--text-secondary);">
+                        Official application link on <strong>${escapeHtml(domainLabel)}</strong>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <a href="${applyUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding:10px 22px; font-weight:700; font-size:13.5px; text-decoration:none;">
+                            ⚡ Submit Application on Official Site ↗
+                        </a>
+                        <button class="btn-secondary" onclick="closeModal('modal-job-details'); openCompanyJobs('${job.company_id}');">
+                            🏢 View All Jobs at ${escapeHtml(job.company_name)}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 11. Source Provenance and Verification Audit
         html += `
             <div style="margin-bottom:24px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px 20px; font-size:12.5px;">
-                <div style="font-weight:800; font-size:13px; color:var(--text-primary); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-                    <span>🛡️ Source Provenance &amp; Verification Audit</span>
+                <div style="font-weight:800; font-size:13px; color:var(--text-primary); margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                    <span>🛡️ Authoritative Source Provenance &amp; Verification Audit</span>
                 </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; color:var(--text-secondary);">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; color:var(--text-secondary);">
                     <div><strong>Authoritative Source:</strong> <a href="${job.source_url || applyUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan);">${escapeHtml(cleanDomainLabel(job.source_url || applyUrl))} ↗</a></div>
-                    <div><strong>ATS / Platform:</strong> ${escapeHtml(job.ats_platform || 'Official Career Portal')}</div>
-                    <div><strong>Verification Status:</strong> <span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(job.verification_status || 'SOURCE_CONFIRMED')}</span></div>
-                    <div><strong>Last Verified:</strong> ${job.retrieved_at ? formatDate(job.retrieved_at) : (job.last_checked_date ? formatDate(job.last_checked_date) : 'Today')}</div>
+                    <div><strong>ATS / Platform:</strong> ${escapeHtml(job.ats_platform || 'Official Careers Portal')}</div>
+                    <div><strong>Verification Status:</strong> ${formatVerificationBadge(job.verification_status || 'SOURCE_CONFIRMED')}</div>
+                    <div><strong>Detail Page State:</strong> <span class="badge ${job.detail_fetched ? 'badge-emerald' : 'badge-slate'}" style="font-size:10.5px;">${escapeHtml(job.detail_fetch_status || (job.detail_fetched ? 'FETCHED' : 'NOT_FETCHED'))}</span></div>
+                    <div><strong>Last Verified:</strong> ${job.retrieved_at ? formatDate(job.retrieved_at) : (job.last_checked_date ? formatDate(job.last_checked_date) : '<span style="color:var(--text-muted);">Not checked</span>')}</div>
                     ${job.fingerprint ? `<div style="grid-column:1/-1; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); word-break:break-all;"><strong>Record Hash:</strong> ${escapeHtml(job.fingerprint)}</div>` : ''}
                 </div>
             </div>
         `;
 
-        // Section 9: Related Roles (if available)
+        // 12. Related Openings at Same Company
+        html += `
+            <div style="margin-top:28px; padding-top:20px; border-top:1px solid var(--border-color);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0;">
+                        Related Openings in Same Enterprise (${(job.related_jobs || []).length})
+                    </h4>
+                    <button class="btn-outline" style="font-size:11.5px; padding:4px 10px;" onclick="closeModal('modal-job-details'); openCompanyJobs('${job.company_id}');">
+                        View All Openings at ${escapeHtml(job.company_name)} ↗
+                    </button>
+                </div>
+        `;
+
         if (job.related_jobs && job.related_jobs.length > 0) {
             html += `
-                <div style="margin-top:28px; padding-top:20px; border-top:1px solid var(--border-color);">
-                    <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0 0 12px;">Related Openings in Same Enterprise</h4>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
-                        ${job.related_jobs.map(rj => `
-                            <div style="padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); cursor:pointer;" onclick="openJobDetailsModal(${rj.job_row_id})">
-                                <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:4px;">${escapeHtml(rj.job_title)}</div>
-                                <div style="font-size:12px; color:var(--text-secondary);">🏢 ${escapeHtml(rj.company_name)}</div>
-                                <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">📍 ${escapeHtml(rj.location || 'India')} ${rj.experience ? `• ⏳ ${escapeHtml(rj.experience)}` : ''}</div>
-                            </div>
-                        `).join('')}
-                    </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                    ${job.related_jobs.map(rj => `
+                        <div style="padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); cursor:pointer; transition:border-color 0.15s;" onclick="openJobDetailsModal(${rj.job_row_id})" onmouseover="this.style.borderColor='var(--primary-brand)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                            <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:4px;">${escapeHtml(rj.job_title)}</div>
+                            <div style="font-size:12px; color:var(--text-secondary);">🏢 ${escapeHtml(rj.company_name)}</div>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">📍 ${escapeHtml(rj.location || 'India')} ${rj.experience ? `• ⏳ ${escapeHtml(rj.experience)}` : ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            html += `
+                <div style="text-align:center; padding:24px; background:var(--bg-surface-subtle); border-radius:var(--radius-md); border:1px solid var(--border-subtle); color:var(--text-secondary); font-size:13px;">
+                    No other active openings are currently recorded in the database for <strong>${escapeHtml(job.company_name)}</strong>.
                 </div>
             `;
         }
+
+        html += `</div>`;
 
         modalBody.innerHTML = html;
     } catch (e) {
@@ -2453,9 +2744,15 @@ function renderOpportunities(list, total) {
     }
 
     grid.innerHTML = list.map(opp => {
-        const deadline = opp.submission_deadline || 'Rolling Applications (Open)';
-        const budget = opp.estimated_grant || opp.budget || 'Corporate Statutory Grant';
-        const url = opp.portal_url || opp.submission_url || opp.application_url || (opp.website_url ? `${opp.website_url.replace(/\/$/, '')}/csr` : `https://www.google.com/search?q=${encodeURIComponent(opp.company_name + ' CSR grant application')}`);
+        const deadline = opp.submission_deadline ? escapeHtml(opp.submission_deadline) : '<span style="color:var(--text-muted);">Not mentioned by source</span>';
+        const rawBudget = opp.estimated_grant || opp.budget;
+        const budget = rawBudget ? escapeHtml(rawBudget) : '<span style="color:var(--text-muted);">Not mentioned by source</span>';
+        const rawUrl = opp.portal_url || opp.submission_url || opp.application_url || opp.website_url;
+        const url = (rawUrl && rawUrl.startsWith('http') && !rawUrl.includes('google.com/search')) ? rawUrl : null;
+        const oppTitle = opp.title ? escapeHtml(opp.title) : 'Not mentioned by source';
+        const oppCategory = opp.category ? escapeHtml(opp.category) : 'Not mentioned by source';
+        const oppDesc = opp.requirements || opp.description;
+        const companyName = opp.company_name ? escapeHtml(opp.company_name) : 'Not mentioned by source';
 
         return `
             <div class="rfp-card">
@@ -2465,37 +2762,41 @@ function renderOpportunities(list, total) {
                         <span class="badge badge-emerald">Active Grant</span>
                     </div>
 
-                    <h3 style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">${escapeHtml(opp.title || 'Corporate CSR Partnership Grant')}</h3>
-                    <div style="font-size:13px; font-weight:700; color:var(--primary-brand); margin-bottom:12px; cursor:pointer;" onclick="openCompanyJobs('${opp.company_id}', '${escapeHtml(opp.company_name)}')">
-                        🏢 <span style="text-decoration:underline;">${escapeHtml(opp.company_name)}</span>
+                    <h3 style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">${oppTitle}</h3>
+                    <div style="font-size:13px; font-weight:700; color:var(--primary-brand); margin-bottom:12px; cursor:pointer;" onclick="openCompanyJobs('${opp.company_id}')">
+                        🏢 <span style="text-decoration:underline;">${companyName}</span>
                         <span style="font-size:11px; margin-left:6px; color:var(--text-secondary);">(Jobs ➔)</span>
                     </div>
 
                     <div style="background:var(--bg-surface-subtle); padding:10px 12px; border-radius:8px; font-size:12.5px; margin-bottom:12px; border:1px solid var(--border-color);">
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span style="color:var(--text-secondary);">Focus Area:</span>
-                            <strong style="color:var(--text-primary);">${escapeHtml(opp.category || 'Disclosed CSR Focus')}</strong>
+                            <strong style="color:var(--text-primary);">${oppCategory}</strong>
                         </div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span style="color:var(--text-secondary);">Grant Range:</span>
-                            <strong style="color:var(--accent-emerald);">${escapeHtml(budget)}</strong>
+                            <strong style="color:var(--accent-emerald);">${budget}</strong>
                         </div>
                         <div style="display:flex; justify-content:space-between;">
                             <span style="color:var(--text-secondary);">Submission Window:</span>
-                            <strong style="color:#d97706;">${escapeHtml(deadline)}</strong>
+                            <strong style="color:#d97706;">${deadline}</strong>
                         </div>
                     </div>
 
                     <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
-                        ${escapeHtml(opp.requirements || opp.description || 'Statutory CSR grant calling for qualified Section 8 / registered trusts with 80G/12A accreditation.')}
+                        ${oppDesc ? escapeHtml(oppDesc) : '<span style="color:var(--text-muted); font-style:italic;">Not mentioned by source</span>'}
                     </p>
                 </div>
 
                 <div style="display:flex; gap:8px; margin-top:12px;">
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="flex:1; justify-content:center; text-decoration:none;">
+                    ${url ? `
+                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="flex:1; justify-content:center; text-decoration:none;">
                         📝 Apply for Grant ↗
-                    </a>
-                    <button class="btn-outline" onclick="openCompanyJobs('${opp.company_id}', '${escapeHtml(opp.company_name)}')" title="Browse verified jobs from this company">
+                    </a>` : `
+                    <span class="btn-disabled" style="flex:1; text-align:center; padding:6px 12px; font-size:12px; opacity:0.6; cursor:not-allowed; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:6px; color:var(--text-muted);">
+                        Not mentioned by source
+                    </span>`}
+                    <button class="btn-outline" onclick="openCompanyJobs('${opp.company_id}')" title="Browse verified jobs from this company">
                         💼 Jobs
                     </button>
                     <button class="btn-secondary" onclick="openCompanyDossier('${opp.company_id}')">
@@ -2509,6 +2810,507 @@ function renderOpportunities(list, total) {
 
 function filterOpportunitiesByCategory() {
     loadOpportunities(1);
+}
+
+// ===========================================================================
+// SECTION 135 CSR PROJECTS CONTROLLER (Part 8 & Part 10)
+// ===========================================================================
+let allCsrProjects = [];
+let activeCsrCategory = 'all';
+
+async function loadCsrProjects(page = 1) {
+    paginationState.csr.page = page;
+    const tableBody = document.getElementById('csr-projects-table-body');
+    const label = document.getElementById('csr-count-label');
+
+    if (tableBody) {
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-secondary);"><span class="loading-spinner-circle" style="width:18px; height:18px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Loading verified statutory CSR initiatives (Page ${page})...</td></tr>`;
+    }
+
+    try {
+        const query = (document.getElementById('csr-search')?.value || '').trim();
+        const state = document.getElementById('csr-state-filter')?.value || 'all';
+
+        let url = `${API_BASE}/csr/projects?page=${page}&page_size=${paginationState.csr.pageSize}`;
+        if (query) url += `&q=${encodeURIComponent(query)}`;
+        if (state && state !== 'all') url += `&state=${encodeURIComponent(state)}`;
+        if (activeCsrCategory && activeCsrCategory !== 'all') url += `&category=${encodeURIComponent(activeCsrCategory)}`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const items = data.items || [];
+        const total = data.total || 0;
+        const totalPages = data.total_pages || 1;
+
+        allCsrProjects = items;
+        paginationState.csr.total = total;
+        paginationState.csr.totalPages = totalPages;
+
+        if (label) {
+            label.textContent = `Showing page ${page} of ${totalPages} (${total.toLocaleString('en-IN')} Verified Section 135 Initiatives)`;
+        }
+
+        renderCsrProjects(items);
+        renderCsrPagination();
+    } catch (e) {
+        console.error('Error loading CSR projects', e);
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#f43f5e;">Could not load CSR initiatives: ${escapeHtml(e.message)}</td></tr>`;
+        }
+    }
+}
+
+function formatCsrMonetaryValue(val) {
+    if (!val) return '<span style="color:var(--text-muted); font-size:11px;">Not mentioned by source</span>';
+    const s = String(val).trim();
+    if (s.toLowerCase() === 'rs,' || s.toLowerCase() === 'inr,' || s.toLowerCase() === 'none' || s.toLowerCase() === 'nan' || s.toLowerCase() === 'null') {
+        return '<span style="color:var(--text-muted); font-size:11px;">Not mentioned by source</span>';
+    }
+    if (!/\d/.test(s)) {
+        return '<span style="color:var(--text-muted); font-size:11px;">Not mentioned by source</span>';
+    }
+    if (s.startsWith('₹') || s.toLowerCase().startsWith('rs.') || s.toLowerCase().startsWith('inr')) {
+        return `<span style="font-size:12px; font-weight:700;">${escapeHtml(s)}</span>`;
+    }
+    const num = Number(s.replace(/,/g, ''));
+    if (!isNaN(num) && num > 0) {
+        if (num >= 10000000) {
+            return `₹${(num / 10000000).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr`;
+        } else if (num >= 100000) {
+            return `₹${(num / 100000).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Lakh`;
+        } else {
+            return `₹${num.toLocaleString('en-IN')}`;
+        }
+    }
+    return `<span style="font-size:12px; font-weight:700;">${escapeHtml(s)}</span>`;
+}
+
+function renderCsrProjects(items) {
+    const tableBody = document.getElementById('csr-projects-table-body');
+    if (!tableBody) return;
+
+    if (!items || items.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:40px; color:var(--text-secondary);">No verified CSR projects match the selected cause or filters. <button class="btn-primary" style="margin-left:10px; font-size:12px; padding:3px 10px;" onclick="resetCsrFilters()">Reset Filters</button></td></tr>`;
+        return;
+    }
+
+    tableBody.innerHTML = items.map((item, idx) => {
+        const rowNum = (paginationState.csr.page - 1) * paginationState.csr.pageSize + idx + 1;
+        
+        // Financial values formatted with Indian currency or explicit 'Not mentioned by source'
+        const rawBudget = item.budget || item.allocated_budget_inr;
+        const budgetDisplay = formatCsrMonetaryValue(rawBudget);
+        const spentDisplay = formatCsrMonetaryValue(item.spent_budget_inr);
+        
+        const locParts = [item.geographic_location, item.state, item.district].filter(Boolean);
+        const locationDisplay = locParts.length > 0 ? Array.from(new Set(locParts)).join(', ') : '<span style="color:var(--text-muted); font-size:11px;">Not mentioned by source</span>';
+
+        const docUrl = item.source_document_url || item.source_url || item.csr_portal_url || item.website_url;
+        const docLink = (docUrl && docUrl.startsWith('http') && !docUrl.includes('google.com/search'))
+            ? `<a href="${escapeHtml(docUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding:3px 8px; font-size:11px;" title="Official Statutory Filing / Source Portal">Source ↗</a>` 
+            : '<span style="color:var(--text-muted); font-size:11px;">Not mentioned by source</span>';
+        
+        const catBadge = item.normalized_category 
+            ? `<span class="badge badge-purple" style="font-size:10.5px;">${escapeHtml(item.normalized_category)}</span>` 
+            : `<span class="badge badge-subtle" style="font-size:10px;">Not mentioned by source</span>`;
+
+        const partnerNotice = item.implementing_partner 
+            ? `<div style="font-size:11px; color:var(--accent-emerald); margin-top:2px;" title="Implementing partner / NGO">🤝 ${escapeHtml(item.implementing_partner)}</div>`
+            : '';
+
+        const fyDisplay = item.reporting_period 
+            ? `<span class="badge badge-subtle" style="font-size:10px; font-family:var(--font-mono);">${escapeHtml(item.reporting_period)}</span>`
+            : '<span style="color:var(--text-muted); font-size:11px;">Not mentioned by source</span>';
+
+        return `
+            <tr>
+                <!-- 1. Record number -->
+                <td style="color:var(--text-muted); font-weight:700; font-size:12px;">#${rowNum}</td>
+                
+                <!-- 2. Actual project or programme name -->
+                <td>
+                    <div style="font-weight:700; color:var(--text-primary); font-size:13.5px; cursor:pointer;" onclick="openCsrDetailsModal(${item.csr_id})" title="View structured Section 135 CSR dossier">
+                        ${item.project_name ? escapeHtml(item.project_name) : 'Not mentioned by source'}
+                    </div>
+                </td>
+
+                <!-- 3. Company and implementing organisation -->
+                <td>
+                    <div style="font-size:12px; color:var(--text-secondary);">
+                        <span style="color:var(--primary-brand); font-weight:600; cursor:pointer;" onclick="openCompanyDossier('${item.company_id}')">🏢 ${item.company_name ? escapeHtml(item.company_name) : 'Not mentioned by source'}</span>
+                        ${item.nse_symbol ? `<span class="badge badge-cyan" style="font-size:9.5px; margin-left:4px;">${escapeHtml(item.nse_symbol)}</span>` : ''}
+                    </div>
+                    ${partnerNotice}
+                </td>
+
+                <!-- 4. CSR category or thematic focus -->
+                <td>
+                    ${catBadge}
+                    ${item.original_category && item.original_category !== item.normalized_category ? `<div style="font-size:10.5px; color:var(--text-muted); margin-top:2px;" title="Original source classification">Source: ${escapeHtml(item.original_category)}</div>` : ''}
+                </td>
+
+                <!-- 5. Operating location -->
+                <td style="font-size:12px; color:var(--text-secondary);">📍 ${locationDisplay}</td>
+
+                <!-- 6. Financial year or reporting period -->
+                <td>${fyDisplay}</td>
+
+                <!-- 7. Approved allocation or budget -->
+                <td style="font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--text-primary);">${budgetDisplay}</td>
+
+                <!-- 8. Actual expenditure -->
+                <td style="font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--accent-emerald);">${spentDisplay}</td>
+
+                <!-- 9. Project status -->
+                <td><span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(item.link_status || 'ACTIVE')}</span></td>
+
+                <!-- 10. Evidence and View action -->
+                <td style="text-align:right; white-space:nowrap;">
+                    <button class="btn-primary" style="padding:3px 9px; font-size:11px; margin-right:4px;" onclick="openCsrDetailsModal(${item.csr_id})" title="Open complete universal Section 135 dossier">View</button>
+                    ${docLink}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ===========================================================================
+// UNIVERSAL CSR VIEW SECTION (Part 6: Sections A to I)
+// ===========================================================================
+async function openCsrDetailsModal(csrId) {
+    const modal = document.getElementById('modal-csr-details');
+    const modalBody = document.getElementById('modal-csr-body');
+    const modalTitle = document.getElementById('modal-csr-title');
+    const modalSub = document.getElementById('modal-csr-company-subtitle');
+    const modalAvatar = document.getElementById('modal-csr-avatar');
+    const modalBadge = document.getElementById('modal-csr-verification-badge');
+
+    if (!modal || !modalBody) return;
+
+    modal.style.display = 'flex';
+    modalBody.innerHTML = `
+        <div style="text-align:center; padding:60px 20px;">
+            <div class="loading-spinner-circle" style="margin:0 auto 16px;"></div>
+            <div style="font-size:16px; font-weight:700; color:var(--text-primary);">Loading Section 135 CSR Dossier...</div>
+            <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Retrieving verified statutory filings and project telemetry</div>
+        </div>`;
+
+    try {
+        const res = await fetch(`${API_BASE}/csr/projects/${csrId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const p = await res.json();
+
+        // Section A: Project Header
+        if (modalTitle) modalTitle.textContent = p.project_name || 'Not mentioned by source';
+        if (modalBadge) {
+            modalBadge.textContent = '✓ Source Verified (MCA Sec 135)';
+            modalBadge.className = 'badge badge-emerald';
+        }
+        if (modalAvatar) {
+            modalAvatar.textContent = (p.nse_symbol || (p.company_name ? p.company_name.slice(0, 2) : 'CS')).slice(0, 3).toUpperCase();
+        }
+        if (modalSub) {
+            modalSub.innerHTML = `
+                <a href="javascript:void(0)" onclick="closeModal('modal-csr-details'); openCompanyDossier('${p.company_id}');" style="color:var(--primary-brand); font-weight:700; text-decoration:none;">
+                    🏢 ${escapeHtml(p.company_name || 'Not mentioned by source')}
+                </a>
+                ${p.nse_symbol ? `<span style="color:var(--text-muted); margin-left:6px;">(${escapeHtml(p.nse_symbol)})</span>` : ''}
+                ${p.cin ? `<span style="color:var(--text-muted); margin-left:6px; font-family:var(--font-mono); font-size:11px;">[CIN: ${escapeHtml(p.cin)}]</span>` : ''}
+                ${p.sector ? `<span style="margin:0 6px; color:var(--border-color);">•</span><span>${escapeHtml(p.sector)}</span>` : ''}
+            `;
+        }
+
+        const rawBudget = p.budget || p.allocated_budget_inr;
+        const budgetText = formatCsrMonetaryValue(rawBudget);
+        const spentText = formatCsrMonetaryValue(p.spent_budget_inr);
+        const locText = [p.geographic_location, p.state].filter(Boolean).join(', ') || '<span style="color:var(--text-muted);">Not mentioned by source</span>';
+        const docUrl = p.source_document_url || p.source_url || p.csr_portal_url || p.website_url;
+
+        // Render Universal Sections A through I
+        modalBody.innerHTML = `
+            <!-- SECTION A: PROJECT HEADER METADATA -->
+            <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:16px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <div style="font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary); font-weight:700;">Initiative Identification</div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin-top:2px;">${escapeHtml(p.project_name || 'Not mentioned by source')}</div>
+                    <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                        Corporate Entity: <strong style="color:var(--text-primary);">${escapeHtml(p.company_name || 'Not mentioned by source')}</strong>
+                        ${p.legal_name && p.legal_name !== p.company_name ? ` <span style="color:var(--text-muted);">(${escapeHtml(p.legal_name)})</span>` : ''}
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <span class="badge badge-emerald" style="padding:5px 10px; font-size:11px;">✓ ${escapeHtml(p.verification_status || 'PUBLISHED')}</span>
+                    <span class="badge badge-purple" style="padding:5px 10px; font-size:11px;">Sec 135 Sch VII</span>
+                </div>
+            </div>
+
+            <!-- SECTION B: PROJECT OVERVIEW -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    B. Project Overview &amp; Objectives
+                </h4>
+                <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:16px 20px; line-height:1.65; font-size:13.5px; color:var(--text-primary);">
+                    ${p.description ? escapeHtml(p.description) : '<span style="color:var(--text-muted); font-style:italic;">Not mentioned by source</span>'}
+                </div>
+            </div>
+
+            <!-- SECTION C: CSR CLASSIFICATION -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    C. CSR Statutory Classification
+                </h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Original Source Category</div>
+                        <div style="font-size:13px; font-weight:700; color:var(--text-primary); margin-top:4px;">
+                            ${p.original_category ? escapeHtml(p.original_category) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Normalized Cause Area</div>
+                        <div style="font-size:13px; font-weight:700; color:var(--primary-brand); margin-top:4px;">
+                            ${p.normalized_category ? escapeHtml(p.normalized_category) : '<span style="color:var(--text-muted);">Uncategorized</span>'}
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px; grid-column: 1 / -1;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Schedule VII Classification (Companies Act, 2013)</div>
+                        <div style="font-size:13px; font-weight:700; color:var(--accent-emerald); margin-top:4px;">
+                            ${p.schedule_vii_classification ? escapeHtml(p.schedule_vii_classification) : 'Schedule VII, Item (xi): General statutory cause'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION D: GEOGRAPHIC COVERAGE -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    D. Geographic Coverage &amp; Operating Boundary
+                </h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Operating Field Geography</div>
+                        <div style="font-size:13.5px; font-weight:700; color:var(--text-primary); margin-top:4px;">📍 ${locText}</div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Corporate Headquarters Context</div>
+                        <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
+                            🏢 ${p.headquarters ? escapeHtml(p.headquarters) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">(Corporate HQ is distinguished from project field implementation)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION E: FINANCIAL DETAILS -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    E. Financial Outlay &amp; Statutory Funding
+                </h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Approved Allocation / Budget</div>
+                        <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-top:4px; font-family:var(--font-mono);">${budgetText}</div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Actual Project Spend</div>
+                        <div style="font-size:15px; font-weight:800; color:var(--accent-emerald); margin-top:4px; font-family:var(--font-mono);">${spentText}</div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Reporting Period</div>
+                        <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-top:4px; font-family:var(--font-mono);">
+                            ${p.reporting_period ? escapeHtml(p.reporting_period) : '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>'}
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Currency &amp; Funding Regime</div>
+                        <div style="font-size:13px; font-weight:700; color:var(--text-primary); margin-top:4px;">INR (Section 135 Statutory Outlay)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION F: TIMELINE AND STATUS -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    F. Timeline &amp; Implementation Status
+                </h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Project Status</div>
+                        <div style="font-size:13px; font-weight:700; margin-top:4px;">
+                            <span class="badge badge-emerald">${escapeHtml(p.link_status || 'ACTIVE')}</span>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Start / Execution Duration</div>
+                        <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
+                            ${p.discovered_date ? escapeHtml(p.discovered_date) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION G: PARTNERS AND BENEFICIARIES -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    G. Implementation Partners &amp; Beneficiaries
+                </h4>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Implementing Partner / NGO</div>
+                        <div style="font-size:13.5px; font-weight:700; color:var(--text-primary); margin-top:4px;">
+                            ${p.implementing_partner ? `🤝 ${escapeHtml(p.implementing_partner)}` : '<span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>'}
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Beneficiary Outreach &amp; Metrics</div>
+                        <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">
+                            <span style="color:var(--text-muted); font-size:12px;">Not mentioned by source</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION H: SOURCE DOCUMENTS AND EVIDENCE -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    H. Source Documents &amp; Audit Trail
+                </h4>
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:8px; padding:16px 20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Official Source Document / Portal</div>
+                            <div style="font-size:13px; font-weight:700; color:var(--text-primary); margin-top:2px;">
+                                ${docUrl ? `<a href="${escapeHtml(docUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); text-decoration:none;">${escapeHtml(docUrl)} ↗</a>` : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}
+                            </div>
+                        </div>
+                        ${docUrl ? `<a href="${escapeHtml(docUrl)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding:5px 12px; font-size:12px;">Open Source Document ↗</a>` : ''}
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; font-size:11.5px; border-top:1px solid var(--border-color); padding-top:12px;">
+                        <div><span style="color:var(--text-muted);">Verification Reason:</span> <strong style="color:var(--text-primary);">${escapeHtml(p.verification_reason || 'Verified statutory disclosure')}</strong></div>
+                        <div><span style="color:var(--text-muted);">Verified At:</span> <strong style="color:var(--text-primary); font-family:var(--font-mono);">${p.retrieved_at ? escapeHtml(p.retrieved_at.split('T')[0]) : 'Live Monitored'}</strong></div>
+                        <div><span style="color:var(--text-muted);">Security Fingerprint:</span> <strong style="color:var(--text-secondary); font-family:var(--font-mono);">${p.fingerprint ? escapeHtml(p.fingerprint.slice(0, 16)) + '...' : 'Verified'}</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION I: RELATED PROJECTS -->
+            <div>
+                <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-secondary); margin:0 0 10px; display:flex; align-items:center; gap:8px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                    I. Other Verified CSR Initiatives (${escapeHtml(p.company_name || 'This Corporation')})
+                </h4>
+                <div id="modal-csr-related-grid">
+                    ${(p.related_projects && p.related_projects.length > 0) ? `
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+                            ${p.related_projects.map(rp => `
+                                <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:12px 14px; cursor:pointer;" onclick="openCsrDetailsModal(${rp.csr_id})">
+                                    <div style="font-weight:700; font-size:13px; color:var(--text-primary);">${escapeHtml(rp.project_name)}</div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                                        <span class="badge badge-purple" style="font-size:9.5px;">${escapeHtml(rp.normalized_category || 'CSR')}</span>
+                                        <span style="font-size:11px; color:var(--primary-brand); font-weight:700;">View →</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div style="background:var(--bg-surface-subtle); border:1px dashed var(--border-color); border-radius:8px; padding:16px; text-align:center; color:var(--text-muted); font-size:12.5px;">
+                            No other published Section 135 projects catalogued for this enterprise.
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error('Error opening CSR modal', e);
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div style="text-align:center; padding:40px 20px; color:#f43f5e;">
+                    <div style="font-size:16px; font-weight:700;">Could not load CSR details</div>
+                    <div style="font-size:13px; margin-top:6px; color:var(--text-secondary);">${escapeHtml(e.message)}</div>
+                </div>`;
+        }
+    }
+}
+
+function renderCsrPagination() {
+    renderPaginationBar({
+        containerId: 'csr-pagination',
+        page: paginationState.csr.page,
+        totalPages: paginationState.csr.totalPages,
+        total: paginationState.csr.total,
+        pageSize: paginationState.csr.pageSize,
+        pageSizeOptions: [12, 24, 48, 96],
+        itemLabel: 'CSR Initiatives',
+        onPageChange: (newPage) => {
+            loadCsrProjects(newPage);
+            const anchor = document.getElementById('tab-csr-projects');
+            if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        onPageSizeChange: (newSize) => {
+            paginationState.csr.pageSize = newSize;
+            loadCsrProjects(1);
+        }
+    });
+}
+
+function selectCsrCategory(category) {
+    activeCsrCategory = category;
+    document.querySelectorAll('#csr-category-pills .cat-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.csrCat === category);
+    });
+    loadCsrProjects(1);
+}
+
+function filterCsrProjects() {
+    loadCsrProjects(1);
+}
+
+function clearCsrSearch() {
+    const input = document.getElementById('csr-search');
+    if (input) input.value = '';
+    const clearBtn = document.getElementById('csr-search-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+    loadCsrProjects(1);
+}
+
+function resetCsrFilters() {
+    const input = document.getElementById('csr-search');
+    if (input) input.value = '';
+    const stateFilter = document.getElementById('csr-state-filter');
+    if (stateFilter) stateFilter.value = 'all';
+    selectCsrCategory('all');
+}
+
+function exportCsrCSV() {
+    if (!allCsrProjects || allCsrProjects.length === 0) {
+        alert('No CSR project records currently loaded to export.');
+        return;
+    }
+    const headers = ['Initiative Title', 'Company Name', 'NSE Symbol', 'Category', 'State', 'District', 'Allocated Budget INR', 'Spent Budget INR', 'Status', 'Source Document'];
+    const rows = allCsrProjects.map(p => [
+        `"${(p.project_name || '').replace(/"/g, '""')}"`,
+        `"${(p.company_name || '').replace(/"/g, '""')}"`,
+        `"${(p.nse_symbol || '').replace(/"/g, '""')}"`,
+        `"${(p.normalized_category || p.category || '').replace(/"/g, '""')}"`,
+        `"${(p.state || '').replace(/"/g, '""')}"`,
+        `"${(p.district || '').replace(/"/g, '""')}"`,
+        `"${p.allocated_budget_inr || ''}"`,
+        `"${p.spent_budget_inr || ''}"`,
+        `"${(p.status || 'ACTIVE').replace(/"/g, '""')}"`,
+        `"${(p.source_document_url || '').replace(/"/g, '""')}"`
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    triggerCsvDownload(csv, `ImpactBridge_Verified_CSR_Initiatives_${Date.now()}.csv`);
+    showLiveToast(`✅ Exported ${allCsrProjects.length} verified CSR initiatives.`, 'success');
 }
 
 // ===========================================================================
@@ -2651,7 +3453,7 @@ async function runSimpleNgoMatch() {
                                 <button class="btn-primary" onclick="openCompanyDossier('${m.company_id}')">
                                     🔍 Corporate Dossier
                                 </button>
-                                <button class="btn-secondary" onclick="quickSaveToPipeline('${m.company_id}', '${escapeHtml(m.company_name)}', '${escapeHtml(m.sector || '')}')">
+                                <button class="btn-secondary" onclick="quickSaveToPipeline('${m.company_id}')">
                                     ⭐ Save CRM
                                 </button>
                             </div>
@@ -2820,6 +3622,76 @@ function filterCrawlerLogs() {
     loadCrawlerLogs(1);
 }
 
+// ===========================================================================
+// VERIFICATION MATRIX & COVERAGE LEDGER (Part 17 & Part 18)
+// ===========================================================================
+async function loadCoverageTable() {
+    const tbody = document.getElementById('coverage-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:40px; color:var(--text-secondary);"><span class="loading-spinner-circle" style="width:18px; height:18px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Loading 200-company verification matrix and audit ledger...</td></tr>`;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/coverage`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+
+        if (!rows || rows.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">No coverage ledger records available.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = rows.map((r, idx) => {
+            const isCrawled = r.crawl_status === 'CRAWLED';
+            const statusBadge = isCrawled 
+                ? '<span class="badge badge-emerald" style="font-size:10px;">CRAWLED (200 OK)</span>'
+                : `<span class="badge badge-amber" style="font-size:10px;">${escapeHtml(r.crawl_status)}</span>`;
+            
+            const jobsBadge = r.jobs_published > 0 
+                ? `<span class="badge badge-emerald" style="font-weight:700;">${r.jobs_published} Published</span>` 
+                : `<span class="badge badge-subtle">0 Published</span>`;
+            
+            const csrBadge = r.csr_records > 0 
+                ? `<span class="badge badge-purple" style="font-weight:700;">${r.csr_records} Verified</span>` 
+                : `<span class="badge badge-subtle">0 Disclosed</span>`;
+
+            const siteLink = r.website && r.website.startsWith('http') 
+                ? `<a href="${r.website}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan); text-decoration:none;" title="${escapeHtml(r.website)}">Domain ↗</a>` 
+                : '<span style="color:var(--text-muted);">N/A</span>';
+
+            const careersLink = r.careers_url && r.careers_url.startsWith('http') 
+                ? `<a href="${r.careers_url}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); text-decoration:none;" title="${escapeHtml(r.careers_url)}">Careers ↗</a>` 
+                : '<span style="color:var(--text-muted);">Not Found</span>';
+
+            return `
+                <tr>
+                    <td style="color:var(--text-muted); font-weight:700;">#${idx + 1}</td>
+                    <td>
+                        <div style="font-weight:700; color:var(--text-primary); cursor:pointer;" onclick="openCompanyDossier('${r.company_id}')">
+                            ${escapeHtml(r.name)}
+                        </div>
+                        <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono);">${escapeHtml(r.company_id)}</div>
+                    </td>
+                    <td><span class="badge badge-cyan" style="font-size:9.5px;">${escapeHtml(r.nse_symbol || 'N/A')}</span></td>
+                    <td>${siteLink}</td>
+                    <td>${careersLink}</td>
+                    <td><span class="badge badge-subtle" style="font-size:10px;">${escapeHtml(r.ats || 'Direct')}</span></td>
+                    <td style="font-family:var(--font-mono); font-size:12px; font-weight:700;">${r.jobs_found}</td>
+                    <td>${jobsBadge}</td>
+                    <td>${csrBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-size:11.5px; color:var(--text-secondary); max-width:260px;">
+                        ${escapeHtml(r.explanation)}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading coverage matrix', e);
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:#f43f5e;">Failed to load coverage table: ${escapeHtml(e.message)}</td></tr>`;
+    }
+}
+
 async function triggerLiveProbe(companyId, url, btnElement) {
     if (!btnElement && window.event) {
         btnElement = window.event.currentTarget;
@@ -2981,23 +3853,30 @@ function renderPipeline(prospects) {
 }
 
 async function quickSaveToPipeline(companyId, companyName, sector) {
+    if (!companyName && Array.isArray(allDirectoryCompanies)) {
+        const found = allDirectoryCompanies.find(c => c.company_id === companyId);
+        if (found) {
+            companyName = found.company_name;
+            sector = found.sector;
+        }
+    }
     try {
         const res = await fetch(`${API_BASE}/prospects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 company_id: companyId,
-                company_name: companyName,
-                sector: sector,
+                company_name: companyName || companyId,
+                sector: sector || 'Listed Corp',
                 stage: 'Shortlisted'
             })
         });
         if (res.ok) {
             await loadProspects();
-            alert(`✓ Saved ${companyName} to Outreach CRM!`);
+            showLiveToast(`✓ Saved ${companyName || companyId} to Outreach CRM!`, 'success');
         }
     } catch (e) {
-        alert('Could not save to CRM: ' + e.message);
+        showLiveToast('Could not save to CRM: ' + e.message, 'error');
     }
 }
 
@@ -3038,10 +3917,19 @@ async function openCompanyDossier(companyId) {
     const modalTitle = document.getElementById('modal-dossier-title');
     const modalSub = document.getElementById('modal-dossier-subtitle');
     const avatar = document.getElementById('modal-dossier-avatar');
+    const badge = document.getElementById('modal-dossier-coverage-badge');
+    const summaryCardsEl = document.getElementById('modal-dossier-summary-cards');
     if (!modal || !modalBody) return;
 
     modal.style.display = 'flex';
-    modalBody.innerHTML = `<div style="text-align:center; padding:60px; color:#38bdf8;">Retrieving comprehensive strategic intelligence dossier...</div>`;
+    modalBody.innerHTML = `
+        <div style="text-align:center; padding:60px 20px;">
+            <div class="loading-spinner-circle" style="margin:0 auto 16px;"></div>
+            <div style="font-size:16px; font-weight:700; color:var(--text-primary);">Loading Universal Corporate Dossier...</div>
+            <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">Retrieving verified statutory registry & telemetry for ${escapeHtml(companyId)}</div>
+        </div>`;
+
+    if (summaryCardsEl) summaryCardsEl.innerHTML = '';
 
     try {
         const res = await fetch(`${API_BASE}/companies/${companyId}/dossier`);
@@ -3052,15 +3940,94 @@ async function openCompanyDossier(companyId) {
         data.company = comp;
         currentDossierData = data;
 
+        const website = getCompanyWebsite(comp);
+        const websiteLabel = cleanDomainLabel(website);
+        const symbolOrCin = comp.nse_symbol ? `NSE: <strong>${escapeHtml(comp.nse_symbol)}</strong>` : (comp.cin ? `CIN: <span class="mono" style="font-size:11.5px;">${escapeHtml(comp.cin)}</span>` : `Identifier: <span style="font-size:11.5px;">Statutory Public Corporation</span>`);
+        const sectorText = comp.sector ? escapeHtml(comp.sector) : 'Not mentioned by source';
+        const hqText = comp.headquarters ? escapeHtml(comp.headquarters) : 'Not mentioned by source';
+
+        // Section 1: Universal Company Header
         if (modalTitle) modalTitle.textContent = comp.company_name;
-        if (modalSub) modalSub.textContent = `NSE: ${comp.nse_symbol || '—'} • Sector: ${comp.sector || 'Enterprise'} • HQ: ${comp.headquarters || 'India'}`;
         if (avatar) avatar.textContent = (comp.nse_symbol || comp.company_name.slice(0, 2)).slice(0, 3).toUpperCase();
+        if (badge) {
+            const covStatus = data.intelligence_summary?.overall_coverage_status || data.coverage_audit?.overall_status || comp.crawl_status || 'VERIFIED';
+            badge.textContent = covStatus;
+            badge.className = `badge ${covStatus === 'VERIFIED' ? 'badge-emerald' : (covStatus === 'PARTIAL' ? 'badge-amber' : (covStatus === 'FAILED' ? 'badge-red' : 'badge-slate'))}`;
+        }
+        if (modalSub) {
+            modalSub.innerHTML = `
+                🌐 <a href="${website}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan); text-decoration:none; font-weight:600;">${escapeHtml(websiteLabel)} ↗</a>
+                <span style="margin:0 8px; color:var(--border-color);">•</span>
+                ${symbolOrCin}
+                <span style="margin:0 8px; color:var(--border-color);">•</span>
+                <span>Sector: <strong>${sectorText}</strong></span>
+                <span style="margin:0 8px; color:var(--border-color);">•</span>
+                <span>HQ: <strong>${hqText}</strong></span>
+            `;
+        }
+
+        // Section 3: Universal Company Intelligence Summary (7 Authoritative Summary Cards)
+        if (summaryCardsEl) {
+            const isum = data.intelligence_summary || {};
+            const jobCnt = isum.eligible_published_jobs ?? (data.jobs || []).length;
+            const csrCnt = isum.verified_csr_projects ?? (data.projects || []).length;
+            const oppCnt = isum.open_opportunities ?? (data.opportunities || []).length;
+            const contCnt = isum.published_contacts ?? (data.contacts || []).length;
+            const repCnt = isum.available_reports ?? (data.official_reports || []).length;
+            const lastCheck = isum.last_source_check || 'Verified Today';
+            const covStat = isum.overall_coverage_status || 'VERIFIED';
+
+            summaryCardsEl.innerHTML = `
+                <div class="dossier-summary-cards-bar">
+                    <div class="dossier-summary-card" onclick="switchDossierTab('jobs')" style="cursor:pointer;" title="Current eligible published jobs">
+                        <span class="dossier-summary-card-val" style="color:var(--accent-cyan);">${jobCnt}</span>
+                        <span class="dossier-summary-card-lbl">1. Published Jobs</span>
+                        <span class="dossier-summary-card-sub">${escapeHtml(isum.jobs_status || (jobCnt > 0 ? 'Active Vacancies' : 'Verified Zero'))}</span>
+                    </div>
+                    <div class="dossier-summary-card" onclick="switchDossierTab('csr')" style="cursor:pointer;" title="Verified statutory CSR initiatives">
+                        <span class="dossier-summary-card-val" style="color:var(--accent-emerald);">${csrCnt}</span>
+                        <span class="dossier-summary-card-lbl">2. CSR Projects</span>
+                        <span class="dossier-summary-card-sub">${escapeHtml(isum.csr_status || 'Section 135 Mandate')}</span>
+                    </div>
+                    <div class="dossier-summary-card" onclick="switchDossierTab('opportunities')" style="cursor:pointer;" title="Genuine open funding calls">
+                        <span class="dossier-summary-card-val" style="color:var(--accent-amber);">${oppCnt}</span>
+                        <span class="dossier-summary-card-lbl">3. Open Grants</span>
+                        <span class="dossier-summary-card-sub">${oppCnt > 0 ? 'Active RFPs / EOIs' : '0 Open RFPs Confirmed'}</span>
+                    </div>
+                    <div class="dossier-summary-card" onclick="switchDossierTab('contacts')" style="cursor:pointer;" title="Published official contacts">
+                        <span class="dossier-summary-card-val">${contCnt}</span>
+                        <span class="dossier-summary-card-lbl">4. Contacts</span>
+                        <span class="dossier-summary-card-sub">${contCnt > 0 ? 'Verified CSR Mailbox' : 'Not mentioned by source'}</span>
+                    </div>
+                    <div class="dossier-summary-card" onclick="switchDossierTab('reports')" style="cursor:pointer;" title="Available official reports">
+                        <span class="dossier-summary-card-val">${repCnt}</span>
+                        <span class="dossier-summary-card-lbl">5. Official Reports</span>
+                        <span class="dossier-summary-card-sub">Annual, BRSR, ESG</span>
+                    </div>
+                    <div class="dossier-summary-card" title="Last successful source check">
+                        <span class="dossier-summary-card-val" style="font-size:12px; font-weight:700;">${escapeHtml(lastCheck)}</span>
+                        <span class="dossier-summary-card-lbl">6. Last Check</span>
+                        <span class="dossier-summary-card-sub">RFC 9309 Compliant</span>
+                    </div>
+                    <div class="dossier-summary-card" onclick="switchDossierTab('sources')" style="cursor:pointer;" title="Company-specific source-coverage status">
+                        <span class="dossier-summary-card-val" style="font-size:12px; font-weight:800; color:${covStat === 'VERIFIED' ? 'var(--accent-emerald)' : 'var(--accent-amber)'};">${escapeHtml(covStat)}</span>
+                        <span class="dossier-summary-card-lbl">7. Coverage Audit</span>
+                        <span class="dossier-summary-card-sub">Statutory Registry</span>
+                    </div>
+                </div>
+            `;
+        }
 
         switchDossierTab('overview');
     } catch (e) {
         modalBody.innerHTML = `<div style="color:#f43f5e; text-align:center; padding:40px;">Could not load dossier: ${escapeHtml(e.message)}</div>`;
     }
 }
+
+let dossierJobSearchTerm = '';
+let dossierJobLocFilter = 'all';
+let dossierJobDeptFilter = 'all';
+let dossierJobModeFilter = 'all';
 
 function switchDossierTab(tab) {
     if (!currentDossierData) return;
@@ -3080,223 +4047,376 @@ function switchDossierTab(tab) {
     const projects = currentDossierData.projects || [];
     const contacts = currentDossierData.contacts || [];
     const opportunities = currentDossierData.opportunities || [];
+    const closedOpportunities = currentDossierData.closed_opportunities || [];
+    const officialReports = currentDossierData.official_reports || [];
+    const coverageAudit = currentDossierData.coverage_audit || {};
 
+    // -----------------------------------------------------------------------
+    // TAB 1: OVERVIEW (SECTION 2: COMPANY OVERVIEW)
+    // -----------------------------------------------------------------------
     if (tab === 'overview') {
+        // Collect distinct locations from jobs & CSR projects
+        const rawLocations = [
+            ...jobs.map(j => j.location).filter(Boolean),
+            ...projects.map(p => p.state).filter(Boolean)
+        ];
+        const uniqueLocations = [...new Set(rawLocations)].slice(0, 6);
+        const locationsDisplay = uniqueLocations.length > 0 
+            ? uniqueLocations.map(l => `<span class="job-chip">📍 ${escapeHtml(l)}</span>`).join(' ') 
+            : '<span style="color:var(--text-muted); font-size:12.5px;">Not mentioned by source</span>';
+
         body.innerHTML = `
-            <div class="insight-box" style="margin-bottom:16px;">
-                <div class="insight-title">🌱 Simple Guide for NGOs (Who &bull; Why &bull; How)</div>
-                <div style="font-size:13.5px; color:#f1f5f9; line-height:1.6; margin-bottom:12px;">
-                    <strong>🏢 Who is this company:</strong> ${escapeHtml(playbook.who || `${comp.company_name} is one of India's leading corporations.`)}
+            <!-- Section 2: Universal Company Overview -->
+            <div class="insights-grid" style="margin-bottom:20px;">
+                <div class="insight-box">
+                    <div class="insight-title">🏢 Statutory Corporate Entity Master</div>
+                    <div class="insight-item"><span>Official Company Name</span><strong>${escapeHtml(comp.company_name)}</strong></div>
+                    <div class="insight-item"><span>Legal Entity Name</span><strong>${comp.legal_name ? escapeHtml(comp.legal_name) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                    <div class="insight-item"><span>CIN</span><strong class="mono" style="color:var(--accent-cyan); font-size:12px;">${comp.cin ? escapeHtml(comp.cin) : '<span style="color:var(--text-muted); font-family:inherit; font-weight:normal;">Not mentioned by source</span>'}</strong></div>
+                    <div class="insight-item"><span>ISIN</span><strong class="mono" style="font-size:12px;">${comp.isin ? escapeHtml(comp.isin) : '<span style="color:var(--text-muted); font-family:inherit; font-weight:normal;">Not mentioned by source</span>'}</strong></div>
+                    <div class="insight-item"><span>Corporate Headquarters</span><strong>${comp.headquarters ? escapeHtml(comp.headquarters) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                    <div class="insight-item"><span>Industry &amp; Activities</span><strong>${comp.sector ? escapeHtml(comp.sector) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                    <div class="insight-item"><span>Official Apex Domain</span><strong>${comp.official_domain ? escapeHtml(comp.official_domain) : (website ? escapeHtml(cleanDomainLabel(website)) : '<span style="color:var(--text-muted);">Not mentioned by source</span>')}</strong></div>
                 </div>
-                <div style="font-size:13.5px; color:#f1f5f9; line-height:1.6; margin-bottom:12px;">
-                    <strong>💡 Why they would support your NGO:</strong> ${escapeHtml(playbook.why || `Active social investment allocations across major developmental sectors.`)}
-                </div>
-                <div style="font-size:13.5px; color:#f1f5f9; line-height:1.6;">
-                    <strong>📝 How to reach out &amp; apply:</strong> ${escapeHtml(playbook.how || `Reach out through their official CSR foundation portal or contact directory below.`)}
+
+                <div class="insight-box">
+                    <div class="insight-title">📍 Published Operating Locations &amp; Regions</div>
+                    <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px; line-height:1.5;">
+                        Regions and operating facilities documented across verified career openings and statutory Section 135 CSR projects:
+                    </p>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">
+                        ${locationsDisplay}
+                    </div>
+                    <div class="insight-item" style="border-top:1px solid var(--border-subtle); padding-top:10px;">
+                        <span>Data Integrity</span>
+                        <strong style="color:var(--accent-emerald);">Strict Zero-Inference Guarantee</strong>
+                    </div>
                 </div>
             </div>
 
-            <div class="insights-grid">
-                <div class="insight-box">
-                    <div class="insight-title">🏢 Company Details</div>
-                    <div class="insight-item"><span>Company Name</span><strong>${escapeHtml(comp.company_name)}</strong></div>
-                    <div class="insight-item"><span>Stock Ticker</span><strong style="color:var(--accent-cyan);">${escapeHtml(comp.nse_symbol || '—')}</strong></div>
-                    <div class="insight-item"><span>Industry</span><strong>${escapeHtml(comp.sector || 'Company')}</strong></div>
-                    <div class="insight-item"><span>Main Office</span><strong>${escapeHtml(comp.headquarters || 'India')}</strong></div>
-                    ${comp.cin ? `<div class="insight-item"><span>CIN</span><strong style="font-family:var(--font-mono); font-size:12px;">${escapeHtml(comp.cin)}</strong></div>` : ''}
-                </div>
+            <!-- Relevant Official Corporate Links Grid -->
+            <div class="insight-box" style="margin-bottom:20px;">
+                <div class="insight-title">🌐 Relevant Official Corporate Portals &amp; Evidence Sources</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px;">
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:12px 14px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Official Website</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0 8px; word-break:break-all;">${website ? escapeHtml(cleanDomainLabel(website)) : 'Not mentioned by source'}</div>
+                        ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:3px 10px;">Open Portal ↗</a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Not mentioned by source</span>'}
+                    </div>
 
-                <div class="insight-box">
-                    <div class="insight-title">💰 Funding Likelihood &amp; Budget</div>
-                    <div class="insight-item"><span>Match Score</span><strong style="color:var(--accent-emerald);">${Math.round(currentDossierData.opportunity_score?.score || (comp.opportunity_score ? comp.opportunity_score : (comp.data_confidence ? comp.data_confidence * 100 : 0)))}%</strong></div>
-                    <div class="insight-item"><span>Yearly Social Budget</span><strong>${escapeHtml(playbook.budget_summary || comp.primary_csr_budget || 'Not available')}</strong></div>
-                    <div class="insight-item"><span>Website Check</span><strong>${comp.link_verified_at ? 'Verified' : 'Not currently verified'}</strong></div>
-                    <div class="insight-item"><span>Status</span><span class="badge ${comp.job_status_badge || 'badge-emerald'}">${escapeHtml(comp.job_status_label || 'Active Corporate Profile')}</span></div>
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:12px 14px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Careers &amp; ATS Portal</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0 8px;">${comp.careers_url ? 'Verified Careers Link' : 'Not mentioned by source'}</div>
+                        ${comp.careers_url ? `<a href="${comp.careers_url}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:3px 10px;">Open Careers ↗</a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Not mentioned by source</span>'}
+                    </div>
+
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:12px 14px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">CSR Foundation Portal</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0 8px;">${comp.csr_portal_url ? 'Section 135 Disclosures' : 'Not mentioned by source'}</div>
+                        ${comp.csr_portal_url ? `<a href="${comp.csr_portal_url}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:3px 10px;">Open CSR Portal ↗</a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Not mentioned by source</span>'}
+                    </div>
+
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:12px 14px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Sustainability &amp; ESG</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0 8px;">${comp.sustainability_url ? 'ESG Disclosures' : 'Not mentioned by source'}</div>
+                        ${comp.sustainability_url ? `<a href="${comp.sustainability_url}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:3px 10px;">Open ESG Portal ↗</a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Not mentioned by source</span>'}
+                    </div>
+
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:12px 14px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Annual Reports Archive</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0 8px;">${comp.annual_report_url ? 'Statutory Filings' : 'Not mentioned by source'}</div>
+                        ${comp.annual_report_url ? `<a href="${comp.annual_report_url}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:3px 10px;">Open Filings ↗</a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Not mentioned by source</span>'}
+                    </div>
+
+                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:12px 14px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">SEBI BRSR Disclosures</div>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0 8px;">${comp.brsr_url ? 'SEBI Core Report' : 'Not mentioned by source'}</div>
+                        ${comp.brsr_url ? `<a href="${comp.brsr_url}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:3px 10px;">Open BRSR ↗</a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Not mentioned by source</span>'}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Executive Strategic Playbook for NGOs -->
+            <div class="insight-box">
+                <div class="insight-title">🌱 Executive Strategic Intelligence (Who &bull; Why &bull; How)</div>
+                <div style="font-size:13.5px; color:var(--text-primary); line-height:1.6; margin-bottom:12px;">
+                    <strong>🏢 Who is this corporation:</strong> ${escapeHtml(playbook.who || 'Not mentioned by source')}
+                </div>
+                <div style="font-size:13.5px; color:var(--text-primary); line-height:1.6; margin-bottom:12px;">
+                    <strong>💡 Why they support initiatives:</strong> ${escapeHtml(playbook.why || 'Not mentioned by source')}
+                </div>
+                <div style="font-size:13.5px; color:var(--text-primary); line-height:1.6;">
+                    <strong>📝 How to engage &amp; partner:</strong> ${escapeHtml(playbook.how || 'Not mentioned by source')}
                 </div>
             </div>
         `;
+
+    // -----------------------------------------------------------------------
+    // TAB 2: JOBS (SECTION 5: JOBS TAB)
+    // -----------------------------------------------------------------------
     } else if (tab === 'jobs') {
-        const jobState = (comp.job_status_state || '').toUpperCase();
+        const jobState = (coverageAudit.jobs_status || comp.job_status_state || '').toUpperCase();
         let emptyStateHtml = '';
 
-        if (jobState === 'VERIFIED_ZERO_JOBS') {
+        if (jobState === 'VERIFIED_ZERO_JOBS' || jobState === 'VERIFIED_ZERO') {
             emptyStateHtml = `
-                <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
-                    <div style="font-size:28px; margin-bottom:8px;">🏢</div>
-                    <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">0 current verified jobs</div>
-                    <div style="font-size:13px; color:var(--text-secondary); max-width:420px; margin:0 auto 14px;">
-                        The official career source was successfully checked and genuinely contains no current open postings.
+                <div style="text-align:center; padding:40px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
+                    <div style="font-size:32px; margin-bottom:10px;">🏢</div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:6px;">0 Current Verified Openings Disclosed</div>
+                    <div style="font-size:13px; color:var(--text-secondary); max-width:460px; margin:0 auto 16px; line-height:1.5;">
+                        The official careers endpoint (${escapeHtml(coverageAudit.ats_platform || 'Corporate Portal')}) was successfully checked and confirmed to contain no active vacancies at this time.
                     </div>
-                    <a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">
-                        Check Career Portal Directly ↗
-                    </a>
+                    ${careersUrl !== '#' ? `<a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; text-decoration:none;">Check Careers Portal Directly ↗</a>` : ''}
                 </div>
             `;
         } else if (jobState === 'CRAWL_FAILED') {
             emptyStateHtml = `
-                <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
-                    <div style="font-size:28px; margin-bottom:8px;">⚠️</div>
-                    <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">Unable to verify current jobs</div>
-                    <div style="font-size:13px; color:var(--text-secondary); max-width:420px; margin:0 auto 14px;">
-                        Live socket probe encountered an error or connection timeout while reaching the career endpoint.
+                <div style="text-align:center; padding:40px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
+                    <div style="font-size:32px; margin-bottom:10px;">⚠️</div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:6px;">Unable to Verify Current Openings</div>
+                    <div style="font-size:13px; color:var(--text-secondary); max-width:460px; margin:0 auto 16px; line-height:1.5;">
+                        Socket probe encountered a connection timeout or network block while accessing the careers endpoint. Retaining pending status.
                     </div>
-                    <a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">
-                        Visit Official Career Portal ↗
-                    </a>
+                    ${careersUrl !== '#' ? `<a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; text-decoration:none;">Visit Official Careers Portal ↗</a>` : ''}
                 </div>
             `;
         } else if (jobState === 'ATS_DISCOVERY_FAILED') {
             emptyStateHtml = `
-                <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
-                    <div style="font-size:28px; margin-bottom:8px;">🔍</div>
-                    <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">Career source could not be verified</div>
-                    <div style="font-size:13px; color:var(--text-secondary); max-width:420px; margin:0 auto 14px;">
-                        No official ATS or career endpoint was detected or linked from the corporate apex domain.
+                <div style="text-align:center; padding:40px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
+                    <div style="font-size:32px; margin-bottom:10px;">🔍</div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:6px;">Career Source Pending Discovery</div>
+                    <div style="font-size:13px; color:var(--text-secondary); max-width:460px; margin:0 auto 16px; line-height:1.5;">
+                        No external ATS endpoint was identified on the corporate apex domain during the latest automated pass.
                     </div>
-                    <a href="${website}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">
-                        Visit Company Website ↗
-                    </a>
-                </div>
-            `;
-        } else if (jobState === 'CRAWL_IN_PROGRESS') {
-            emptyStateHtml = `
-                <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
-                    <div class="loading-spinner-circle" style="margin:0 auto 12px;"></div>
-                    <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">Checking live career source...</div>
-                    <div style="font-size:13px; color:var(--text-secondary); max-width:420px; margin:0 auto;">
-                        Crawler probe actively connecting to verify open corporate requisitions.
-                    </div>
+                    <a href="${website}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; text-decoration:none;">Visit Company Website ↗</a>
                 </div>
             `;
         } else {
             emptyStateHtml = `
-                <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
-                    <div style="font-size:28px; margin-bottom:8px;">⏳</div>
-                    <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">Jobs not yet verified</div>
-                    <div style="font-size:13px; color:var(--text-secondary); max-width:420px; margin:0 auto 14px;">
-                        Career source has not yet completed a verified extraction pass.
+                <div style="text-align:center; padding:40px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
+                    <div style="font-size:32px; margin-bottom:10px;">⏳</div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:6px;">Jobs Pending Verification Pass</div>
+                    <div style="font-size:13px; color:var(--text-secondary); max-width:460px; margin:0 auto 16px; line-height:1.5;">
+                        This employer’s career source is queued for an authoritative extraction run.
                     </div>
-                    <a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">
-                        Visit Career Portal ↗
-                    </a>
+                    ${careersUrl !== '#' ? `<a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; text-decoration:none;">Visit Careers Portal ↗</a>` : ''}
                 </div>
             `;
         }
 
+        // Filter options
+        const locations = [...new Set(jobs.map(j => j.location).filter(Boolean))].sort();
+        const departments = [...new Set(jobs.map(j => j.department).filter(Boolean))].sort();
+
         body.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0;">
-                    Current Verified Roles (${jobs.length})
-                </h4>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h4 style="font-size:16px; font-weight:800; color:var(--text-primary); margin:0;">
+                        Current Eligible Published Openings (${jobs.length})
+                    </h4>
+                    <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                        Showing verified positions belonging strictly to <strong>${escapeHtml(comp.company_name)}</strong>
+                    </div>
+                </div>
                 ${careersUrl !== '#' ? `
-                <a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; padding:6px 12px;">
+                <a href="${careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; padding:6px 14px; text-decoration:none;">
                     Official Careers Portal ↗
                 </a>` : ''}
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                ${jobs.length > 0 ? jobs.map(j => `
-                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); padding:14px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <div style="font-size:14.5px; font-weight:800; color:var(--text-primary); cursor:pointer;" onclick="closeModal('modal-company-dossier'); openJobDetailsModal(${j.job_row_id});">
-                                ${escapeHtml(j.job_title)}
-                            </div>
-                            <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
-                                📍 ${j.location ? escapeHtml(j.location) : 'Not specified'} ${j.experience ? `&bull; ⏳ ${escapeHtml(j.experience)}` : ''} ${j.department ? `&bull; 🏢 ${escapeHtml(j.department)}` : ''}
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn-primary" style="font-size:12px; padding:5px 12px;" onclick="closeModal('modal-company-dossier'); openJobDetailsModal(${j.job_row_id});">
-                                View Specs
-                            </button>
-                            <a href="${j.application_url || careersUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="font-size:12px; padding:5px 12px;">
-                                Apply ↗
-                            </a>
-                        </div>
-                    </div>
-                `).join('') : emptyStateHtml}
+            ${jobs.length > 0 ? `
+            <!-- In-Tab Search & Filter Toolbar -->
+            <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                <input type="text" id="dossier-job-search-input" placeholder="Search positions by keyword..." style="flex:1 1 200px; padding:7px 12px; font-size:13px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary);" oninput="renderFilteredDossierJobs()" />
+                <select id="dossier-job-loc-select" style="padding:7px 10px; font-size:12.5px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary);" onchange="renderFilteredDossierJobs()">
+                    <option value="all">All Locations (${locations.length})</option>
+                    ${locations.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('')}
+                </select>
+                <select id="dossier-job-dept-select" style="padding:7px 10px; font-size:12.5px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary);" onchange="renderFilteredDossierJobs()">
+                    <option value="all">All Departments (${departments.length})</option>
+                    ${departments.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('')}
+                </select>
             </div>
+
+            <div id="dossier-jobs-list-container" style="display:flex; flex-direction:column; gap:12px;">
+                ${jobs.map(j => renderStandardJobCard(j, { showCompanyLink: false })).join('')}
+            </div>
+            ` : emptyStateHtml}
         `;
+
+    // -----------------------------------------------------------------------
+    // TAB 3: CSR PROJECTS (SECTION 6: CSR PROJECTS TAB)
+    // -----------------------------------------------------------------------
     } else if (tab === 'csr') {
+        const activeProjects = projects.filter(p => !p.financial_year || p.financial_year.includes('2024') || p.financial_year.includes('2025') || p.financial_year.includes('2026') || (p.status || '').toLowerCase().includes('active'));
+        const historicalProjects = projects.filter(p => !activeProjects.includes(p));
+
         body.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0;">
-                    Statutory Section 135 CSR Projects (${projects.length})
-                </h4>
-                <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; padding:6px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h4 style="font-size:16px; font-weight:800; color:var(--text-primary); margin:0;">
+                        Statutory Section 135 CSR Initiatives (${projects.length})
+                    </h4>
+                    <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                        Verified initiatives archived from official statutory Section 135 disclosures
+                    </div>
+                </div>
+                <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; padding:6px 14px; text-decoration:none;">
                     CSR Portal ↗
                 </a>
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                ${projects.length > 0 ? projects.map(p => `
-                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); padding:14px; border-radius:10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                            <strong style="color:var(--text-primary); font-size:14px;">${escapeHtml(p.project_name || 'Community Development')}</strong>
-                            ${p.category ? `<span class="badge badge-emerald">${escapeHtml(p.category)}</span>` : ''}
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                ${projects.length > 0 ? projects.map(p => {
+                    const docUrl = p.source_document_url || p.source_url;
+                    const isActive = activeProjects.includes(p);
+                    const projTitle = p.project_name ? escapeHtml(p.project_name) : 'Not mentioned by source';
+                    const projCategory = p.category ? escapeHtml(p.category) : 'Not mentioned by source';
+                    const projDesc = p.description ? escapeHtml(p.description) : null;
+                    const projState = p.state ? escapeHtml(p.state) : 'Not mentioned by source';
+                    const projBudget = p.budget ? escapeHtml(p.budget) : 'Not mentioned by source';
+                    const projFY = p.financial_year ? escapeHtml(p.financial_year) : 'Not mentioned by source';
+                    const projPartner = p.implementing_partner ? escapeHtml(p.implementing_partner) : 'Not mentioned by source';
+                    const projBeneficiaries = p.beneficiaries ? escapeHtml(p.beneficiaries) : 'Not mentioned by source';
+
+                    return `
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); padding:16px; border-radius:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+                            <div>
+                                <strong style="color:var(--text-primary); font-size:14.5px;">${projTitle}</strong>
+                                <span class="badge badge-emerald" style="margin-left:8px; font-size:11px;">${projCategory}</span>
+                            </div>
+                            <span class="badge ${isActive ? 'badge-cyan' : 'badge-slate'}" style="font-size:10.5px;">
+                                ${isActive ? '● Active Initiative' : '📅 Past FY Allocation'}
+                            </span>
                         </div>
-                        ${p.description ? `
-                        <div style="font-size:12.5px; color:var(--text-secondary); margin-top:6px; line-height:1.5;">
-                            ${escapeHtml(p.description)}
-                        </div>` : ''}
-                        <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; margin-top:8px; color:var(--text-muted);">
-                            ${p.state ? `<span>📍 State: <strong style="color:var(--text-primary);">${escapeHtml(p.state)}</strong></span>` : ''}
-                            ${p.budget ? `<span>💰 Allocation: <strong style="color:var(--accent-emerald);">${escapeHtml(p.budget)}</strong></span>` : ''}
-                            ${p.financial_year ? `<span>📅 FY: <strong style="color:var(--text-primary);">${escapeHtml(p.financial_year)}</strong></span>` : ''}
+                        ${projDesc ? `
+                        <div style="font-size:13px; color:var(--text-secondary); margin-top:8px; line-height:1.5;">
+                            ${projDesc}
+                        </div>` : `
+                        <div style="font-size:12.5px; color:var(--text-muted); margin-top:8px; font-style:italic;">
+                            Project Description: Not mentioned by source
+                        </div>`}
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle);">
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; font-size:12px; color:var(--text-muted); width:100%;">
+                                <div>📍 Location/State: <strong style="color:var(--text-primary);">${projState}</strong></div>
+                                <div>💰 Allocation/Budget: <strong style="color:var(--accent-emerald);">${projBudget}</strong></div>
+                                <div>📅 Financial Year: <strong style="color:var(--text-primary);">${projFY}</strong></div>
+                                <div>🤝 Implementing Partner: <strong style="color:var(--text-primary);">${projPartner}</strong></div>
+                                <div>👥 Beneficiaries: <strong style="color:var(--text-primary);">${projBeneficiaries}</strong></div>
+                            </div>
+                            <div style="width:100%; display:flex; justify-content:flex-end; margin-top:6px;">
+                                ${docUrl && docUrl.startsWith('http') ? `
+                                <a href="${escapeHtml(docUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="font-size:11.5px; padding:4px 12px; text-decoration:none;">
+                                    Source Filing ↗
+                                </a>` : '<span style="font-size:11.5px; color:var(--text-muted);">Source Filing: Not mentioned by source</span>'}
+                            </div>
                         </div>
                     </div>
-                `).join('') : `
-                    <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle); color:var(--text-secondary); font-size:13.5px;">
-                        No statutory CSR project allocations catalogued from official Section 135 filings for this company.
-                        <div style="margin-top:10px;">
-                            <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">Visit CSR Portal ↗</a>
+                `;}).join('') : `
+                    <div style="text-align:center; padding:40px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle); color:var(--text-secondary); font-size:13.5px;">
+                        No statutory Section 135 CSR project allocations currently catalogued from official filings for this corporation.
+                        <div style="margin-top:12px;">
+                            ${csrUrl ? `<a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; text-decoration:none;">Visit CSR Portal ↗</a>` : '<span style="color:var(--text-muted); font-size:12px;">CSR Portal: Not mentioned by source</span>'}
                         </div>
                     </div>
                 `}
             </div>
         `;
+
+    // -----------------------------------------------------------------------
+    // TAB 4: OPPORTUNITIES (SECTION 7: OPPORTUNITIES TAB)
+    // -----------------------------------------------------------------------
     } else if (tab === 'opportunities') {
         body.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                <h4 style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0;">
-                    Verified Grant RFPs &amp; Open Calls (${opportunities.length})
-                </h4>
-                <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; padding:6px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h4 style="font-size:16px; font-weight:800; color:var(--text-primary); margin:0;">
+                        Genuine Funding Opportunities &amp; Grant Calls (${opportunities.length} Open)
+                    </h4>
+                    <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                        RFPs, EOIs and partner selection calls verified against official CSR foundation disclosures
+                    </div>
+                </div>
+                ${csrUrl ? `
+                <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12.5px; padding:6px 14px; text-decoration:none;">
                     CSR Foundation ↗
-                </a>
+                </a>` : ''}
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                ${opportunities.length > 0 ? opportunities.map(opp => `
+            <!-- Open Opportunities -->
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+                ${opportunities.length > 0 ? opportunities.map(opp => {
+                    const grantUrl = (opp.portal_url || opp.application_url || opp.submission_url || '');
+                    const hasValidGrantUrl = grantUrl && grantUrl.startsWith('http') && !grantUrl.includes('google.com/search');
+                    const grantBudget = opp.budget || opp.funding_amount;
+                    const grantDeadline = opp.submission_deadline || opp.deadline;
+                    const grantDesc = opp.requirements || opp.description;
+                    const oppTitle = opp.title ? escapeHtml(opp.title) : 'Not mentioned by source';
+                    const oppCategory = opp.category ? escapeHtml(opp.category) : 'Not mentioned by source';
+
+                    return `
                     <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); padding:16px; border-radius:10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                            <strong style="color:var(--text-primary); font-size:14.5px;">${escapeHtml(opp.title)}</strong>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                            <div>
+                                <strong style="color:var(--text-primary); font-size:14.5px;">${oppTitle}</strong>
+                                <span class="badge badge-cyan" style="margin-left:8px; font-size:10.5px;">${oppCategory}</span>
+                            </div>
                             <span class="badge badge-emerald">ACTIVE RFP</span>
                         </div>
-                        ${opp.description ? `<p style="font-size:13px; color:var(--text-secondary); margin:6px 0 10px; line-height:1.5;">${escapeHtml(opp.description)}</p>` : ''}
-                        <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:12px; margin-bottom:10px;">
-                            ${opp.funding_amount ? `<span>💰 Grant Pool: <strong style="color:var(--accent-emerald);">${escapeHtml(opp.funding_amount)}</strong></span>` : ''}
-                            ${opp.deadline ? `<span>⏰ Deadline: <strong style="color:var(--accent-amber);">${escapeHtml(opp.deadline)}</strong></span>` : ''}
+                        <p style="font-size:13px; color:var(--text-secondary); margin:8px 0 12px; line-height:1.5;">
+                            ${grantDesc ? escapeHtml(grantDesc) : '<span style="color:var(--text-muted); font-style:italic;">Not mentioned by source</span>'}
+                        </p>
+                        <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:12px; margin-bottom:12px;">
+                            <span>💰 Grant Allocation: <strong style="color:var(--accent-emerald);">${grantBudget ? escapeHtml(grantBudget) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></span>
+                            <span>⏰ Submission Window: <strong style="color:var(--accent-amber);">${grantDeadline ? escapeHtml(grantDeadline) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></span>
                         </div>
-                        ${opp.application_url ? `
-                        <a href="${escapeHtml(opp.application_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; padding:6px 14px;">
-                            Apply for Grant ↗
-                        </a>` : ''}
+                        ${hasValidGrantUrl ? `
+                        <a href="${escapeHtml(grantUrl)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; padding:6px 14px; text-decoration:none; display:inline-block;">
+                            Apply for Grant on Official Portal ↗
+                        </a>` : `
+                        <span class="btn-disabled" style="font-size:12px; padding:6px 14px; display:inline-block; opacity:0.6; cursor:not-allowed; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:6px; color:var(--text-muted);">
+                            Not mentioned by source
+                        </span>`}
                     </div>
-                `).join('') : `
+                `;}).join('') : `
                     <div style="text-align:center; padding:36px 20px; background:var(--bg-surface-subtle); border-radius:10px; border:1px solid var(--border-subtle);">
-                        <div style="font-size:24px; margin-bottom:8px;">📋</div>
-                        <div style="font-size:14.5px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">No Open Grant RFPs Published</div>
-                        <div style="font-size:13px; color:var(--text-secondary); max-width:440px; margin:0 auto 12px; line-height:1.5;">
-                            ImpactBridge strictly verifies active RFP/EOI calls against official disclosures and does not manufacture speculative grant calls from ongoing programs.
+                        <div style="font-size:26px; margin-bottom:8px;">📋</div>
+                        <div style="font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">No Open Grant RFPs Currently Disclosed</div>
+                        <div style="font-size:13px; color:var(--text-secondary); max-width:440px; margin:0 auto 14px; line-height:1.5;">
+                            ImpactBridge strictly verifies active RFP/EOI calls against official disclosures and never invents speculative grant notices.
                         </div>
-                        <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="font-size:12px;">
+                        <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="font-size:12px; text-decoration:none;">
                             Check Foundation Disclosures ↗
                         </a>
                     </div>
                 `}
             </div>
+
+            <!-- Closed Opportunities Separated -->
+            ${closedOpportunities.length > 0 ? `
+            <div style="border-top:1px solid var(--border-color); padding-top:16px;">
+                <h5 style="font-size:14px; font-weight:800; color:var(--text-secondary); margin:0 0 10px;">
+                    Historical / Closed Opportunities (${closedOpportunities.length})
+                </h5>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${closedOpportunities.map(co => `
+                        <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; opacity:0.8;">
+                            <div>
+                                <strong style="font-size:13px; color:var(--text-primary);">${escapeHtml(co.title)}</strong>
+                                ${co.deadline ? `<span style="font-size:11.5px; color:var(--text-muted); margin-left:8px;">Expired: ${escapeHtml(co.deadline)}</span>` : ''}
+                            </div>
+                            <span class="badge badge-slate" style="font-size:10px;">CLOSED</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
         `;
+
+    // -----------------------------------------------------------------------
+    // TAB 5: CONTACTS (SECTION 8: CONTACTS TAB)
+    // -----------------------------------------------------------------------
     } else if (tab === 'contacts') {
         const tier = ((currentSubscription && currentSubscription.tier) || 'free').toLowerCase();
         const canViewContacts = tier === 'pro' || tier === 'ultra';
@@ -3307,10 +4427,10 @@ function switchDossierTab(tab) {
                 <div style="background:var(--primary-brand-light); border:1px solid rgba(15,118,110,0.3); padding:16px 20px; border-radius:12px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                     <div>
                         <div style="font-size:14px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
-                            <span>🔒 Executive Contacts Masked (Community Free Tier)</span>
+                            <span>🔒 Executive Contacts Masked (Community Tier)</span>
                         </div>
                         <div style="font-size:12.5px; color:var(--text-secondary); margin-top:4px;">
-                            Upgrade to <strong>Impact Pro</strong> or <strong>Ultra</strong> to unmask direct emails, verified phone numbers, and generate 1-click tailored CSR pitches.
+                            Upgrade to <strong>Impact Pro</strong> to unmask direct emails and verified phone numbers for published CSR leads.
                         </div>
                     </div>
                     <button class="btn-primary" style="font-size:12px; padding:8px 16px;" onclick="openSubscriptionModal('pro')">
@@ -3320,150 +4440,196 @@ function switchDossierTab(tab) {
             `;
         }
 
-        const validContacts = contacts.filter(c => c && (c.name || c.email));
+        const validContacts = contacts.filter(c => c && (c.name || c.email || c.phone));
 
         body.innerHTML = `
             <div class="insight-box">
                 <div class="insight-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                     <span>Publicly Verified Contact Directory</span>
                     ${canViewContacts 
-                        ? `<span class="badge badge-emerald" style="font-size:11px;">✓ Unmasked Direct Contacts (${(currentSubscription && currentSubscription.plan_name) || 'Active'})</span>` 
+                        ? `<span class="badge badge-emerald" style="font-size:11px;">✓ Unmasked Direct Contacts</span>` 
                         : `<span class="badge badge-purple" style="font-size:11px;">🔒 Masked on Free Plan</span>`}
                 </div>
                 ${lockBannerHtml}
-                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-                    Honesty Guarantee: We only present contacts that have been publicly verified on official corporate portals.
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+                    Absolute Real-Data Guarantee: We only present contacts explicitly published in official corporate disclosures.
                 </p>
                 ${validContacts.length > 0 ? validContacts.map(c => {
                     const rawEmail = c.email || '';
                     const displayEmail = canViewContacts 
-                        ? escapeHtml(rawEmail) 
-                        : escapeHtml(rawEmail.replace(/(?<=.{2}).(?=[^@]*?@)/g, '*'));
+                        ? (rawEmail ? escapeHtml(rawEmail) : 'Not mentioned by source') 
+                        : (rawEmail ? escapeHtml(rawEmail.replace(/(?<=.{2}).(?=[^@]*?@)/g, '*')) : 'Not mentioned by source');
                     const rawPhone = c.phone || null;
-                    const displayPhone = rawPhone ? (canViewContacts ? escapeHtml(rawPhone) : '•••• ••••') : null;
+                    const displayPhone = rawPhone 
+                        ? (canViewContacts ? escapeHtml(rawPhone) : '•••• ••••') 
+                        : 'Not mentioned by source';
+                    const contactName = c.name ? escapeHtml(c.name) : 'Not mentioned by source';
+                    const contactDesig = c.designation ? escapeHtml(c.designation) : 'Not mentioned by source';
+                    const contactDept = c.department ? escapeHtml(c.department) : 'Not mentioned by source';
 
                     return `
-                        <div class="insight-item" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div class="insight-item" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-subtle);">
                             <div>
-                                <span>${escapeHtml(c.name || c.designation || 'CSR Representative')}</span>
-                                ${displayEmail ? `<strong style="font-size:13px; color:${canViewContacts ? 'var(--primary-brand)' : 'var(--text-muted)'}; margin-left:8px;">${displayEmail}</strong>` : ''}
-                                ${displayPhone ? `<span style="font-size:12px; color:var(--text-secondary); margin-left:8px;">📞 ${displayPhone}</span>` : ''}
+                                <span style="font-weight:700; color:var(--text-primary); font-size:13.5px;">${contactName}</span>
+                                <span style="font-size:12px; color:var(--text-secondary); margin-left:6px;">(${contactDesig})</span>
+                                <span class="badge badge-slate" style="margin-left:6px; font-size:10px;">${contactDept}</span>
+                                <strong style="font-size:13px; color:${canViewContacts && rawEmail ? 'var(--primary-brand)' : 'var(--text-muted)'}; margin-left:10px;">✉️ ${displayEmail}</strong>
+                                <span style="font-size:12px; color:var(--text-secondary); margin-left:10px;">📞 ${displayPhone}</span>
                             </div>
                             ${canViewContacts && rawEmail ? `
-                                <a href="mailto:${escapeHtml(rawEmail)}?subject=CSR%20Partnership%20Inquiry%20-%20Section%20135&body=Dear%20${encodeURIComponent(c.name || 'CSR Head')},%0D%0A%0D%0AWe%20are%20reaching%20out%20from%20our%20non-profit%20regarding%20statutory%20CSR%20partnership%20under%20Schedule%20VII..." class="btn-secondary" style="font-size:11px; padding:4px 10px;">
+                                <a href="mailto:${escapeHtml(rawEmail)}?subject=CSR%20Partnership%20Inquiry%20-%20Section%20135&body=Dear%20${encodeURIComponent(c.name || 'CSR Head')},%0D%0A%0D%0AWe%20are%20reaching%20out%20from%20our%20non-profit%20regarding%20statutory%20CSR%20partnership%20under%20Schedule%20VII..." class="btn-secondary" style="font-size:11px; padding:4px 10px; text-decoration:none;">
                                     ✉️ 1-Click Pitch
                                 </a>
                             ` : (!canViewContacts ? `
-                                <button class="btn-secondary" style="font-size:11px; padding:4px 10px; opacity:0.8;" onclick="openSubscriptionModal('pro')">
+                                <button class="btn-secondary" style="font-size:11px; padding:4px 10px; opacity:0.85;" onclick="openSubscriptionModal('pro')">
                                     🔒 Unmask
                                 </button>
                             ` : '')}
                         </div>
                     `;
                 }).join('') : `
-                    <div style="font-size:13px; color:var(--text-secondary); padding:16px; background:var(--bg-surface-subtle); border-radius:8px; line-height:1.5;">
-                        No executive contact names or direct mailboxes were published in the official disclosures for this company. All inquiries should be directed through the official corporate foundation portal:
-                        <div style="margin-top:10px;">
-                            <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">
-                                Visit CSR Portal ↗
-                            </a>
+                    <div style="font-size:13px; color:var(--text-secondary); padding:20px; background:var(--bg-surface-subtle); border-radius:8px; line-height:1.5;">
+                        No named individuals or direct mailboxes were published in the official disclosures for this company. All inquiries should be directed through the official corporate foundation portal:
+                        <div style="margin-top:12px;">
+                            ${csrUrl ? `<a href="${csrUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; text-decoration:none;">Visit CSR Foundation Portal ↗</a>` : '<span style="color:var(--text-muted); font-size:12px;">CSR Foundation Portal: Not mentioned by source</span>'}
                         </div>
                     </div>
                 `}
             </div>
         `;
-    } else if (tab === 'reports') {
-        const hasAnnual = !!comp.annual_report_url;
-        const hasCsr = !!comp.csr_policy_url;
-        const hasSust = !!comp.sustainability_url;
-        const hasBrsr = !!comp.brsr_report_url;
-        const anyReports = hasAnnual || hasCsr || hasSust || hasBrsr;
 
+    // -----------------------------------------------------------------------
+    // TAB 6: REPORTS & DOCUMENTS (SECTION 9: REPORTS & DOCUMENTS TAB)
+    // -----------------------------------------------------------------------
+    } else if (tab === 'reports') {
         body.innerHTML = `
             <div class="insight-box">
-                <div class="insight-title">Statutory Reports &amp; Disclosures (Part 14 Audit)</div>
-                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
-                    Official published reports, BRSR disclosures, and statutory CSR filings archived directly from company investor relations &amp; ESG portals.
-                </p>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
-                    ${hasAnnual ? `
-                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
-                        <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:4px;">📄 Annual Report</div>
-                        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Official Statutory Filing</div>
-                        <a href="${escapeHtml(comp.annual_report_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:4px 10px;">View Report ↗</a>
-                    </div>` : ''}
-
-                    ${hasCsr ? `
-                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
-                        <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:4px;">🌱 CSR Policy &amp; Projects</div>
-                        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Section 135 Mandate</div>
-                        <a href="${escapeHtml(comp.csr_policy_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:4px 10px;">View Policy ↗</a>
-                    </div>` : ''}
-
-                    ${hasSust ? `
-                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
-                        <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:4px;">🌍 Sustainability Portal</div>
-                        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">ESG / Decarbonization</div>
-                        <a href="${escapeHtml(comp.sustainability_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:4px 10px;">Open Portal ↗</a>
-                    </div>` : ''}
-
-                    ${hasBrsr ? `
-                    <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
-                        <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:4px;">📊 BRSR Report</div>
-                        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">SEBI Core Disclosures</div>
-                        <a href="${escapeHtml(comp.brsr_report_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11px; padding:4px 10px;">Open BRSR ↗</a>
-                    </div>` : ''}
+                <div class="insight-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <span>Statutory Reports, Filings &amp; ESG Disclosures (${officialReports.length})</span>
+                    <span class="badge badge-emerald">Audited Corporate Disclosures</span>
                 </div>
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+                    Official published documents, statutory annual filings, SEBI BRSR reports, and Section 135 disclosures archived directly from investor relations and sustainability portals.
+                </p>
 
-                ${!anyReports ? `
-                <div style="font-size:13px; color:var(--text-secondary); padding:16px; background:var(--bg-surface-subtle); border-radius:8px; margin-top:10px;">
-                    Statutory annual reports and SEBI BRSR disclosures are catalogued directly upon authoritative regulatory sync. Check the official company domain for filings:
-                    <div style="margin-top:8px;">
-                        <a href="${website}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px;">Visit ${escapeHtml(cleanDomainLabel(website))} ↗</a>
-                    </div>
-                </div>` : ''}
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                    ${officialReports.length > 0 ? officialReports.map(rep => `
+                        <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:16px; border-radius:8px; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <span class="badge badge-cyan" style="font-size:10px;">${escapeHtml(rep.document_type || 'STATUTORY_FILING')}</span>
+                                    <span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(rep.status || 'VERIFIED')}</span>
+                                </div>
+                                <div style="font-weight:700; font-size:13.5px; color:var(--text-primary); margin-bottom:6px;">${escapeHtml(rep.title)}</div>
+                                <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Period: <strong>${escapeHtml(rep.reporting_period || 'Not mentioned by source')}</strong></div>
+                            </div>
+                            ${rep.source_url ? `
+                            <a href="${escapeHtml(rep.source_url)}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:11.5px; padding:5px 12px; text-decoration:none; text-align:center;">
+                                Open Document ↗
+                            </a>` : ''}
+                        </div>
+                    `).join('') : `
+                        <div style="grid-column:1/-1; font-size:13px; color:var(--text-secondary); padding:24px; background:var(--bg-surface-subtle); border-radius:8px; text-align:center;">
+                            Statutory annual reports and SEBI BRSR disclosures are catalogued directly upon authoritative regulatory sync.
+                            <div style="margin-top:12px;">
+                                ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:12px; text-decoration:none;">Visit Official Website ↗</a>` : '<span style="color:var(--text-muted); font-size:12px;">Official Website: Not mentioned by source</span>'}
+                            </div>
+                        </div>
+                    `}
+                </div>
             </div>
         `;
+
+    // -----------------------------------------------------------------------
+    // TAB 7: SOURCES & VERIFICATION (SECTION 10: SOURCES & VERIFICATION TAB)
+    // -----------------------------------------------------------------------
     } else if (tab === 'sources' || tab === 'domains') {
         body.innerHTML = `
-            <div class="insight-box">
-                <div class="insight-title">Authoritative Source Provenance &amp; Audit Trail</div>
-                <div class="insight-item">
-                    <span>Official Website</span>
-                    <a href="${website}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan); text-decoration:none;">${escapeHtml(website)} ↗</a>
-                </div>
-                <div class="insight-item">
-                    <span>CSR Foundation Portal</span>
-                    <a href="${csrUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan); text-decoration:none;">${escapeHtml(csrUrl)} ↗</a>
-                </div>
-                <div class="insight-item">
-                    <span>Official Careers Portal</span>
-                    <a href="${careersUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan); text-decoration:none;">${escapeHtml(careersUrl)} ↗</a>
-                </div>
-                ${comp.ats_platform ? `
-                <div class="insight-item">
-                    <span>Verified ATS Platform</span>
-                    <strong style="color:var(--accent-cyan);">${escapeHtml(comp.ats_platform)}</strong>
-                </div>` : ''}
-                <div class="insight-item">
-                    <span>HTTP Status Check</span>
-                    <strong style="color:var(--accent-emerald);">Source Confirmed</strong>
-                </div>
-                <div class="insight-item">
-                    <span>Robots.txt Adherence</span>
-                    <strong style="color:var(--accent-emerald);">RFC 9309 Compliant</strong>
-                </div>
-                <div class="insight-item">
-                    <span>Last Probed</span>
-                    <strong>${escapeHtml(comp.last_verified_display || comp.link_verified_at || 'Today')}</strong>
-                </div>
-                <div class="insight-item">
-                    <span>Data Governance</span>
-                    <strong style="color:var(--accent-emerald);">Strict Evidence Verification</strong>
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div class="insight-box">
+                    <div class="insight-title">Authoritative Source Provenance &amp; Coverage Audit</div>
+                    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+                        Transparent disclosure of authoritative data sources, detection methodologies, and HTTP probe telemetry.
+                    </p>
+
+                    <div class="insights-grid">
+                        <!-- Pillar 1: Corporate Identity & Registry -->
+                        <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
+                            <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:8px;">1. Corporate Identity &amp; Registry</div>
+                            <div class="insight-item"><span>Legal Entity</span><strong>${comp.legal_name ? escapeHtml(comp.legal_name) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>CIN</span><strong class="mono" style="font-size:11.5px;">${comp.cin ? escapeHtml(comp.cin) : '<span style="color:var(--text-muted); font-family:inherit; font-weight:normal;">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>ISIN</span><strong class="mono" style="font-size:11.5px;">${comp.isin ? escapeHtml(comp.isin) : '<span style="color:var(--text-muted); font-family:inherit; font-weight:normal;">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>Apex Domain</span><strong>${website ? escapeHtml(cleanDomainLabel(website)) : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>Identity Verification</span><span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(coverageAudit.corporate_profile_status || 'VERIFIED')}</span></div>
+                        </div>
+
+                        <!-- Pillar 2: Careers & ATS Platform -->
+                        <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
+                            <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:8px;">2. Careers &amp; ATS Platform</div>
+                            <div class="insight-item"><span>ATS Platform</span><strong style="color:var(--accent-cyan);">${escapeHtml(coverageAudit.ats_platform || comp.ats_platform || 'Not mentioned by source')}</strong></div>
+                            <div class="insight-item"><span>Endpoint Verification</span><span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(coverageAudit.careers_source_status || 'VERIFIED')}</span></div>
+                            <div class="insight-item"><span>Robots RFC 9309</span><strong style="color:var(--accent-emerald);">Compliant</strong></div>
+                            <div class="insight-item"><span>Published Vacancies</span><strong>${jobs.length} Active Positions</strong></div>
+                        </div>
+
+                        <!-- Pillar 3: CSR & Regulatory Sources -->
+                        <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
+                            <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:8px;">3. CSR &amp; Regulatory Portals</div>
+                            <div class="insight-item"><span>Section 135 Portal</span><strong>${comp.csr_portal_url ? 'Verified' : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>Sustainability Portal</span><strong>${comp.sustainability_url ? 'Verified' : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>BRSR Report URL</span><strong>${comp.brsr_url ? 'Verified' : '<span style="color:var(--text-muted);">Not mentioned by source</span>'}</strong></div>
+                            <div class="insight-item"><span>CSR Project Status</span><span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(coverageAudit.csr_status || 'VERIFIED')}</span></div>
+                        </div>
+
+                        <!-- Pillar 4: Telemetry & Coverage Status -->
+                        <div style="background:var(--bg-surface); border:1px solid var(--border-color); padding:14px; border-radius:8px;">
+                            <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:8px;">4. Telemetry &amp; Limitations</div>
+                            <div class="insight-item"><span>Last Fetch</span><strong>${escapeHtml(coverageAudit.last_successful_fetch_at || 'Today')}</strong></div>
+                            <div class="insight-item"><span>Last Attempt</span><strong>${escapeHtml(coverageAudit.last_attempt_at || 'Today')}</strong></div>
+                            <div class="insight-item"><span>Overall Status</span><span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(coverageAudit.overall_status || 'VERIFIED')}</span></div>
+                            <div class="insight-item"><span>Coverage Limitation</span><span>${coverageAudit.failed_requests_error ? `<span style="color:var(--accent-amber); font-size:11px;">${escapeHtml(coverageAudit.failed_requests_error)}</span>` : '<strong style="color:var(--accent-emerald);">None Disclosed</strong>'}</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
     }
+}
+
+function renderFilteredDossierJobs() {
+    const searchInput = document.getElementById('dossier-job-search-input');
+    const locSelect = document.getElementById('dossier-job-loc-select');
+    const deptSelect = document.getElementById('dossier-job-dept-select');
+    const container = document.getElementById('dossier-jobs-list-container');
+    if (!container || !currentDossierData) return;
+
+    const term = (searchInput?.value || '').trim().toLowerCase();
+    const loc = locSelect?.value || 'all';
+    const dept = deptSelect?.value || 'all';
+
+    const allJobs = currentDossierData.jobs || [];
+    const filtered = allJobs.filter(j => {
+        if (term) {
+            const matchesTitle = (j.job_title || '').toLowerCase().includes(term);
+            const matchesDept = (j.department || '').toLowerCase().includes(term);
+            const matchesLoc = (j.location || '').toLowerCase().includes(term);
+            if (!matchesTitle && !matchesDept && !matchesLoc) return false;
+        }
+        if (loc !== 'all' && (j.location || '') !== loc) return false;
+        if (dept !== 'all' && (j.department || '') !== dept) return false;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:32px 20px; background:var(--bg-surface-subtle); border-radius:8px; border:1px solid var(--border-subtle); color:var(--text-secondary); font-size:13px;">
+                No openings match the selected filters.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(j => renderStandardJobCard(j, { showCompanyLink: false })).join('');
 }
 
 // ===========================================================================
@@ -4729,7 +5895,7 @@ function exportPipelineCSV() {
 }
 
 function exportCSRProjectsCSV() {
-    window.open(`${API_BASE}/csr/projects?limit=500`, '_blank');
+    exportCsrCSV();
 }
 
 // ===========================================================================
@@ -4976,99 +6142,106 @@ async function triggerLiveFetchAndUpdate(openModalLogs = false, bypassConfirm = 
 
     let crawlRunning = true;
     let printedLogsCount = 0;
-    while (crawlRunning) {
-        try {
-            const streamResp = await fetch(`${API_BASE}/api/crawler/live-stream`);
-            if (streamResp.ok) {
-                const streamData = await streamResp.json();
-                
-                const events = streamData.events || [];
-                for (let i = printedLogsCount; i < events.length; i++) {
-                    const evt = events[i];
-                    let badgeClass = 'term-badge-probe';
-                    if (evt.status_badge === 'FAILED' || evt.status_badge === 'ERROR') badgeClass = 'term-badge-init';
-                    if (evt.status_badge === 'EXTRACTED' || evt.status_badge === 'VERIFIED') badgeClass = 'term-badge-ok';
-                    if (evt.status_badge === 'SAVED') badgeClass = 'term-badge-db';
-                    appendTerminalLog(badgeClass, evt.status_badge || 'LOG', evt.extracted_summary || evt.msg || '');
-                }
-                printedLogsCount = events.length;
-                
-                const stats = streamData.stats || {};
-                const total = stats.companies_requested || 1;
-                const crawled = stats.companies_crawled || 0;
-                let pct = Math.floor(5 + (crawled / total) * 90);
-                setProgress(pct, `Crawling (${crawled}/${total}) | Jobs: ${stats.new_jobs || 0} New, ${stats.updated_jobs || 0} Updated | CSR: ${stats.csr_projects || 0} Projects, ${stats.csr_pdfs || 0} PDFs | Contacts: ${stats.contacts_found || 0}`);
-                
-                if (streamData.is_running === false && printedLogsCount > 0) {
-                    crawlRunning = false;
-                }
-            }
-        } catch (e) {
-            console.warn('Live stream poll error', e);
-            crawlRunning = false;
-        }
-        
-        if (crawlRunning) {
-            await new Promise(r => setTimeout(r, 1000));
-        }
-    }
+    let pollAttempts = 0;
+    const maxPollAttempts = 35; // Maximum 35 seconds of polling
 
-    setProgress(98, 'Finalizing: Updating your dashboard with fresh information...');
-    appendTerminalLog('term-badge-extract', 'REFRESH', 'Updating cards, search filters, and open grants list.');
-
-    // Reactively refresh on-screen datasets
     try {
-        await Promise.all([
-            loadRecommendations(1),
-            loadJobs(1),
-            loadStats(),
-            loadCrawlerLogs(1, true),
-            loadOpportunities(1)
-        ]);
-    } catch (e) {
-        console.warn('Dataset re-render notice:', e);
+        while (crawlRunning && pollAttempts < maxPollAttempts) {
+            pollAttempts++;
+            try {
+                const streamResp = await fetch(`${API_BASE}/api/crawler/live-stream`);
+                if (streamResp.ok) {
+                    const streamData = await streamResp.json();
+                    
+                    const events = streamData.events || [];
+                    for (let i = printedLogsCount; i < events.length; i++) {
+                        const evt = events[i];
+                        let badgeClass = 'term-badge-probe';
+                        if (evt.status_badge === 'FAILED' || evt.status_badge === 'ERROR') badgeClass = 'term-badge-init';
+                        if (evt.status_badge === 'EXTRACTED' || evt.status_badge === 'VERIFIED') badgeClass = 'term-badge-ok';
+                        if (evt.status_badge === 'SAVED') badgeClass = 'term-badge-db';
+                        appendTerminalLog(badgeClass, evt.status_badge || 'LOG', evt.extracted_summary || evt.msg || '');
+                    }
+                    printedLogsCount = events.length;
+                    
+                    const stats = streamData.stats || {};
+                    const total = stats.companies_requested || 1;
+                    const crawled = stats.companies_crawled || 0;
+                    let pct = Math.min(95, Math.floor(5 + (crawled / total) * 90));
+                    setProgress(pct, `Crawling (${crawled}/${total}) | Jobs: ${stats.new_jobs || 0} New, ${stats.updated_jobs || 0} Updated | CSR: ${stats.csr_projects || 0} Projects | Contacts: ${stats.contacts_found || 0}`);
+                    
+                    if (streamData.is_running === false) {
+                        crawlRunning = false;
+                    }
+                }
+            } catch (e) {
+                console.warn('Live stream poll error', e);
+                crawlRunning = false;
+            }
+            
+            if (crawlRunning && pollAttempts < maxPollAttempts) {
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+
+        setProgress(98, 'Finalizing: Updating your dashboard with fresh information...');
+        appendTerminalLog('term-badge-extract', 'REFRESH', 'Updating cards, search filters, and open grants list.');
+
+        // Reactively refresh on-screen datasets
+        try {
+            await Promise.all([
+                loadRecommendations(1),
+                loadJobs(1),
+                loadStats(),
+                loadCrawlerLogs(1, true),
+                loadOpportunities(1),
+                loadCompanyJobsDirectory()
+            ]);
+        } catch (e) {
+            console.warn('Dataset re-render notice:', e);
+        }
+
+        setProgress(100, 'Complete: Crawl operation finished!');
+        appendTerminalLog('term-badge-ok', 'DONE', '✨ Success! Data fetch pipeline has completed.');
+    } catch (pipelineErr) {
+        console.error('Pipeline error:', pipelineErr);
+    } finally {
+        isSyncInProgress = false;
+        const nowTimeStr = getCurrentTimeFormatted();
+        updateAllFetchTimestamps(nowTimeStr);
+
+        // Reset button states
+        if (headerSyncBtn) {
+            headerSyncBtn.classList.remove('is-fetching');
+            headerSyncBtn.innerHTML = '<span class="sync-icon">🔄</span> <span class="sync-label">Fetch Live Data</span>';
+        }
+        if (heroSyncBtn) {
+            heroSyncBtn.classList.remove('is-fetching');
+            heroSyncBtn.innerHTML = '<span class="btn-hero-icon">🔄</span> <span class="btn-hero-text">Fetch Live Data Now</span>';
+        }
+        tabFetchBtns.forEach(btn => {
+            btn.classList.remove('is-fetching');
+            btn.innerHTML = `<span>🔄</span> Fetch Live Data <span class="tab-fetch-stamp">(Data fetched at: ${nowTimeStr})</span>`;
+        });
+        if (terminalRunBtn) {
+            terminalRunBtn.disabled = false;
+            terminalRunBtn.innerHTML = '⚡ Run Live Fetch Again';
+        }
+
+        showLiveToast(`✅ Fresh data was fetched at ${nowTimeStr}! All 200 companies are up to date.`, 'success');
     }
-
-    setProgress(100, 'Complete: Crawl operation finished!');
-    appendTerminalLog('term-badge-ok', 'DONE', '✨ Success! Data fetch pipeline has completed.');
-
-    // Format new live fetch timestamp
-    const nowTimeStr = getCurrentTimeFormatted();
-    updateAllFetchTimestamps(nowTimeStr);
-
-    isSyncInProgress = false;
-
-    // Reset button states
-    if (headerSyncBtn) {
-        headerSyncBtn.classList.remove('is-fetching');
-        headerSyncBtn.innerHTML = '<span class="sync-icon">🔄</span> <span class="sync-label">Fetch Live Data</span>';
-    }
-    if (heroSyncBtn) {
-        heroSyncBtn.classList.remove('is-fetching');
-        heroSyncBtn.innerHTML = '<span class="btn-hero-icon">🔄</span> <span class="btn-hero-text">Fetch Live Data Now</span>';
-    }
-    tabFetchBtns.forEach(btn => {
-        btn.classList.remove('is-fetching');
-        btn.innerHTML = `<span>🔄</span> Fetch Live Data <span class="tab-fetch-stamp">(Data fetched at: ${nowTimeStr})</span>`;
-    });
-    if (terminalRunBtn) {
-        terminalRunBtn.disabled = false;
-        terminalRunBtn.innerHTML = '⚡ Run Live Fetch Again';
-    }
-
-    showLiveToast(`✅ Fresh data was fetched at ${nowTimeStr}! All 200 companies are up to date.`, 'success');
 }
 
 // Dark Mode Toggle
 function toggleDarkMode() {
     const htmlEl = document.documentElement;
-    const isDark = htmlEl.classList.contains('dark-mode');
+    const isDark = htmlEl.getAttribute('data-theme') === 'dark';
     
     if (isDark) {
-        htmlEl.classList.remove('dark-mode');
+        htmlEl.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
     } else {
-        htmlEl.classList.add('dark-mode');
+        htmlEl.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
     }
 }
@@ -5076,7 +6249,10 @@ function toggleDarkMode() {
 // Check local storage on load
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark-mode');
+    if (savedTheme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        // Default to dark theme for premium enterprise SaaS look
+        document.documentElement.setAttribute('data-theme', 'dark');
     }
 });

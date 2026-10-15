@@ -520,6 +520,14 @@ a:hover {
   align-items: center;
   gap: 8px;
 }
+.nav-group-divider {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 6px;
+  align-self: center;
+}
 .nav-link-btn {
   display: inline-flex;
   align-items: center;
@@ -943,47 +951,45 @@ a:hover {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 28px 32px;
-  margin-bottom: 28px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
   box-shadow: var(--shadow-card);
 }
 
-.hero-content {
-  position: relative;
+.dashboard-header-clean {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
 }
 
-.hero-pill-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  background: var(--accent-light);
-  border: 1px solid #CCFBF1;
-  color: var(--primary-brand);
-  border-radius: var(--radius-full);
-  font-size: 11.5px;
-  font-weight: 700;
-  margin-bottom: 12px;
+.dashboard-header-title {
+  flex: 1;
+  min-width: 300px;
 }
-[data-theme="dark"] .hero-pill-tag {
-  background: rgba(20, 184, 166, 0.15);
-  border-color: rgba(20, 184, 166, 0.3);
-  color: #2DD4BF;
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .hero-title {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
   color: var(--text-primary);
 }
 
 .hero-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.6;
-  max-width: 900px;
+  line-height: 1.5;
 }
 
 /* Freshness Live Fetch Card */
@@ -3428,3 +3434,131 @@ html.dark-mode .mobile-nav-drawer { background: #102A43; border-color: #243B53; 
 html.dark-mode .mobile-drawer-header { background: #102A43; border-color: #243B53; }
 html.dark-mode .drawer-sync-card { background: #081726; border-color: #243B53; }
 html.dark-mode .mobile-drawer-close { background: #081726; border-color: #243B53; color: #9FB3C8; }
+
+/* ==========================================================================
+   UNIVERSAL VIEW STANDARDIZATION — ENTERPRISE SAAS SYSTEM
+   ========================================================================== */
+.dossier-summary-cards-bar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(115px, 1fr));
+  gap: 10px;
+  min-width: 820px;
+}
+.dossier-summary-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: border-color var(--transition-fast);
+}
+.dossier-summary-card:hover {
+  border-color: var(--primary-brand);
+}
+.dossier-summary-card-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+.dossier-summary-card-lbl {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.dossier-summary-card-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Universal Job Details Metadata Grid */
+.job-metadata-grid-standard {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 16px;
+  margin-bottom: 24px;
+}
+.job-meta-item {
+  display: flex;
+  flex-direction: column;
+}
+.job-meta-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.job-meta-val {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* Responsive Breakpoints (375px, 390px, 414px, 768px, 1024px, 1280px, 1440px, 1920px) */
+@media (max-width: 1024px) {
+  .job-metadata-grid-standard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-backdrop {
+    padding: 12px;
+  }
+  .modal-panel, .modal-panel-large {
+    width: 100% !important;
+    max-height: 94vh;
+    border-radius: var(--radius-lg);
+  }
+  .modal-header {
+    padding: 14px 18px;
+  }
+  .modal-body {
+    padding: 16px 18px !important;
+  }
+  .dossier-nav-tabs {
+    padding: 0 10px;
+  }
+  .dossier-tab-btn {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+  .job-metadata-grid-standard {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-backdrop {
+    padding: 6px;
+  }
+  .modal-header {
+    padding: 12px 14px;
+  }
+  .modal-body {
+    padding: 14px !important;
+  }
+  .dossier-tab-btn {
+    padding: 9px 10px;
+    font-size: 11.5px;
+  }
+}

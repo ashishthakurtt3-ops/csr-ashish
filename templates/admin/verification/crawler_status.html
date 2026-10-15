@@ -151,15 +151,15 @@
             <thead>
                 <tr>
                     <th>Company</th>
-                    <th>Website</th>
+                    <th>Official Website</th>
                     <th>Careers Source</th>
                     <th>ATS / Platform</th>
                     <th>Jobs Found</th>
-                    <th>Validated</th>
-                    <th>Published</th>
-                    <th>Stale</th>
+                    <th>Jobs Published</th>
+                    <th>CSR Records</th>
                     <th>Crawl Status</th>
-                    <th>Last Crawl</th>
+                    <th>Last Verified</th>
+                    <th>Reason / Notes</th>
                 </tr>
             </thead>
             <tbody>
@@ -187,32 +187,38 @@
                         <span style="font-size:12px; font-weight:600;">{{ c.ats_platform|default:"Direct / HTML" }}</span>
                     </td>
                     <td style="font-family:var(--font-mono); font-weight:700; color:var(--text-primary);">
-                        {{ c.total_jobs }}
-                    </td>
-                    <td style="font-family:var(--font-mono); color:var(--success);">
-                        {{ c.validated_jobs }}
+                        {{ c.jobs_found }}
                     </td>
                     <td style="font-family:var(--font-mono); font-weight:700; color:var(--success);">
-                        {{ c.active_jobs }}
+                        {{ c.jobs_published }}
                     </td>
-                    <td style="font-family:var(--font-mono); color:var(--text-muted);">
-                        {{ c.expired_jobs }}
+                    <td style="font-family:var(--font-mono); font-weight:700; color:var(--primary-brand);">
+                        {{ c.csr_records }}
                     </td>
                     <td>
-                        {% if c.active_jobs > 0 %}
-                        <span class="badge-status badge-active">ACTIVE ({{ c.active_jobs }})</span>
+                        {% if c.jobs_published > 0 %}
+                        <span class="badge-status badge-active">VERIFIED ({{ c.jobs_published }})</span>
                         {% elif c.crawl_status == 'CRAWLED' %}
                         <span class="badge-status badge-pending" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">0 JOBS VERIFIED</span>
                         {% elif c.crawl_status == 'PENDING' %}
                         <span class="badge-status badge-pending" style="background:#f8fafc; color:#64748b; border:1px dashed #cbd5e1;">CRAWL PENDING</span>
                         {% elif c.crawl_status == 'NO_CAREER_URL' %}
                         <span class="badge-status badge-pending" style="background:#fef3c7; color:#92400e;">SOURCE UNAVAILABLE</span>
+                        {% elif c.crawl_status == 'BLOCKED' %}
+                        <span class="badge-status badge-rejected" style="background:#fee2e2; color:#991b1b;">BLOCKED (403)</span>
                         {% else %}
                         <span class="badge-status badge-rejected">{{ c.crawl_status|default:"PENDING" }}</span>
                         {% endif %}
                     </td>
                     <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">
                         {{ c.last_crawled|default:"Never"|truncatechars:19 }}
+                    </td>
+                    <td style="font-size:11.5px; color:var(--text-secondary); max-width:260px; line-height:1.4;">
+                        {% if c.jobs_published > 0 or c.csr_records > 0 %}
+                        <span style="color:var(--success); font-weight:600;">✓ Verified</span>: {{ c.jobs_published }} jobs, {{ c.csr_records }} CSR records
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ c.zero_explanation|default:"Pending Live Verification" }}</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
