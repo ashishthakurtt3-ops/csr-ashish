@@ -59,9 +59,13 @@ class Command(BaseCommand):
             }
         )
         if created:
-            admin_user.set_password('Admin@12345')
+            initial_pw = os.environ.get('ADMIN_INITIAL_PASSWORD', '')
+            if initial_pw:
+                admin_user.set_password(initial_pw)
+            else:
+                admin_user.set_unusable_password()
+                self.stdout.write("Created superuser 'admin' WITHOUT a password. Run: python manage.py changepassword admin")
             admin_user.save()
-            self.stdout.write("Created Superuser: admin / Admin@12345")
 
         ngo_user, created = User.objects.get_or_create(
             username='ngo_manager',
@@ -75,15 +79,18 @@ class Command(BaseCommand):
             }
         )
         if created:
-            ngo_user.set_password('Manager@12345')
+            ngo_pw = os.environ.get('NGO_INITIAL_PASSWORD', '')
+            if ngo_pw:
+                ngo_user.set_password(ngo_pw)
+            else:
+                ngo_user.set_unusable_password()
             ngo_user.save()
-            self.stdout.write("Created NGO User: ngo_manager / Manager@12345")
 
     def _import_from_mysql(self) -> bool:
         host = os.environ.get('MYSQL_HOST', 'localhost')
         port = int(os.environ.get('MYSQL_PORT', 3306))
-        user = os.environ.get('MYSQL_USER', 'root')
-        password = os.environ.get('MYSQL_PASSWORD', 'MyNewPassword123!')
+        user = os.environ.get('MYSQL_USER', '')
+        password = os.environ.get('MYSQL_PASSWORD', '')
         database = os.environ.get('MYSQL_DB', 'csr_intelligence')
 
         self.stdout.write(f"Connecting to MySQL at {host}:{port} database '{database}'...")
@@ -191,7 +198,7 @@ class Command(BaseCommand):
                     function=r.get('function'),
                     location=r.get('location'),
                     state=r.get('state'),
-                    country=r.get('country') or 'India',
+                    country=r.get('country') or None,
                     work_mode=r.get('work_mode'),
                     employment_type=r.get('employment_type'),
                     experience=r.get('experience'),

@@ -19,7 +19,7 @@ with open(audit_json_path, 'r', encoding='utf-8') as f:
 
 print(f"Loaded {len(audit_data)} records from {audit_json_path}")
 
-db_companies = {c.company_id: c for c in Company.objects.all()}
+db_companies = {c.company_id: c for c in Company.objects.filter(company_id__startswith='COMP_TOP200_')}
 assert len(db_companies) == 200, f"Expected 200 companies in DB, got {len(db_companies)}"
 
 eight_companies = {
@@ -60,6 +60,8 @@ eight_companies = {
 updated_records = []
 for item in audit_data:
     cid = item['company_id']
+    if cid not in db_companies:
+        continue
     comp = db_companies[cid]
     
     # Standardize statuses
@@ -70,9 +72,6 @@ for item in audit_data:
     elif prev_st == 'STATUTORY_EXEMPT':
         item['status'] = 'STATUTORY_EXEMPT'
         item['category_description'] = 'Statutory corporation constituted under special Act of Parliament; legitimately exempt from Companies Act CIN.'
-    elif prev_st in ['UNESTABLISHED_CLEARED', 'FABRICATED_CIN_REMOVED']:
-        item['status'] = 'FABRICATED_CIN_REMOVED'
-        item['category_description'] = 'Previously fabricated prototype CIN purged to None; statutory MCA-21 CIN remains unverified pending filing ingestion.'
     elif cid in eight_companies or prev_st == 'UNESTABLISHED':
         item['status'] = 'CIN_UNKNOWN_UNVERIFIED'
         item['category_description'] = 'CIN was unpopulated from inception; stock exchange metadata confirmed; statutory MCA-21 filing ingestion pending.'
@@ -80,6 +79,9 @@ for item in audit_data:
             info = eight_companies[cid]
             item['authoritative_source'] = f"NSE/BSE Listed Issuer. {info['details']}"
             item['correction'] = f"Categorized as CIN_UNKNOWN_UNVERIFIED: {info['details']}"
+    elif prev_st in ['UNESTABLISHED_CLEARED', 'FABRICATED_CIN_REMOVED']:
+        item['status'] = 'FABRICATED_CIN_REMOVED'
+        item['category_description'] = 'Previously fabricated prototype CIN purged to None; statutory MCA-21 CIN remains unverified pending filing ingestion.'
     
     item['db_cin'] = comp.cin
     item['db_legal_name'] = comp.legal_name

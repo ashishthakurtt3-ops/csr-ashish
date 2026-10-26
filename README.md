@@ -42,7 +42,7 @@ python manage.py runserver 127.0.0.1:8000
 - **Primary Enterprise Portal:** <http://localhost:8000>
 - **Custom Admin Portal:** <http://localhost:8000/admin-portal/>
 - **Django Admin Panel:** <http://localhost:8000/django-admin/>
-- Login credentials: `admin` / `Admin@12345`
+- Admin login: user `admin`; set its password with `python manage.py changepassword admin` (no default password is shipped)
 
 ---
 
@@ -127,4 +127,21 @@ python manage.py test modules.website.tests
 python test_django_suite.py
 ```
 
+## Data integrity rules (enforced in code)
 
+- **MySQL only.** `config/settings.py` has no SQLite fallback; if MySQL is down the server stops. All secrets come from `.env` (see `.env.example`).
+- **Only verified jobs are public** (`modules/admin_panel/verification.py`): status ACTIVE + verified + `link_status = VERIFIED_HTTP_200` (live HTTP check, same requisition id / title) + exactly one owning company.
+- **No guessing.** Missing values are shown as *Not available on the company website*; sections a company only shows after login are shown as *Available only after login on the company website* (set per company in Admin -> Companies -> Edit, or `manage.py set_company_access`).
+- Shared ATS portals (Adani Oracle, Unilever Workday) are configured in `config/shared_tenants.json`; a posting that cannot be tied to one company is never published.
+
+### Rollout order
+```
+python manage.py migrate
+python manage.py backup_database
+python manage.py purge_fake_data --apply            # REQ-* jobs, guessed contacts
+python manage.py normalize_job_data --apply         # ISO dates, enums, country, ownership; hides all jobs until verified
+python manage.py verify_job_links                   # needs internet; publishes only proven links
+python manage.py set_company_access --detect        # flags login-walled careers pages (confirm in admin)
+python manage.py expire_jobs --with-links           # schedule daily
+```
+Run `python -m unittest discover -s tests_pure` for the Django-free unit tests.

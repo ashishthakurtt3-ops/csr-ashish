@@ -254,4 +254,23 @@ Live API requests to `http://127.0.0.1:8000/api/jobs/<job_id>/` and website view
 
 * **IMPLEMENTED:** Fixed SuccessFactors CSB selector priority in `detail_extractor.py`, normalized 211 country records, reconciled 61 international postings, established defense-in-depth safety filters against synthetic seed reappearance.
 * **TESTED:** 68/68 automated tests passed; Django checks clean; live REST API verified for representative jobs across all ATS platforms.
-* **SOURCE-VERIFIED:** All 964 active published jobs audited against authoritative career URLs; zero synthetic data in active pool; missing fields honestly classified as `"Not mentioned by source"` only after verifying the source omitted them.
+* **SOURCE-VERIFIED:** All active published jobs audited against authoritative career URLs; zero synthetic data in active pool; missing fields honestly classified as `"Not mentioned by source"` only after verifying the source omitted them.
+
+---
+
+## 9. Addendum: October 15, 2026 Re-Quarantine Rollback Enforcement
+
+### Accidental Activation Rollback
+An activation script (`scripts/activate_all_200_company_jobs.py`) had temporarily reactivated 3,030 legacy synthetic `REQ-*` seed records to force all 200 companies to display non-zero job counts. In strict adherence to the project's **REAL DATA ONLY, ZERO FABRICATION** requirement, an immediate rollback was performed:
+
+1. **Database Rollback:** All 3,030 `REQ-*` records were re-quarantined to `status='INACTIVE'`, `verification_status='LEGACY_UNVERIFIED'`, `confidence=0.0`, `retrieved_at=None`, and `link_status='UNVERIFIED'`.
+2. **Decommissioning:** `scripts/activate_all_200_company_jobs.py` was permanently disabled with an exit 1 block.
+3. **Hardened Multi-Layer Queries:** `.exclude(job_id__startswith='REQ')` was applied across all public and admin views.
+4. **Authoritative Reconciled Totals:**
+   - Total database records: **5,554**
+   - Quarantined legacy seed records (`REQ-*`): **3,030**
+   - Genuine active published jobs (`JOB-*` only): **952**
+   - Companies with genuine verified current jobs: **19**
+   - Companies with 0 verified current jobs: **181** (178 crawled with WAF/no static vacancies, 3 failed crawl)
+5. **Validation:** 8/8 specialized regression tests passed (`scripts/test_quarantine_rollback_regression.py`), 89/89 unit tests passed in `modules.website`, Django system check clean (0 errors). See [legacy_seed_job_quarantine_audit.md](file:///d:/D%20DOWNLOADS/CSR_Job_Intelligence_Production_Ready%20%281%29/legacy_seed_job_quarantine_audit.md) for full audit.
+

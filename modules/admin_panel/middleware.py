@@ -28,6 +28,15 @@ class AdminRoleMiddleware:
             
             # Check user role if accessing sensitive areas
             if hasattr(request.user, 'is_admin_or_staff') and not request.user.is_admin_or_staff():
+                if (
+                    request.content_type == 'application/json' or
+                    request.headers.get('x-requested-with') == 'XMLHttpRequest' or
+                    '/save/' in path or
+                    '/test/' in path or
+                    path.endswith('/audit-logs/')
+                ):
+                    from django.http import JsonResponse
+                    return JsonResponse({'success': False, 'error': 'Access denied: Administrative privileges required.'}, status=403)
                 messages.error(request, "Access denied: Administrative privileges required.")
                 return redirect('/')
 

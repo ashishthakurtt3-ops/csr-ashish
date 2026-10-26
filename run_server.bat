@@ -31,7 +31,7 @@ echo =====================================================================
 echo  * Enterprise Portal:      http://localhost:8000
 echo  * Custom Admin Portal:    http://localhost:8000/admin-portal/
 echo  * Django Admin Panel:     http://localhost:8000/django-admin/
-echo  * Login Credentials:      admin / Admin@12345
+echo  * Admin login:           user 'admin' (set the password with: python manage.py changepassword admin)
 echo =====================================================================
 echo.
 echo [INFO] Starting Django Web Server on http://127.0.0.1:8000...

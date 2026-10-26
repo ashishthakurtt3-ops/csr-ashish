@@ -19,6 +19,7 @@ urlpatterns = [
     path('documents/', include('modules.admin_panel.urls.document_urls')),
     path('subscriptions/', include('modules.admin_panel.urls.subscription_urls')),
     path('verification/', include('modules.admin_panel.urls.verification_urls')),
+    path('ai-config/', include('modules.admin_panel.urls.ai_config_urls')),
 
     # Dedicated Downloads Hub Section & Full Master Archive
     path('downloads/', download_hub_view, name='download_hub'),

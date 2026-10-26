@@ -4,7 +4,6 @@ Drops and recreates the configured MySQL database, runs `migrate`, and
 prints the resulting table inventory. Idempotent and safe to rerun —
 the legacy business database is never touched by this command.
 """
-"""
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand

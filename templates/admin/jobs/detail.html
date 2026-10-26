@@ -18,6 +18,9 @@
         <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-admin btn-admin-secondary">
             &larr; All Jobs at {{ company.company_name }}
         </a>
+        <a href="{% url 'admin_jobs:rescrawl_job' job.job_row_id %}" class="btn-admin btn-admin-secondary" style="font-weight:700;">
+            🔄 Re-scrape Details
+        </a>
         <a href="{% url 'admin_jobs:edit' job.job_row_id %}" class="btn-admin btn-admin-secondary">
             ✏️ Edit Job
         </a>
@@ -48,9 +51,14 @@
                         {% endif %}
                     </a>
                 </div>
-                <span class="badge-status {% if job.status == 'ACTIVE' %}badge-active{% else %}badge-pending{% endif %}" style="font-size:12px; padding:4px 12px;">
-                    {{ job.status|default:"ACTIVE" }}
-                </span>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <span class="badge-status {% if job.details_status == 'COMPLETE' %}badge-active{% elif job.details_status == 'PARTIAL' %}badge-warning{% else %}badge-pending{% endif %}" style="font-size:12px; padding:4px 12px;">
+                        Details: {{ job.details_status|default:"MISSING" }}
+                    </span>
+                    <span class="badge-status {% if job.status == 'ACTIVE' %}badge-active{% else %}badge-pending{% endif %}" style="font-size:12px; padding:4px 12px;">
+                        {{ job.status|default:"ACTIVE" }}
+                    </span>
+                </div>
             </div>
 
             <!-- Meta Quick Badges -->
@@ -66,14 +74,19 @@
                     <span>📋</span> <strong>Type:</strong> {{ job.employment_type }}
                 </div>
                 {% endif %}
-                {% if job.experience %}
+                {% if job.seniority_level %}
                 <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
-                    <span>⏱</span> <strong>Experience:</strong> {{ job.experience }}
+                    <span>⭐</span> <strong>Seniority:</strong> {{ job.seniority_level }}
                 </div>
                 {% endif %}
-                {% if job.salary %}
+                {% if job.experience or job.qualifications_experience %}
                 <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
-                    <span>💰</span> <strong>Compensation:</strong> {{ job.salary }}
+                    <span>⏱</span> <strong>Experience:</strong> {{ job.qualifications_experience|default:job.experience }}
+                </div>
+                {% endif %}
+                {% if job.salary_text or job.salary %}
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>💰</span> <strong>Compensation:</strong> {{ job.salary_text|default:job.salary }}
                 </div>
                 {% endif %}
                 {% if job.posted_date %}
@@ -84,100 +97,151 @@
             </div>
         </div>
 
-        <!-- Description Card -->
+        <!-- About the Role & Description Card -->
         <div class="admin-card" style="margin-bottom:24px; padding:28px;">
             <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                Role Overview &amp; Description
+                About the Role &amp; Description
             </h3>
+            {% if job.about_role %}
+            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); margin-bottom:16px; background:var(--bg-surface-subtle); padding:16px; border-radius:6px; border-left:3px solid var(--primary-brand); white-space:pre-line;">
+                <strong>Role Purpose:</strong><br>
+                {{ job.about_role }}
+            </div>
+            {% endif %}
             <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
-                {% if job.job_description %}
-                {{ job.job_description }}
+                {% if job.description_raw or job.job_description %}
+                {{ job.description_raw|default:job.job_description }}
                 {% else %}
-                This opening is an official verified career position at <strong>{{ company.company_name }}</strong> within the <strong>{{ job.department|default:"corporate" }}</strong> function. Candidates are invited to inspect full role requirements and apply through the company's verified application portal.
+                <span style="color:var(--text-muted); font-style:italic;">Not provided by employer</span>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Responsibilities -->
-        {% if job.responsibilities %}
+        <!-- Key Responsibilities -->
         <div class="admin-card" style="margin-bottom:24px; padding:28px;">
             <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
                 Key Responsibilities &amp; Accountabilities
             </h3>
+            {% if job.responsibilities_list %}
+            <ul style="list-style:none; padding:0; margin:0;">
+                {% for item in job.responsibilities_list %}
+                <li style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; line-height:1.6; font-size:14px; color:var(--text-primary);">
+                    <span style="color:var(--primary-brand); font-weight:bold; font-size:15px;">▹</span>
+                    <span>{{ item }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% elif job.responsibilities %}
             <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
                 {{ job.responsibilities }}
             </div>
+            {% else %}
+            <div style="color:var(--text-muted); font-size:13.5px; font-style:italic;">
+                Not provided by employer
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
 
         <!-- Requirements & Qualifications -->
-        {% if job.requirements or job.qualifications %}
         <div class="admin-card" style="margin-bottom:24px; padding:28px;">
             <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                Requirements &amp; Qualifications
+                Education &amp; Qualifications
             </h3>
-            {% if job.requirements %}
-            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line; margin-bottom:16px;">
-                {{ job.requirements }}
+            {% if job.qualifications_education %}
+            <div style="margin-bottom:16px;">
+                <strong style="font-size:13.5px; color:var(--text-secondary); display:block; margin-bottom:8px;">Academic Qualifications:</strong>
+                <ul style="list-style:none; padding:0; margin:0;">
+                    {% for item in job.qualifications_education %}
+                    <li style="display:flex; align-items:flex-start; gap:8px; margin-bottom:6px; line-height:1.6; font-size:13.5px;">
+                        <span>🎓</span> <span>{{ item }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% elif job.education %}
+            <div style="font-size:13.5px; line-height:1.6; color:var(--text-primary); margin-bottom:16px;">
+                <strong>Academic Credentials:</strong> {{ job.education }}
             </div>
             {% endif %}
-            {% if job.qualifications %}
+
+            {% if job.qualifications_experience or job.experience %}
+            <div style="margin-bottom:16px; padding-top:12px; border-top:1px dashed var(--border-color);">
+                <strong style="font-size:13.5px; color:var(--text-secondary); display:block; margin-bottom:6px;">Experience Required:</strong>
+                <div style="font-size:13.5px; color:var(--text-primary);">{{ job.qualifications_experience|default:job.experience }}</div>
+            </div>
+            {% endif %}
+
+            {% if job.qualifications or job.requirements %}
             <div style="font-size:13.5px; line-height:1.6; color:var(--text-primary); white-space:pre-line; padding-top:12px; border-top:1px dashed var(--border-color);">
-                <strong>Formal Qualifications:</strong><br>
-                {{ job.qualifications }}
+                <strong>Eligibility &amp; Requirements:</strong><br>
+                {{ job.qualifications|default:job.requirements }}
             </div>
             {% endif %}
-            {% if job.preferred_qualifications %}
-            <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary); white-space:pre-line; padding-top:12px; border-top:1px dashed var(--border-color);">
-                <strong>Preferred / Nice-to-have:</strong><br>
-                {{ job.preferred_qualifications }}
+
+            {% if not job.qualifications_education and not job.education and not job.qualifications and not job.requirements %}
+            <div style="color:var(--text-muted); font-size:13.5px; font-style:italic;">
+                Not provided by employer
             </div>
             {% endif %}
         </div>
-        {% endif %}
-
-        <!-- Benefits & Perks -->
-        {% if job.benefits %}
-        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
-            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                Benefits &amp; Total Rewards
-            </h3>
-            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
-                {{ job.benefits }}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Work Conditions / Meta Details -->
-        {% if job.travel_required or job.shift or job.work_authorization or job.application_deadline %}
-        <div class="admin-card" style="margin-bottom:24px; padding:24px;">
-            <h3 style="font-size:15px; font-weight:700; margin:0 0 14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
-                Role Specifications
-            </h3>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; font-size:13px;">
-                {% if job.travel_required %}<div><strong>Travel:</strong> {{ job.travel_required }}</div>{% endif %}
-                {% if job.shift %}<div><strong>Shift:</strong> {{ job.shift }}</div>{% endif %}
-                {% if job.work_authorization %}<div><strong>Work Authorization:</strong> {{ job.work_authorization }}</div>{% endif %}
-                {% if job.application_deadline %}<div><strong>Deadline:</strong> <span style="color:var(--warning); font-weight:700;">{{ job.application_deadline }}</span></div>{% endif %}
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Skills & Competencies -->
-        {% if job.skills %}
         <div class="admin-card" style="margin-bottom:24px; padding:28px;">
             <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                Key Skills &amp; Domain Expertise
+                Required &amp; Preferred Skills
             </h3>
-            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            {% if job.required_skills %}
+            <div style="margin-bottom:14px;">
+                <strong style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:8px;">Required Skills:</strong>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    {% for skill in job.required_skills %}
+                    <span class="skill-pill" style="font-size:12.5px; padding:4px 12px; background:var(--accent-light); color:var(--primary-brand); border:1px solid #CCFBF1; font-weight:600;">
+                        {{ skill }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif job.skills %}
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
                 {% for skill in job.skills.split %}
                 <span class="skill-pill" style="font-size:12.5px; padding:4px 12px; background:var(--accent-light); color:var(--primary-brand); border:1px solid #CCFBF1; font-weight:600;">
                     {{ skill }}
                 </span>
                 {% endfor %}
             </div>
+            {% else %}
+            <div style="color:var(--text-muted); font-size:13.5px; font-style:italic; margin-bottom:14px;">
+                Not provided by employer
+            </div>
+            {% endif %}
+
+            {% if job.preferred_skills %}
+            <div style="margin-top:12px; padding-top:12px; border-top:1px dashed var(--border-color);">
+                <strong style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:8px;">Preferred Skills:</strong>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    {% for skill in job.preferred_skills %}
+                    <span class="skill-pill" style="font-size:12.5px; padding:4px 12px; background:#F3E8FF; color:#7E22CE; border:1px solid #E9D5FF; font-weight:600;">
+                        {{ skill }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
+
+        <!-- Benefits & Total Rewards -->
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                Benefits &amp; Total Rewards
+            </h3>
+            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
+                {% if job.benefits %}
+                {{ job.benefits }}
+                {% else %}
+                <span style="color:var(--text-muted); font-style:italic;">Not provided by employer</span>
+                {% endif %}
+            </div>
+        </div>
 
         <!-- Source Verification & Provenance Dossier -->
         <div class="admin-card" style="margin-bottom:24px; padding:24px; background:var(--bg-surface-subtle);">

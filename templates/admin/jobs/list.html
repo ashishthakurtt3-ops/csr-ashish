@@ -11,6 +11,10 @@
         <span>All Jobs (Table)</span>
         <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">Active</span>
     </a>
+    <a href="{% url 'admin_jobs:link_quality' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Link Quality Dashboard</span>
+    </a>
     <a href="{% url 'admin_jobs:find' %}" class="jobs-nav-pill">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Find Jobs (Discovery)</span>
@@ -24,17 +28,24 @@
 <div class="admin-card">
     <!-- Filter and Toolbar Row -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:850px; flex-wrap:wrap;">
-            <input type="text" name="q" value="{{ q }}" placeholder="Search title, company, skills, location..." class="search-input" style="flex:2; min-width:200px; height:40px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:980px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search title, company, skills, location..." class="search-input" style="flex:2; min-width:180px; height:40px;">
             
-            <select name="work_mode" class="select-filter" style="flex:1; min-width:130px; height:40px;">
+            <select name="work_mode" class="select-filter" style="flex:1; min-width:120px; height:40px;">
                 <option value="all">Work Mode</option>
                 <option value="Hybrid" {% if selected_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
                 <option value="On-site" {% if selected_mode == "On-site" %}selected{% endif %}>On-site</option>
                 <option value="Remote" {% if selected_mode == "Remote" %}selected{% endif %}>Remote</option>
             </select>
 
-            <select name="link_status" class="select-filter" style="flex:1; min-width:140px; height:40px;">
+            <select name="link_quality" class="select-filter" style="flex:1; min-width:140px; height:40px;">
+                <option value="all">Link Quality (All)</option>
+                <option value="DIRECT" {% if selected_link_quality == "DIRECT" %}selected{% endif %}>Direct URL</option>
+                <option value="LISTING_FALLBACK" {% if selected_link_quality == "LISTING_FALLBACK" %}selected{% endif %}>Listing Fallback</option>
+                <option value="UNVERIFIED" {% if selected_link_quality == "UNVERIFIED" %}selected{% endif %}>Unverified</option>
+            </select>
+
+            <select name="link_status" class="select-filter" style="flex:1; min-width:130px; height:40px;">
                 <option value="all">Link Status</option>
                 <option value="SOURCE_CONFIRMED" {% if selected_link_status == "SOURCE_CONFIRMED" %}selected{% endif %}>Source Confirmed</option>
                 <option value="PUBLISHED" {% if selected_link_status == "PUBLISHED" %}selected{% endif %}>Published</option>
@@ -42,8 +53,19 @@
                 <option value="DEAD_LINK" {% if selected_link_status == "DEAD_LINK" %}selected{% endif %}>Dead Link</option>
             </select>
 
+            <select name="details_status" class="select-filter" style="flex:1; min-width:130px; height:40px;">
+                <option value="all">Details (All)</option>
+                <option value="COMPLETE" {% if selected_details_status == "COMPLETE" %}selected{% endif %}>Complete</option>
+                <option value="PARTIAL" {% if selected_details_status == "PARTIAL" %}selected{% endif %}>Partial</option>
+                <option value="MISSING" {% if selected_details_status == "MISSING" %}selected{% endif %}>Missing</option>
+                <option value="FAILED" {% if selected_details_status == "FAILED" %}selected{% endif %}>Failed</option>
+            </select>
+
             <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
-            {% if q or selected_mode != 'all' and selected_mode or selected_link_status != 'all' and selected_link_status %}
+            <a href="{% url 'admin_jobs:list' %}?duplicates=1" class="btn-secondary" style="height:40px; padding:0 12px; display:inline-flex; align-items:center; {% if show_duplicates %}background:#FEF3C7; color:#92400E; font-weight:700; border-color:#F59E0B;{% endif %}" title="Show potential duplicate postings">
+                🔍 {% if show_duplicates %}Showing Duplicates{% else %}Show Duplicates{% endif %}
+            </a>
+            {% if q or selected_mode != 'all' and selected_mode or selected_link_status != 'all' and selected_link_status or selected_link_quality != 'all' and selected_link_quality or selected_details_status != 'all' and selected_details_status or show_duplicates %}
             <a href="{% url 'admin_jobs:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
             {% endif %}
         </form>
@@ -61,7 +83,8 @@
                     <th>Department</th>
                     <th>Location</th>
                     <th>Work Mode</th>
-                    <th>Verification</th>
+                    <th>Details</th>
+                    <th>Link Quality</th>
                     <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
@@ -90,17 +113,28 @@
                         <span class="badge-status badge-info">{{ j.work_mode|default:"On-site" }}</span>
                     </td>
                     <td>
-                        {% if j.link_status == "PUBLISHED" or j.link_status == "SOURCE_CONFIRMED" %}
-                        <span class="badge-status badge-active">Source Confirmed</span>
+                        {% if j.details_status == "COMPLETE" %}
+                        <span class="badge-status badge-active" style="font-size:11px; font-weight:700;">Complete</span>
+                        {% elif j.details_status == "PARTIAL" %}
+                        <span class="badge-status badge-warning" style="font-size:11px; font-weight:700;">Partial</span>
                         {% else %}
-                        <span class="badge-status badge-pending">{{ j.link_status|default:"Pending" }}</span>
+                        <span class="badge-status badge-pending" style="font-size:11px;">Missing</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if j.link_quality == "DIRECT" %}
+                        <span class="badge-status" style="background:#059669; color:#fff; font-size:11px; font-weight:700;">DIRECT</span>
+                        {% elif j.link_quality == "LISTING_FALLBACK" %}
+                        <span class="badge-status" style="background:#f59e0b; color:#fff; font-size:11px; font-weight:700;" title="{{ j.link_check_note }}">FALLBACK</span>
+                        {% else %}
+                        <span class="badge-status" style="background:#6b7280; color:#fff; font-size:11px;">{{ j.link_quality|default:"UNVERIFIED" }}</span>
                         {% endif %}
                     </td>
                     <td style="text-align:right; white-space:nowrap;">
                         <a href="{% url 'admin_jobs:detail' j.job_row_id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">View</a>
                         <a href="{% url 'admin_jobs:edit' j.job_row_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
                         {% if j.application_url %}
-                        <a href="{{ j.application_url }}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" title="ATS Link">&nearr;</a>
+                        <a href="{% if j.link_quality == 'DIRECT' %}{{ j.canonical_url|default:j.application_url }}{% else %}{{ j.application_url }}{% endif %}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" title="{% if j.link_quality == 'DIRECT' %}Direct Job URL{% else %}Listing Fallback Page{% endif %}">&nearr;</a>
                         {% endif %}
                     </td>
                 </tr>

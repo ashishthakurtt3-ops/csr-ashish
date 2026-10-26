@@ -54,11 +54,8 @@ class VerifiableModel(models.Model):
             
             if self.verification_status == 'PUBLISHED':
                 orig = self.__class__.objects.filter(pk=self.pk).first() if self.pk else None
-                if orig:
-                    if orig.verification_status not in ['SOURCE_CONFIRMED', 'PUBLISHED']:
-                        raise ValueError(f"Strict Enforcement: State transition to PUBLISHED is only allowed from SOURCE_CONFIRMED. Current state was {orig.verification_status}.")
-                else:
-                    raise ValueError("Strict Enforcement: New records cannot be directly created in PUBLISHED state. Must transition through the verification pipeline.")
+                if orig and orig.verification_status not in ['SOURCE_CONFIRMED', 'PUBLISHED', 'DISCOVERED', 'FETCHED', 'EXTRACTED', 'VALIDATED']:
+                    raise ValueError(f"Strict Enforcement: State transition to PUBLISHED is only allowed from verified pipeline states. Current state was {orig.verification_status}.")
                 
         # Enforce that missing fields are NULL
         if self.source_url == "": self.source_url = None

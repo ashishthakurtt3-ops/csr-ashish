@@ -13,6 +13,8 @@ from .subscription import (
 from .document import Document
 from .service import ServiceCatalog
 from .coverage import CompanyCompletenessRegister
+from .source_registry import CompanySource
+from .ai_config import AIProviderConfig, AISystemSettings, AIConfigurationAuditLog
 
 __all__ = [
     'CompanyCompletenessRegister',
@@ -41,4 +43,9 @@ __all__ = [
     'UsageCounter',
     'Document',
     'ServiceCatalog',
+    'CompanySource',
+    'AIProviderConfig',
+    'AISystemSettings',
+    'AIConfigurationAuditLog',
 ]
+

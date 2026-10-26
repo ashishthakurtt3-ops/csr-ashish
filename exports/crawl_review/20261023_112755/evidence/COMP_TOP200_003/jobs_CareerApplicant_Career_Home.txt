@@ -1,0 +1,8 @@
+URL: https://www.icicicareers.com/CareerApplicant/Career/Home
+HTTP_STATUS: 200
+CATEGORY: JOBS
+RETRIEVED_AT: 2026-10-23T06:04:57.213089+00:00
+--------------------------------------------------------------------------------
+MAIN_TEXT_PREVIEW (first 2,000 characters):
+--------------------------------------------------------------------------------
+You need to enable JavaScript to run this app.

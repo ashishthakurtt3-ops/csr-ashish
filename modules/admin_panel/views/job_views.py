@@ -24,7 +24,7 @@ def job_list_view(request):
         qs = Job.objects.select_related('company').filter(
             status='ACTIVE',
             verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-        )
+        ).exclude(job_id__startswith='REQ')
     if q:
         qs = qs.filter(
             Q(job_title__icontains=q) |
@@ -41,6 +41,20 @@ def job_list_view(request):
         qs = qs.filter(department__icontains=department)
     if link_status and link_status != 'all':
         qs = qs.filter(link_status=link_status)
+    link_quality = request.GET.get('link_quality', '').strip()
+    if link_quality and link_quality != 'all':
+        qs = qs.filter(link_quality=link_quality)
+
+    details_status = request.GET.get('details_status', '').strip()
+    show_duplicates = request.GET.get('duplicates', '').strip().lower() in ('1', 'true', 'yes')
+
+    if details_status and details_status != 'all':
+        qs = qs.filter(details_status=details_status)
+
+    if show_duplicates:
+        dup_hashes = Job.objects.values('canonical_url_hash').annotate(cnt=Count('job_row_id')).filter(cnt__gt=1, canonical_url_hash__isnull=False).values_list('canonical_url_hash', flat=True)
+        dup_fps = Job.objects.values('fingerprint').annotate(cnt=Count('job_row_id')).filter(cnt__gt=1, fingerprint__isnull=False).values_list('fingerprint', flat=True)
+        qs = qs.filter(Q(canonical_url_hash__in=dup_hashes) | Q(fingerprint__in=dup_fps))
 
     if sort == 'title':
         qs = qs.order_by('job_title')
@@ -59,8 +73,11 @@ def job_list_view(request):
         'q': q,
         'selected_mode': work_mode,
         'selected_link_status': link_status,
+        'selected_link_quality': link_quality,
         'selected_dept': department,
         'selected_sort': sort,
+        'selected_details_status': details_status,
+        'show_duplicates': show_duplicates,
         'all_departments': sorted(list(set(all_departments))),
         'total_count': paginator.count
     })
@@ -80,7 +97,7 @@ def job_find_view(request):
     qs = Job.objects.select_related('company').filter(
         status='ACTIVE',
         verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    )
+    ).exclude(job_id__startswith='REQ')
 
     if q:
         qs = qs.filter(
@@ -194,16 +211,16 @@ def job_company_directory_view(request):
 
     # Aggregates for filter pills and telemetry
     hiring_companies_count = Company.objects.annotate(
-        vjobs=Count('jobs', filter=Q(jobs__status='ACTIVE', jobs__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']))
+        vjobs=Count('jobs', filter=Q(jobs__status='ACTIVE', jobs__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']) & ~Q(jobs__job_id__startswith='REQ'))
     ).filter(vjobs__gt=0).count()
 
     total_verified_jobs = Job.objects.filter(
         status='ACTIVE',
         verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).count()
+    ).exclude(job_id__startswith='REQ').count()
 
     zero_verified_count = Company.objects.annotate(
-        vjobs=Count('jobs', filter=Q(jobs__status='ACTIVE', jobs__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']))
+        vjobs=Count('jobs', filter=Q(jobs__status='ACTIVE', jobs__verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']) & ~Q(jobs__job_id__startswith='REQ'))
     ).filter(vjobs=0).count()
 
     failed_crawl_count = Company.objects.filter(
@@ -241,7 +258,10 @@ def job_company_detail_view(request, company_id):
     if show_all:
         qs = company.jobs.all()
     else:
-        qs = company.jobs.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])
+        qs = company.jobs.filter(
+            status='ACTIVE',
+            verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
+        ).exclude(job_id__startswith='REQ')
 
     if q:
         qs = qs.filter(
@@ -327,18 +347,18 @@ def job_detail_view(request, job_row_id):
         company=job.company,
         status='ACTIVE',
         verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).exclude(job_row_id=job.job_row_id)[:5]
+    ).exclude(job_id__startswith='REQ').exclude(job_row_id=job.job_row_id)[:5]
     if not related_jobs.exists() and job.department:
         related_jobs = Job.objects.filter(
             department=job.department,
             status='ACTIVE',
             verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-        ).exclude(job_row_id=job.job_row_id)[:5]
+        ).exclude(job_id__startswith='REQ').exclude(job_row_id=job.job_row_id)[:5]
 
     company_verified_jobs_count = job.company.jobs.filter(
         status='ACTIVE',
         verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).count()
+    ).exclude(job_id__startswith='REQ').count()
 
     return render(request, 'admin/jobs/detail.html', {
         'job': job,
@@ -357,13 +377,153 @@ def job_edit_view(request, job_row_id):
         job.work_mode = request.POST.get('work_mode', job.work_mode).strip()
         job.location = request.POST.get('location', job.location).strip()
         job.application_url = request.POST.get('application_url', job.application_url).strip()
-        job.status = request.POST.get('status', job.status).strip()
+        job.status = ('CLOSED' if request.POST.get('status', job.status) in ('CLOSED', 'INACTIVE', 'EXPIRED') else 'ACTIVE')
         job.skills = request.POST.get('skills', job.skills).strip()
-        job.experience = request.POST.get('experience', job.experience).strip()
-        job.salary = request.POST.get('salary', job.salary).strip()
+        job.experience = request.POST.get('experience', job.experience).strip()[:50]
+        job.qualifications_experience = request.POST.get('qualifications_experience', job.qualifications_experience or job.experience).strip()
+        job.salary = request.POST.get('salary', job.salary).strip()[:50]
+        job.salary_text = request.POST.get('salary_text', job.salary_text or job.salary).strip()
+        job.seniority_level = request.POST.get('seniority_level', job.seniority_level or '').strip()
+        job.about_role = request.POST.get('about_role', job.about_role or '').strip()
         job.job_description = request.POST.get('job_description', job.job_description).strip()
+        job.description_raw = job.job_description
+        job.responsibilities = request.POST.get('responsibilities', job.responsibilities or '').strip()
+        
+        # Parse bullet lists from textareas
+        resp_lines = [l.strip() for l in request.POST.get('responsibilities', '').split('\n') if l.strip()]
+        job.responsibilities_list = resp_lines or getattr(job, 'responsibilities_list', [])
+
+        edu_lines = [l.strip() for l in request.POST.get('education', '').split('\n') if l.strip()]
+        job.education = request.POST.get('education', job.education or '').strip()
+        job.qualifications_education = edu_lines or getattr(job, 'qualifications_education', [])
+
+        req_skills_raw = request.POST.get('required_skills', '')
+        if req_skills_raw:
+            job.required_skills = [s.strip() for s in req_skills_raw.replace('\n', ',').split(',') if s.strip()]
+
+        pref_skills_raw = request.POST.get('preferred_skills', '')
+        if pref_skills_raw:
+            job.preferred_skills = [s.strip() for s in pref_skills_raw.replace('\n', ',').split(',') if s.strip()]
+
+        job.benefits = request.POST.get('benefits', job.benefits or '').strip()
+        job.details_status = request.POST.get('details_status', job.details_status or 'PARTIAL').strip()
         job.save()
         messages.success(request, f"Job '{job.job_title}' updated successfully.")
         return redirect('admin_jobs:detail', job_row_id=job.job_row_id)
 
     return render(request, 'admin/jobs/form.html', {'job': job})
+
+
+@login_required
+def rescrawl_job_admin_view(request, job_row_id):
+    """Re-scrape rich job details from live ATS page on-demand."""
+    job = get_object_or_404(Job, job_row_id=job_row_id)
+    target_url = job.application_url or job.canonical_url or job.source_url
+    if not target_url or not target_url.startswith('http'):
+        messages.error(request, "This job does not have a valid HTTP application URL to scrape.")
+        return redirect('admin_jobs:detail', job_row_id=job.job_row_id)
+
+    try:
+        from modules.crawler_engine.parsers.detail_extractor import UniversalJobDetailExtractor
+        from django.utils import timezone
+        extracted = UniversalJobDetailExtractor.extract_from_url(target_url)
+
+        if extracted.get('detail_fetched'):
+            if extracted.get('job_description'):
+                job.job_description = extracted['job_description']
+            if extracted.get('description_raw'):
+                job.description_raw = extracted['description_raw']
+            if extracted.get('description_html'):
+                job.description_html = extracted['description_html']
+            if extracted.get('about_role') or extracted.get('role_purpose'):
+                job.about_role = extracted.get('about_role') or extracted.get('role_purpose')
+                job.role_purpose = job.about_role
+
+            if extracted.get('responsibilities'):
+                job.responsibilities = extracted['responsibilities']
+            if extracted.get('responsibilities_list'):
+                job.responsibilities_list = extracted['responsibilities_list']
+
+            if extracted.get('education'):
+                job.education = extracted['education']
+            if extracted.get('qualifications_education'):
+                job.qualifications_education = extracted['qualifications_education']
+
+            if extracted.get('experience'):
+                job.experience = str(extracted['experience'])[:50].strip()
+            if extracted.get('qualifications_experience') or extracted.get('experience'):
+                job.qualifications_experience = extracted.get('qualifications_experience') or extracted.get('experience')
+
+            if extracted.get('skills'):
+                job.skills = extracted['skills']
+            if extracted.get('required_skills'):
+                job.required_skills = extracted['required_skills']
+            if extracted.get('preferred_skills'):
+                job.preferred_skills = extracted['preferred_skills']
+
+            if extracted.get('benefits'):
+                job.benefits = extracted['benefits']
+            if extracted.get('salary'):
+                job.salary = str(extracted['salary'])[:50].strip()
+                job.salary_text = str(extracted['salary'])[:120].strip()
+            if extracted.get('seniority_level'):
+                job.seniority_level = str(extracted['seniority_level'])[:50].strip()
+
+            job.details_status = extracted.get('details_status', 'COMPLETE')
+            job.details_missing_fields = extracted.get('details_missing_fields', [])
+            job.details_scraped_at = timezone.now()
+            job.detail_fetched = True
+            job.detail_fetch_status = extracted.get('detail_fetch_status', 'FETCHED')
+            job.detail_fetched_at = timezone.now().isoformat()
+            job.save()
+            messages.success(request, f"Successfully re-scraped job details for '{job.job_title}'. Status: {job.details_status}.")
+        else:
+            messages.warning(request, f"Re-scrape attempted, but source page could not be parsed: {extracted.get('detail_fetch_status')}.")
+    except Exception as e:
+        messages.error(request, f"Error re-scraping job details: {str(e)}")
+
+    return redirect('admin_jobs:detail', job_row_id=job.job_row_id)
+
+
+@login_required
+def job_link_quality_dashboard_view(request):
+    """Link Quality Dashboard: Direct %, Fallback %, Strategy Breakdown, Top Failing Companies."""
+    total_active = Job.objects.filter(status='ACTIVE').count()
+    direct_count = Job.objects.filter(status='ACTIVE', link_quality='DIRECT').count()
+    fallback_count = Job.objects.filter(status='ACTIVE', link_quality='LISTING_FALLBACK').count()
+    unverified_count = Job.objects.filter(status='ACTIVE', link_quality='UNVERIFIED').count()
+    direct_pct = round((direct_count / total_active) * 100, 2) if total_active > 0 else 0.0
+
+    # Top strategies
+    strategies = Company.objects.exclude(extraction_strategy__isnull=True).exclude(extraction_strategy='').values('extraction_strategy').annotate(count=Count('company_id')).order_by('-count')
+
+    # Top failing companies (companies with 0 direct jobs or low success rate)
+    failing_companies = Company.objects.filter(
+        Q(last_strategy_success_rate__lt=50.0) | Q(last_strategy_success_rate__isnull=True)
+    ).order_by('last_strategy_success_rate', 'company_id')[:25]
+
+    # Common fallback / error reasons
+    failing_reasons = Job.objects.filter(link_quality='LISTING_FALLBACK').values('link_check_note').annotate(count=Count('job_row_id')).order_by('-count')[:10]
+
+    return render(request, 'admin/jobs/link_quality_dashboard.html', {
+        'total_active': total_active,
+        'direct_count': direct_count,
+        'fallback_count': fallback_count,
+        'unverified_count': unverified_count,
+        'direct_pct': direct_pct,
+        'strategies': strategies,
+        'failing_companies': failing_companies,
+        'failing_reasons': failing_reasons,
+    })
+
+
+@login_required
+def recrawl_company_admin_view(request, company_id):
+    """Re-crawl a specific company on-demand with Strategy Cascade."""
+    company = get_object_or_404(Company, company_id=company_id)
+    from modules.crawler_engine.crawler import sync_single_company_live
+    summary = sync_single_company_live(company)
+    company.refresh_from_db()
+    messages.success(request, f"Successfully re-crawled {company.company_name}. Strategy: {company.extraction_strategy}, Success: {company.last_strategy_success_rate}% direct.")
+    return redirect('admin_jobs:company_jobs', company_id=company.company_id)
+

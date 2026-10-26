@@ -1,0 +1,13 @@
+scratch/
+scratch/inspect_seed.py
+scratch/populate_sqlite.py
+scripts/activate_all_200_company_jobs.py
+scripts/quarantine_legacy_seed_jobs.py
+scripts/rollback_requarantine_seed_jobs.py
+scripts/sync_seed_fixtures.py
+scripts/test_quarantine_rollback_regression.py
+seed.py
+seed_data.json
+seed_database.py
+data/db_backup_*.json
+static/exports/*.csv

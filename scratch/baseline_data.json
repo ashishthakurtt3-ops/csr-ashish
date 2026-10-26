@@ -1,0 +1,412 @@
+{
+  "total_companies": 201,
+  "all_jobs": 5021,
+  "active_jobs": 4624,
+  "total_direct_looking_jobs": 1416,
+  "total_listing_like_jobs": 3208,
+  "jobs_matching_careers": 15,
+  "jobs_shared": 2835,
+  "jobs_with_text_fragment": 2332,
+  "worst_25_job_companies": [
+    [
+      "COMP_TOP200_119",
+      "Yes Bank Limited",
+      {
+        "total_active": 2078,
+        "matches_careers": 0,
+        "shared_url": 2078,
+        "has_text_fragment": 1467,
+        "listing_like_total": 2078,
+        "direct_looking": 0
+      }
+    ],
+    [
+      "COMP_TOP200_023",
+      "Oil & Natural Gas Corporation Limited",
+      {
+        "total_active": 202,
+        "matches_careers": 1,
+        "shared_url": 28,
+        "has_text_fragment": 174,
+        "listing_like_total": 195,
+        "direct_looking": 7
+      }
+    ],
+    [
+      "COMP_TOP200_057",
+      "CG Power and Industrial Solutions Limited",
+      {
+        "total_active": 195,
+        "matches_careers": 0,
+        "shared_url": 193,
+        "has_text_fragment": 81,
+        "listing_like_total": 194,
+        "direct_looking": 1
+      }
+    ],
+    [
+      "COMP_TOP200_192",
+      "Aadhar Housing Finance Limited",
+      {
+        "total_active": 141,
+        "matches_careers": 0,
+        "shared_url": 85,
+        "has_text_fragment": 120,
+        "listing_like_total": 125,
+        "direct_looking": 16
+      }
+    ],
+    [
+      "COMP_TOP200_085",
+      "The Indian Hotels Company Limited",
+      {
+        "total_active": 120,
+        "matches_careers": 0,
+        "shared_url": 120,
+        "has_text_fragment": 119,
+        "listing_like_total": 120,
+        "direct_looking": 0
+      }
+    ],
+    [
+      "COMP_TOP200_110",
+      "NMDC Limited",
+      {
+        "total_active": 76,
+        "matches_careers": 0,
+        "shared_url": 53,
+        "has_text_fragment": 37,
+        "listing_like_total": 60,
+        "direct_looking": 16
+      }
+    ],
+    [
+      "COMP_TOP200_083",
+      "TATA CONSUMER PRODUCTS LIMITED",
+      {
+        "total_active": 52,
+        "matches_careers": 0,
+        "shared_url": 50,
+        "has_text_fragment": 49,
+        "listing_like_total": 50,
+        "direct_looking": 2
+      }
+    ],
+    [
+      "COMP_TOP200_103",
+      "Sun Pharmaceutical Industries Limited",
+      {
+        "total_active": 63,
+        "matches_careers": 0,
+        "shared_url": 40,
+        "has_text_fragment": 39,
+        "listing_like_total": 40,
+        "direct_looking": 23
+      }
+    ],
+    [
+      "COMP_TOP200_010",
+      "Infosys Limited",
+      {
+        "total_active": 141,
+        "matches_careers": 0,
+        "shared_url": 33,
+        "has_text_fragment": 4,
+        "listing_like_total": 34,
+        "direct_looking": 107
+      }
+    ],
+    [
+      "COMP_TOP200_021",
+      "Bajaj Finserv Limited",
+      {
+        "total_active": 27,
+        "matches_careers": 0,
+        "shared_url": 25,
+        "has_text_fragment": 23,
+        "listing_like_total": 25,
+        "direct_looking": 2
+      }
+    ],
+    [
+      "COMP_TOP200_067",
+      "Canara Bank",
+      {
+        "total_active": 42,
+        "matches_careers": 0,
+        "shared_url": 0,
+        "has_text_fragment": 24,
+        "listing_like_total": 24,
+        "direct_looking": 18
+      }
+    ],
+    [
+      "COMP_TOP200_137",
+      "Whirlpool of India Limited",
+      {
+        "total_active": 22,
+        "matches_careers": 0,
+        "shared_url": 20,
+        "has_text_fragment": 15,
+        "listing_like_total": 20,
+        "direct_looking": 2
+      }
+    ],
+    [
+      "COMP_TOP200_028",
+      "Coal India Limited",
+      {
+        "total_active": 16,
+        "matches_careers": 0,
+        "shared_url": 0,
+        "has_text_fragment": 15,
+        "listing_like_total": 15,
+        "direct_looking": 1
+      }
+    ],
+    [
+      "COMP_TOP200_107",
+      "Kotak Mahindra Bank Limited",
+      {
+        "total_active": 16,
+        "matches_careers": 0,
+        "shared_url": 14,
+        "has_text_fragment": 12,
+        "listing_like_total": 14,
+        "direct_looking": 2
+      }
+    ],
+    [
+      "COMP_TOP200_011",
+      "Mahindra & Mahindra Limited",
+      {
+        "total_active": 13,
+        "matches_careers": 0,
+        "shared_url": 10,
+        "has_text_fragment": 1,
+        "listing_like_total": 10,
+        "direct_looking": 3
+      }
+    ],
+    [
+      "COMP_TOP200_138",
+      "Alkem Laboratories Limited",
+      {
+        "total_active": 37,
+        "matches_careers": 0,
+        "shared_url": 8,
+        "has_text_fragment": 6,
+        "listing_like_total": 10,
+        "direct_looking": 27
+      }
+    ],
+    [
+      "COMP_TOP200_079",
+      "HDFC Asset Management Company Limited",
+      {
+        "total_active": 10,
+        "matches_careers": 0,
+        "shared_url": 2,
+        "has_text_fragment": 8,
+        "listing_like_total": 9,
+        "direct_looking": 1
+      }
+    ],
+    [
+      "COMP_TOP200_123",
+      "Oil India Limited",
+      {
+        "total_active": 8,
+        "matches_careers": 0,
+        "shared_url": 0,
+        "has_text_fragment": 8,
+        "listing_like_total": 8,
+        "direct_looking": 0
+      }
+    ],
+    [
+      "COMP_TOP200_066",
+      "Lodha Developers Limited",
+      {
+        "total_active": 8,
+        "matches_careers": 0,
+        "shared_url": 0,
+        "has_text_fragment": 8,
+        "listing_like_total": 8,
+        "direct_looking": 0
+      }
+    ],
+    [
+      "COMP_TOP200_141",
+      "Fortis Healthcare Limited",
+      {
+        "total_active": 12,
+        "matches_careers": 0,
+        "shared_url": 8,
+        "has_text_fragment": 7,
+        "listing_like_total": 8,
+        "direct_looking": 4
+      }
+    ],
+    [
+      "COMP_TOP200_016",
+      "UltraTech Cement Limited",
+      {
+        "total_active": 26,
+        "matches_careers": 0,
+        "shared_url": 8,
+        "has_text_fragment": 0,
+        "listing_like_total": 8,
+        "direct_looking": 18
+      }
+    ],
+    [
+      "COMP_TOP200_050",
+      "Hitachi Energy India Limited",
+      {
+        "total_active": 8,
+        "matches_careers": 0,
+        "shared_url": 0,
+        "has_text_fragment": 7,
+        "listing_like_total": 7,
+        "direct_looking": 1
+      }
+    ],
+    [
+      "COMP_TOP200_049",
+      "Varun Beverages Limited",
+      {
+        "total_active": 8,
+        "matches_careers": 0,
+        "shared_url": 6,
+        "has_text_fragment": 6,
+        "listing_like_total": 7,
+        "direct_looking": 1
+      }
+    ],
+    [
+      "COMP_TOP200_014",
+      "HCL Technologies Limited",
+      {
+        "total_active": 12,
+        "matches_careers": 0,
+        "shared_url": 7,
+        "has_text_fragment": 2,
+        "listing_like_total": 7,
+        "direct_looking": 5
+      }
+    ],
+    [
+      "COMP_TOP200_018",
+      "NTPC Limited",
+      {
+        "total_active": 13,
+        "matches_careers": 0,
+        "shared_url": 0,
+        "has_text_fragment": 7,
+        "listing_like_total": 7,
+        "direct_looking": 6
+      }
+    ]
+  ],
+  "csr_total": 1590,
+  "csr_matching_url": 1212,
+  "csr_shared_url": 1535,
+  "csr_text_frag": 1558,
+  "csr_listing_like": 1558,
+  "opp_total": 948,
+  "opp_matching_url": 728,
+  "opp_shared_url": 890,
+  "opp_text_frag": 932,
+  "opp_listing_like": 932,
+  "emp_type_counts": {
+    "Full-time": 4345,
+    "NULL/Blank": 672,
+    "Full-time Employment": 3,
+    "On-roll": 1
+  },
+  "work_mode_counts": {
+    "On-site": 4345,
+    "NULL/Blank": 672,
+    "onsite": 4
+  },
+  "city_null_count": 375,
+  "dept_null_count": 302,
+  "status_counts": {
+    "ACTIVE": 4624,
+    "REMOVED": 63,
+    "EXPIRED": 334
+  },
+  "csr_budget_null_zero": 0,
+  "csr_unparseable_budgets": 1456,
+  "csr_absurd_budgets": 26,
+  "company_csr_sums_gt_500cr": [
+    [
+      "COMP_TOP200_132",
+      "Page Industries Limited",
+      9869.8
+    ],
+    [
+      "COMP_TOP200_118",
+      "RBL Bank Limited",
+      5969.0
+    ],
+    [
+      "COMP_TOP200_091",
+      "Laurus Labs Limited",
+      14827.0
+    ],
+    [
+      "COMP_TOP200_072",
+      "Indian Railway Finance Corporation Limited",
+      53200.0
+    ],
+    [
+      "COMP_TOP200_058",
+      "LTM Limited",
+      5886.687671
+    ],
+    [
+      "COMP_TOP200_051",
+      "Tech Mahindra Limited",
+      2387.0
+    ],
+    [
+      "COMP_TOP200_020",
+      "Bajaj Auto Limited",
+      3300.0
+    ],
+    [
+      "COMP_TOP200_015",
+      "ITC Limited",
+      161734.0
+    ],
+    [
+      "COMP_TOP200_002",
+      "HDFC Bank Limited",
+      1000.0
+    ],
+    [
+      "COMP_TOP200_161",
+      "5Paisa Capital Limited",
+      1537974.0000388
+    ]
+  ],
+  "opp_no_deadline": 948,
+  "opp_no_apply_mech": 0,
+  "dup_fingerprints_jobs": 0,
+  "empty_title_jobs": 0,
+  "invalid_app_urls": 1,
+  "active_old_retrieved": 0,
+  "active_null_retrieved": 0,
+  "stats_comparison": {
+    "total_companies_table": 201,
+    "total_jobs_table": 5021,
+    "active_jobs_table": 4624,
+    "public_jobs_visible": 4488,
+    "total_csr_table": 1590,
+    "public_csr_visible": 1590,
+    "total_opps_table": 948,
+    "public_opps_visible": 946
+  }
+}

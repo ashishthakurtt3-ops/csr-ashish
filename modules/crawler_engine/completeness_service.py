@@ -106,7 +106,7 @@ class CompletenessService:
         foundation_status = 'VERIFIED' if company.foundation_url else 'NOT_APPLICABLE'
 
         # 6. Opportunities & Contacts
-        opps_qs = company.open_opportunities.filter(status='OPEN', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED'])
+        opps_qs = company.open_opportunities.filter(status='OPEN', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED'])
         opps_pub_count = opps_qs.count()
         opps_status = 'VERIFIED' if opps_pub_count > 0 else ('NO_RECORDS_CONFIRMED' if company.crawl_status == 'CRAWLED' else 'NONE')
 

@@ -19,6 +19,7 @@ urlpatterns = [
     path('admin-portal/documents/', include('modules.admin_panel.urls.document_urls')),
     path('admin-portal/subscriptions/', include('modules.admin_panel.urls.subscription_urls')),
     path('admin-portal/verification/', include('modules.admin_panel.urls.verification_urls')),
+    path('admin-portal/ai-config/', include('modules.admin_panel.urls.ai_config_urls')),
 
     # Public Enterprise Website & Core REST APIs
     path('', include('modules.website.urls')),

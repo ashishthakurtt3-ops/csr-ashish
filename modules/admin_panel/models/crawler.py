@@ -16,6 +16,8 @@ class CompanyCrawlSummary(models.Model):
     career_url_found = models.TextField(blank=True, null=True)
     ats_platform = models.CharField(max_length=80, blank=True, null=True)
     ats_url = models.TextField(blank=True, null=True)
+    extraction_strategy = models.CharField(max_length=100, blank=True, null=True)
+    direct_percentage = models.FloatField(default=0.0)
 
     # Job statistics
     jobs_discovered = models.IntegerField(default=0)   # Found in listing

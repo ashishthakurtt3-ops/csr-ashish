@@ -1,0 +1,2344 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}AI Models &amp; API Configuration | ImpactBridge Admin{% endblock %}
+{% block page_title %}AI Models &amp; API Configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       Production SaaS AI Gateway Design System — ImpactBridge Admin
+       System Fonts • Light/Dark Mode • Responsive <768px • Accessibility
+       ========================================================================== */
+
+    :root {
+        --ai-font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --ai-topbar-offset: 64px;
+        --ai-navy: #0B2545;
+        --ai-navy-hover: #133E6E;
+        --ai-surface: #FFFFFF;
+        --ai-surface-subtle: #F8FAFC;
+        --ai-border: #E2E8F0;
+        --ai-border-strong: #CBD5E1;
+        --ai-text-main: #0F172A;
+        --ai-text-muted: #475569;
+        --ai-text-subtle: #94A3B8;
+        --ai-success: #059669;
+        --ai-success-bg: #ECFDF5;
+        --ai-success-border: #A7F3D0;
+        --ai-warning: #D97706;
+        --ai-warning-bg: #FFFBEB;
+        --ai-warning-border: #FDE68A;
+        --ai-danger: #DC2626;
+        --ai-danger-bg: #FEF2F2;
+        --ai-danger-border: #FECACA;
+        --ai-info-bg: #EFF6FF;
+        --ai-info-border: #BFDBFE;
+        --ai-radius: 12px;
+        --ai-radius-sm: 8px;
+        --ai-transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        --ai-shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    [data-theme="dark"],
+    .dark-theme {
+        --ai-navy: #3B82F6;
+        --ai-navy-hover: #60A5FA;
+        --ai-surface: #1E293B;
+        --ai-surface-subtle: #0F172A;
+        --ai-border: #334155;
+        --ai-border-strong: #475569;
+        --ai-text-main: #F8FAFC;
+        --ai-text-muted: #94A3B8;
+        --ai-text-subtle: #64748B;
+        --ai-success: #34D399;
+        --ai-success-bg: rgba(5, 150, 105, 0.15);
+        --ai-success-border: #065F46;
+        --ai-warning: #FBBF24;
+        --ai-warning-bg: rgba(217, 119, 6, 0.15);
+        --ai-warning-border: #92400E;
+        --ai-danger: #F87171;
+        --ai-danger-bg: rgba(220, 38, 38, 0.15);
+        --ai-danger-border: #991B1B;
+        --ai-info-bg: rgba(37, 99, 235, 0.15);
+        --ai-info-border: #1E40AF;
+        --ai-shadow-card: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    body {
+        font-family: var(--ai-font-stack);
+        background-color: var(--ai-surface-subtle);
+        color: var(--ai-text-main);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    /* Breadcrumbs */
+    .ai-config-breadcrumb {
+        font-size: 13px;
+        color: var(--ai-text-muted);
+        margin-top: 6px;
+        margin-bottom: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .ai-config-breadcrumb span {
+        color: var(--ai-text-subtle);
+    }
+
+    /* Header Bar: Note duplicate body title REMOVED. Subtitle and actions only! */
+    .ai-config-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .ai-config-subtitle {
+        font-size: 13.5px;
+        color: var(--ai-text-muted);
+        margin: 0;
+        line-height: 1.45;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-header-outline {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border-strong);
+        color: var(--ai-text-main);
+        border-radius: var(--ai-radius-sm);
+        padding: 7px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--ai-transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .btn-header-outline:hover {
+        background: var(--ai-surface-subtle);
+        border-color: var(--ai-text-subtle);
+    }
+
+    .btn-header-primary {
+        background: var(--ai-navy);
+        border: 1px solid var(--ai-navy);
+        color: #FFFFFF;
+        border-radius: var(--ai-radius-sm);
+        padding: 7px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--ai-transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 3px rgba(11,37,69,0.15);
+    }
+    .btn-header-primary:hover {
+        background: var(--ai-navy-hover);
+        border-color: var(--ai-navy-hover);
+    }
+
+    /* Main Tab Navigation (AI Providers vs Usage & Limits) */
+    .ai-main-tabs-bar {
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid var(--ai-border);
+        margin-bottom: 20px;
+    }
+
+    .ai-tab-item {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--ai-text-muted);
+        padding: 8px 16px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--ai-transition);
+    }
+    .ai-tab-item:hover {
+        color: var(--ai-text-main);
+    }
+    .ai-tab-item.is-active {
+        color: var(--ai-navy);
+        border-bottom-color: var(--ai-navy);
+    }
+
+    /* Paid Provider Notice Banner */
+    .paid-warnings-container {
+        margin-bottom: 18px;
+    }
+    .paid-warning-item {
+        background: var(--ai-warning-bg);
+        border: 1px solid var(--ai-warning-border);
+        color: #92400E;
+        padding: 10px 16px;
+        border-radius: var(--ai-radius-sm);
+        font-size: 12.5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    [data-theme="dark"] .paid-warning-item {
+        color: #FDE68A;
+    }
+
+    /* Summary Strip (3 KPI Cards) */
+    .ai-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .ai-summary-card {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        padding: 16px 20px;
+        box-shadow: var(--ai-shadow-card);
+    }
+
+    .summary-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ai-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .summary-val {
+        font-size: 19px;
+        font-weight: 800;
+        color: var(--ai-text-main);
+        letter-spacing: -0.3px;
+        margin-bottom: 4px;
+    }
+
+    .summary-sub {
+        font-size: 12.5px;
+        color: var(--ai-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .summary-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .summary-dot.is-green { background-color: var(--ai-success); }
+    .summary-dot.is-amber { background-color: var(--ai-warning); }
+
+    /* Progress Bar for Test All Connections */
+    .test-all-progress-wrap {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius-sm);
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .test-all-progress-bar-bg {
+        width: 100%;
+        height: 8px;
+        background: var(--ai-border);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .test-all-progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--ai-navy);
+        transition: width 0.3s ease;
+    }
+
+    /* Main Workspace Grid (Left Table, Right Sticky Drawer) */
+    .ai-workspace-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 390px;
+        gap: 20px;
+        align-items: start;
+        margin-bottom: 24px;
+    }
+
+    /* Left: Providers Table Card */
+    .providers-card {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        box-shadow: var(--ai-shadow-card);
+        overflow: hidden;
+    }
+
+    .providers-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--ai-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .providers-card-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--ai-text-main);
+        margin: 0;
+    }
+
+    .search-filter-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input-ai {
+        width: 220px;
+        border: 1px solid var(--ai-border-strong);
+        border-radius: var(--ai-radius-sm);
+        padding: 6px 12px;
+        font-size: 12.5px;
+        background: var(--ai-surface);
+        color: var(--ai-text-main);
+    }
+    .search-input-ai:focus {
+        outline: none;
+        border-color: #2563EB;
+        box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+    }
+
+    .filter-pills-group {
+        display: flex;
+        gap: 6px;
+    }
+
+    .filter-pill {
+        background: var(--ai-surface-subtle);
+        border: 1px solid var(--ai-border);
+        color: var(--ai-text-muted);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: var(--ai-transition);
+    }
+    .filter-pill:hover {
+        background: var(--ai-border);
+        color: var(--ai-text-main);
+    }
+    .filter-pill.active {
+        background: var(--ai-navy);
+        border-color: var(--ai-navy);
+        color: #FFFFFF;
+    }
+
+    /* Table Styles */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .providers-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .providers-table th {
+        text-align: left;
+        padding: 12px 16px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ai-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--ai-border);
+        background: var(--ai-surface-subtle);
+    }
+
+    .provider-row {
+        cursor: pointer;
+        transition: background 0.12s ease;
+        border-bottom: 1px solid var(--ai-border);
+    }
+    .provider-row:hover {
+        background-color: var(--ai-surface-subtle);
+    }
+    .provider-row.is-active-editing {
+        background-color: var(--ai-info-bg) !important;
+        position: relative;
+    }
+    .provider-row.is-active-editing td:first-child {
+        box-shadow: inset 4px 0 0 #2563EB;
+    }
+
+    .providers-table td {
+        padding: 12px 16px;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Provider Cell */
+    .provider-cell-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .prov-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: var(--ai-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .prov-meta {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .prov-name {
+        font-weight: 700;
+        font-size: 13.5px;
+        color: var(--ai-text-main);
+    }
+
+    .prov-sub {
+        font-size: 11px;
+        color: var(--ai-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .prov-sub.sub-primary {
+        color: #2563EB;
+        font-weight: 700;
+    }
+    .prov-sub.sub-failover {
+        color: var(--ai-warning);
+        font-weight: 700;
+    }
+
+    /* Model Cell */
+    .model-cell-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .model-name {
+        font-family: monospace;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ai-text-main);
+    }
+
+    .tier-badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        width: fit-content;
+    }
+    .tier-free { background: var(--ai-success-bg); color: var(--ai-success); }
+    .tier-paid { background: var(--ai-warning-bg); color: var(--ai-warning); }
+    .tier-local { background: var(--ai-surface-subtle); color: var(--ai-text-muted); border: 1px solid var(--ai-border); }
+
+    /* Status Indicators */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-indicator::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .status-indicator.is-operational {
+        color: var(--ai-success);
+    }
+    .status-indicator.is-operational::before {
+        background-color: var(--ai-success);
+    }
+    .status-indicator.is-unconfigured {
+        color: var(--ai-text-subtle);
+    }
+    .status-indicator.is-unconfigured::before {
+        background-color: var(--ai-text-subtle);
+    }
+    .status-indicator.is-error {
+        color: var(--ai-danger);
+    }
+    .status-indicator.is-error::before {
+        background-color: var(--ai-danger);
+    }
+
+    .key-masked-text {
+        font-family: monospace;
+        font-size: 12.5px;
+        color: var(--ai-text-muted);
+        letter-spacing: 0.5px;
+    }
+
+    .btn-row-configure {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border-strong);
+        color: var(--ai-text-main);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: var(--ai-transition);
+    }
+    .btn-row-configure:hover {
+        background: var(--ai-surface-subtle);
+        border-color: var(--ai-text-subtle);
+    }
+    .btn-row-editing {
+        background: #2563EB;
+        border: 1px solid #2563EB;
+        color: #FFFFFF;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 6px;
+        cursor: default;
+    }
+
+    /* Right: Sticky Configuration Drawer */
+    .config-drawer {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        box-shadow: var(--ai-shadow-card);
+        padding: 22px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .drawer-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .drawer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--ai-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 800;
+        color: #FFFFFF;
+        flex-shrink: 0;
+    }
+
+    .drawer-title-wrap {
+        overflow: hidden;
+    }
+    .drawer-prov-title {
+        font-size: 16.5px;
+        font-weight: 800;
+        color: var(--ai-text-main);
+        line-height: 1.25;
+    }
+    .drawer-prov-role {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ai-text-muted);
+    }
+
+    .drawer-status-banner {
+        padding: 10px 14px;
+        border-radius: var(--ai-radius-sm);
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .drawer-status-banner.is-active {
+        background: var(--ai-success-bg);
+        border: 1px solid var(--ai-success-border);
+        color: var(--ai-success);
+    }
+    .drawer-status-banner.is-unconfigured {
+        background: var(--ai-surface-subtle);
+        border: 1px solid var(--ai-border);
+        color: var(--ai-text-muted);
+    }
+    .drawer-status-banner.is-error {
+        background: var(--ai-danger-bg);
+        border: 1px solid var(--ai-danger-border);
+        color: var(--ai-danger);
+    }
+    .drawer-status-banner.is-testing {
+        background: var(--ai-warning-bg);
+        border: 1px solid var(--ai-warning-border);
+        color: var(--ai-warning);
+    }
+
+    /* Semantic Fieldset & Form Controls */
+    .form-group-ai {
+        margin-bottom: 16px;
+        border: none;
+        padding: 0;
+    }
+
+    .label-ai {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ai-text-main);
+        margin-bottom: 5px;
+    }
+
+    .input-ai {
+        width: 100%;
+        border: 1px solid var(--ai-border-strong);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: var(--ai-text-main);
+        background: var(--ai-surface);
+        box-sizing: border-box;
+        transition: border-color 0.15s ease;
+    }
+    .input-ai:focus {
+        outline: none;
+        border-color: #2563EB;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .hint-ai {
+        font-size: 11px;
+        color: var(--ai-text-muted);
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+
+    /* Role Radio Selector Fieldset */
+    .role-options-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .role-option-card {
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius-sm);
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: var(--ai-transition);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .role-option-card:hover {
+        background: var(--ai-surface-subtle);
+    }
+    .role-option-card input[type="radio"] {
+        margin-top: 3px;
+        cursor: pointer;
+        accent-color: var(--ai-navy);
+    }
+    .role-option-card.is-selected {
+        border-color: #2563EB;
+        background: var(--ai-info-bg);
+    }
+    .role-label-title {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--ai-text-main);
+    }
+    .role-label-desc {
+        font-size: 11px;
+        color: var(--ai-text-muted);
+        line-height: 1.35;
+    }
+
+    /* Allow Paid Calls Checkbox */
+    .checkbox-wrap-ai {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0 6px 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ai-text-main);
+        cursor: pointer;
+    }
+    .checkbox-wrap-ai input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: var(--ai-navy);
+    }
+
+    /* Model select row with Refresh button */
+    .model-select-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .btn-sm-outline {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border-strong);
+        color: var(--ai-text-main);
+        padding: 7px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: var(--ai-transition);
+    }
+    .btn-sm-outline:hover {
+        background: var(--ai-surface-subtle);
+    }
+
+    /* Drawer Actions */
+    .drawer-actions-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 18px;
+        margin-bottom: 12px;
+    }
+
+    .btn-drawer-test {
+        flex: 1;
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border-strong);
+        color: var(--ai-text-main);
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--ai-transition);
+        text-align: center;
+    }
+    .btn-drawer-test:hover {
+        background: var(--ai-surface-subtle);
+        border-color: var(--ai-text-subtle);
+    }
+
+    .btn-drawer-save {
+        flex: 1;
+        background: var(--ai-navy);
+        border: 1px solid var(--ai-navy);
+        color: #FFFFFF;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--ai-transition);
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(11,37,69,0.15);
+    }
+    .btn-drawer-save:hover {
+        background: var(--ai-navy-hover);
+    }
+
+    .link-danger-remove {
+        display: inline-block;
+        color: var(--ai-danger);
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.15s ease;
+    }
+    .link-danger-remove:hover {
+        text-decoration: underline;
+    }
+
+    /* Bottom: Audit Trail Card */
+    .audit-card {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        padding: 20px;
+        box-shadow: var(--ai-shadow-card);
+    }
+
+    .audit-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .audit-card-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--ai-text-main);
+        margin: 0;
+    }
+
+    .audit-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .audit-table th {
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--ai-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--ai-border);
+        background: var(--ai-surface-subtle);
+    }
+
+    .audit-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--ai-border);
+        color: var(--ai-text-main);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .audit-pagination-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 14px;
+        font-size: 12px;
+        color: var(--ai-text-muted);
+    }
+
+    /* Usage & Limits View Cards */
+    .usage-metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .usage-metric-card {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        padding: 18px;
+        box-shadow: var(--ai-shadow-card);
+    }
+
+    .usage-val-large {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--ai-text-main);
+        margin: 6px 0 4px 0;
+    }
+
+    .usage-breakdown-card {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        padding: 20px;
+        box-shadow: var(--ai-shadow-card);
+        margin-bottom: 20px;
+    }
+
+    /* Toast Notification */
+    .ai-toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+    }
+    .ai-toast {
+        min-width: 280px;
+        max-width: 440px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #FFFFFF;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .ai-toast-success { background: #059669; }
+    .ai-toast-error { background: #DC2626; }
+    .ai-toast-info { background: #2563EB; }
+    .ai-toast-warning { background: #D97706; }
+
+    /* Modal Backdrop */
+    .modal-backdrop-ai {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+        padding: 20px;
+    }
+    .modal-card-ai {
+        background: var(--ai-surface);
+        border-radius: var(--ai-radius);
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 24px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Narrow Width Responsive Layout (<768px) */
+    @media (max-width: 768px) {
+        .ai-summary-grid {
+            grid-template-columns: 1fr;
+        }
+        .ai-workspace-grid {
+            grid-template-columns: 1fr;
+        }
+        .config-drawer {
+            position: static;
+        }
+        .providers-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .search-input-ai {
+            width: 100%;
+        }
+        .header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="ai-config-breadcrumb">
+    Administration <span>/</span> AI Models &amp; API Configuration
+</div>
+
+<!-- Header (Single top title in topbar; header has subtitle and global actions) -->
+<div class="ai-config-header">
+    <div>
+        <p class="ai-config-subtitle">Configure crawler intelligence providers, primary/failover routing order, and zero-cost protection guards.</p>
+    </div>
+    <div class="header-actions">
+        <button type="button" class="btn-header-outline" id="themeToggleBtn" onclick="toggleDarkMode()" title="Toggle Light / Dark mode">
+            <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Dark Mode</span>
+        </button>
+        <button type="button" class="btn-header-outline" onclick="testAllConnectionsLive()" id="btnTestAllConnections">
+            <span>Test all connections</span>
+        </button>
+        <button type="button" class="btn-header-primary" onclick="openAddProviderModal()" id="btnAddProvider">
+            <span>+ Add custom provider</span>
+        </button>
+    </div>
+</div>
+
+<!-- Main Tab Switching (AI Providers vs Usage & Limits) -->
+<div class="ai-main-tabs-bar" role="tablist" aria-label="Configuration Sections">
+    <button type="button" role="tab" id="tab-providers" aria-selected="true" aria-controls="viewProvidersSection" class="ai-tab-item is-active" onclick="switchMainTab('providers')">
+        AI Providers
+    </button>
+    <button type="button" role="tab" id="tab-usage" aria-selected="false" aria-controls="viewUsageSection" class="ai-tab-item" onclick="switchMainTab('usage')">
+        Usage &amp; Limits
+    </button>
+</div>
+
+<!-- VIEW 1: AI PROVIDERS WORKSPACE -->
+<div id="viewProvidersSection" role="region" aria-labelledby="tab-providers">
+
+    <!-- Requirement 7: Paid Provider Warnings Notice (does NOT alter existing roles automatically) -->
+    {% if paid_role_warnings %}
+    <div class="paid-warnings-container" role="alert">
+        {% for w in paid_role_warnings %}
+        <div class="paid-warning-item">
+            <span style="font-size:16px;">⚠️</span>
+            <span>{{ w }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 1. Summary Strip (3 KPI Cards) -->
+    <div class="ai-summary-grid">
+        <!-- Card 1: Primary Provider -->
+        <div class="ai-summary-card">
+            <div class="summary-label">PRIMARY PROVIDER (1ST)</div>
+            <div class="summary-val" id="summaryPrimaryName">
+                {% for p in providers %}{% if p.is_primary %}{{ p.display_name }}{% endif %}{% endfor %}
+            </div>
+            <div class="summary-sub" id="summaryPrimaryStatus">
+                {% for p in providers %}{% if p.is_primary %}
+                    {% if p.status == 'ACTIVE' %}
+                        <span class="summary-dot is-green"></span>
+                        <strong style="color:var(--ai-success);">Operational</strong>
+                        <span>&middot; {{ p.selected_model }}</span>
+                    {% elif p.has_api_key %}
+                        <span class="summary-dot is-amber"></span>
+                        <strong style="color:var(--ai-warning);">Ready</strong>
+                        <span>&middot; {{ p.selected_model }}</span>
+                    {% else %}
+                        <span class="summary-dot is-amber"></span>
+                        <strong style="color:var(--ai-warning);">Needs key</strong>
+                    {% endif %}
+                {% endif %}{% endfor %}
+            </div>
+        </div>
+
+        <!-- Card 2: Failover Provider -->
+        <div class="ai-summary-card">
+            <div class="summary-label">FAILOVER PROVIDER (2ND)</div>
+            <div class="summary-val" id="summaryFailoverName">
+                {% for p in providers %}{% if p.is_fallback %}{{ p.display_name }}{% endif %}{% endfor %}
+                {% if not settings.fallback_enabled %}<span style="color:var(--ai-text-subtle); font-size:16px;">Disabled</span>{% endif %}
+            </div>
+            <div class="summary-sub" id="summaryFailoverStatus">
+                {% for p in providers %}{% if p.provider == settings.fallback_provider %}
+                    {% if p.has_api_key and p.status == 'ACTIVE' %}
+                        <span class="summary-dot is-green"></span>
+                        <strong style="color:var(--ai-success);">Operational</strong>
+                        <span>&middot; {{ p.selected_model }}</span>
+                    {% elif p.has_api_key %}
+                        <span class="summary-dot is-green"></span>
+                        <strong style="color:var(--ai-success);">Ready</strong>
+                        <span>&middot; {{ p.selected_model }}</span>
+                    {% else %}
+                        <span class="summary-dot is-amber"></span>
+                        <strong style="color:var(--ai-warning);">Needs key</strong>
+                    {% endif %}
+                {% endif %}{% endfor %}
+            </div>
+        </div>
+
+        <!-- Card 3: Connected Providers -->
+        <div class="ai-summary-card">
+            <div class="summary-label">CONNECTED PROVIDERS</div>
+            <div class="summary-val">
+                <span id="summaryConnectedCount">{{ configured_count }}</span> of {{ total_providers }}
+            </div>
+            <div class="summary-sub" id="summaryConnectedList">
+                <span>{{ healthy_count }} operational</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test All Connections Progress Wrap -->
+    <div class="test-all-progress-wrap" id="testAllProgressWrap">
+        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
+            <span id="testAllProgressLabel">Testing provider connections...</span>
+            <span id="testAllProgressPct">0%</span>
+        </div>
+        <div class="test-all-progress-bar-bg">
+            <div class="test-all-progress-bar-fill" id="testAllProgressBarFill"></div>
+        </div>
+    </div>
+
+    <!-- 2. Main Workspace (Table on Left, Sticky Drawer on Right) -->
+    <div class="ai-workspace-grid">
+        <!-- Left Column: Providers Table -->
+        <div class="providers-card">
+            <div class="providers-card-header">
+                <h3 class="providers-card-title">Providers</h3>
+                <div class="search-filter-wrap">
+                    <input type="search" id="providerSearchInput" class="search-input-ai" placeholder="Search providers or models..." oninput="onSearchInput(this.value)" aria-label="Search providers">
+                    <div class="filter-pills-group">
+                        <button type="button" class="filter-pill active" onclick="setFilter('all', this)" id="pillAll">
+                            All {{ total_providers }}
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setFilter('connected', this)" id="pillConnected">
+                            Connected {{ configured_count }}
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setFilter('unconfigured', this)" id="pillUnconfigured">
+                            Not configured {{ total_providers|add:"-"|add:configured_count }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="providers-table" id="providersTable">
+                    <thead>
+                        <tr>
+                            <th style="width:30%;">PROVIDER</th>
+                            <th style="width:30%;">MODEL</th>
+                            <th style="width:20%;">STATUS</th>
+                            <th style="width:10%;">KEY</th>
+                            <th style="width:10%; text-align:right;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="providersTableBody">
+                        {% for p in providers %}
+                        <tr class="provider-row {% if forloop.first %}is-active-editing{% endif %}"
+                            id="row-{{ p.provider }}"
+                            data-provider="{{ p.provider }}"
+                            data-display-name="{{ p.display_name|lower }}"
+                            data-model="{{ p.selected_model|lower }}"
+                            data-has-key="{% if p.has_api_key %}true{% else %}false{% endif %}"
+                            data-status="{{ p.status }}"
+                            onclick="handleRowClick('{{ p.provider }}')">
+                            <!-- Provider Cell -->
+                            <td>
+                                <div class="provider-cell-wrap">
+                                    <div class="prov-avatar" id="avatar-{{ p.provider }}" style="background-color: {{ p.color }}; color: #FFFFFF;">
+                                        {{ p.display_name|slice:":1" }}
+                                    </div>
+                                    <div class="prov-meta">
+                                        <div class="prov-name">{{ p.display_name }}</div>
+                                        <div class="prov-sub {% if p.is_primary %}sub-primary{% elif p.is_fallback %}sub-failover{% endif %}" id="prov-sub-{{ p.provider }}">
+                                            {% if p.is_primary %}Primary (1st)
+                                            {% elif p.is_fallback %}Failover (2nd)
+                                            {% elif p.provider == 'openrouter' %}Multi-model router
+                                            {% elif p.provider == 'groq' %}Fast Llama
+                                            {% elif p.provider == 'openai' %}ChatGPT
+                                            {% elif p.provider == 'anthropic' %}Claude 3.5 Haiku
+                                            {% elif p.provider == 'deepseek' %}V3 reasoning
+                                            {% elif p.provider == 'mistral' %}Open weights
+                                            {% elif p.provider == 'ollama' %}Local, self-hosted
+                                            {% elif p.provider == 'custom' %}OpenAI-compatible REST
+                                            {% else %}AI Gateway{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Model Cell -->
+                            <td>
+                                <div class="model-cell-wrap">
+                                    <div class="model-name" id="tbl-model-name-{{ p.provider }}">
+                                        {{ p.selected_model }}
+                                    </div>
+                                    <div>
+                                        {% if p.provider == 'ollama' %}
+                                            <span class="tier-badge tier-local">Local</span>
+                                        {% elif not p.is_paid_tier %}
+                                            <span class="tier-badge tier-free">Free tier</span>
+                                        {% else %}
+                                            <span class="tier-badge tier-paid">Paid</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Status Cell -->
+                            <td>
+                                {% if p.status == 'ACTIVE' %}
+                                    <span class="status-indicator is-operational" id="tbl-status-{{ p.provider }}">Operational</span>
+                                {% elif p.has_api_key %}
+                                    <span class="status-indicator is-operational" id="tbl-status-{{ p.provider }}">Ready</span>
+                                {% elif p.status == 'ERROR' or p.status == 'FAILED' %}
+                                    <span class="status-indicator is-error" id="tbl-status-{{ p.provider }}">Error</span>
+                                {% else %}
+                                    <span class="status-indicator is-unconfigured" id="tbl-status-{{ p.provider }}">Not configured</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Key Cell -->
+                            <td>
+                                <span class="key-masked-text" id="tbl-key-{{ p.provider }}">
+                                    {% if p.has_api_key %}•••• {{ p.key_last4 }}{% else %}&mdash;{% endif %}
+                                </span>
+                            </td>
+
+                            <!-- Action Cell -->
+                            <td style="text-align:right;">
+                                <button type="button"
+                                        class="{% if forloop.first %}btn-row-editing{% else %}btn-row-configure{% endif %}"
+                                        id="btn-action-{{ p.provider }}"
+                                        onclick="event.stopPropagation(); handleRowClick('{{ p.provider }}')">
+                                    {% if forloop.first %}Editing{% else %}Configure{% endif %}
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Column: Configuration Drawer (Sticky) -->
+        <div class="config-drawer" id="configDrawer">
+            <!-- Header -->
+            <div class="drawer-header">
+                <div class="drawer-avatar" id="drawerAvatar" style="background-color: {{ providers.0.color }};">
+                    {{ providers.0.display_name|slice:":1" }}
+                </div>
+                <div class="drawer-title-wrap">
+                    <div class="drawer-prov-title" id="drawerTitle">{{ providers.0.display_name }}</div>
+                    <div class="drawer-prov-role" id="drawerRole">
+                        {% if providers.0.is_primary %}Primary provider (1st)
+                        {% elif providers.0.is_fallback %}Failover provider (2nd)
+                        {% else %}Secondary provider (Not used in routing){% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Alert Banner -->
+            <div class="drawer-status-banner {% if providers.0.status == 'ACTIVE' or providers.0.has_api_key and providers.0.last_test_result == 'SUCCESS' %}is-active{% elif providers.0.has_api_key %}is-active{% elif providers.0.status == 'ERROR' or providers.0.status == 'FAILED' %}is-error{% else %}is-unconfigured{% endif %}" id="drawerStatusBanner">
+                {% if providers.0.status == 'ACTIVE' or providers.0.has_api_key and providers.0.last_test_result == 'SUCCESS' %}
+                    Operational &middot; 200 OK on last probe
+                {% elif providers.0.has_api_key %}
+                    Ready &middot; Key saved
+                {% elif providers.0.status == 'ERROR' or providers.0.status == 'FAILED' %}
+                    Attention required &middot; {{ providers.0.last_test_message|default:"Error on last check" }}
+                {% else %}
+                    Not configured &middot; No key saved
+                {% endif %}
+            </div>
+
+            <!-- Configuration Form with fieldset and legend -->
+            <form id="drawerForm" onsubmit="event.preventDefault(); saveCurrentProvider();">
+                {% csrf_token %}
+                <input type="hidden" id="currentProviderId" value="{{ providers.0.provider }}">
+                <input type="hidden" id="currentProviderVersion" value="{{ providers.0.version }}">
+
+                <!-- API Key Group -->
+                <div class="form-group-ai">
+                    <label class="label-ai" for="drawerApiKey">API key</label>
+                    <input type="password" id="drawerApiKey" class="input-ai" placeholder="Enter a new key to replace the saved one" autocomplete="off" oninput="markUnsaved()">
+                    <div class="hint-ai" id="drawerKeyHint">
+                        {% if providers.0.has_api_key %}Stored encrypted. Saved key ends in <strong>{{ providers.0.key_last4 }}</strong>.{% else %}No key currently saved.{% endif %}
+                    </div>
+                </div>
+
+                <!-- Base Endpoint URL -->
+                <div class="form-group-ai">
+                    <label class="label-ai" for="drawerBaseUrl">Base endpoint URL</label>
+                    <input type="text" id="drawerBaseUrl" class="input-ai" value="{{ providers.0.base_url }}" oninput="markUnsaved()">
+                </div>
+
+                <!-- Active Model Selection with Model Refresh Button -->
+                <div class="form-group-ai">
+                    <label class="label-ai" for="drawerModelSelect">Active model</label>
+                    <div class="model-select-row">
+                        <select id="drawerModelSelect" class="input-ai" style="font-weight:600;" onchange="markUnsaved()">
+                            {% for m in providers.0.available_models %}
+                                <option value="{{ m.id }}" {% if m.id == providers.0.selected_model %}selected{% endif %}>
+                                    {{ m.name }}{% if m.is_free_tier %} (free tier){% else %} (paid){% endif %}{% if m.is_deprecated %} [DEPRECATED]{% endif %}
+                                </option>
+                            {% empty %}
+                                <option value="{{ providers.0.selected_model }}" selected>{{ providers.0.selected_model|default:"Default Model" }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn-sm-outline" id="btnRefreshModels" onclick="refreshCurrentProviderModels()" title="Refresh model list from provider">
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="hint-ai" id="drawerModelHint">Model catalog cached locally with rate-limited live refresh.</div>
+                </div>
+
+                <!-- Role Selector (Primary / Failover / Not used) -->
+                <fieldset class="form-group-ai">
+                    <legend class="label-ai">Crawler Routing Role</legend>
+                    <div class="role-options-group">
+                        <label class="role-option-card {% if providers.0.role == 'primary' %}is-selected{% endif %}" id="roleCardPrimary">
+                            <input type="radio" name="providerRole" value="primary" {% if providers.0.role == 'primary' %}checked{% endif %} onchange="onRoleChange('primary')">
+                            <div>
+                                <div class="role-label-title">Primary (1st in routing)</div>
+                                <div class="role-label-desc">Always called first for company page classification and intelligence extraction.</div>
+                            </div>
+                        </label>
+
+                        <label class="role-option-card {% if providers.0.role == 'failover' %}is-selected{% endif %}" id="roleCardFailover">
+                            <input type="radio" name="providerRole" value="failover" {% if providers.0.role == 'failover' %}checked{% endif %} onchange="onRoleChange('failover')">
+                            <div>
+                                <div class="role-label-title">Failover (2nd in routing)</div>
+                                <div class="role-label-desc">Takes over automatically if Primary fails, rate-limits, or exhausts quota.</div>
+                            </div>
+                        </label>
+
+                        <label class="role-option-card {% if providers.0.role == 'not_used' %}is-selected{% endif %}" id="roleCardNotUsed">
+                            <input type="radio" name="providerRole" value="not_used" {% if providers.0.role == 'not_used' %}checked{% endif %} onchange="onRoleChange('not_used')">
+                            <div>
+                                <div class="role-label-title">Not used</div>
+                                <div class="role-label-desc">Excluded from automated crawler routing. Available for manual tests.</div>
+                            </div>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <!-- Allow Paid Calls Checkbox -->
+                <div class="form-group-ai" id="allowPaidCallsGroup" style="margin-top:12px;">
+                    <label class="checkbox-wrap-ai" for="drawerAllowPaidCalls">
+                        <input type="checkbox" id="drawerAllowPaidCalls" {% if providers.0.allow_paid_calls %}checked{% endif %} onchange="onToggleAllowPaidCalls()">
+                        <span>Allow paid calls for this provider</span>
+                    </label>
+                    <div class="hint-ai" id="allowPaidCallsHint">
+                        Zero-cost protection guard: Paid providers cannot be Primary or Failover unless this is checked.
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="drawer-actions-row">
+                    <button type="button" class="btn-drawer-test" id="btnDrawerTest" onclick="testCurrentProvider()">
+                        Test connection
+                    </button>
+                    <button type="submit" class="btn-drawer-save" id="btnDrawerSave">
+                        Save changes
+                    </button>
+                </div>
+
+                <!-- Remove Key Link -->
+                <div style="margin-top:12px;">
+                    <a href="javascript:void(0)" class="link-danger-remove" id="btnRemoveSavedKey" onclick="removeCurrentKey()" style="display: {% if providers.0.has_api_key %}inline-block{% else %}none{% endif %};">
+                        Remove saved key
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Audit Trail Card with Pagination -->
+    <div class="audit-card">
+        <div class="audit-card-header">
+            <div>
+                <h3 class="audit-card-title">Audit trail</h3>
+                <p class="ai-config-subtitle" style="font-size:12px;">Immutable sanitized audit logs of configuration changes and connection probes.</p>
+            </div>
+            <button type="button" class="btn-sm-outline" onclick="loadAuditPage(currentAuditPage)">
+                Refresh
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="audit-table">
+                <colgroup>
+                    <col style="width:16%;">
+                    <col style="width:16%;">
+                    <col style="width:14%;">
+                    <col style="width:18%;">
+                    <col style="width:14%;">
+                    <col style="width:10%;">
+                    <col style="width:12%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>TIME</th>
+                        <th>ACTION</th>
+                        <th>PROVIDER</th>
+                        <th>MODEL</th>
+                        <th>STATUS</th>
+                        <th>LATENCY</th>
+                        <th>ACTOR</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    {% if recent_audits %}
+                        {% for log in recent_audits %}
+                        <tr>
+                            <td style="font-family:monospace; color:var(--ai-text-muted);">{{ log.timestamp|date:"M d, H:i:s" }}</td>
+                            <td style="font-weight:700;">{{ log.action }}</td>
+                            <td><span style="font-weight:700;">{{ log.provider|upper }}</span></td>
+                            <td style="font-family:monospace;">{{ log.model_name|default:"—" }}</td>
+                            <td>
+                                {% if log.status == 'SUCCESS' %}
+                                    <span style="color:#059669; font-weight:700;">SUCCESS</span>
+                                {% elif log.status == 'FAILED' or log.status == 'ERROR' %}
+                                    <span style="color:#DC2626; font-weight:700;">{{ log.status }}</span>
+                                {% else %}
+                                    <span>{{ log.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-family:monospace;">{% if log.latency_ms %}{{ log.latency_ms }} ms{% else %}&mdash;{% endif %}</td>
+                            <td>{{ log.actor_username|default:"system" }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:24px; color:var(--ai-text-muted);">
+                                No audit records logged yet.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Audit Pagination Controls -->
+        <div class="audit-pagination-bar">
+            <span id="auditPageInfo">Page 1</span>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-sm-outline" id="btnAuditPrev" onclick="loadAuditPage(currentAuditPage - 1)" disabled>
+                    Previous
+                </button>
+                <button type="button" class="btn-sm-outline" id="btnAuditNext" onclick="loadAuditPage(currentAuditPage + 1)">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW 2: USAGE & LIMITS SECTION -->
+<div id="viewUsageSection" style="display:none;" role="region" aria-labelledby="tab-usage">
+    <div class="usage-metrics-grid">
+        <!-- Metric 1: Total Cached Responses -->
+        <div class="usage-metric-card">
+            <div class="summary-label">TOTAL CACHED RESPONSES</div>
+            <div class="usage-val-large" id="usageTotalCached">{{ usage_metrics.total_cached_responses }}</div>
+            <div class="hint-ai">Stored in local SQLite cache (ai_cache.sqlite3)</div>
+        </div>
+
+        <!-- Metric 2: Monthly API Spend -->
+        <div class="usage-metric-card">
+            <div class="summary-label">ESTIMATED API SPEND</div>
+            <div class="usage-val-large" style="color:var(--ai-success);">{{ usage_metrics.monthly_api_spend_usd }}</div>
+            <div class="hint-ai">Zero-cost free tier enforcement active</div>
+        </div>
+
+        <!-- Metric 3: Per-Run API Call Cap -->
+        <div class="usage-metric-card">
+            <div class="summary-label">PER-RUN CALL CAP</div>
+            <div class="usage-val-large">{{ usage_metrics.max_api_calls_per_run }} <span style="font-size:14px; font-weight:600; color:var(--ai-text-muted);">calls max</span></div>
+            <div class="hint-ai">Configured in AISystemSettings</div>
+        </div>
+
+        <!-- Metric 4: Request Timeout -->
+        <div class="usage-metric-card">
+            <div class="summary-label">REQUEST TIMEOUT &amp; RETRIES</div>
+            <div class="usage-val-large">{{ usage_metrics.request_timeout_seconds }}s <span style="font-size:14px; font-weight:600; color:var(--ai-text-muted);">({{ usage_metrics.max_retries }} retries)</span></div>
+            <div class="hint-ai">Maximum crawler wait time per inference</div>
+        </div>
+
+        <!-- Metric 5: Oldest Cache Record -->
+        <div class="usage-metric-card">
+            <div class="summary-label">FIRST RECORDED CACHE ENTRY</div>
+            <div style="font-family:monospace; font-weight:700; margin-top:8px;">{{ usage_metrics.oldest_cache_entry }}</div>
+            <div class="hint-ai">Earliest date verified company data was cached</div>
+        </div>
+
+        <!-- Metric 6: Latest Cache Record -->
+        <div class="usage-metric-card">
+            <div class="summary-label">LATEST RECORDED CACHE ENTRY</div>
+            <div style="font-family:monospace; font-weight:700; margin-top:8px;">{{ usage_metrics.latest_cache_entry }}</div>
+            <div class="hint-ai">Most recent classifier response cached</div>
+        </div>
+
+        <!-- Metric 7: Input Tokens -->
+        <div class="usage-metric-card">
+            <div class="summary-label">TOTAL INPUT TOKENS</div>
+            <div style="font-style:italic; color:var(--ai-text-muted); margin-top:8px;">{{ usage_metrics.token_usage_input }}</div>
+            <div class="hint-ai">Token telemetry tracking</div>
+        </div>
+
+        <!-- Metric 8: Output Tokens -->
+        <div class="usage-metric-card">
+            <div class="summary-label">TOTAL OUTPUT TOKENS</div>
+            <div style="font-style:italic; color:var(--ai-text-muted); margin-top:8px;">{{ usage_metrics.token_usage_output }}</div>
+            <div class="hint-ai">Token telemetry tracking</div>
+        </div>
+    </div>
+
+    <!-- Cache Breakdown Table -->
+    <div class="usage-breakdown-card">
+        <h4 style="font-size:15px; font-weight:800; margin:0 0 12px 0;">SQLite Cache Records by Model</h4>
+        <table class="audit-table">
+            <thead>
+                <tr>
+                    <th>MODEL NAME</th>
+                    <th style="text-align:right;">CACHED RESPONSES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model_name, count in usage_metrics.model_breakdown.items %}
+                <tr>
+                    <td style="font-family:monospace; font-weight:700;">{{ model_name }}</td>
+                    <td style="text-align:right; font-weight:700;">{{ count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" style="text-align:center; padding:16px; color:var(--ai-text-muted);">
+                        No entries currently cached in ai_cache.sqlite3.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Custom Provider Modal (CUSTOM ENDPOINTS ONLY - no cloud presets) -->
+<div class="modal-backdrop-ai" id="addProviderModal" role="dialog" aria-modal="true" aria-labelledby="addProviderModalTitle">
+    <div class="modal-card-ai" id="addProviderCard">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 id="addProviderModalTitle" style="font-size:16.5px; font-weight:800; color:var(--ai-text-main); margin:0;">
+                Add Custom OpenAI-Compatible Provider
+            </h3>
+            <button type="button" style="border:none; background:none; font-size:18px; cursor:pointer; color:var(--ai-text-muted);" onclick="closeAddProviderModal()" aria-label="Close dialog">✕</button>
+        </div>
+
+        <form id="newProviderForm" onsubmit="event.preventDefault(); submitNewCustomProvider();">
+            <div class="form-group-ai">
+                <label class="label-ai" for="newProvId">Provider Identifier (slug)</label>
+                <input type="text" id="newProvId" class="input-ai" placeholder="e.g. vllm_local or custom_gateway" required pattern="[a-zA-Z0-9_\-]+" title="Alphanumeric with hyphens or underscores">
+                <div class="hint-ai">Unique lowercase identifier without spaces.</div>
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="newProvName">Display Name</label>
+                <input type="text" id="newProvName" class="input-ai" placeholder="e.g. Local vLLM Inference Server" required>
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="newProvBaseUrl">Custom Endpoint URL</label>
+                <input type="url" id="newProvBaseUrl" class="input-ai" placeholder="https://my-endpoint.domain.com/v1" required>
+                <div class="hint-ai">SSRF protected: private IP ranges blocked. HTTP permitted only on localhost / 127.0.0.1.</div>
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="newProvApiKey">API Key (optional if self-hosted)</label>
+                <input type="password" id="newProvApiKey" class="input-ai" placeholder="sk-..." autocomplete="off">
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="newProvModel">Default Model</label>
+                <input type="text" id="newProvModel" class="input-ai" placeholder="e.g. meta-llama/Llama-3-70b" required>
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="newProvModelsList">Available Models (comma-separated)</label>
+                <input type="text" id="newProvModelsList" class="input-ai" placeholder="model-a, model-b">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" class="btn-drawer-test" onclick="closeAddProviderModal()">Cancel</button>
+                <button type="submit" class="btn-drawer-save" id="btnSubmitNewProvider">Save Provider</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Accessible Toast Container (aria-live polite) -->
+<div class="ai-toast-container" id="aiToastContainer" aria-live="polite" role="status"></div>
+
+{{ providers_data|json_script:"providers-data" }}
+{{ settings_version|json_script:"settings-version" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // CSRF helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Toast Notification Utility (Sanitizes raw keys)
+    function showToast(message, type = 'success') {
+        let container = document.getElementById('aiToastContainer');
+        if (!container) return;
+
+        // Sanitize any accidental secret leakage in toast
+        const safeMessage = message.replace(/(sk-[a-zA-Z0-9_-]{8,}|AIzaSy[a-zA-Z0-9_-]{12,})/g, '[REDACTED]');
+
+        const toast = document.createElement('div');
+        toast.className = `ai-toast ai-toast-${type}`;
+        toast.innerHTML = `<span>${safeMessage}</span><span style="cursor:pointer;opacity:0.8;font-size:14px;padding-left:8px;" onclick="this.parentElement.remove()">✕</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentElement) toast.remove();
+        }, 4000);
+    }
+
+    // Provider Meta Dictionary loaded safely via json_script
+    const rawProvidersData = JSON.parse(document.getElementById('providers-data').textContent || '[]');
+    let currentSettingsVersion = parseInt(document.getElementById('settings-version').textContent || '1', 10);
+
+    const PROVIDERS_MAP = {};
+    rawProvidersData.forEach(p => {
+        PROVIDERS_MAP[p.provider] = p;
+    });
+
+    let currentSelectedProviderId = "gemini";
+    let activeFilter = "all";
+    let hasUnsavedChanges = false;
+    let currentAuditPage = 1;
+
+    function markUnsaved() {
+        hasUnsavedChanges = true;
+    }
+
+    // Unsaved Changes Guard on beforeunload
+    window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Dark Mode Toggle
+    function toggleDarkMode() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.body.removeAttribute('data-theme');
+            document.getElementById('themeToggleIcon').textContent = '🌙';
+            document.getElementById('themeToggleText').textContent = 'Dark Mode';
+            localStorage.setItem('ai_config_theme', 'light');
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeToggleIcon').textContent = '☀️';
+            document.getElementById('themeToggleText').textContent = 'Light Mode';
+            localStorage.setItem('ai_config_theme', 'dark');
+        }
+    }
+
+    // Tab Switcher (AI Providers vs Usage & Limits)
+    function switchMainTab(tab) {
+        const tabProviders = document.getElementById('tab-providers');
+        const tabUsage = document.getElementById('tab-usage');
+        const viewProviders = document.getElementById('viewProvidersSection');
+        const viewUsage = document.getElementById('viewUsageSection');
+
+        if (tab === 'providers') {
+            tabProviders.classList.add('is-active');
+            tabProviders.setAttribute('aria-selected', 'true');
+            tabUsage.classList.remove('is-active');
+            tabUsage.setAttribute('aria-selected', 'false');
+            viewProviders.style.display = 'block';
+            viewUsage.style.display = 'none';
+        } else {
+            tabUsage.classList.add('is-active');
+            tabUsage.setAttribute('aria-selected', 'true');
+            tabProviders.classList.remove('is-active');
+            tabProviders.setAttribute('aria-selected', 'false');
+            viewProviders.style.display = 'none';
+            viewUsage.style.display = 'block';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Check saved dark mode preference
+        if (localStorage.getItem('ai_config_theme') === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeToggleIcon').textContent = '☀️';
+            document.getElementById('themeToggleText').textContent = 'Light Mode';
+        }
+
+        // Initialize avatar colors
+        Object.values(PROVIDERS_MAP).forEach(p => {
+            const el = document.getElementById("avatar-" + p.provider);
+            if (el && p.color) el.style.backgroundColor = p.color;
+        });
+
+        // Initialize with primary provider or first
+        const primaryProv = Object.values(PROVIDERS_MAP).find(p => p.isPrimary);
+        if (primaryProv) {
+            selectProvider(primaryProv.provider, true);
+        } else if (rawProvidersData.length > 0) {
+            selectProvider(rawProvidersData[0].provider, true);
+        } else {
+            selectProvider("gemini", true);
+        }
+    });
+
+    // Row Click with Unsaved Changes Guard
+    function handleRowClick(provId) {
+        if (provId === currentSelectedProviderId) return;
+        if (hasUnsavedChanges) {
+            const currentP = PROVIDERS_MAP[currentSelectedProviderId];
+            const proceed = confirm(`You have unsaved changes for ${currentP ? currentP.displayName : 'the current provider'}. Discard changes and switch?`);
+            if (!proceed) return;
+        }
+        selectProvider(provId);
+    }
+
+    // Master-Detail Selection Handler
+    function selectProvider(provId, force = false) {
+        const p = PROVIDERS_MAP[provId];
+        if (!p) return;
+
+        currentSelectedProviderId = provId;
+        hasUnsavedChanges = false;
+
+        // 1. Highlight selected row & toggle Editing/Configure buttons
+        document.querySelectorAll(".provider-row").forEach(row => {
+            row.classList.remove("is-active-editing");
+            const btn = row.querySelector("button[id^='btn-action-']");
+            if (btn) {
+                btn.className = "btn-row-configure";
+                btn.textContent = "Configure";
+            }
+        });
+
+        const activeRow = document.getElementById("row-" + provId);
+        if (activeRow) {
+            activeRow.classList.add("is-active-editing");
+            const activeBtn = document.getElementById("btn-action-" + provId);
+            if (activeBtn) {
+                activeBtn.className = "btn-row-editing";
+                activeBtn.textContent = "Editing";
+            }
+        }
+
+        // 2. Populate Right Drawer Header
+        const avatarEl = document.getElementById("drawerAvatar");
+        avatarEl.style.backgroundColor = p.color;
+        avatarEl.textContent = p.displayName.charAt(0);
+
+        document.getElementById("drawerTitle").textContent = p.displayName;
+        document.getElementById("drawerRole").textContent = p.role === 'primary' ? "Primary provider (1st)" : (p.role === 'failover' ? "Failover provider (2nd)" : "Secondary provider (Not used in routing)");
+
+        // 3. Populate Status Banner
+        const bannerEl = document.getElementById("drawerStatusBanner");
+        if (p.status === 'ACTIVE' || (p.hasApiKey && p.lastTestResult === 'SUCCESS')) {
+            bannerEl.className = "drawer-status-banner is-active";
+            bannerEl.textContent = `Operational · 200 OK on last probe`;
+        } else if (p.hasApiKey) {
+            bannerEl.className = "drawer-status-banner is-active";
+            bannerEl.textContent = `Ready · Key saved`;
+        } else if (p.status === 'ERROR' || p.status === 'FAILED') {
+            bannerEl.className = "drawer-status-banner is-error";
+            bannerEl.textContent = `Attention required · ${p.lastTestMessage || 'Error on last check'}`;
+        } else {
+            bannerEl.className = "drawer-status-banner is-unconfigured";
+            bannerEl.textContent = `Not configured · No key saved`;
+        }
+
+        // 4. Populate Form Fields
+        document.getElementById("currentProviderId").value = p.provider;
+        document.getElementById("currentProviderVersion").value = p.version || 1;
+        document.getElementById("drawerApiKey").value = "";
+        document.getElementById("drawerBaseUrl").value = p.baseUrl || "";
+
+        const keyHintEl = document.getElementById("drawerKeyHint");
+        if (p.hasApiKey) {
+            keyHintEl.innerHTML = `Stored encrypted. Saved key ends in <strong>${p.keyLast4 || '••••'}</strong>.`;
+        } else {
+            keyHintEl.textContent = "No key currently saved.";
+        }
+
+        // 5. Populate Active Model dropdown
+        const selectEl = document.getElementById("drawerModelSelect");
+        selectEl.innerHTML = "";
+        if (p.availableModels && p.availableModels.length > 0) {
+            p.availableModels.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m.id;
+                let tierTag = m.is_free_tier ? " (free tier)" : " (paid)";
+                if (p.provider === 'ollama') tierTag = " (local)";
+                if (m.is_deprecated) tag = " [DEPRECATED]";
+                opt.textContent = `${m.name}${tierTag}`;
+                if (m.id === p.selectedModel) opt.selected = true;
+                selectEl.appendChild(opt);
+            });
+        } else {
+            const opt = document.createElement("option");
+            opt.value = p.selectedModel || "default";
+            opt.textContent = p.selectedModel || "Default Model";
+            opt.selected = true;
+            selectEl.appendChild(opt);
+        }
+
+        // 6. Role Selection Radio
+        updateRoleRadioUI(p.role || 'not_used');
+
+        // 7. Allow Paid Calls Checkbox
+        const allowPaidBox = document.getElementById("drawerAllowPaidCalls");
+        allowPaidBox.checked = !!p.allowPaidCalls;
+
+        // 8. Remove Key button visibility
+        const removeKeyBtn = document.getElementById("btnRemoveSavedKey");
+        removeKeyBtn.style.display = p.hasApiKey ? "inline-block" : "none";
+    }
+
+    function updateRoleRadioUI(roleValue) {
+        document.querySelectorAll("input[name='providerRole']").forEach(radio => {
+            radio.checked = (radio.value === roleValue);
+        });
+        document.getElementById("roleCardPrimary").classList.toggle("is-selected", roleValue === 'primary');
+        document.getElementById("roleCardFailover").classList.toggle("is-selected", roleValue === 'failover');
+        document.getElementById("roleCardNotUsed").classList.toggle("is-selected", roleValue === 'not_used');
+    }
+
+    function onRoleChange(newRole) {
+        markUnsaved();
+        const p = PROVIDERS_MAP[currentSelectedProviderId];
+        const isPaid = p ? p.isPaidTier : false;
+        const allowPaid = document.getElementById("drawerAllowPaidCalls").checked;
+
+        if (isPaid && (newRole === 'primary' || newRole === 'failover') && !allowPaid) {
+            alert(`Zero-Cost Guard: '${p.displayName}' is a paid-tier provider. You must authorize 'Allow paid calls' before assigning it as ${newRole === 'primary' ? 'Primary' : 'Failover'}.`);
+        }
+        updateRoleRadioUI(newRole);
+    }
+
+    function onToggleAllowPaidCalls() {
+        markUnsaved();
+    }
+
+    // Real-Time Search Filter
+    function onSearchInput(query) {
+        const q = (query || "").toLowerCase().trim();
+        const rows = document.querySelectorAll("#providersTableBody .provider-row");
+        rows.forEach(row => {
+            const name = row.getAttribute("data-display-name") || "";
+            const model = row.getAttribute("data-model") || "";
+            const matchesSearch = !q || name.includes(q) || model.includes(q);
+
+            const hasKey = row.getAttribute("data-has-key") === "true";
+            let matchesFilter = true;
+            if (activeFilter === "connected") matchesFilter = hasKey;
+            if (activeFilter === "unconfigured") matchesFilter = !hasKey;
+
+            row.style.display = (matchesSearch && matchesFilter) ? "" : "none";
+        });
+    }
+
+    // Filter Pills Handler
+    function setFilter(filterType, btnEl) {
+        activeFilter = filterType;
+        document.querySelectorAll(".filter-pill").forEach(b => b.classList.remove("active"));
+        if (btnEl) btnEl.classList.add("active");
+        onSearchInput(document.getElementById("providerSearchInput").value);
+    }
+
+    // Save Provider Form
+    async function saveCurrentProvider() {
+        const provId = document.getElementById("currentProviderId").value;
+        const p = PROVIDERS_MAP[provId];
+        const apiKey = document.getElementById("drawerApiKey").value.trim();
+        const baseUrl = document.getElementById("drawerBaseUrl").value.trim();
+        const selectedModel = document.getElementById("drawerModelSelect").value;
+        const currentVer = parseInt(document.getElementById("currentProviderVersion").value || "1", 10);
+        const allowPaid = document.getElementById("drawerAllowPaidCalls").checked;
+
+        const roleRadio = document.querySelector("input[name='providerRole']:checked");
+        const role = roleRadio ? roleRadio.value : 'not_used';
+
+        // Client-side zero-cost validation check
+        if (p.isPaidTier && (role === 'primary' || role === 'failover') && !allowPaid) {
+            alert(`Paid Provider Guard: '${p.displayName}' cannot be assigned as ${role.toUpperCase()} without enabling 'Allow paid calls'.`);
+            return;
+        }
+
+        const btn = document.getElementById("btnDrawerSave");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        const payload = {
+            base_url: baseUrl,
+            selected_model: selectedModel,
+            is_enabled: true,
+            version: currentVer,
+            settings_version: currentSettingsVersion,
+            role: role,
+            allow_paid_calls: allowPaid
+        };
+        if (apiKey) {
+            payload.api_key = apiKey;
+        }
+
+        try {
+            const resp = await fetch(`/admin-portal/ai-config/provider/${provId}/save/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+
+            if (resp.status === 409) {
+                // Optimistic concurrency conflict (Requirement 4)
+                alert(`Conflict (409): ${data.message || data.error}\n\nThe page will now refresh to show the latest configuration.`);
+                location.reload();
+                return;
+            }
+
+            if (data.success) {
+                hasUnsavedChanges = false;
+                // Update local memory
+                p.hasApiKey = data.has_api_key !== false;
+                if (data.key_last4) p.keyLast4 = data.key_last4;
+                if (data.masked_key) p.apiKeyMasked = data.masked_key;
+                p.selectedModel = selectedModel;
+                p.baseUrl = baseUrl;
+                p.version = data.version;
+                p.role = data.role;
+                p.allowPaidCalls = data.allow_paid_calls;
+                if (data.settings_version) currentSettingsVersion = data.settings_version;
+
+                // Sync roles across providers
+                if (role === 'primary') {
+                    Object.values(PROVIDERS_MAP).forEach(prov => {
+                        if (prov.provider === provId) prov.isPrimary = true;
+                        else if (prov.isPrimary) { prov.isPrimary = false; if (prov.role === 'primary') prov.role = 'not_used'; }
+                    });
+                } else if (role === 'failover') {
+                    Object.values(PROVIDERS_MAP).forEach(prov => {
+                        if (prov.provider === provId) prov.isFallback = true;
+                        else if (prov.isFallback) { prov.isFallback = false; if (prov.role === 'failover') prov.role = 'not_used'; }
+                    });
+                } else {
+                    p.isPrimary = false;
+                    p.isFallback = false;
+                }
+
+                // Update UI Table Row
+                const row = document.getElementById("row-" + provId);
+                if (row) {
+                    row.setAttribute("data-has-key", p.hasApiKey ? "true" : "false");
+                    const tblModel = document.getElementById("tbl-model-name-" + provId);
+                    if (tblModel) tblModel.textContent = selectedModel;
+                    const tblKey = document.getElementById("tbl-key-" + provId);
+                    if (tblKey) tblKey.textContent = data.key_last4 ? `•••• ${data.key_last4}` : "—";
+                }
+
+                // Update sub role text in table
+                document.querySelectorAll(".provider-row").forEach(r => {
+                    const id = r.getAttribute("data-provider");
+                    const subEl = document.getElementById("prov-sub-" + id);
+                    if (subEl && PROVIDERS_MAP[id]) {
+                        const rle = PROVIDERS_MAP[id].role;
+                        if (rle === 'primary') {
+                            subEl.textContent = "Primary (1st)";
+                            subEl.className = "prov-sub sub-primary";
+                        } else if (rle === 'failover') {
+                            subEl.textContent = "Failover (2nd)";
+                            subEl.className = "prov-sub sub-failover";
+                        } else {
+                            subEl.textContent = "AI Gateway";
+                            subEl.className = "prov-sub";
+                        }
+                    }
+                });
+
+                selectProvider(provId);
+                showToast(`Settings for ${p.displayName} saved successfully.`, 'success');
+                loadAuditPage(1);
+            } else {
+                showToast("Failed to save: " + (data.error || data.message), 'error');
+            }
+        } catch (e) {
+            showToast("Network error: " + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Save changes";
+        }
+    }
+
+    // Refresh Provider Models
+    async function refreshCurrentProviderModels() {
+        const provId = document.getElementById("currentProviderId").value;
+        const btn = document.getElementById("btnRefreshModels");
+        btn.disabled = true;
+        btn.textContent = "Refreshing...";
+
+        try {
+            const resp = await fetch(`/admin-portal/ai-config/provider/${provId}/refresh-models/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken }
+            });
+            const data = await resp.json();
+
+            if (resp.status === 429) {
+                showToast(data.message || "Rate limited. Please wait a few seconds before refreshing models again.", "warning");
+                return;
+            }
+
+            if (data.success && data.models) {
+                PROVIDERS_MAP[provId].availableModels = data.models;
+                const selectEl = document.getElementById("drawerModelSelect");
+                const currentVal = selectEl.value;
+                selectEl.innerHTML = "";
+                data.models.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m.id;
+                    let tag = m.is_free_tier ? " (free tier)" : " (paid)";
+                    if (m.is_deprecated) tag += " [DEPRECATED]";
+                    if (m.is_missing) tag += " [MISSING]";
+                    opt.textContent = `${m.name}${tag}`;
+                    if (m.id === currentVal) opt.selected = true;
+                    selectEl.appendChild(opt);
+                });
+                showToast(data.message || `Models refreshed for ${PROVIDERS_MAP[provId].displayName}.`, 'success');
+            } else {
+                showToast("Model refresh: " + (data.error || data.message), 'error');
+            }
+        } catch (e) {
+            showToast("Network error: " + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Refresh";
+        }
+    }
+
+    // Live Connection Test
+    async function testCurrentProvider() {
+        const provId = document.getElementById("currentProviderId").value;
+        const p = PROVIDERS_MAP[provId];
+        const apiKey = document.getElementById("drawerApiKey").value.trim();
+        const baseUrl = document.getElementById("drawerBaseUrl").value.trim();
+        const model = document.getElementById("drawerModelSelect").value;
+
+        // Billable test confirmation dialog if paid provider
+        if (p.isPaidTier && !p.allowPaidCalls) {
+            const proceed = confirm(`Notice: '${p.displayName}' is a paid-tier provider. Testing inference on paid models may generate billable charges. Proceed with live probe?`);
+            if (!proceed) return;
+        }
+
+        const btn = document.getElementById("btnDrawerTest");
+        const banner = document.getElementById("drawerStatusBanner");
+
+        btn.disabled = true;
+        btn.textContent = "Testing...";
+        banner.className = "drawer-status-banner is-testing";
+        banner.textContent = "Issuing live probe test...";
+
+        try {
+            const resp = await fetch(`/admin-portal/ai-config/provider/${provId}/test/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify({
+                    api_key: apiKey || "",
+                    model: model,
+                    base_url: baseUrl
+                })
+            });
+            const result = await resp.json();
+
+            if (result.success) {
+                banner.className = "drawer-status-banner is-active";
+                banner.textContent = `Operational · 200 OK (${result.latency_ms || 120}ms)`;
+                p.status = 'ACTIVE';
+
+                const tblStatus = document.getElementById("tbl-status-" + provId);
+                if (tblStatus) {
+                    tblStatus.textContent = "Operational";
+                    tblStatus.className = "status-indicator is-operational";
+                }
+                showToast(`Probe test succeeded for ${p.displayName} (${result.latency_ms || 120}ms)`, 'success');
+            } else {
+                banner.className = "drawer-status-banner is-error";
+                banner.textContent = `Error · ${result.message || 'Connection test failed'}`;
+
+                const tblStatus = document.getElementById("tbl-status-" + provId);
+                if (tblStatus) {
+                    tblStatus.textContent = "Error";
+                    tblStatus.className = "status-indicator is-error";
+                }
+                showToast(`Test failed: ${result.message || 'Connection error'}`, 'error');
+            }
+            loadAuditPage(1);
+        } catch (e) {
+            banner.className = "drawer-status-banner is-error";
+            banner.textContent = "Network error during test probe.";
+            showToast("Network error during test probe: " + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Test connection";
+        }
+    }
+
+    // Remove Saved Key Flow (with role unsetting warning)
+    async function removeCurrentKey() {
+        const provId = document.getElementById("currentProviderId").value;
+        const p = PROVIDERS_MAP[provId];
+        const isRouted = (p.role === 'primary' || p.role === 'failover');
+
+        let warningMsg = `Are you sure you want to remove the saved encrypted API key for ${p.displayName}?`;
+        if (isRouted) {
+            warningMsg += `\n\nWARNING: This provider is currently configured as ${p.role.toUpperCase()}. Removing the key will automatically UNSET its routing role to protect automated crawler operations!`;
+        }
+
+        if (!confirm(warningMsg)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/admin-portal/ai-config/provider/${provId}/save/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify({
+                    clear_api_key: true,
+                    is_enabled: false,
+                    role: 'not_used',
+                    version: p.version || 1,
+                    settings_version: currentSettingsVersion
+                })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                p.hasApiKey = false;
+                p.keyLast4 = "";
+                p.apiKeyMasked = "—";
+                p.status = "UNCONFIGURED";
+                p.role = "not_used";
+                p.isPrimary = false;
+                p.isFallback = false;
+                if (data.version) p.version = data.version;
+                if (data.settings_version) currentSettingsVersion = data.settings_version;
+
+                const tblKey = document.getElementById("tbl-key-" + provId);
+                if (tblKey) tblKey.textContent = "—";
+                const tblStatus = document.getElementById("tbl-status-" + provId);
+                if (tblStatus) {
+                    tblStatus.textContent = "Not configured";
+                    tblStatus.className = "status-indicator is-unconfigured";
+                }
+                const row = document.getElementById("row-" + provId);
+                if (row) row.setAttribute("data-has-key", "false");
+
+                selectProvider(provId);
+                showToast(`Key removed and routing role cleared for ${p.displayName}.`, 'info');
+                loadAuditPage(1);
+            } else {
+                showToast("Failed to remove key: " + (data.error || data.message), 'error');
+            }
+        } catch (e) {
+            showToast("Network error: " + e.message, 'error');
+        }
+    }
+
+    // Test All Connections with Progress Bar and Delay
+    async function testAllConnectionsLive() {
+        const btn = document.getElementById("btnTestAllConnections");
+        const progressWrap = document.getElementById("testAllProgressWrap");
+        const progressBarFill = document.getElementById("testAllProgressBarFill");
+        const progressLabel = document.getElementById("testAllProgressLabel");
+        const progressPct = document.getElementById("testAllProgressPct");
+
+        btn.disabled = true;
+        btn.textContent = "Testing...";
+        progressWrap.style.display = "block";
+
+        const configuredProviders = Object.values(PROVIDERS_MAP).filter(p => p.hasApiKey || p.provider === 'ollama');
+        const total = configuredProviders.length;
+
+        if (total === 0) {
+            alert("No configured providers with keys found to test.");
+            progressWrap.style.display = "none";
+            btn.disabled = false;
+            btn.textContent = "Test all connections";
+            return;
+        }
+
+        for (let i = 0; i < total; i++) {
+            const p = configuredProviders[i];
+            const pct = Math.round(((i + 1) / total) * 100);
+            progressLabel.textContent = `Testing ${i + 1} of ${total}: ${p.displayName}...`;
+            progressBarFill.style.width = pct + "%";
+            progressPct.textContent = pct + "%";
+
+            try {
+                const resp = await fetch(`/admin-portal/ai-config/provider/${p.provider}/test/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                    body: JSON.stringify({})
+                });
+                const res = await resp.json();
+                const tblStatus = document.getElementById("tbl-status-" + p.provider);
+                if (tblStatus) {
+                    if (res.success) {
+                        tblStatus.textContent = "Operational";
+                        tblStatus.className = "status-indicator is-operational";
+                    } else {
+                        tblStatus.textContent = "Error";
+                        tblStatus.className = "status-indicator is-error";
+                    }
+                }
+            } catch (err) {}
+
+            // 800ms delay between tests to prevent API bursts and rate-limiting
+            if (i < total - 1) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+        }
+
+        progressLabel.textContent = "Testing complete.";
+        setTimeout(() => {
+            progressWrap.style.display = "none";
+            btn.disabled = false;
+            btn.textContent = "Test all connections";
+        }, 1500);
+
+        loadAuditPage(1);
+        showToast("Completed testing all configured providers.", 'success');
+    }
+
+    // Audit Log Pagination
+    async function loadAuditPage(page) {
+        if (page < 1) return;
+        try {
+            const resp = await fetch(`/admin-portal/ai-config/audit-logs/?page=${page}`);
+            const data = await resp.json();
+            if (!data.success || !data.logs) return;
+
+            currentAuditPage = data.page;
+            document.getElementById("auditPageInfo").textContent = `Page ${data.page} of ${data.total_pages} (${data.total_count} entries)`;
+            document.getElementById("btnAuditPrev").disabled = !data.has_prev;
+            document.getElementById("btnAuditNext").disabled = !data.has_next;
+
+            const tbody = document.getElementById("auditTableBody");
+            tbody.innerHTML = "";
+
+            if (data.logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--ai-text-muted);">No audit records found.</td></tr>`;
+                return;
+            }
+
+            data.logs.forEach(log => {
+                const tr = document.createElement("tr");
+                const statusColor = log.status === 'SUCCESS' ? '#059669' : (log.status === 'FAILED' || log.status === 'ERROR' ? '#DC2626' : 'inherit');
+                tr.innerHTML = `
+                    <td style="font-family:monospace; color:var(--ai-text-muted);">${log.created_at}</td>
+                    <td style="font-weight:700;">${log.action}</td>
+                    <td><span style="font-weight:700;">${(log.provider || 'ALL').toUpperCase()}</span></td>
+                    <td style="font-family:monospace;">${log.model || '—'}</td>
+                    <td><span style="color:${statusColor}; font-weight:700;">${log.status}</span></td>
+                    <td style="font-family:monospace;">${log.latency_ms ? log.latency_ms + ' ms' : '—'}</td>
+                    <td>${log.user}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error("Failed to load audit page:", e);
+        }
+    }
+
+    // Add Custom Provider Modal (Custom Endpoints Only)
+    function openAddProviderModal() {
+        const modal = document.getElementById("addProviderModal");
+        modal.style.display = "flex";
+        document.getElementById("newProvId").focus();
+
+        // Keyboard listener for Escape key and focus trap
+        modal.addEventListener('keydown', handleModalKeyDown);
+    }
+
+    function closeAddProviderModal() {
+        const modal = document.getElementById("addProviderModal");
+        modal.style.display = "none";
+        modal.removeEventListener('keydown', handleModalKeyDown);
+    }
+
+    function handleModalKeyDown(e) {
+        if (e.key === 'Escape') {
+            closeAddProviderModal();
+        }
+    }
+
+    async function submitNewCustomProvider() {
+        const id = document.getElementById("newProvId").value.trim().toLowerCase();
+        const name = document.getElementById("newProvName").value.trim();
+        const url = document.getElementById("newProvBaseUrl").value.trim();
+        const key = document.getElementById("newProvApiKey").value.trim();
+        const model = document.getElementById("newProvModel").value.trim();
+        const list = document.getElementById("newProvModelsList").value.trim();
+
+        const btn = document.getElementById("btnSubmitNewProvider");
+        btn.disabled = true;
+        btn.textContent = "Connecting...";
+
+        try {
+            const resp = await fetch("{% url 'admin_ai_config:create_provider' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                body: JSON.stringify({
+                    provider: id,
+                    display_name: name,
+                    base_url: url,
+                    api_key: key,
+                    default_model: model,
+                    available_models: list
+                })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert(`Custom provider '${name}' registered successfully.`);
+                location.reload();
+            } else {
+                alert("Error connecting provider: " + (data.error || data.message));
+            }
+        } catch (e) {
+            alert("Network error: " + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Save Provider";
+        }
+    }
+</script>
+{% endblock %}

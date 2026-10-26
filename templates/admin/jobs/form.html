@@ -59,12 +59,35 @@
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
             <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Experience Level</label>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Seniority Level</label>
+                <select name="seniority_level" class="select-filter" style="width:100%; height:42px;">
+                    <option value="" {% if not job.seniority_level %}selected{% endif %}>Unspecified</option>
+                    <option value="Entry" {% if job.seniority_level == "Entry" %}selected{% endif %}>Entry Level</option>
+                    <option value="Mid" {% if job.seniority_level == "Mid" %}selected{% endif %}>Mid Level</option>
+                    <option value="Senior" {% if job.seniority_level == "Senior" %}selected{% endif %}>Senior</option>
+                    <option value="Lead" {% if job.seniority_level == "Lead" %}selected{% endif %}>Lead / Principal</option>
+                    <option value="Executive" {% if job.seniority_level == "Executive" %}selected{% endif %}>Executive / Director</option>
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Details Extraction Status</label>
+                <select name="details_status" class="select-filter" style="width:100%; height:42px;">
+                    <option value="COMPLETE" {% if job.details_status == "COMPLETE" %}selected{% endif %}>COMPLETE</option>
+                    <option value="PARTIAL" {% if job.details_status == "PARTIAL" %}selected{% endif %}>PARTIAL</option>
+                    <option value="MISSING" {% if job.details_status == "MISSING" %}selected{% endif %}>MISSING</option>
+                    <option value="FAILED" {% if job.details_status == "FAILED" %}selected{% endif %}>FAILED</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Experience Level / Requirements</label>
                 <input type="text" name="experience" value="{{ job.experience|default:'' }}" placeholder="e.g. 3-5 Years" class="search-input" style="height:42px;">
             </div>
             <div>
                 <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Salary / CTC Range</label>
-                <input type="text" name="salary" value="{{ job.salary|default:'' }}" placeholder="e.g. ₹12-18 LPA or Not Disclosed" class="search-input" style="height:42px;">
+                <input type="text" name="salary" value="{{ job.salary_text|default:job.salary|default:'' }}" placeholder="e.g. ₹12-18 LPA or Not Disclosed" class="search-input" style="height:42px;">
             </div>
         </div>
 
@@ -74,12 +97,38 @@
         </div>
 
         <div>
-            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Required Skills (Comma-separated)</label>
-            <textarea name="skills" rows="2" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.skills }}</textarea>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">About the Role / Purpose</label>
+            <textarea name="about_role" rows="3" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.about_role }}</textarea>
         </div>
 
         <div>
-            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Job Description</label>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Key Responsibilities (One per line or paragraph)</label>
+            <textarea name="responsibilities" rows="5" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.responsibilities }}</textarea>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Academic Qualifications &amp; Education (One per line or text)</label>
+            <textarea name="education" rows="3" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.education }}</textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Required Skills (Comma-separated)</label>
+                <textarea name="required_skills" rows="3" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{% if job.required_skills %}{{ job.required_skills|join:", " }}{% else %}{{ job.skills }}{% endif %}</textarea>
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Preferred Skills (Comma-separated)</label>
+                <textarea name="preferred_skills" rows="3" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.preferred_skills|join:", " }}</textarea>
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Benefits &amp; Total Rewards Disclosed</label>
+            <textarea name="benefits" rows="3" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.benefits }}</textarea>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Full Job Description (Raw Text)</label>
             <textarea name="job_description" rows="5" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.job_description }}</textarea>
         </div>
 

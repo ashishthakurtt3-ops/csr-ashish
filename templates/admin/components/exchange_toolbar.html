@@ -1,66 +1,9 @@
-<!-- Enterprise Data Exchange & Direct Download Toolbar Component -->
-<div class="toolbar-actions-group" style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
-    <!-- 1. Primary Direct Download Button with Format Dropdown -->
-    <div class="export-dropdown" style="display:inline-flex; align-items:stretch;">
-        <a href="{% url 'admin_portal:data_export' entity %}?format=csv" 
-           class="btn-admin btn-admin-download-main" 
-           style="background: #0F766E; color:#ffffff; font-weight:600; font-size:13px; border:1px solid #0F766E; box-shadow:0 2px 6px rgba(15,118,110,0.25); text-decoration:none; display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:8px 0 0 8px; transition:all 0.15s ease;"
-           title="Download all {% if title %}{{ title }}{% else %}{{ entity|title }}{% endif %} records with full details shown on website (Excel / CSV format)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>Download {% if title %}{{ title }}{% else %}{{ entity|title }}{% endif %}</span>
-        </a>
-        <button type="button" 
-                class="btn-admin btn-admin-download-toggle" 
-                onclick="event.stopPropagation(); toggleExportDropdown('exportMenu_{{ entity }}');" 
-                style="background: #0D655E; color:#CCFBF1; border:1px solid #0D655E; border-left:1px solid rgba(255,255,255,0.2); padding:7px 9px; border-radius:0 8px 8px 0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;"
-                title="More download options (CSV, JSON, Blank Templates)">
-            <span style="font-size:10px; transition:transform 0.15s ease;">▼</span>
-        </button>
-        <div id="exportMenu_{{ entity }}" class="export-menu" style="min-width:230px;">
-            <div style="padding:8px 12px; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.5px; border-bottom:1px solid var(--border-color);">
-                Download Formats
-            </div>
-            <a href="{% url 'admin_portal:data_export' entity %}?format=csv" class="export-item">
-                <span>📊</span> <span>Download CSV (Excel Compatible)</span>
-            </a>
-            <a href="{% url 'admin_portal:data_export' entity %}?format=json" class="export-item">
-                <span>📦</span> <span>Download Structured JSON</span>
-            </a>
-            <div style="border-top:1px solid var(--border-color); margin:4px 0;"></div>
-            <div style="padding:5px 12px; font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.5px;">Blank Templates</div>
-            <a href="{% url 'admin_portal:data_template' entity %}?format=csv" class="export-item" style="font-size:12px; color:var(--text-secondary);">
-                <span>📋</span> <span>Blank CSV Template</span>
-            </a>
-            <a href="{% url 'admin_portal:data_template' entity %}?format=json" class="export-item" style="font-size:12px; color:var(--text-secondary);">
-                <span>📋</span> <span>Blank JSON Template</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- 2. 1-Click Fast Sync Backup Button -->
-    <a href="{% url 'admin_portal:quick_sync' entity %}" 
-       class="btn-admin" 
-       style="background:#F0FDF4; border:1px solid #BBF7D0; color:#16A34A; font-weight:600; padding:7px 12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"
-       onclick="return confirm('⚡ 1-Click Fast Sync: Load all authentic {{ title|default:entity }} records directly from the master intelligence backup?');"
-       title="1-Click reload authentic data for this section from master server backup">
-        <span>⚡</span> <span>Sync Backup</span>
+{# Export-only toolbar for crawled data. Master Sync and CSV/JSON import are disabled to prevent unverified rows from entering the database. #}
+<div style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
+    <a href="{% url 'admin_portal:data_export' entity %}?format=csv" class="btn-admin btn-admin-secondary" style="height:38px; display:inline-flex; align-items:center; gap:6px; font-size:12px; text-decoration:none;" title="Export verified {{ title|default:entity }} as CSV">
+        <span>📥 Export CSV</span>
     </a>
-
-    <!-- 3. Import Option Button -->
-    <button type="button" 
-            class="btn-admin btn-admin-secondary" 
-            onclick="openImportModal('{{ entity }}', '{{ title|default:entity|title }}');" 
-            title="Upload and import data file (.CSV, .JSON)" 
-            style="padding:7px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:5px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-        </svg>
-        <span>Import</span>
-    </button>
+    <a href="{% url 'admin_portal:data_export' entity %}?format=json" class="btn-admin btn-admin-secondary" style="height:38px; display:inline-flex; align-items:center; gap:6px; font-size:12px; text-decoration:none;" title="Export verified {{ title|default:entity }} as JSON">
+        <span>📄 Export JSON</span>
+    </a>
 </div>

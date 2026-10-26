@@ -3,6 +3,11 @@ from django.db.models import Q, Count
 from modules.admin_panel.models import Job, Company
 from modules.website.utils.pagination import paginate_queryset
 
+from modules.admin_panel.verification import (
+    PUBLIC_VERIFICATION_STATUSES, public_jobs, public_job_q, NOT_AVAILABLE_TEXT, LOGIN_REQUIRED_TEXT, LINK_OK,
+    apply_job_safety_filters, UI_NAV_DEFECT_PATTERNS
+)
+
 IMPACT_ROLE_FILTER = (
     Q(job_title__icontains='CSR') | Q(job_title__icontains='ESG') |
     Q(job_title__icontains='Sustainability') | Q(job_title__icontains='Community') |
@@ -156,15 +161,39 @@ UI_NAV_DEFECT_PATTERNS = [
     'Previous',
     'Last',
     'First',
+    'Calculator',
+    'Locator',
+    'Branch Locator',
+    'Free Credit Score',
+    'Annual Secretarial Compliance',
+    'Loss of share certificate',
+    'ODR Portal',
+    'Articles of Association',
+    'Saksham Niveshak',
+    'Media Centre',
+    'Customer Service',
+    'Shareholders',
+    'Global Business',
+    '3 Wheelers',
+    'Motorcycles',
+    'Fraud Awareness',
+    'Cookie Consent',
+    'Destinations',
+    'Locations',
+    'Home Page',
+    'recruitingCE',
+    'Would you like to schedule this interview',
+    'Your interview is scheduled',
+    'Opera Mobile Preview',
+    'Apply Online',
+    'Workplace Equity & Diversity',
 ]
 
 def apply_job_safety_filters(qs):
-    """Filters out any UI navigation boilerplate defect titles and quarantined legacy seed data."""
-    qs = qs.exclude(job_id__startswith='REQ-')
-    qs = qs.exclude(verification_status__in=['LEGACY_UNVERIFIED', 'REJECTED', 'QUARANTINED'])
-    for pattern in UI_NAV_DEFECT_PATTERNS:
-        qs = qs.exclude(job_title__iexact=pattern).exclude(job_title__icontains=pattern)
-    return qs
+    """Strict Data Integrity: Delegates directly to the single source of truth in modules.admin_panel.verification."""
+    from modules.admin_panel.verification import apply_job_safety_filters as authoritative_filter
+    return authoritative_filter(qs)
+
 
 
 
@@ -205,34 +234,54 @@ def _clean_field_val(val):
 
 def serialize_job_item(j: Job):
     c = j.company
-    raw_app_url = (j.application_url or '').strip()
-    if raw_app_url and raw_app_url.lower() not in ('---', '--', '-', 'null', 'none', 'undefined') and raw_app_url.startswith('http'):
-        app_url = raw_app_url
-        if 'api.smartrecruiters.com/v1/companies/' in app_url and '/postings/' in app_url:
-            app_url = app_url.replace('api.smartrecruiters.com/v1/companies/', 'jobs.smartrecruiters.com/').replace('/postings/', '/')
-        if ' ' in app_url:
-            import urllib.parse
-            app_url = urllib.parse.quote(app_url, safe=':/?&=#%')
-    else:
-        app_url = None
+    from modules.crawler_engine.normalizers import normalize_application_url
+    from modules.admin_panel.verification import format_relative_time
+    app_url = None
+    if j.status == 'ACTIVE' and (j.link_status in (LINK_OK, 'PUBLISHED', 'LINK_OK', 'SOURCE_CONFIRMED', 'VERIFIED_HTTP_200') or j.application_url):
+        app_url = normalize_application_url(j.application_url) or j.application_url
 
     cname = c.company_name
     sym = c.nse_symbol
-    careers_url = c.careers_url
-    website_url = c.website_url
+    careers_url = c.careers_url if (c.careers_url or '').startswith('http') else None
+    website_url = c.website_url if (c.website_url or '').startswith('http') else None
 
-    if c.company_id == 'COMP_TOP200_025' or sym == 'ETERNAL' or 'eternal' in str(cname).lower():
-        cname = 'Zomato Limited'
-        sym = 'ZOMATO'
-    elif c.company_id == 'COMP_TOP200_169' or sym == 'ACC' or 'acc limited' in str(cname).lower():
-        website_url = 'https://www.acclimited.com/'
-        careers_url = 'https://www.acclimited.com/'
-    elif c.company_id == 'COMP_TOP200_082' or sym == 'AMBUJACEM' or 'ambuja cement' in str(cname).lower():
-        website_url = 'https://www.ambujacement.com/'
-        careers_url = 'https://www.ambujacement.com/'
+    # Step 0 Exact-Match Standard a): Verbatim fields only.
+    # UI and API display the raw values only. Normalized versions exist for filtering/search only.
+    # Missing field = hidden (None), never a default (e.g. no defaulting to 'India', 'Full-time', 'On-site').
+    raw_title = _clean_field_val(getattr(j, 'raw_title', None) or j.job_title)
 
-    raw_dept = _clean_field_val(j.department)
-    norm_cat = get_normalized_job_category(raw_dept, j.job_title, j.function)
+    raw_loc = _clean_field_val(getattr(j, 'raw_location', None) or j.location)
+    if raw_loc and any(bad in raw_loc.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
+        raw_loc = None
+
+    city_val = _clean_field_val(j.city)
+    if city_val and any(bad in city_val.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
+        city_val = None
+
+    raw_dept = _clean_field_val(getattr(j, 'raw_department', None) or j.department)
+    if raw_dept and any(bad in raw_dept.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
+        raw_dept = None
+
+    raw_emp_type = _clean_field_val(getattr(j, 'raw_employment_type', None) or j.employment_type)
+    if raw_emp_type and any(bad in raw_emp_type.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
+        raw_emp_type = None
+
+    raw_work_mode = _clean_field_val(j.work_mode)
+    if raw_work_mode and any(bad in raw_work_mode.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
+        raw_work_mode = None
+
+    norm_cat = get_normalized_job_category(raw_dept, raw_title, j.function)
+
+    # Verification timestamp and provenance
+    verified_dt = getattr(j, 'last_reconciled_at', None) or j.link_verified_at or j.retrieved_at
+    rel_time = format_relative_time(verified_dt)
+    verified_badge_text = f"As listed on the official site - verified {rel_time}"
+
+    # Step 0 Exact-Match Standard e): Unverifiable companies check
+    is_company_unverifiable = bool(
+        (c.jobs_access in ('LOGIN_REQUIRED', 'NOT_PUBLISHED')) or 
+        (c.verification_status not in ('VERIFIED', 'SOURCE_CONFIRMED'))
+    )
 
     return {
         'job_row_id': j.job_row_id,
@@ -245,19 +294,23 @@ def serialize_job_item(j: Job):
         'job_id': j.job_id,
         'external_job_id': _clean_field_val(j.external_job_id),
         'ats_platform': _clean_field_val(j.ats_platform),
-        'job_title': j.job_title,
+        'job_title': raw_title,
+        'raw_title': raw_title,
         'department': raw_dept,
+        'raw_department': raw_dept,
         'original_category': raw_dept,
         'normalized_category': norm_cat,
         'team': _clean_field_val(j.team),
         'business_unit': _clean_field_val(j.business_unit),
         'function': _clean_field_val(j.function),
-        'location': _clean_field_val(j.location),
-        'city': _clean_field_val(j.city),
+        'location': raw_loc,
+        'raw_location': raw_loc,
+        'city': city_val,
         'state': _clean_field_val(j.state),
         'country': _clean_field_val(j.country),
-        'work_mode': _clean_field_val(j.work_mode),
-        'employment_type': _clean_field_val(j.employment_type),
+        'work_mode': raw_work_mode,
+        'employment_type': raw_emp_type,
+        'raw_employment_type': raw_emp_type,
         'experience': _clean_field_val(j.experience),
         'education': _clean_field_val(j.education),
         'skills': _clean_field_val(j.skills),
@@ -291,7 +344,16 @@ def serialize_job_item(j: Job):
         'headquarters': c.headquarters,
         'cin': c.cin,
         'application_url': app_url,
-        'source_url': j.source_url,
+        'canonical_url': j.canonical_url or (j.application_url.split('#')[0] if j.application_url else None),
+        'link_quality': getattr(j, 'link_quality', 'UNVERIFIED') or 'UNVERIFIED',
+        'link_check_note': getattr(j, 'link_check_note', None),
+        'apply_button_label': 'Apply Directly' if getattr(j, 'link_quality', None) == 'DIRECT' else 'Find this role on the company careers page',
+        'apply_button_url': (j.canonical_url or app_url) if getattr(j, 'link_quality', None) == 'DIRECT' else app_url,
+        'link_verified': bool(app_url),
+        'not_available_text': NOT_AVAILABLE_TEXT,
+        'jobs_access': c.jobs_access,
+        'jobs_access_text': LOGIN_REQUIRED_TEXT if c.jobs_access == 'LOGIN_REQUIRED' else None,
+        'source_url': j.source_url or app_url,
         'source_domain': j.source_domain,
         'retrieved_at': (j.retrieved_at.isoformat() if hasattr(j.retrieved_at, 'isoformat') else str(j.retrieved_at)) if j.retrieved_at else None,
         'last_checked_date': j.last_checked_date,
@@ -299,15 +361,44 @@ def serialize_job_item(j: Job):
         'verification_status': j.verification_status,
         'confidence': j.confidence,
         'link_status': j.link_status,
-        'link_verified_at': j.link_verified_at,
+        'link_verified_at': (j.link_verified_at.isoformat() if hasattr(j.link_verified_at, 'isoformat') else str(j.link_verified_at)) if j.link_verified_at else None,
         'data_provenance': j.data_provenance,
         'fingerprint': j.fingerprint,
         'evidence_text': j.evidence_text,
+        'field_source': getattr(j, 'field_source', None) or {},
+        'verified_badge_text': verified_badge_text,
+        'verified_relative_time': rel_time,
+        'is_company_unverifiable': is_company_unverifiable,
+        'last_reconciled_at': (j.last_reconciled_at.isoformat() if hasattr(j.last_reconciled_at, 'isoformat') else str(j.last_reconciled_at)) if getattr(j, 'last_reconciled_at', None) else None,
+        'mismatch_reason': getattr(j, 'mismatch_reason', None),
+        'mismatch_diff': getattr(j, 'mismatch_diff', None),
+
+        # Phase 2 & 5 Rich Job Details
+        'description_raw': _clean_field_val(getattr(j, 'description_raw', None)) or _clean_field_val(j.job_description),
+        'description_html': getattr(j, 'description_html', None),
+        'about_role': _clean_field_val(getattr(j, 'about_role', None)) or _clean_field_val(getattr(j, 'role_purpose', None)),
+        'summary': j.summary,
+        'responsibilities_list': getattr(j, 'responsibilities_list', None) or [],
+        'qualifications_education': getattr(j, 'qualifications_education', None) or [],
+        'qualifications_experience': _clean_field_val(getattr(j, 'qualifications_experience', None)) or _clean_field_val(j.experience),
+        'required_skills': getattr(j, 'required_skills', None) or [],
+        'preferred_skills': getattr(j, 'preferred_skills', None) or [],
+        'salary_text': _clean_field_val(getattr(j, 'salary_text', None)) or _clean_field_val(j.salary),
+        'currency': _clean_field_val(getattr(j, 'currency', None)) or _clean_field_val(j.salary_currency),
+        'seniority_level': _clean_field_val(getattr(j, 'seniority_level', None)),
+        'details_status': getattr(j, 'details_status', 'MISSING') or 'MISSING',
+        'details_missing_fields': getattr(j, 'details_missing_fields', None) or [],
+        'details_scraped_at': (j.details_scraped_at.isoformat() if hasattr(j.details_scraped_at, 'isoformat') else str(j.details_scraped_at)) if getattr(j, 'details_scraped_at', None) else None,
+        'external_job_id': getattr(j, 'external_job_id', None),
     }
 
 
 
 def jobs_list_api(request):
+    if request.META.get('HTTP_ACCEPT', '').find('text/html') != -1 and request.GET.get('format') != 'json':
+        from modules.website.views.home_views import index_view
+        return index_view(request)
+
     q = request.GET.get('q', '').strip()
     company_id = request.GET.get('company_id', '').strip()
     company = request.GET.get('company', '').strip()
@@ -325,10 +416,7 @@ def jobs_list_api(request):
     limit = int(request.GET.get('limit', 2000))
 
     # Authoritative eligible jobs: strictly ACTIVE and verified/published with official source evidence
-    qs = Job.objects.select_related('company').filter(
-        status='ACTIVE',
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    )
+    qs = public_jobs(Job.objects.select_related('company'))
     qs = apply_job_safety_filters(qs)
 
     if q:
@@ -438,10 +526,7 @@ def jobs_list_api(request):
 
 def jobs_summary_api(request):
     """Job intelligence dashboard facets — strictly authoritative live verified records."""
-    base_qs = Job.objects.filter(
-        status='ACTIVE',
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    )
+    base_qs = public_jobs(Job.objects.all())
     base_qs = apply_job_safety_filters(base_qs)
 
     total_roles = base_qs.count()
@@ -490,7 +575,10 @@ def jobs_summary_api(request):
 
 
 def job_detail_api(request, job_id):
-    """Retrieve detailed information for a specific job along with related openings."""
+    """Retrieve detailed information for a specific job along with related openings.
+    If details have not been fetched from the official portal yet, perform live on-demand extraction
+    via UniversalJobDetailExtractor and persist the enriched fields.
+    """
     try:
         job = None
         if str(job_id).isdigit():
@@ -498,16 +586,55 @@ def job_detail_api(request, job_id):
         else:
             job = Job.objects.select_related('company').filter(job_id=str(job_id)).first()
 
-        if not job:
-            return JsonResponse({'error': 'Job not found'}, status=404)
+        if not job or not public_jobs(Job.objects.filter(pk=job.pk)).exists():
+            return JsonResponse({'error': 'Job opening not found or unverified'}, status=404)
+
+        # On-demand live extraction only on explicit user refresh request to prevent blocking the UI
+        force_refresh = request.GET.get('refresh', '').lower() in ('1', 'true', 'yes')
+        if force_refresh and job.application_url and job.application_url.startswith('http'):
+            try:
+                from modules.crawler_engine.parsers.detail_extractor import UniversalJobDetailExtractor
+                from django.utils import timezone
+                extracted = UniversalJobDetailExtractor.extract_from_url(job.application_url)
+                
+                status = extracted.get('detail_fetch_status', 'EXTRACTION_FAILED')
+                updated_fields = ['detail_fetch_status', 'detail_fetched', 'detail_fetched_at']
+                job.detail_fetch_status = status
+                job.detail_fetched = (status == 'FETCHED')
+                job.detail_fetched_at = timezone.now().isoformat()
+
+                if job.detail_fetched:
+                    # Update enriched fields if extracted from official site
+                    for field_name in [
+                        'job_description', 'description_raw', 'description_html', 'about_role',
+                        'responsibilities', 'responsibilities_list', 'qualifications', 'requirements',
+                        'preferred_qualifications', 'role_purpose', 'day_in_the_life',
+                        'education', 'qualifications_education', 'experience', 'qualifications_experience',
+                        'skills', 'required_skills', 'preferred_skills', 'technical_skills', 'behavioural_skills',
+                        'benefits', 'employer_info', 'pay_band', 'salary', 'salary_text', 'salary_currency', 'currency',
+                        'work_mode', 'employment_type', 'seniority_level', 'location', 'city', 'state', 'country',
+                        'travel_required', 'shift', 'work_authorization', 'details_status', 'details_missing_fields'
+                    ]:
+                        val = extracted.get(field_name)
+                        if val is not None and hasattr(job, field_name):
+                            setattr(job, field_name, val)
+                            updated_fields.append(field_name)
+                    
+                    if extracted.get('structured_details'):
+                        job.structured_details = extracted.get('structured_details')
+                        updated_fields.append('structured_details')
+                    job.details_scraped_at = timezone.now()
+                    updated_fields.append('details_scraped_at')
+
+                job.save(update_fields=list(set(updated_fields)))
+            except Exception as extract_err:
+                # Log but continue so response still returns existing data
+                import logging
+                logging.getLogger(__name__).warning("On-demand job extraction failed for %s: %s", job.job_row_id, extract_err)
 
         data = serialize_job_item(job)
-        related_qs = Job.objects.select_related('company').filter(
-            company_id=job.company_id,
-            status='ACTIVE',
-            verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-        ).exclude(job_row_id=job.job_row_id).exclude(verification_status='LEGACY_UNVERIFIED')
-        related_qs = apply_job_safety_filters(related_qs)
+        related_qs = public_jobs(Job.objects.select_related('company').filter(
+            company_id=job.company_id)).exclude(job_row_id=job.job_row_id).exclude(verification_status='LEGACY_UNVERIFIED')
 
         related_jobs_list = []
         if job.department:
@@ -525,3 +652,4 @@ def job_detail_api(request, job_id):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+

@@ -24,16 +24,26 @@ except ImportError:
                     k, _, v = line.partition('=')
                     os.environ.setdefault(k.strip(), v.strip().strip("'\""))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-csr-intelligence-2026-prod-secret-key-998877'
-)
+from django.core.exceptions import ImproperlyConfigured
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').strip().lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '*').split(',') if h.strip()]
+def _require_env(name):
+    """Secrets are never hard-coded: a missing value stops the server with a clear message."""
+    value = os.environ.get(name, '').strip()
+    if not value:
+        raise ImproperlyConfigured(
+            f"Environment variable {name} is required (copy .env.example to .env and fill it in)."
+        )
+    return value
+
+
+DEBUG = os.environ.get('DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
+SECRET_KEY = _require_env('SECRET_KEY')
+
+_hosts = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+if not DEBUG and '*' in _hosts:
+    raise ImproperlyConfigured("ALLOWED_HOSTS must not contain '*' when DEBUG is off.")
+ALLOWED_HOSTS = _hosts
 
 # Application definition
 INSTALLED_APPS = [
@@ -84,56 +94,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-def _can_connect_mysql(host, port):
-    if os.environ.get("FORCE_SQLITE") == "1":
-        return False
-    import socket
-    try:
-        s = socket.create_connection((host, int(port)), timeout=0.5)
-        s.close()
-        return True
-    except Exception:
-        return False
-
-_mysql_host = os.environ.get("MYSQL_HOST", "localhost")
-_mysql_port = os.environ.get("MYSQL_PORT", "3306")
-
-if _can_connect_mysql(_mysql_host, _mysql_port):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.environ.get("MYSQL_DB", "csr_intelligence_django"),
-            "USER": os.environ.get("MYSQL_USER", "root"),
-            "PASSWORD": os.environ.get("MYSQL_PASSWORD", "MyNewPassword123!"),
-            "HOST": _mysql_host,
-            "PORT": _mysql_port,
-            "OPTIONS": {
-                "charset": "utf8mb4",
-                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
-        }
+# MySQL is the ONLY database. There is deliberately no SQLite fallback: if MySQL is down the
+# server fails loudly instead of silently serving different (stale / unverified) data.
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": _require_env("MYSQL_DB"),
+        "USER": _require_env("MYSQL_USER"),
+        "PASSWORD": _require_env("MYSQL_PASSWORD"),
+        "HOST": os.environ.get("MYSQL_HOST", "localhost"),
+        "PORT": os.environ.get("MYSQL_PORT", "3306"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-            "OPTIONS": {
-                "timeout": 30,
-            },
-        }
-    }
+}
 
 # Legacy (read-only) business database kept for one-time gap-fill imports.
 # It is NEVER used as the application database.
 LEGACY_MYSQL = {
     "HOST": os.environ.get("LEGACY_MYSQL_HOST", os.environ.get("MYSQL_HOST", "localhost")),
     "PORT": os.environ.get("LEGACY_MYSQL_PORT", os.environ.get("MYSQL_PORT", "3306")),
-    "USER": os.environ.get("LEGACY_MYSQL_USER", os.environ.get("MYSQL_USER", "root")),
-    "PASSWORD": os.environ.get(
-        "LEGACY_MYSQL_PASSWORD",
-        os.environ.get("MYSQL_PASSWORD", "MyNewPassword123!"),
-    ),
+    "USER": os.environ.get("LEGACY_MYSQL_USER", os.environ.get("MYSQL_USER", "")),
+    "PASSWORD": os.environ.get("LEGACY_MYSQL_PASSWORD", os.environ.get("MYSQL_PASSWORD", "")),
     "NAME": os.environ.get("LEGACY_MYSQL_DB", "csr_intelligence"),
 }
 
@@ -198,3 +182,15 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Safety Guard: Global background crawler lock.
+# Must remain False until a persistent background worker queue (e.g. Celery / Redis) is deployed.
+ALLOW_GLOBAL_SYNC = False
+
+# Phase 1 Safety Guard: Freeze all job deletion and expiration transitions until explicitly approved.
+FREEZE_JOB_EXPIRY_AND_DELETION = True
+
+# Step 0 Exact-Match Standard: Reconciliation freshness window (hours)
+RECONCILE_MAX_AGE_HOURS = int(os.environ.get('RECONCILE_MAX_AGE_HOURS', 72))
+ENFORCE_RECONCILE_FRESHNESS = os.environ.get('ENFORCE_RECONCILE_FRESHNESS', 'False').lower() in ('true', '1')
+

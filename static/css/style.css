@@ -2021,17 +2021,19 @@ a:hover {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 20px;
-  box-shadow: var(--shadow-card);
-  transition: all var(--transition-fast);
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
+  overflow: hidden;
 }
 .job-discovery-card:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-2px);
+  border-color: rgba(14, 165, 233, 0.5);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+  transform: translateY(-3px);
 }
 .job-header-row {
   display: flex;
@@ -3511,54 +3513,239 @@ html.dark-mode .mobile-drawer-close { background: #081726; border-color: #243B53
   word-break: break-word;
 }
 
-/* Responsive Breakpoints (375px, 390px, 414px, 768px, 1024px, 1280px, 1440px, 1920px) */
+/* ==========================================================================
+   MOBILE & MULTI-DEVICE RESPONSIVE SUITE (375px, 390px, 414px, 768px, 1024px)
+   ========================================================================== */
 @media (max-width: 1024px) {
   .job-metadata-grid-standard {
     grid-template-columns: repeat(2, 1fr);
   }
+  .company-cards-grid, .jobs-cards-grid, .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
 }
 
 @media (max-width: 768px) {
+  /* Layout & Container Viewport */
+  body {
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+  .main-wrapper {
+    padding: 12px 14px 84px !important;
+  }
+
+  /* Modals Optimization for Mobile */
   .modal-backdrop {
-    padding: 12px;
+    padding: 8px !important;
+    align-items: flex-end; /* Slide up bottom-sheet style on mobile */
   }
   .modal-panel, .modal-panel-large {
     width: 100% !important;
-    max-height: 94vh;
-    border-radius: var(--radius-lg);
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    margin: 0 !important;
   }
   .modal-header {
-    padding: 14px 18px;
+    padding: 14px 16px !important;
   }
   .modal-body {
-    padding: 16px 18px !important;
+    padding: 16px 14px !important;
+    max-height: calc(94vh - 70px) !important;
+    -webkit-overflow-scrolling: touch;
   }
-  .dossier-nav-tabs {
-    padding: 0 10px;
-  }
-  .dossier-tab-btn {
-    padding: 10px 14px;
-    font-size: 12px;
-  }
+
+  /* Job Details Modal Mobile Architecture */
   .job-metadata-grid-standard {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 14px 16px;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+  .job-meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 6px;
+  }
+  .job-meta-lbl {
+    font-size: 11.5px;
+  }
+  .job-meta-val {
+    font-size: 13px;
+    text-align: right;
+  }
+  .modal-job-actions-wrap {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .modal-job-actions-wrap .btn-primary,
+  .modal-job-actions-wrap .btn-secondary,
+  .modal-job-actions-wrap .btn-outline {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important; /* Mobile touch standard 44px */
+  }
+
+  /* Table Horizontal Scrolling with Smooth Touch Feedback */
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md) !important;
+    margin-bottom: 16px !important;
+  }
+  .data-table {
+    min-width: 680px; /* Preserve minimum column structure without crushing */
+  }
+  .data-table th, .data-table td {
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Cards Grid on Mobile */
+  .company-cards-grid, .jobs-cards-grid, .cards-grid, #company-jobs-directory-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .company-card, .job-card, .rfp-card, .job-discovery-card {
+    padding: 16px !important;
+  }
+
+  /* Filter & Control Bars Wrap Gracefully */
+  .control-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .search-box {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: unset !important;
+  }
+  .filter-group {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .select-filter {
+    width: 100% !important;
+    font-size: 12.5px !important;
+    height: 42px !important;
+  }
+  .toggle-chip {
+    width: 100% !important;
+    justify-content: center !important;
+    height: 42px !important;
+  }
+
+  /* Summary & Quick Action Bars */
+  .summary-bar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .tab-quick-action-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px 14px !important;
+    gap: 8px !important;
+  }
+  .btn-tab-quick-fetch {
+    justify-content: center !important;
+    min-height: 42px !important;
+  }
+
+  /* Navigation Tabs & Category Pills Horizontal Scroll */
+  .cause-pill-bar, .job-category-pills {
+    padding: 4px 0 10px 0 !important;
+    gap: 6px !important;
+  }
+  .cause-pill, .cat-pill {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Pagination Controls on Mobile */
+  .pagination-container, .pagination-bar-wrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+    text-align: center;
+  }
+  .pagination-controls, .pagination-links {
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Section Intros */
+  .section-intro-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .view-toggle-wrap {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .view-toggle-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Mobile Drawer Navigation */
+  .mobile-nav-drawer {
+    width: 320px !important;
+    max-width: 86vw !important;
+  }
+  .drawer-nav-btn {
+    padding: 12px 14px !important;
+    font-size: 13.5px !important;
+    min-height: 44px;
   }
 }
 
 @media (max-width: 480px) {
+  /* Extra-small mobile screens (375px - 414px: iPhone SE, 13 mini, Samsung S-series) */
   .modal-backdrop {
-    padding: 6px;
+    padding: 0 !important;
+  }
+  .modal-panel, .modal-panel-large {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    max-height: 96vh !important;
   }
   .modal-header {
-    padding: 12px 14px;
+    padding: 12px 14px !important;
+  }
+  .modal-header h3 {
+    font-size: 16px !important;
   }
   .modal-body {
-    padding: 14px !important;
+    padding: 14px 12px !important;
   }
-  .dossier-tab-btn {
-    padding: 9px 10px;
-    font-size: 11.5px;
+  .filter-group {
+    grid-template-columns: 1fr !important;
+  }
+  .btn-primary, .btn-secondary, .btn-outline {
+    font-size: 13px !important;
+    padding: 8px 14px !important;
+  }
+  .mobile-bottom-nav-item span {
+    font-size: 9.5px !important;
+  }
+  .bottom-nav-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .status-metric-card {
+    padding: 8px 10px !important;
+  }
+  .status-metric-val {
+    font-size: 14px !important;
   }
 }
+

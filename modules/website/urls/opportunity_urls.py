@@ -6,6 +6,8 @@ from modules.website.views.opportunity_api_views import (
 )
 
 urlpatterns = [
+    path('csr', csr_projects_api, name='csr_root'),
+    path('csr/', csr_projects_api, name='csr_root_slash'),
     path('csr/projects', csr_projects_api, name='csr_projects'),
     path('csr/projects/', csr_projects_api, name='csr_projects_slash'),
     path('csr/projects/<int:csr_id>', csr_project_detail_api, name='csr_project_detail'),

@@ -1,0 +1,155 @@
+[2026-10-23 05:57:55] === ImpactBridge Crawl Review Sampler (DRY RUN) ===
+[2026-10-23 05:57:55] Timestamp: 20261023_112755
+[2026-10-23 05:57:55] Output directory: exports/crawl_review\20261023_112755
+[2026-10-23 05:57:55] Per-company timeout: 300s
+[2026-10-23 05:57:55] Initial DB row counts: {'Company': 201, 'Job': 6127, 'CSRProject': 1589, 'CSROpportunity': 1160, 'Contact': 41, 'AuditTrail': 8389}
+[2026-10-23 05:57:55] Loaded 201 records from homepage verification results map.
+[2026-10-23 05:57:56]  1. [COMP_TOP200_017] Adani Enterprises Limited - Reason: Conglomerate group, shared group portal (Adani), Oracle Taleo ATS
+[2026-10-23 05:57:56]  2. [COMP_TOP200_169] ACC Limited - Reason: Manufacturing / Cement, large industrial conglomerate affiliate
+[2026-10-23 05:57:56]  3. [COMP_TOP200_160] 3i Infotech Limited - Reason: IT Services / Mid-cap tech, plain corporate careers portal
+[2026-10-23 05:57:56]  4. [COMP_TOP200_199] Aarti Industries Limited - Reason: Manufacturing / Specialty Chemicals, direct corporate careers
+[2026-10-23 05:57:56]  5. [COMP_TOP200_148] Ashok Leyland Limited - Reason: Automotive / Commercial Vehicles, Darwinbox ATS platform
+[2026-10-23 05:57:56]  6. [COMP_TOP200_064] Bosch Limited - Reason: Manufacturing / Auto-tech, SmartRecruiters ATS platform
+[2026-10-23 05:57:56]  7. [COMP_TOP200_073] Hero MotoCorp Limited - Reason: Automotive / Two-wheelers, SAP SuccessFactors ATS platform
+[2026-10-23 05:57:56]  8. [COMP_TOP200_095] One 97 Communications Limited - Reason: Fintech / New-age consumer tech (Paytm), Lever ATS platform
+[2026-10-23 05:57:56]  9. [COMP_TOP200_003] ICICI Bank Limited - Reason: Banking / Finance, largest public sector bank (PSU Bank)
+[2026-10-23 05:57:56] 10. [COMP_TOP200_005] Tata Consultancy Services Limited - Reason: IT / Tech giant, large enterprise conglomerate (Tata Group)
+[2026-10-23 05:57:56] 11. [COMP_TOP200_015] ITC Limited - Reason: FMCG / Consumer goods & agribusiness, extensive CSR disclosures
+[2026-10-23 05:57:56] 12. [COMP_TOP200_009] Hindustan Unilever Limited - Reason: PSU / Energy & Power Maharatna, statutory public sector disclosures
+[2026-10-23 05:57:56] 13. [COMP_TOP200_081] Lupin Limited - Reason: Pharmaceuticals / Healthcare, global life sciences, SAP SuccessFactors
+[2026-10-23 05:57:56] 14. [COMP_TOP200_184] AU Small Finance Bank Limited - Reason: Banking / Small Finance Bank, fast-growing retail banking lender
+[2026-10-23 05:57:56] 15. [COMP_TOP200_154] 20 Microns Limited - Reason: Manufacturing / Industrial minerals, small-cap, plain HTML careers
+[2026-10-23 05:57:56] 
+--- [1/15] Company: COMP_TOP200_017 (Adani Enterprises Limited) ---
+[2026-10-23 05:57:56] Registered Website URL: https://www.adanienterprises.com/
+[2026-10-23 05:57:56] Collecting candidate links for https://www.adanienterprises.com/...
+[2026-10-23 05:58:11] Collector returned 50 candidates.
+[2026-10-23 05:58:25] Running strategy pipeline for https://careers.adani.com...
+[2026-10-23 05:58:34] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 05:58:36] Completed COMP_TOP200_017 in 40.8s with status PARTIAL: Partial extraction: Jobs portal not identified.
+[2026-10-23 05:58:37] 
+--- [2/15] Company: COMP_TOP200_169 (ACC Limited) ---
+[2026-10-23 05:58:37] Registered Website URL: https://www.acclimited.com/
+[2026-10-23 05:58:37] Collecting candidate links for https://www.acclimited.com/...
+[2026-10-23 05:58:59] Collector returned 37 candidates.
+[2026-10-23 05:59:14] Running strategy pipeline for https://careers.adani.com...
+[2026-10-23 05:59:23] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 05:59:25] Completed COMP_TOP200_169 in 47.69s with status PARTIAL: Partial extraction: Jobs, CSR portal not identified.
+[2026-10-23 05:59:25] 
+--- [3/15] Company: COMP_TOP200_160 (3i Infotech Limited) ---
+[2026-10-23 05:59:25] Registered Website URL: https://www.3i-infotech.com/
+[2026-10-23 05:59:25] Collecting candidate links for https://www.3i-infotech.com/...
+[2026-10-23 06:00:05] Collector returned 45 candidates.
+[2026-10-23 06:00:12] Running strategy pipeline for https://www.3i-infotech.com/careers...
+[2026-10-23 06:00:33] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 06:00:36] Completed COMP_TOP200_160 in 71.36s with status PARTIAL: Partial extraction: Jobs, CSR portal not identified.
+[2026-10-23 06:00:37] 
+--- [4/15] Company: COMP_TOP200_199 (Aarti Industries Limited) ---
+[2026-10-23 06:00:37] Registered Website URL: https://www.aarti-industries.com/
+[2026-10-23 06:00:37] Collecting candidate links for https://www.aarti-industries.com/...
+[2026-10-23 06:00:46] Collector returned 46 candidates.
+[2026-10-23 06:00:59] Running strategy pipeline for https://aartiindustries.darwinbox.in/ms/candidate/careers...
+[2026-10-23 06:01:00] Strategy pipeline extracted 26 jobs via 'ats_api' (100.0% direct).
+[2026-10-23 06:01:02] Completed COMP_TOP200_199 in 24.72s with status PARTIAL: Partial extraction: CSR portal not identified.
+[2026-10-23 06:01:02] 
+--- [5/15] Company: COMP_TOP200_148 (Ashok Leyland Limited) ---
+[2026-10-23 06:01:02] Registered Website URL: https://www.ashokleyland.com/
+[2026-10-23 06:01:02] Collecting candidate links for https://www.ashokleyland.com/...
+[2026-10-23 06:01:36] Collector returned 50 candidates.
+[2026-10-23 06:01:44] Running strategy pipeline for https://www.ashokleyland.com/in/careers...
+[2026-10-23 06:02:16] Strategy pipeline extracted 23 jobs via 'embedded_state_json' (69.57% direct).
+[2026-10-23 06:02:22] Completed COMP_TOP200_148 in 79.35s with status OK: Both Jobs and CSR intelligence successfully identified and extracted.
+[2026-10-23 06:02:22] 
+--- [6/15] Company: COMP_TOP200_064 (Bosch Limited) ---
+[2026-10-23 06:02:22] Registered Website URL: https://www.bosch.in/
+[2026-10-23 06:02:22] Collecting candidate links for https://www.bosch.in/...
+[2026-10-23 06:02:45] Collector returned 31 candidates.
+[2026-10-23 06:02:47] AI Stage 1 warning for COMP_TOP200_064: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:02:58] Running strategy pipeline for https://www.bosch.in/careers...
+[2026-10-23 06:03:03] Strategy pipeline extracted 100 jobs via 'ats_api' (100.0% direct).
+[2026-10-23 06:03:05] Completed COMP_TOP200_064 in 43.48s with status PARTIAL: Partial extraction: CSR portal not identified.
+[2026-10-23 06:03:06] 
+--- [7/15] Company: COMP_TOP200_073 (Hero MotoCorp Limited) ---
+[2026-10-23 06:03:06] Registered Website URL: https://www.heromotocorp.com/en-in.html
+[2026-10-23 06:03:06] Collecting candidate links for https://www.heromotocorp.com/en-in.html...
+[2026-10-23 06:03:25] Collector returned 50 candidates.
+[2026-10-23 06:03:25] AI Stage 1 warning for COMP_TOP200_073: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:03:40] Running strategy pipeline for https://jobs.heromotocorp.com...
+[2026-10-23 06:03:49] Strategy pipeline extracted 64 jobs via 'ats_api' (100.0% direct).
+[2026-10-23 06:04:07] Completed COMP_TOP200_073 in 60.92s with status PARTIAL: Partial extraction: CSR portal not identified.
+[2026-10-23 06:04:07] 
+--- [8/15] Company: COMP_TOP200_095 (One 97 Communications Limited) ---
+[2026-10-23 06:04:07] Registered Website URL: https://paytm.com/
+[2026-10-23 06:04:07] Collecting candidate links for https://paytm.com/...
+[2026-10-23 06:04:24] Collector returned 50 candidates.
+[2026-10-23 06:04:24] AI Stage 1 warning for COMP_TOP200_095: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:04:31] Running strategy pipeline for https://paytm.com/fse...
+[2026-10-23 06:04:39] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 06:04:42] Completed COMP_TOP200_095 in 34.95s with status PARTIAL: Partial extraction: Jobs, CSR portal not identified.
+[2026-10-23 06:04:43] 
+--- [9/15] Company: COMP_TOP200_003 (ICICI Bank Limited) ---
+[2026-10-23 06:04:43] Registered Website URL: https://www.icicibank.com/
+[2026-10-23 06:04:43] Collecting candidate links for https://www.icicibank.com/...
+[2026-10-23 06:04:56] Collector returned 50 candidates.
+[2026-10-23 06:04:56] AI Stage 1 warning for COMP_TOP200_003: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:05:03] Running strategy pipeline for https://www.icicicareers.com/CareerApplicant/Career/Home...
+[2026-10-23 06:06:13] Strategy pipeline extracted 1 jobs via 'click_capture' (100.0% direct).
+[2026-10-23 06:06:14] Completed COMP_TOP200_003 in 91.14s with status PARTIAL: Partial extraction: CSR portal not identified.
+[2026-10-23 06:06:15] 
+--- [10/15] Company: COMP_TOP200_005 (Tata Consultancy Services Limited) ---
+[2026-10-23 06:06:15] Registered Website URL: https://www.tcs.com/
+[2026-10-23 06:06:15] Collecting candidate links for https://www.tcs.com/...
+[2026-10-23 06:06:55] Collector returned 50 candidates.
+[2026-10-23 06:06:55] AI Stage 1 warning for COMP_TOP200_005: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:07:02] Running strategy pipeline for https://www.tcs.com/careers...
+[2026-10-23 06:07:07] Strategy pipeline extracted 29 jobs via 'anchor_cards' (31.03% direct).
+[2026-10-23 06:07:09] Completed COMP_TOP200_005 in 54.31s with status PARTIAL: Partial extraction: CSR portal not identified.
+[2026-10-23 06:07:09] 
+--- [11/15] Company: COMP_TOP200_015 (ITC Limited) ---
+[2026-10-23 06:07:09] Registered Website URL: https://itcportal.com/
+[2026-10-23 06:07:09] Collecting candidate links for https://itcportal.com/...
+[2026-10-23 06:07:25] Collector returned 50 candidates.
+[2026-10-23 06:07:25] AI Stage 1 warning for COMP_TOP200_015: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:07:28] Running strategy pipeline for https://itcportal.com/careers.html...
+[2026-10-23 06:07:30] Strategy pipeline extracted 6 jobs via 'anchor_cards' (0.0% direct).
+[2026-10-23 06:07:32] Completed COMP_TOP200_015 in 22.85s with status OK: Both Jobs and CSR intelligence successfully identified and extracted.
+[2026-10-23 06:07:33] 
+--- [12/15] Company: COMP_TOP200_009 (Hindustan Unilever Limited) ---
+[2026-10-23 06:07:33] Registered Website URL: https://www.hul.co.in/
+[2026-10-23 06:07:33] Collecting candidate links for https://www.hul.co.in/...
+[2026-10-23 06:07:42] Collector returned 50 candidates.
+[2026-10-23 06:07:42] AI Stage 1 warning for COMP_TOP200_009: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:07:46] Running strategy pipeline for https://www.hul.co.in/news/news-search...
+[2026-10-23 06:07:58] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 06:07:59] Completed COMP_TOP200_009 in 26.2s with status PARTIAL: Partial extraction: Jobs portal not identified.
+[2026-10-23 06:08:00] 
+--- [13/15] Company: COMP_TOP200_081 (Lupin Limited) ---
+[2026-10-23 06:08:00] Registered Website URL: https://www.lupin.com/
+[2026-10-23 06:08:00] Collecting candidate links for https://www.lupin.com/...
+[2026-10-23 06:08:19] Collector returned 50 candidates.
+[2026-10-23 06:08:19] AI Stage 1 warning for COMP_TOP200_081: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:08:50] Running strategy pipeline for https://www.lupin.com/lupin-for-suppliers...
+[2026-10-23 06:08:59] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 06:09:00] Completed COMP_TOP200_081 in 59.77s with status PARTIAL: Partial extraction: Jobs, CSR portal not identified.
+[2026-10-23 06:09:00] 
+--- [14/15] Company: COMP_TOP200_184 (AU Small Finance Bank Limited) ---
+[2026-10-23 06:09:00] Registered Website URL: https://www.au.bank.in/
+[2026-10-23 06:09:00] Collecting candidate links for https://www.au.bank.in/...
+[2026-10-23 06:09:24] Collector returned 50 candidates.
+[2026-10-23 06:09:24] AI Stage 1 warning for COMP_TOP200_184: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:09:34] Running strategy pipeline for https://www.au.bank.in/careers...
+[2026-10-23 06:09:38] Strategy pipeline extracted 9 jobs via 'anchor_cards' (11.11% direct).
+[2026-10-23 06:09:43] Completed COMP_TOP200_184 in 43.19s with status OK: Both Jobs and CSR intelligence successfully identified and extracted.
+[2026-10-23 06:09:44] 
+--- [15/15] Company: COMP_TOP200_154 (20 Microns Limited) ---
+[2026-10-23 06:09:44] Registered Website URL: https://www.20microns.com/
+[2026-10-23 06:09:44] Collecting candidate links for https://www.20microns.com/...
+[2026-10-23 06:10:53] Collector returned 50 candidates.
+[2026-10-23 06:10:53] AI Stage 1 warning for COMP_TOP200_154: Primary quota exhausted and Grok fallback blocked by zero-cost policy: xAI API key not found in environment variable 'GROK_API_KEY' (or 'XAI_API_KEY'). Grok fallback is unavailable.. Using deterministic candidate prioritization.
+[2026-10-23 06:10:56] Running strategy pipeline for https://www.20microns.com/career-page.php?slug=life-at-20microns...
+[2026-10-23 06:11:07] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 06:11:11] Completed COMP_TOP200_154 in 86.9s with status PARTIAL: Partial extraction: Jobs portal not identified.
+[2026-10-23 06:11:11] 
+Final DB row counts: {'Company': 201, 'Job': 6127, 'CSRProject': 1589, 'CSROpportunity': 1160, 'Contact': 41, 'AuditTrail': 8389}
+[2026-10-23 06:11:14] Excel report saved to: exports/crawl_review\20261023_112755\crawl_review.xlsx
+[2026-10-23 06:11:14] Crawl review completed successfully.

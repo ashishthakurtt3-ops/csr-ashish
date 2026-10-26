@@ -34,6 +34,7 @@ from modules.admin_panel.models import (
     SubscriptionEvent,
     UsageCounter,
     User,
+    CompanyCrawlSummary,
 )
 
 MODELS = (
@@ -47,6 +48,7 @@ MODELS = (
     Contact,
     PageRecord,
     AuditTrail,
+    CompanyCrawlSummary,
     Prospect,
     PromoCode,
     Subscription,

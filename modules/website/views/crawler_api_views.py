@@ -237,10 +237,19 @@ def recheck_company_domain_api(request, company_id):
     })
 
 
-@csrf_exempt
 def live_sync_fetch_api(request):
     if request.method != 'POST':
         return JsonResponse({'detail': 'Method not allowed'}, status=405)
+
+    if not (request.user.is_authenticated and request.user.is_staff):
+        return JsonResponse({'detail': 'Authentication credentials were not provided or user is not staff.'}, status=401)
+
+    from django.conf import settings
+    if not getattr(settings, 'ALLOW_GLOBAL_SYNC', False):
+        return JsonResponse({
+            'status': 'REFUSED',
+            'detail': 'Global batch sync is disabled until a proper background queue is configured. Set ALLOW_GLOBAL_SYNC=True in settings to override.'
+        }, status=403)
 
     sync_time = timezone.now().isoformat()
     

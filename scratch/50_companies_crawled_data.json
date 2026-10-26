@@ -1,0 +1,1191 @@
+[
+  {
+    "index": 1,
+    "company_id": "COMP_TOP200_001",
+    "name": "Reliance Industries Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L93810MH1977PLC126225",
+    "website": "https://www.ril.com/",
+    "careers_url": "https://www.ril.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 6,
+    "sample_jobs": [
+      "fraud alert",
+      "fraud alert - global",
+      "Equal Opportunity Policy"
+    ],
+    "csr_projects_count": 10,
+    "sample_csr_projects": [
+      "Veterinary professionals provide world",
+      "Women empowered through livelihood and entrepreneurial initiatives across programmes*"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 1
+  },
+  {
+    "index": 2,
+    "company_id": "COMP_TOP200_002",
+    "name": "HDFC Bank Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L55082MH2008PLC377370",
+    "website": "https://www.hdfc.bank.in/",
+    "careers_url": "https://www.hdfc.bank.in/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 3,
+    "sample_jobs": [
+      "Frequently Asked Questions",
+      "Know more about Loans Against Assets",
+      "Types of Loan Against Assets"
+    ],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "Corporate CSR Initiative",
+      "CSR provisions don't apply to companies whose net worth is not more than \u20b9500 crore or mor"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 2
+  },
+  {
+    "index": 3,
+    "company_id": "COMP_TOP200_003",
+    "name": "ICICI Bank Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L99733MH1990PLC983794",
+    "website": "https://www.icicibank.com/",
+    "careers_url": "https://www.icicicareers.com/CareerApplicant/Career/Home",
+    "ats": "Direct/HTML",
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 6,
+    "sample_jobs": [
+      "VIEW ALL",
+      "Download App",
+      "Video Library"
+    ],
+    "csr_projects_count": 12,
+    "sample_csr_projects": [
+      "You may refuse to accept cookies by activating the setter on your browser, which allows yo",
+      "We will keep the information we collect about you on our systems or with third parties for"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 4,
+    "company_id": "COMP_TOP200_004",
+    "name": "State Bank of India",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L30033MH2010PLC267753",
+    "website": "https://sbi.co.in/",
+    "careers_url": "https://sbi.co.in/redirect/",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 5,
+    "company_id": "COMP_TOP200_005",
+    "name": "Tata Consultancy Services Limited",
+    "nse_symbol": "N/A",
+    "sector": "IT",
+    "headquarters": "Bengaluru / Hyderabad",
+    "cin": "L52487MH2001PLC120422",
+    "website": "https://www.tcs.com/",
+    "careers_url": "https://www.tcs.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "BLOCKED",
+    "verified_jobs_count": 60,
+    "sample_jobs": [
+      "Website feedback",
+      "Partnership",
+      "CSR"
+    ],
+    "csr_projects_count": 3,
+    "sample_csr_projects": [
+      "No single organization can create a sustainable future",
+      "Business sustainability is linked to the planet\u2019s sustainability"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 6,
+    "company_id": "COMP_TOP200_006",
+    "name": "Bajaj Finance Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L92719MH1973PLC340062",
+    "website": "https://www.bajajfinserv.in/bajaj-finance",
+    "careers_url": "https://www.bajajfinserv.in/bajaj-finance",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 7,
+    "company_id": "COMP_TOP200_007",
+    "name": "Larsen & Toubro Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L24322MH1985PLC300896",
+    "website": "https://www.larsentoubro.com/",
+    "careers_url": "https://www.larsentoubro.com/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 4,
+    "sample_jobs": [
+      "Boondh: Blending Creativity with Corporate Life",
+      "Privacy Policy",
+      "Copyright & Terms"
+    ],
+    "csr_projects_count": 16,
+    "sample_csr_projects": [
+      "Enhancing access to education, ensuring attendance in local schools and community learning",
+      "Waste management is a material topic and a key focus area for L&T due to the volume and ty"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 2
+  },
+  {
+    "index": 8,
+    "company_id": "COMP_TOP200_008",
+    "name": "Life Insurance Corporation Of India",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L17492MH1973PLC712554",
+    "website": "https://licindia.in/",
+    "careers_url": "https://licindia.in/web/guest/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 8,
+    "sample_jobs": [
+      "View our Ads",
+      "Download Forms",
+      "Customer Education"
+    ],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "Projects range from scholarships, health initiatives, rural education programmes and provi",
+      "LIC Golden Jubilee Foundation was established on 20"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 9,
+    "company_id": "COMP_TOP200_009",
+    "name": "Hindustan Unilever Limited",
+    "nse_symbol": "N/A",
+    "sector": "FMCG",
+    "headquarters": "Mumbai / Kolkata / New Delhi",
+    "cin": "L19508MH1970PLC580547",
+    "website": "https://www.hul.co.in/",
+    "careers_url": "https://www.hul.co.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 1,
+    "sample_jobs": [
+      "Saved Jobs"
+    ],
+    "csr_projects_count": 4,
+    "sample_csr_projects": [
+      "The impacts of inequality go far beyond income",
+      "Education & Skill Development Initiative"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 10,
+    "company_id": "COMP_TOP200_010",
+    "name": "Infosys Limited",
+    "nse_symbol": "N/A",
+    "sector": "IT",
+    "headquarters": "Bengaluru / Hyderabad",
+    "cin": "L54942MH1983PLC820892",
+    "website": "https://www.infosys.com/",
+    "careers_url": "https://www.infosys.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "BLOCKED",
+    "verified_jobs_count": 139,
+    "sample_jobs": [
+      "HSBC Championships",
+      "Brand Ambassador - Iga \u015awi\u0105tek",
+      "Brand Ambassador - Carlos Alcaraz"
+    ],
+    "csr_projects_count": 4,
+    "sample_csr_projects": [
+      "In a rapidly changing business environment, the need for stable and reliable core operatio",
+      "Agentic commerce"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 11,
+    "company_id": "COMP_TOP200_011",
+    "name": "Mahindra & Mahindra Limited",
+    "nse_symbol": "N/A",
+    "sector": "AUTO",
+    "headquarters": "Pune / Chennai / Gurugram",
+    "cin": "L63264MH2009PLC885884",
+    "website": "https://www.mahindra.com/",
+    "careers_url": "https://www.mahindra.com/career",
+    "ats": "SUCCESSFACTORS",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "Leadership",
+      "Our History",
+      "Careers"
+    ],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Download",
+      "Download"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 12,
+    "company_id": "COMP_TOP200_012",
+    "name": "Adani Power Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L76768MH1995PLC812526",
+    "website": "https://www.adanipower.com/",
+    "careers_url": "https://careers.adani.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 3,
+    "sample_jobs": [
+      "Adani Career Site",
+      "Culture",
+      "Can\u2019t find what you are looking for?"
+    ],
+    "csr_projects_count": 10,
+    "sample_csr_projects": [
+      "Adani Power Limited (APL) is deeply committed to sustainability and the ecosystem in which",
+      "We aim to continuously improve our climate governance"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 13,
+    "company_id": "COMP_TOP200_013",
+    "name": "Adani Ports and Special Economic Zone Limited",
+    "nse_symbol": "N/A",
+    "sector": "INFRASTRUCTURE",
+    "headquarters": "Mumbai / New Delhi",
+    "cin": "L48752MH2005PLC233470",
+    "website": "https://www.adaniports.com/",
+    "careers_url": "https://careers.adani.com/#Culture",
+    "ats": "ORACLE_TALEO",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 8,
+    "sample_csr_projects": [
+      "Our Environmental Policy guides environmental management across all sites",
+      "Our commitment to the Environment, Social and Governance norms is an inextricable componen"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 14,
+    "company_id": "COMP_TOP200_014",
+    "name": "HCL Technologies Limited",
+    "nse_symbol": "N/A",
+    "sector": "IT",
+    "headquarters": "Bengaluru / Hyderabad",
+    "cin": "L92544MH2006PLC303880",
+    "website": "https://www.hcltech.com/",
+    "careers_url": "https://www.hcltech.com/career-shaper",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 12,
+    "sample_jobs": [
+      "AI and skill-centric talent management",
+      "Learning management system",
+      "Talent management for enterprises"
+    ],
+    "csr_projects_count": 8,
+    "sample_csr_projects": [
+      "Beyond India, we deliver CSR initiatives across the regions where we operate by focusing o",
+      "Driven by a 500+ strong team, HCLFoundation implements flagship programs such as Samuday a"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 1
+  },
+  {
+    "index": 15,
+    "company_id": "COMP_TOP200_015",
+    "name": "ITC Limited",
+    "nse_symbol": "N/A",
+    "sector": "FMCG",
+    "headquarters": "Mumbai / Kolkata / New Delhi",
+    "cin": "L47450MH1985PLC384913",
+    "website": "https://itcportal.com/",
+    "careers_url": "https://itcportal.com/careers.html",
+    "ats": "Direct/HTML",
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 47,
+    "sample_jobs": [
+      "Apply at ITC",
+      "Associate Manager / Manager - BD & Sales / Trading (Wheat)",
+      "Associate Manager - Finance (Audit)"
+    ],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "ITC is one of India's foremost private sector companies with a Gross Revenue of \u20b9 80,867 c",
+      "The world today is confronted with daunting global challenges emerging from the existentia"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 16,
+    "company_id": "COMP_TOP200_016",
+    "name": "UltraTech Cement Limited",
+    "nse_symbol": "N/A",
+    "sector": "IT",
+    "headquarters": "Bengaluru / Hyderabad",
+    "cin": "L80545MH2004PLC938722",
+    "website": "https://www.ultratechcement.com/",
+    "careers_url": "https://www.ultratechcement.com/corporate/career/overview",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 25,
+    "sample_jobs": [
+      "Home",
+      "Jobs At UltraTech",
+      "Our Values"
+    ],
+    "csr_projects_count": 16,
+    "sample_csr_projects": [
+      "Our commitment to sustainable and responsible business practices is anchored in a comprehe",
+      "We currently reach out to more than 1"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 17,
+    "company_id": "COMP_TOP200_017",
+    "name": "Adani Enterprises Limited",
+    "nse_symbol": "N/A",
+    "sector": "INFRASTRUCTURE",
+    "headquarters": "Mumbai / New Delhi",
+    "cin": "L59692MH1987PLC888539",
+    "website": "https://www.adanienterprises.com/",
+    "careers_url": "https://careers.adani.com/#Culture",
+    "ats": "ORACLE_TALEO",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 3,
+    "sample_jobs": [
+      "Adani Connex Career Site",
+      "Culture",
+      "Can\u2019t find what you are looking for?"
+    ],
+    "csr_projects_count": 4,
+    "sample_csr_projects": [
+      "At AEL, we are committed to pursuing ESG goals and targets that are aligned with advancing",
+      "Sustainability is a strategic focus area for Adani Enterprises Limited"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 18,
+    "company_id": "COMP_TOP200_018",
+    "name": "NTPC Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L35995MH1974PLC720859",
+    "website": "https://validate.perfdrive.com/?ssa=b5e2a8b4-897e-4f44-8875-87279c0a98e7&ssb=03330299198&ssc=https://www.ntpc.co.in/&ssi=5f2ade5c-cs5n-403f-b7e9-645128908f7b&ssk=botmanager_support@radware.com&ssm=65327321743373975107197202222145&ssn=f97456eaa0f48928ec92cc089a672f745ae1322608e9-e39d-49bf-bceb2b&sso=9f62d740-fe4bbcc74eef3afc428d1b928e6d1c26301aa543adc473f7&ssp=17349938631791439093179145477554895&ssq=47944862606462634216926064248298545316759&ssr=NDkuMzYuMTAzLjI0Ng==&sst=Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64)+AppleWebKit/537.36&ssu=&ssv=&ssw=&ssx=eyJ1em14IjoiN2ZjMDAwMTRjNzEzYTItMGQxZC00MTdlLThiZjMtYTNlYjYyNjVmYTc1MS0xNzkxNDI2MDY0NTQxMC0wMDg5MGRhZDNjYmE2ZGJkNTg4MTAiLCJfX3V6bWYiOiI3ZjkwMDAzMjI2MDhlOS1lMzlkLTQ5YmYtYjc0MC1mZTRiYmNjNzRlZWYxLTE3OTE0MjYwNjQ1NDEwLTAwNTM5NTM4NTJmODQwZTU4MzAxMCIsInJkIjoibnRwYy5jby5pbiJ9",
+    "careers_url": "https://ntpc.co.in/jobs-ntpc",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 13,
+    "sample_jobs": [
+      "Advt.",
+      "Post of Director (Finance) in NTPC limited",
+      "Advt. No. 08/21"
+    ],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "NTPC is India\u2019s largest power conglomerate with roots planted way back in 1975 to accelera",
+      "NTPC has pioneered green hydrogen projects, reducing carbon footprint, and promoting susta"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 19,
+    "company_id": "COMP_TOP200_019",
+    "name": "Hindustan Aeronautics Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L87656MH1987PLC437960",
+    "website": "https://hal-india.co.in/",
+    "careers_url": "https://hal-india.co.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 20,
+    "company_id": "COMP_TOP200_020",
+    "name": "Bajaj Auto Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L94659MH2015PLC614663",
+    "website": "https://www.bajajauto.com/",
+    "careers_url": "https://www.bajajauto.com/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 13,
+    "sample_jobs": [
+      "Investors",
+      "International Business",
+      "KTM in India"
+    ],
+    "csr_projects_count": 16,
+    "sample_csr_projects": [
+      "Through PRANA we support research in homeopathy and create a platform for holistic healthc",
+      "Our various programs include STEM Education Support Program, through which we provide educ"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 21,
+    "company_id": "COMP_TOP200_021",
+    "name": "Bajaj Finserv Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L35105MH1983PLC874483",
+    "website": "https://www.bajajfinserv.in/",
+    "careers_url": "https://www.bajajfinserv.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 27,
+    "sample_jobs": [
+      "Bajaj Pay",
+      "Get on EMI",
+      "We are not able to verify your identity"
+    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 22,
+    "company_id": "COMP_TOP200_022",
+    "name": "JSW Steel Limited",
+    "nse_symbol": "N/A",
+    "sector": "METALS & MINING",
+    "headquarters": "Kolkata / Mumbai / New Delhi",
+    "cin": "L49824MH1975PLC360247",
+    "website": "https://www.jswsteel.in",
+    "careers_url": "https://www.jswsteel.in/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 27,
+    "sample_jobs": [
+      "Frontline Executive",
+      "Area Manager",
+      "Front line  executive-SMS 2 OPERATIONS"
+    ],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "\u201cIt is our Vision here at JSW that we are able, both now and in the future, to demonstrabl",
+      "We are advancing India\u2019s growth by delivering world"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 23,
+    "company_id": "COMP_TOP200_023",
+    "name": "Oil & Natural Gas Corporation Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L91927MH2007PLC793300",
+    "website": "https://www.ongcindia.com/",
+    "careers_url": "https://ongcindia.com/web/eng/career/results",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 202,
+    "sample_jobs": [
+      "http://www.gwmicro.com/Window-Eyes/ (External website that opens in a new window)",
+      "http://www.yourdolphin.co.uk/productdetail.asp?id=1 (External website that opens in a new window)",
+      "http://www.freedomscientific.com/jaws-hq.asp (External website that opens in a new window)"
+    ],
+    "csr_projects_count": 1,
+    "sample_csr_projects": [
+      "Large quantities of gas hydrates exist in the world"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 24,
+    "company_id": "COMP_TOP200_024",
+    "name": "Nestle India Limited",
+    "nse_symbol": "N/A",
+    "sector": "FMCG",
+    "headquarters": "Mumbai / Kolkata / New Delhi",
+    "cin": "L21970MH1984PLC807053",
+    "website": "https://www.nestle.in/",
+    "careers_url": "https://www.nestle.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 25,
+    "company_id": "COMP_TOP200_025",
+    "name": "ETERNAL LIMITED",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L14809MH1999PLC192337",
+    "website": "https://www.eternal.com/",
+    "careers_url": "https://www.eternal.com/careers/",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 8,
+    "sample_csr_projects": [
+      "Women in logistics across Zomato, Blinkit and Hyperpure ecosystems in Mar\u201925",
+      "Education & Skill Development Initiative"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 26,
+    "company_id": "COMP_TOP200_026",
+    "name": "Bharat Electronics Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L75323MH2015PLC406039",
+    "website": "https://bel-india.in/",
+    "careers_url": "https://bel-india.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 27,
+    "company_id": "COMP_TOP200_027",
+    "name": "Shriram Finance Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L59968MH1994PLC795928",
+    "website": "https://www.shriramfinance.in/",
+    "careers_url": "https://www.shriramfinance.in/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 18,
+    "sample_csr_projects": [
+      "Scholarships supported over 3,85,000 students from multiple regions of the country for sec",
+      "Scholarships are given to students between standards 8 and 12 (secondary and higher second"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 28,
+    "company_id": "COMP_TOP200_028",
+    "name": "Coal India Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L40771MH2010PLC817644",
+    "website": "https://www.coalindia.in/",
+    "careers_url": "https://www.coalindia.in/career-cil/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 16,
+    "sample_jobs": [
+      "Link for CIL Internship Application",
+      "Advertisement No. 01/2024/HRD/D for Engagement of Industrial Trainee (English)",
+      "Notice for Advertisement No. 01/2024/HRD/D for Engagement of Industrial Trainee"
+    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 29,
+    "company_id": "COMP_TOP200_029",
+    "name": "Avenue Supermarts Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L86435MH1979PLC343467",
+    "website": "https://www.dmartindia.com/",
+    "careers_url": "https://www.dmartindia.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 1,
+    "sample_jobs": [
+      "Cherpoli Shahpur"
+    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 30,
+    "company_id": "COMP_TOP200_030",
+    "name": "Power Grid Corporation of India Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L89482MH2001PLC973294",
+    "website": "https://www.powergrid.in/",
+    "careers_url": "https://www.powergrid.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 28,
+    "sample_csr_projects": [
+      "The project was introduced with the intent to reduce dropouts of girl students in schools ",
+      "Construction of Classrooms, toilets & infrastructure development work in Government School"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 31,
+    "company_id": "COMP_TOP200_031",
+    "name": "Hindalco Industries Limited",
+    "nse_symbol": "N/A",
+    "sector": "METALS & MINING",
+    "headquarters": "Kolkata / Mumbai / New Delhi",
+    "cin": "L25095MH1999PLC178957",
+    "website": "https://www.hindalco.com/",
+    "careers_url": "https://www.hindalco.com/work-with-us",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 4,
+    "sample_jobs": [
+      "Cookie Notice",
+      "Privacy Notice",
+      "Beware of fraudulent job offers"
+    ],
+    "csr_projects_count": 10,
+    "sample_csr_projects": [
+      "Our business philosophy and ethics are guided by Aditya Birla Group's values of integrity ",
+      "Nature is our most precious capital, and as a responsible business, our key focus is on im"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 32,
+    "company_id": "COMP_TOP200_032",
+    "name": "Tata Steel Limited",
+    "nse_symbol": "N/A",
+    "sector": "METALS & MINING",
+    "headquarters": "Kolkata / Mumbai / New Delhi",
+    "cin": "L49608MH2011PLC528129",
+    "website": "https://www.tatasteel.com/",
+    "careers_url": "javascript:;",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 14,
+    "sample_csr_projects": [
+      "Tata Steel Europe\u2019s Community Partnership Programme \u2018Future Generations\u2019, with sub",
+      "Tata Steel has a grievance redressal mechanism to ensure that community concerns are addre"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 33,
+    "company_id": "COMP_TOP200_033",
+    "name": "Adani Green Energy Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L94518MH1992PLC163491",
+    "website": "https://www.adanigreenenergy.com/",
+    "careers_url": "https://www.adanigreenenergy.com/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 20,
+    "sample_csr_projects": [
+      "To plant our vast zero deforestation programme, we\u2019re adhering to strict guidelines whereb",
+      "At Adani Green Energy Limited (AGEL), while we\u2019re totally and consistently committed to br"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 1
+  },
+  {
+    "index": 34,
+    "company_id": "COMP_TOP200_034",
+    "name": "Grasim Industries Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L96646MH1971PLC238205",
+    "website": "https://www.grasim.com/",
+    "careers_url": "https://www.grasim.com/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 4,
+    "sample_jobs": [
+      "Cookie Notice",
+      "Privacy Notice",
+      "Beware of fraudulent job offers"
+    ],
+    "csr_projects_count": 7,
+    "sample_csr_projects": [
+      "With one of the best environmental policies in the business, the chemicals business follow",
+      "To achieve its green goals, the viscose business employs a 360 degree sustainability appro"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 35,
+    "company_id": "COMP_TOP200_035",
+    "name": "Eicher Motors Limited",
+    "nse_symbol": "N/A",
+    "sector": "AUTO",
+    "headquarters": "Pune / Chennai / Gurugram",
+    "cin": "L99928MH1976PLC614084",
+    "website": "https://www.eicher.in/",
+    "careers_url": "https://www.eicher.in/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Education & Skill Development Initiative",
+      "Work started in 1996 by providing support to an initiative based in Rai Bareilly district "
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 36,
+    "company_id": "COMP_TOP200_036",
+    "name": "InterGlobe Aviation Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L21188MH1975PLC552855",
+    "website": "https://www.goindigo.in/",
+    "careers_url": "https://www.goindigo.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 12,
+    "sample_jobs": [
+      "Srinagar, Jammu and Kashmir",
+      "Pune, Maharashtra",
+      "Mumbai, Maharashtra"
+    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 37,
+    "company_id": "COMP_TOP200_037",
+    "name": "Indian Oil Corporation Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L33777MH1979PLC693830",
+    "website": "https://iocl.com/",
+    "careers_url": "https://iocl.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 38,
+    "company_id": "COMP_TOP200_038",
+    "name": "Wipro Limited",
+    "nse_symbol": "N/A",
+    "sector": "IT",
+    "headquarters": "Bengaluru / Hyderabad",
+    "cin": "L77154MH1977PLC461939",
+    "website": "https://www.wipro.com/",
+    "careers_url": "https://careers.wipro.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 1,
+    "sample_jobs": [
+      "Wipro Locations"
+    ],
+    "csr_projects_count": 3,
+    "sample_csr_projects": [
+      "We understand how to reframe the traditional tech stack of an IT department starting with ",
+      "Wipro helps our clients transform business models, decarbonize value chains, and embark on"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 4
+  },
+  {
+    "index": 39,
+    "company_id": "COMP_TOP200_039",
+    "name": "Adani Energy Solutions Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L93904MH1996PLC403578",
+    "website": "https://www.adanienergysolutions.com/",
+    "careers_url": "https://careers.adani.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "CRAWLED",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 12,
+    "sample_csr_projects": [
+      "All efforts are made to execute projects in an environment",
+      "At Adani Energy Solutions Limited (AESL), while we are totally and consistently committed "
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 40,
+    "company_id": "COMP_TOP200_040",
+    "name": "SBI Life Insurance Company Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L94599MH1979PLC347745",
+    "website": "https://www.sbilife.co.in/",
+    "careers_url": "https://www.sbilife.co.in/about-us/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 12,
+    "sample_jobs": [
+      "+91 8750633334",
+      "LIBERATE to 56161",
+      "Mr. Gopikrishna Shenoy Chief Investment Officer"
+    ],
+    "csr_projects_count": 10,
+    "sample_csr_projects": [
+      "Education & Skill Development Initiative",
+      "Education & Skill Development Initiative"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 41,
+    "company_id": "COMP_TOP200_041",
+    "name": "Hyundai Motor India Limited",
+    "nse_symbol": "N/A",
+    "sector": "AUTO",
+    "headquarters": "Pune / Chennai / Gurugram",
+    "cin": "L87867MH2002PLC503159",
+    "website": "https://www.hyundai.com/in/en",
+    "careers_url": "https://www.hyundai.com/in/en/hyundai-story/career",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 24,
+    "sample_csr_projects": [
+      "HMIF provides apprenticeship training to over 2500+ youth at its manufacturing facility in",
+      "Vidya Vahini delivers holistic education through mobile science laboratories, bringing lea"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 42,
+    "company_id": "COMP_TOP200_042",
+    "name": "Samvardhana Motherson International Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L18639MH1991PLC199096",
+    "website": "https://www.motherson.com/",
+    "careers_url": "https://careers.motherson.com/en",
+    "ats": "Direct/HTML",
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 280,
+    "sample_jobs": [
+      "Gobally present, regionally supported",
+      "Discover your team",
+      "Search for open positions by country"
+    ],
+    "csr_projects_count": 10,
+    "sample_csr_projects": [
+      "Motherson is proud to support the principles of the United Nations Global Compact across h",
+      "This commitment goes beyond compliance"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 43,
+    "company_id": "COMP_TOP200_043",
+    "name": "Jio Financial Services Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L28030MH1979PLC180913",
+    "website": "https://www.jfs.in/",
+    "careers_url": "https://www.jfs.in/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 44,
+    "company_id": "COMP_TOP200_044",
+    "name": "Solar Industries India Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L58213MH2013PLC698128",
+    "website": "https://www.solargroup.com/",
+    "careers_url": "https://careers.solargroup.com/#!/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 55,
+    "sample_csr_projects": [
+      "The information contained in this website is for general information purpose only",
+      "mobile device you are using, or the version of the operating system your computer or devic"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 45,
+    "company_id": "COMP_TOP200_045",
+    "name": "Torrent Pharmaceuticals Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L22987MH2015PLC781533",
+    "website": "https://www.torrentpharma.com/",
+    "careers_url": "https://www.torrentpharma.com/careers/join-us",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 2,
+    "sample_jobs": [
+      "Our Products",
+      "Our Story"
+    ],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Torrent Pharma is committed towards \u201cNot just healthcare but lifecare\u201d",
+      "The acquisition of Elder Pharma's Indian branded business in 2014, Dermaceutical business "
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 46,
+    "company_id": "COMP_TOP200_046",
+    "name": "Trent Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L75513MH2008PLC662093",
+    "website": "https://trentlimited.com/",
+    "careers_url": "https://trentlimited.com/pages/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 7,
+    "sample_jobs": [
+      "Borrowing And Investment Committee",
+      "Property Committee",
+      "Risk Management Committee"
+    ],
+    "csr_projects_count": 8,
+    "sample_csr_projects": [
+      "We endeavour to replace use of fossil fuel",
+      "We aim to assess all merchandise vendors on SEDEX SMETA 4 pillar comprising Labour, Health"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 47,
+    "company_id": "COMP_TOP200_047",
+    "name": "Cholamandalam Investment and Finance Company Limited",
+    "nse_symbol": "N/A",
+    "sector": "BANKING",
+    "headquarters": "Mumbai",
+    "cin": "L23587MH2007PLC870899",
+    "website": "https://www.cholamandalam.com/",
+    "careers_url": "https://www.cholamandalam.com/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 13,
+    "sample_jobs": [
+      "SME Loans",
+      "Consumer & Small Enterprise Loans",
+      "Loan Against Property"
+    ],
+    "csr_projects_count": 24,
+    "sample_csr_projects": [
+      "Research & Development Research & Development on Solar based devices for rural areas and i",
+      "Education & Skill Development Initiative"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 48,
+    "company_id": "COMP_TOP200_048",
+    "name": "Cummins India Limited",
+    "nse_symbol": "N/A",
+    "sector": "MANUFACTURING",
+    "headquarters": "Mumbai / New Delhi / Chennai",
+    "cin": "L56789MH1973PLC787584",
+    "website": "https://www.cummins.com/en-in",
+    "careers_url": "https://www.cummins.com/en-in/careers",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 5,
+    "sample_jobs": [
+      "Explore Opportunities on cummins.jobs",
+      "About Cummins",
+      "Accommodations"
+    ],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "Environment & Sustainability Initiative",
+      "Cummins continues to extend environmental initiatives across the company\u2019s supply chain"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 49,
+    "company_id": "COMP_TOP200_049",
+    "name": "Varun Beverages Limited",
+    "nse_symbol": "N/A",
+    "sector": "FMCG",
+    "headquarters": "Mumbai / Kolkata / New Delhi",
+    "cin": "L68183MH1992PLC568849",
+    "website": "https://www.varunbeverages.com/",
+    "careers_url": "https://www.varunbeverages.com/",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 8,
+    "sample_jobs": [
+      "jobCategoryLinks",
+      "Would you like to cancel this interview?",
+      "Request additional interview slots"
+    ],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Sustainability Report CY2022",
+      "Sustainability Report for CY2023"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  },
+  {
+    "index": 50,
+    "company_id": "COMP_TOP200_050",
+    "name": "Hitachi Energy India Limited",
+    "nse_symbol": "N/A",
+    "sector": "ENERGY",
+    "headquarters": "New Delhi / Mumbai",
+    "cin": "L34385MH2001PLC642895",
+    "website": "https://www.hitachienergy.com/in/en",
+    "careers_url": "https://www.hitachienergy.com/in/en/careers/open-jobs",
+    "ats": "Direct/HTML",
+    "crawl_status": "PENDING",
+    "verified_jobs_count": 1,
+    "sample_jobs": [
+      "Est\u00e1gio em Engenharias (Banco de Talentos) \u2013 Guarulhos"
+    ],
+    "csr_projects_count": 10,
+    "sample_csr_projects": [
+      "The EPD provides transparent, verified data on environmental impact across its lifecycle",
+      "Environment & Sustainability Initiative"
+    ],
+    "total_csr_spend_inr": null,
+    "contacts_count": 0
+  }
+]

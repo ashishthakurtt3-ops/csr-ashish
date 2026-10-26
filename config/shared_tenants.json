@@ -1,0 +1,36 @@
+{
+  "_comment": "Shared ATS tenants: several listed companies post on ONE portal. A job may only be published under a company when the posting itself (legal entity / business unit / organization field, or a site that belongs to exactly one company) identifies that company. Anything else is stored as OWNER_UNRESOLVED and never shown. 'site_owner' entries are exclusive career sites - confirm each with `manage.py verify_job_links --sample` before relying on them.",
+  "tenants": [
+    {
+      "host": "eibd.fa.em2.oraclecloud.com",
+      "ats": "Oracle_Cloud",
+      "group": "Adani Group",
+      "site_owner": {
+        "CX_3003": "ADANIPOWER",
+        "CX_2021": "ADANIPORTS",
+        "CX_2027": "ADANIGREEN"
+      },
+      "shared_sites": ["CX_1"],
+      "entity_aliases": {
+        "ADANIENT": ["adani enterprises", "adani enterprise", "ael"],
+        "ADANIENSOL": ["adani energy solutions", "adani transmission", "aesl"],
+        "ACC": ["acc limited", "acc ltd"],
+        "AMBUJACEM": ["ambuja cements", "ambuja cement", "acl"],
+        "ADANIPOWER": ["adani power", "apl"],
+        "ADANIPORTS": ["adani ports", "apsez", "adani ports and special economic zone"],
+        "ADANIGREEN": ["adani green", "adani green energy", "agel"],
+        "ATGL": ["adani total gas", "atgl"],
+        "AWL": ["adani wilmar", "awl"]
+      }
+    },
+    {
+      "host": "unilever.wd3.myworkdayjobs.com",
+      "ats": "Workday",
+      "group": "Unilever (global)",
+      "india_only_for": ["HINDUNILVR"],
+      "entity_aliases": {
+        "HINDUNILVR": ["hindustan unilever", "hul"]
+      }
+    }
+  ]
+}

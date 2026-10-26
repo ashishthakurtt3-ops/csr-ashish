@@ -1,3 +1,4 @@
+import os
 """
 Data Exchange Engine for ImpactBridge Custom Enterprise Admin Panel.
 Provides 100% accurate, high-fidelity data extraction (Export) and importation (Import)
@@ -581,6 +582,10 @@ def export_entity_view(request, entity):
     if 'company' in field_names:
         qs = qs.select_related('company')
 
+    # Exclude invalid synthetic and soft-removed records by default
+    if 'status' in field_names and request.GET.get('include_invalid') != 'true':
+        qs = qs.exclude(status__in=['INVALID_SYNTHETIC', 'REMOVED'])
+
     # Optional filter by company_id
     cid = request.GET.get('company_id', '').strip()
     if cid:
@@ -673,6 +678,9 @@ def sample_template_view(request, entity):
 @login_required
 @require_http_methods(["POST"])
 def import_entity_view(request, entity):
+    # [STRICT_EXPORT_ONLY_GUARD]
+    from django.http import HttpResponseForbidden
+    return HttpResponseForbidden('CSV/JSON import for crawled records is disabled. All records must come from verified live crawls.')
     """
     Parses and imports data from CSV or JSON with validation, upsert/insert mode, and AuditTrail.
     """
@@ -833,6 +841,19 @@ def _execute_import_records(schema, records_to_process, mode, request, source_la
                         existing_instance = Subscription.objects.filter(tenant_id=row['tenant_id']).first()
                     elif entity == 'promos' and row.get('code'):
                         existing_instance = PromoCode.objects.filter(code=row['code'].strip().upper()).first()
+                    elif entity == 'jobs':
+                        from modules.admin_panel.management.commands.dedupe_jobs import canonicalize_job_url
+                        import hashlib
+                        raw_target = row.get('application_url') or row.get('canonical_url') or row.get('source_url')
+                        c_url = canonicalize_job_url(raw_target) if raw_target else ""
+                        c_hash = hashlib.sha256(c_url.encode('utf-8')).hexdigest() if c_url else ""
+                        comp_obj = model_data.get('company')
+                        if comp_obj and c_hash:
+                            existing_instance = Job.objects.filter(company=comp_obj, canonical_url_hash=c_hash).first()
+                        if not existing_instance and comp_obj and row.get('external_job_id'):
+                            existing_instance = Job.objects.filter(company=comp_obj, external_job_id=str(row['external_job_id']).strip()).first()
+                        if not existing_instance and row.get('fingerprint'):
+                            existing_instance = model.objects.filter(fingerprint=row['fingerprint']).first()
                     elif 'fingerprint' in row and row.get('fingerprint'):
                         existing_instance = model.objects.filter(fingerprint=row['fingerprint']).first()
 
@@ -856,7 +877,7 @@ def _execute_import_records(schema, records_to_process, mode, request, source_la
                         for k, v in model_data.items():
                             if k not in ('id', 'password'):
                                 setattr(user_obj, k, v)
-                        user_obj.set_password('Impact@2026!')
+                        user_obj.set_password(os.environ.get('ADMIN_EXCHANGE_PASSWORD', ''))
                         if user_obj.role in (User.ROLE_ADMIN, User.ROLE_STAFF):
                             user_obj.is_staff = True
                             if user_obj.role == User.ROLE_ADMIN:

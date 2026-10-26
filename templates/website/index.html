@@ -128,7 +128,7 @@
                         <button class="nav-link-btn" data-nav="active-opps" onclick="switchTab('active-opps')" title="Open Corporate Grants & RFPs">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                             <span>Opportunities</span>
-                            <span class="badge badge-rose-subtle" id="nav-opps-badge">{{ active_opportunities|default:"11" }}</span>
+                            <span class="badge badge-rose-subtle" id="nav-opps-badge">{{ active_opportunities|default:"0" }}</span>
                         </button>
 
                         <span class="nav-group-divider"></span>
@@ -244,7 +244,7 @@
                 <button class="drawer-nav-btn" data-nav="active-opps" onclick="switchTab('active-opps'); closeMobileNav();">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
                     <span>Open Grants &amp; RFPs</span>
-                    <span class="badge badge-rose-subtle" id="mobile-nav-opps-badge" style="margin-left:auto;">{{ active_opportunities|default:"11" }}</span>
+                    <span class="badge badge-rose-subtle" id="mobile-nav-opps-badge" style="margin-left:auto;">{{ active_opportunities|default:"0" }}</span>
                 </button>
 
                 <div class="drawer-nav-section-title" style="margin-top:14px;">ANALYTICS &amp; DISCOVERY</div>
@@ -894,6 +894,9 @@
                             <span>Back to All Companies</span>
                         </button>
                         <div style="display:flex; gap:8px;">
+                            <button class="btn-primary" onclick="fetchCurrentCompanyLiveData(this)" id="btn-comp-dash-fetch-live" style="background:#2563eb; border-color:#1d4ed8; font-weight:700;">
+                                🔄 Fetch Live Data
+                            </button>
                             <button class="btn-outline" onclick="openCompanyDossierFromJobDashboard()" id="btn-comp-dash-dossier">
                                 🔍 Corporate Dossier
                             </button>
@@ -1096,7 +1099,7 @@
                     <div>
                         <h2 class="section-title">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                            Active Corporate Grant Requests &amp; RFPs (135 Open Windows)
+                            Active Corporate Grant Requests &amp; RFPs
                         </h2>
                         <p class="section-subtitle">
                             Statutory Section 135 social investments currently seeking proposals from accredited non-profit trusts, Section 8 entities, and societal research foundations.
@@ -1126,7 +1129,14 @@
             </div>
 
             <div class="cards-grid" id="opportunities-grid">
-                <!-- Populated dynamically by app.js -->
+                <div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:var(--bg-surface-card); border:1px dashed var(--border-color); border-radius:12px; margin:20px 0;">
+                    <div style="font-size:36px; margin-bottom:12px;">📋</div>
+                    <h3 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:8px;">No verified open calls right now</h3>
+                    <p style="font-size:14px; color:var(--text-muted); max-width:520px; margin:0 auto 16px;">
+                        We only display genuine, active RFPs and grant calls with confirmed submission deadlines extracted directly from official corporate portals.
+                    </p>
+                    <span class="badge badge-indigo" style="padding:6px 14px; font-size:12px;">Zero Synthetic Fallbacks Active</span>
+                </div>
             </div>
 
             <!-- Dynamic Pagination for Grants -->
@@ -2000,6 +2010,6 @@
     </nav>
 
     <!-- Core Scripts -->
-    <script src="{% static 'js/app.js' %}?v=3.5.1"></script>
+    <script src="{% static 'js/app.js' %}?v=3.6.0"></script>
 </body>
 </html>

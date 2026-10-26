@@ -11,6 +11,10 @@ from modules.admin_panel.models import (
 )
 
 # Process start reference used to report uptime on the health page.
+from modules.admin_panel.verification import (
+    PUBLIC_VERIFICATION_STATUSES, public_jobs, public_job_q, NOT_AVAILABLE_TEXT, LOGIN_REQUIRED_TEXT, LINK_OK,
+)
+
 STARTED_AT = timezone.now()
 
 # Social-impact role detection, shared across jobs list and stats
@@ -31,14 +35,11 @@ def index_view(request):
     total_companies = Company.objects.count()
     verified_companies = Company.objects.filter(Q(verification_status='VERIFIED') | Q(link_quality__in=['VERIFIED_DEEP_LINK', 'VERIFIED_HOMEPAGE'])).count()
     
-    from modules.website.views.job_api_views import apply_job_safety_filters
-    csr_projects_count = CSRProject.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
-    jobs_tracked = apply_job_safety_filters(Job.objects.filter(
-        status='ACTIVE',
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).exclude(verification_status='LEGACY_UNVERIFIED')).count()
+    from modules.admin_panel.verification import public_records
+    csr_projects_count = public_records(CSRProject.objects.filter(status='ACTIVE')).count()
+    jobs_tracked = public_jobs(Job.objects.all()).count()
     active_opportunities = CSROpportunity.objects.filter(
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED'], 
+        verification_status__in=list(PUBLIC_VERIFICATION_STATUSES), 
         status='OPEN'
     ).count()
 
@@ -47,7 +48,7 @@ def index_view(request):
         last_fetch_display = latest_summary.crawl_started_at.strftime('%d %b %Y, %H:%M')
     else:
         latest_page = PageRecord.objects.order_by('-page_id').first()
-        last_fetch_display = (latest_page.last_crawled if latest_page and latest_page.last_crawled else 'Live Synchronized')
+        last_fetch_display = (latest_page.last_crawled if latest_page and latest_page.last_crawled else NOT_AVAILABLE_TEXT)
 
     context = {
         'total_companies': total_companies,
@@ -149,28 +150,37 @@ def health_view(request):
     return response
 
 
+from django.core.cache import cache
+
+
 def stats_view(request):
     """Platform statistics and counters endpoint - strictly authoritative source records."""
+    cached_stats = cache.get('home_stats_cache_v1')
+    if cached_stats and not request.GET.get('refresh'):
+        return JsonResponse(cached_stats)
+
     total_companies = Company.objects.count()
     verified_companies = Company.objects.filter(Q(verification_status='VERIFIED') | Q(link_quality__in=['VERIFIED_DEEP_LINK', 'VERIFIED_HOMEPAGE'])).count()
     verified_websites = Company.objects.filter(website_url__isnull=False).exclude(website_url='').count()
     crawled_companies = Company.objects.filter(crawl_status='CRAWLED').count()
+    login_required_companies = Company.objects.filter(
+        Q(jobs_access='LOGIN_REQUIRED') | Q(csr_access='LOGIN_REQUIRED') | Q(contacts_access='LOGIN_REQUIRED')
+    ).count()
+    jobs_login_required_companies = Company.objects.filter(jobs_access='LOGIN_REQUIRED').count()
+    csr_login_required_companies = Company.objects.filter(csr_access='LOGIN_REQUIRED').count()
     
     # Strictly published & verified records only
-    csr_projects_count = CSRProject.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
+    from modules.admin_panel.verification import public_records
+    csr_projects_count = public_records(CSRProject.objects.filter(status='ACTIVE')).count()
     ngo_collabs = NGOCollaboration.objects.count()
-    from modules.website.views.job_api_views import apply_job_safety_filters
-    jobs_base_qs = apply_job_safety_filters(Job.objects.filter(
-        status='ACTIVE',
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).exclude(verification_status='LEGACY_UNVERIFIED'))
+    jobs_base_qs = public_jobs(Job.objects.all())
     jobs_tracked = jobs_base_qs.count()
     impact_jobs = jobs_base_qs.filter(IMPACT_ROLE_FILTER).count()
     companies_hiring = jobs_base_qs.values('company_id').distinct().count()
     verified_job_links = jobs_tracked
     live_verified_deep_links = Company.objects.filter(link_quality='VERIFIED_DEEP_LINK').count()
-    contacts_extracted = Contact.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
-    active_opportunities = CSROpportunity.objects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED', 'EXTRACTED'], status='OPEN').count()
+    contacts_extracted = Contact.objects.filter(verification_status__in=list(PUBLIC_VERIFICATION_STATUSES)).count()
+    active_opportunities = CSROpportunity.objects.filter(verification_status__in=list(PUBLIC_VERIFICATION_STATUSES), status='OPEN').count()
     prospects_count = Prospect.objects.count()
 
     # Telemetry and recency
@@ -179,7 +189,7 @@ def stats_view(request):
         last_fetch_display = latest_summary.crawl_started_at.strftime('%d %b %Y, %H:%M')
     else:
         latest_page = PageRecord.objects.order_by('-page_id').first()
-        last_fetch_display = (latest_page.last_crawled if latest_page and latest_page.last_crawled else 'Live Synchronized')
+        last_fetch_display = (latest_page.last_crawled if latest_page and latest_page.last_crawled else NOT_AVAILABLE_TEXT)
 
     # Statutory CSR expenditure vs. Operational Sustainability Outlay
     # Project 971 (Mahindra) recorded INR 16 million (₹1.60 Cr) invested on Waste Disposal/Treatment.
@@ -189,25 +199,17 @@ def stats_view(request):
     # Therefore, aggregate statutory CSR expenditure is explicitly unavailable from public web scrape
     # and returned as None (null) rather than substituting zero.
     total_csr_budget_cr = None
-    sustainability_outlay_cr = 1.60
-    sustainability_outlay_details = {
-        'amount_cr': 1.60,
-        'currency': 'INR',
-        'raw_amount': 'INR 16 million',
-        'entity': 'Mahindra & Mahindra Limited',
-        'project_id': 971,
-        'category': 'Waste Disposal / Treatment (Environmental Compliance)',
-        'reporting_period': 'FY 2023-24',
-        'classification': 'Operational Sustainability Outlay (Not statutory Section 135 CSR expenditure)',
-        'source_document': 'Addendum to Sustainability Report 2023-24 (Page 2)',
-        'source_url': 'https://www.mahindra.com/sites/default/files/2024-08/Addendum%20to%20Sustainability%20Report%202023-24_VF_0.pdf'
-    }
+    sustainability_outlay_cr = None
+    sustainability_outlay_details = None
 
     stats = {
         'total_companies': total_companies,
         'verified_companies': verified_companies,
         'verified_websites': verified_websites,
         'crawled_companies': crawled_companies,
+        'login_required_companies': login_required_companies,
+        'jobs_login_required_companies': jobs_login_required_companies,
+        'csr_login_required_companies': csr_login_required_companies,
         'csr_projects': csr_projects_count,
         'ngo_collaborations': ngo_collabs,
         'jobs_tracked': jobs_tracked,
@@ -217,6 +219,7 @@ def stats_view(request):
         'live_verified_deep_links': live_verified_deep_links,
         'contacts_extracted': contacts_extracted,
         'active_opportunities': active_opportunities,
+        'opportunities': active_opportunities,
         'prospects_count': prospects_count,
         'total_csr_budget_cr': total_csr_budget_cr,
         'statutory_csr_budget_cr': None,
@@ -226,29 +229,45 @@ def stats_view(request):
         'last_live_fetch': last_fetch_display,
         'crawl_status': 'LIVE'
     }
+
+    # Direct Job Link Quality Metrics
+    total_active_jobs = jobs_base_qs.count()
+    direct_jobs_count = jobs_base_qs.filter(link_quality='DIRECT').count()
+    fallback_jobs_count = jobs_base_qs.filter(link_quality='LISTING_FALLBACK').count()
+    stats['direct_jobs_count'] = direct_jobs_count
+    stats['fallback_jobs_count'] = fallback_jobs_count
+    stats['direct_link_percentage'] = round((direct_jobs_count / total_active_jobs) * 100, 2) if total_active_jobs > 0 else 0.0
+
+    cache.set('home_stats_cache_v1', stats, 60)
     return JsonResponse(stats)
 
 
 def coverage_report_api(request):
     """Returns coverage statistics and status for all processed companies."""
     scope = request.GET.get('scope', 'all')
-    if scope == '55':
-        from scripts.crawl_55_companies import TARGET_COMPANY_IDS
-        companies = Company.objects.filter(company_id__in=TARGET_COMPANY_IDS).order_by('company_id')
-    else:
-        companies = Company.objects.all().order_by('company_id')
+    companies = Company.objects.all().order_by('company_id')
     rows = []
     for c in companies:
         summary = CompanyCrawlSummary.objects.filter(company=c).first()
-        pub_jobs = c.jobs.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
-        pub_csr = c.csr_projects.filter(verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
+        active_jobs_qs = public_jobs(c.jobs.all())
+        pub_jobs = active_jobs_qs.count()
+        direct_jobs = active_jobs_qs.filter(link_quality='DIRECT').count()
+        c_direct_pct = round((direct_jobs / pub_jobs) * 100, 2) if pub_jobs > 0 else 0.0
+        pub_csr = c.csr_projects.filter(verification_status__in=list(PUBLIC_VERIFICATION_STATUSES), status='ACTIVE').count()
         status = summary.crawl_status if summary else (c.crawl_status or 'PENDING')
         ats = summary.ats_platform if (summary and summary.ats_platform) else (c.ats_platform or 'Direct/HTML')
         found = summary.jobs_discovered if summary else pub_jobs
-        last_v = summary.crawl_finished_at.strftime('%Y-%m-%d %H:%M') if (summary and summary.crawl_finished_at) else (c.last_crawled.strftime('%Y-%m-%d %H:%M') if c.last_crawled else 'Verified')
+        if summary and summary.crawl_finished_at:
+            last_v = summary.crawl_finished_at.strftime('%Y-%m-%d %H:%M') if hasattr(summary.crawl_finished_at, 'strftime') else str(summary.crawl_finished_at)[:16]
+        elif c.last_crawled:
+            last_v = c.last_crawled.strftime('%Y-%m-%d %H:%M') if hasattr(c.last_crawled, 'strftime') else str(c.last_crawled)[:16]
+        else:
+            last_v = NOT_AVAILABLE_TEXT
 
         reasons = []
-        if pub_jobs == 0:
+        if c.jobs_access == 'LOGIN_REQUIRED':
+            reasons.append(f'Jobs: {LOGIN_REQUIRED_TEXT}')
+        elif pub_jobs == 0:
             if status == 'PENDING':
                 reasons.append('Jobs: Crawl pending')
             elif status == 'NO_CAREER_URL':
@@ -264,7 +283,9 @@ def coverage_report_api(request):
             else:
                 reasons.append('Jobs: Verification pending')
 
-        if pub_csr == 0:
+        if c.csr_access == 'LOGIN_REQUIRED':
+            reasons.append(f'CSR: {LOGIN_REQUIRED_TEXT}')
+        elif pub_csr == 0:
             if status == 'CRAWLED':
                 reasons.append('CSR: Verified checked; Schedule VII in annual PDF')
             elif status in ['BLOCKED', 'FAILED', 'REDIRECT_BLOCKED']:
@@ -282,6 +303,7 @@ def coverage_report_api(request):
             'ats': ats,
             'jobs_found': found,
             'jobs_published': pub_jobs,
+            'direct_link_percentage': c_direct_pct,
             'csr_records': pub_csr,
             'crawl_status': status,
             'last_verified': last_v,

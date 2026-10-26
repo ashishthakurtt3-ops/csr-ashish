@@ -31,3 +31,49 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 *.swp
+
+# --- added by data-integrity fix ---
+.env
+.env.*
+!.env.example
+db.sqlite3*
+*.sqlite3
+*.sqlite3.*
+runserver*.log
+
+# AI Classifier Cache, Checkpoints and Reports
+.cache/
+.checkpoints/
+reports/
+data/db_backup_*.json
+tests/regression_fixtures/
+
+
+# Local secrets and database files
+.env
+.env.*
+!.env.example
+!.env.sample
+*.sql
+db.sqlite3*
+*.sqlite
+*.sqlite3*
+*.db
+data/db_backup_*.json
+
+# Local secrets and database backups
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+secrets.json
+credentials.json
+*.sql
+db.sqlite*
+*.sqlite
+*.sqlite3*
+*.db
+data/db_backup_*.json
+data/jobs_backup_*.json

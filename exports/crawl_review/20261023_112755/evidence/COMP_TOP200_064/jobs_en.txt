@@ -1,0 +1,8 @@
+URL: https://jobs.bosch.com/en?country=in&pages=1
+HTTP_STATUS: 200
+CATEGORY: JOBS
+RETRIEVED_AT: 2026-10-23T06:02:52.249311+00:00
+--------------------------------------------------------------------------------
+MAIN_TEXT_PREVIEW (first 2,000 characters):
+--------------------------------------------------------------------------------
+Careers at Bosch Skip to main content Close Select a language English - US Chinese Deutsch Dutch English - UK French Greek Hungarian Italian Indonesian Japanese Korean Portuguese Romanian Spanish - ES Spanish - MX Thai Turkish Vietnamese Websites worldwide Websites worldwide Bosch Career Portal Work LikeABosch We are looking forward to your application. If you apply for a job, you will be redirected to a different service provider, who is governed by a different privacy policy. Please find the data privacy statements below: Bosch data privacy statement eRecruiting SmartRecruiters data privacy statement Play YouTube We provide videos via YouTube. For these videos to be shown, you first have to give your consent. If you consent, data will be transferred to YouTube, cookies will be used, and the Google DoubleClick advertising network will be contacted. This may trigger further data processing operations. It cannot be ruled out that data will also be transferred to countries outside the European Economic Area. Badges Share this on: Invented for life Corporate information Legal notice Data protection notice Accessibility information Privacy settings © Robert Bosch GmbH 2026, all rights reserved

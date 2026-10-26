@@ -14,7 +14,7 @@ from modules.admin_panel.models import (
 def admin_dashboard_view(request):
     total_companies = Company.objects.count()
     verified_websites = Company.objects.filter(website_url__isnull=False).count()
-    total_jobs = Job.objects.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).count()
+    total_jobs = Job.objects.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).exclude(job_id__startswith='REQ').count()
     active_jobs = total_jobs
     csr_projects_count = CSRProject.objects.count()
     open_opps_count = CSROpportunity.objects.filter(status='OPEN').count()
@@ -27,10 +27,11 @@ def admin_dashboard_view(request):
     jobs_by_status = list(Job.objects.values('link_status').annotate(count=Count('job_row_id')).order_by('-count'))
     companies_by_status = list(Company.objects.values('crawl_status').annotate(count=Count('company_id')).order_by('-count'))
 
-    # Work Mode Distribution
-    remote_jobs = Job.objects.filter(work_mode='Remote').count()
-    hybrid_jobs = Job.objects.filter(work_mode='Hybrid').count()
-    onsite_jobs = Job.objects.filter(work_mode='On-site').count()
+    # Work Mode Distribution (Active Published Genuine Jobs)
+    active_jobs_qs = Job.objects.filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).exclude(job_id__startswith='REQ')
+    remote_jobs = active_jobs_qs.filter(work_mode='Remote').count()
+    hybrid_jobs = active_jobs_qs.filter(work_mode='Hybrid').count()
+    onsite_jobs = active_jobs_qs.filter(work_mode='On-site').count()
 
     # Top Sectors Breakdown
     top_sectors = list(
@@ -87,7 +88,7 @@ def admin_dashboard_view(request):
 
     recent_audits = AuditTrail.objects.order_by('-audit_id')[:8]
     recent_companies = Company.objects.order_by('-company_id')[:6]
-    recent_jobs = Job.objects.select_related('company').order_by('-job_row_id')[:6]
+    recent_jobs = Job.objects.select_related('company').filter(status='ACTIVE', verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']).exclude(job_id__startswith='REQ').order_by('-job_row_id')[:6]
     recent_opps = CSROpportunity.objects.select_related('company').order_by('-opp_id')[:5]
     recent_payments = Payment.objects.select_related('user').order_by('-created_at')[:6]
 

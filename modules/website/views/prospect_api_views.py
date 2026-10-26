@@ -6,10 +6,14 @@ from modules.admin_panel.models import Prospect, Company, Contact, OpportunitySc
 from modules.website.utils.pagination import paginate_queryset
 
 
+from modules.admin_panel.verification import (
+    PUBLIC_VERIFICATION_STATUSES, public_jobs, public_job_q, NOT_AVAILABLE_TEXT, LOGIN_REQUIRED_TEXT, LINK_OK,
+)
+
 def serialize_prospect_item(p: Prospect):
     c = p.company
     score_obj = getattr(c, 'score_record', None)
-    verified_contact = c.contacts.filter(verification_status__in=['VERIFIED', 'HTTP_VERIFIED', 'MANUAL_VERIFIED']).first()
+    verified_contact = c.contacts.filter(verification_status__in=list(PUBLIC_VERIFICATION_STATUSES)).first()
 
     return {
         'prospect_id': p.prospect_id,
@@ -72,7 +76,8 @@ def prospects_api(request, company_id=None):
         assigned = payload.get('assigned_to', 'NGO CSR Team')
         proposal = payload.get('target_proposal', 'General Partnership Brief')
         fdate = payload.get('follow_up_date', '')
-        match_score = float(payload.get('match_score', 85.0))
+        score_obj = getattr(comp, 'score_record', None)
+        match_score = float(payload['match_score']) if 'match_score' in payload and payload['match_score'] is not None else (float(score_obj.score) if score_obj else 0.0)
         now_ts = timezone.now().isoformat()
 
         prospect, created = Prospect.objects.update_or_create(
@@ -103,7 +108,7 @@ def prospects_api(request, company_id=None):
 
         return JsonResponse({'status': 'success', 'message': f'Company {cid} added to prospects pipeline.'})
 
-    elif request.method == 'PUT':
+    elif request.method in ('PUT', 'PATCH'):
         if not company_id:
             return JsonResponse({'detail': 'Missing company_id in URL'}, status=400)
 

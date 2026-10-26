@@ -1,0 +1,28 @@
+[2026-10-23 05:44:07] === ImpactBridge Crawl Review Sampler (DRY RUN) ===
+[2026-10-23 05:44:07] Timestamp: 20261023_111407
+[2026-10-23 05:44:07] Output directory: exports/crawl_review\20261023_111407
+[2026-10-23 05:44:07] Per-company timeout: 300s
+[2026-10-23 05:44:07] Initial DB row counts: {'Company': 201, 'Job': 6127, 'CSRProject': 1589, 'CSROpportunity': 1160, 'Contact': 41, 'AuditTrail': 8389}
+[2026-10-23 05:44:07] Loaded 201 records from homepage verification results map.
+[2026-10-23 05:44:07]  1. [COMP_TOP200_017] Adani Enterprises Limited - Reason: Explicitly requested via --company-ids: Eligible (homepage confirmed ALREADY_OK/CORRECT)
+[2026-10-23 05:44:07]  2. [COMP_TOP200_169] ACC Limited - Reason: Explicitly requested via --company-ids: Eligible (homepage confirmed ALREADY_OK/CORRECT)
+[2026-10-23 05:44:07] 
+--- [1/2] Company: COMP_TOP200_017 (Adani Enterprises Limited) ---
+[2026-10-23 05:44:07] Registered Website URL: https://www.adanienterprises.com/
+[2026-10-23 05:44:07] Collecting candidate links for https://www.adanienterprises.com/...
+[2026-10-23 05:44:26] Collector returned 50 candidates.
+[2026-10-23 05:44:40] Running strategy pipeline for https://careers.adani.com...
+[2026-10-23 05:45:09] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 05:45:13] Completed COMP_TOP200_017 in 65.71s with status PARTIAL: Partial extraction: Jobs portal not identified.
+[2026-10-23 05:45:13] 
+--- [2/2] Company: COMP_TOP200_169 (ACC Limited) ---
+[2026-10-23 05:45:13] Registered Website URL: https://www.acclimited.com/
+[2026-10-23 05:45:13] Collecting candidate links for https://www.acclimited.com/...
+[2026-10-23 05:45:36] Collector returned 37 candidates.
+[2026-10-23 05:45:50] Running strategy pipeline for https://careers.adani.com...
+[2026-10-23 05:46:00] Strategy pipeline extracted 0 jobs via 'none' (0.0% direct).
+[2026-10-23 05:46:01] Completed COMP_TOP200_169 in 48.05s with status PARTIAL: Partial extraction: Jobs, CSR portal not identified.
+[2026-10-23 05:46:02] 
+Final DB row counts: {'Company': 201, 'Job': 6127, 'CSRProject': 1589, 'CSROpportunity': 1160, 'Contact': 41, 'AuditTrail': 8389}
+[2026-10-23 05:46:03] Excel report saved to: exports/crawl_review\20261023_111407\crawl_review.xlsx
+[2026-10-23 05:46:03] Crawl review completed successfully.

@@ -1,0 +1,16 @@
+﻿company_id,company_name,website_url,crawl_result,reason,time_taken_seconds,pages_found,jobs_found,csr_items_found,contacts_found,ai_calls,cache_hits
+COMP_TOP200_017,Adani Enterprises Limited,https://www.adanienterprises.com/,PARTIAL,Partial extraction: Jobs portal not identified.,40.8,2,0,1,0,13,0
+COMP_TOP200_169,ACC Limited,https://www.acclimited.com/,PARTIAL,"Partial extraction: Jobs, CSR portal not identified.",47.69,2,0,0,0,12,0
+COMP_TOP200_160,3i Infotech Limited,https://www.3i-infotech.com/,PARTIAL,"Partial extraction: Jobs, CSR portal not identified.",71.36,1,0,0,3,6,0
+COMP_TOP200_199,Aarti Industries Limited,https://www.aarti-industries.com/,PARTIAL,Partial extraction: CSR portal not identified.,24.72,3,26,0,0,13,0
+COMP_TOP200_148,Ashok Leyland Limited,https://www.ashokleyland.com/,OK,Both Jobs and CSR intelligence successfully identified and extracted.,79.35,2,23,2,0,7,0
+COMP_TOP200_064,Bosch Limited,https://www.bosch.in/,PARTIAL,Partial extraction: CSR portal not identified.,43.48,1,50,0,0,0,0
+COMP_TOP200_073,Hero MotoCorp Limited,https://www.heromotocorp.com/en-in.html,PARTIAL,Partial extraction: CSR portal not identified.,60.92,3,50,0,0,0,0
+COMP_TOP200_095,One 97 Communications Limited,https://paytm.com/,PARTIAL,"Partial extraction: Jobs, CSR portal not identified.",34.95,2,0,0,0,0,0
+COMP_TOP200_003,ICICI Bank Limited,https://www.icicibank.com/,PARTIAL,Partial extraction: CSR portal not identified.,91.14,1,1,0,2,0,0
+COMP_TOP200_005,Tata Consultancy Services Limited,https://www.tcs.com/,PARTIAL,Partial extraction: CSR portal not identified.,54.31,1,29,0,0,0,0
+COMP_TOP200_015,ITC Limited,https://itcportal.com/,OK,Both Jobs and CSR intelligence successfully identified and extracted.,22.85,3,6,2,1,0,0
+COMP_TOP200_009,Hindustan Unilever Limited,https://www.hul.co.in/,PARTIAL,Partial extraction: Jobs portal not identified.,26.2,2,0,7,0,0,0
+COMP_TOP200_081,Lupin Limited,https://www.lupin.com/,PARTIAL,"Partial extraction: Jobs, CSR portal not identified.",59.77,1,0,0,3,0,0
+COMP_TOP200_184,AU Small Finance Bank Limited,https://www.au.bank.in/,OK,Both Jobs and CSR intelligence successfully identified and extracted.,43.19,2,9,1,1,0,0
+COMP_TOP200_154,20 Microns Limited,https://www.20microns.com/,PARTIAL,Partial extraction: Jobs portal not identified.,86.9,3,0,5,3,0,0
