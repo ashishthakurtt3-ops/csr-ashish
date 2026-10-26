@@ -48,3 +48,11 @@ reports/
 data/db_backup_*.json
 tests/regression_fixtures/
 
+
+# Local databases and backups
+/csr_intelligence_django.sql
+/csr_intelligence_legacy.sql
+/data/db_backup_*.json
+/db.sqlite*
+*.sqlite*
+*.db
