@@ -1,0 +1,51 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Upload Compliance &amp; Proposal Document{% endblock %}
+{% block page_title %}Upload Document to Repository{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
+        {% csrf_token %}
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Document Title *</label>
+            <input type="text" name="title" required placeholder="e.g. FY2025 CSR Annual Compliance Audit Report" style="width:100%; box-sizing:border-box; height:42px; padding:0 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Document Type *</label>
+                <select name="document_type" required style="width:100%; box-sizing:border-box; height:42px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+                    {% for t_code, t_label in doc_types %}
+                    <option value="{{ t_code }}">{{ t_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Associated Corporate Partner</label>
+                <select name="company_id" style="width:100%; box-sizing:border-box; height:42px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+                    <option value="">None / General Documentation</option>
+                    {% for comp in companies %}
+                    <option value="{{ comp.company_id }}">{{ comp.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Select File (PDF, DOCX, XLSX, Images) *</label>
+            <input type="file" name="file" required style="width:100%; box-sizing:border-box; padding:10px 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:13.5px;">
+        </div>
+
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Administrative Notes</label>
+            <textarea name="notes" rows="3" placeholder="Context, purpose of upload, or specific audit instructions..." style="width:100%; box-sizing:border-box; padding:10px 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:13.5px; font-family:inherit;"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px; border-top:1px solid var(--border-color); padding-top:18px;">
+            <a href="{% url 'admin_documents:list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" class="btn-admin btn-admin-primary">Upload Document</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

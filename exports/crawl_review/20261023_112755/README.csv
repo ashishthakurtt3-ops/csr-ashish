@@ -1,0 +1,17 @@
+﻿ImpactBridge™ Crawl Review Sampler - Master Verification Workbook,
+Crawl Date & Time,2026-10-23 06:11:11 UTC
+Page Classifier,TwoStagePageClassifier (OpenRouter Free / Deterministic Fallback + Evidence Gate)
+Execution Mode,DRY RUN (Zero database mutations confirmed)
+,
+Sheet Guide & Instructions for Human Reviewers:,
+1. Companies,"Overview of each crawled company, duration, crawl result (OK/PARTIAL/BLOCKED/FAILED), extracted counts."
+2. Pages,"Identified corporate portals for Jobs, CSR, Sustainability, Reports with verification gate decisions."
+3. Jobs,"Extracted job vacancies (capped at 50/company) with titles, departments, locations, and ATS strategies."
+4. CSR,"CSR projects, statutory Section 135 disclosures, and grant RFPs (capped at 20/company) with budgets & themes."
+5. Contacts,Verified corporate mailto: and tel: contact points (no guessed personal names or addresses).
+6. Warnings,"Suspicious crawler observations: generic listing fallbacks, unresolved shared ATS tenants, budget year anomalies."
+,
+"How to fill the CHECK columns (Pages, Jobs, CSR, Contacts):",
+- CHECK,"Select from dropdown: 'Correct', 'Wrong', 'Missing', or 'Not sure'."
+- CORRECT_VALUE,"If 'Wrong' or 'Missing', enter the true official URL, title, or statutory value."
+- NOTES,Add any reviewer comments or context for subsequent publishing approval.

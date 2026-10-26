@@ -1,0 +1,455 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Data Download Hub (All Sections){% endblock %}
+{% block page_title %}📥 Data Download Hub &amp; Master Intelligence Export{% endblock %}
+
+{% block extra_css %}
+<style>
+    .download-hero-card {
+        background: linear-gradient(135deg, #0B1F33 0%, #0F766E 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        box-shadow: 0 10px 25px -5px rgba(11, 31, 51, 0.15);
+        position: relative;
+        overflow: hidden;
+        color: #FFFFFF;
+    }
+    .download-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .download-stat-item {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: var(--shadow-card);
+    }
+    .download-stat-icon {
+        font-size: 26px;
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 118, 110, 0.1);
+        border: 1px solid rgba(15, 118, 110, 0.2);
+    }
+    .download-stat-val {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+    .download-stat-lbl {
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .quick-master-banner {
+        background: rgba(15, 118, 110, 0.08);
+        border: 1px solid rgba(15, 118, 110, 0.25);
+        border-radius: 12px;
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .search-filter-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        background: var(--bg-surface);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-card);
+    }
+    .section-search-input {
+        flex: 1;
+        min-width: 260px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--text-primary);
+        font-size: 13.5px;
+        outline: none;
+        transition: border 0.15s ease;
+    }
+    .section-search-input:focus {
+        border-color: var(--primary-brand);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    }
+    .section-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 20px;
+    }
+    .download-section-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-card);
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .download-section-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary-brand);
+        box-shadow: var(--shadow-card-hover);
+    }
+    .card-top-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .card-icon-badge {
+        font-size: 24px;
+        background: var(--bg-surface-subtle);
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-subtle);
+    }
+    .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 2px 0;
+    }
+    .card-table-meta {
+        font-size: 11px;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--primary-brand);
+        font-weight: 600;
+    }
+    .card-desc {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 16px;
+        min-height: 48px;
+    }
+    .card-fields-box {
+        background: var(--bg-surface-subtle);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 16px;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+    .fields-toggle-btn {
+        background: none;
+        border: none;
+        color: var(--primary-brand);
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .fields-list-collapsible {
+        display: none;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--border-color);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10.5px;
+        color: var(--text-secondary);
+        word-break: break-word;
+        line-height: 1.6;
+    }
+    .card-actions-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: auto;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .btn-download-primary {
+        background: var(--admin-primary);
+        color: #fff;
+        border: 1px solid transparent;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s ease;
+        flex: 1;
+        justify-content: center;
+    }
+    .btn-download-primary:hover {
+        background: var(--admin-primary-hover);
+        color: #fff;
+    }
+    .btn-download-json {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s ease;
+        flex: 1;
+        justify-content: center;
+    }
+    .btn-download-json:hover {
+        background: rgba(16, 185, 129, 0.25);
+        color: #34d399;
+    }
+    .btn-download-aux {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--admin-border);
+        color: var(--admin-muted);
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-download-aux:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO STATS STRIP -->
+<div class="download-hero-card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+        <div>
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:4px 12px; background:rgba(56, 189, 248, 0.15); border:1px solid rgba(56, 189, 248, 0.35); border-radius:999px; font-size:11.5px; font-weight:700; color:var(--admin-accent); margin-bottom:10px;">
+                <span>⚡</span> FULL PLATFORM DATA EXTRACTION SUITE
+            </div>
+            <h2 style="font-size:24px; font-weight:800; color:#fff; margin:0 0 6px 0;">
+                Enterprise Data Download &amp; Section Export Hub
+            </h2>
+            <p style="font-size:13.5px; color:var(--admin-muted); margin:0; max-width:760px; line-height:1.5;">
+                Extract verified intelligence datasets from every section of the platform. Supports high-fidelity CSV spreadsheets, structured JSON API payloads, and single-click master archives with ACID database consistency.
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'admin_portal:download_all_archive' %}" class="btn-admin btn-admin-primary" style="padding:12px 20px; font-size:14px; font-weight:800; box-shadow:0 6px 20px rgba(2, 132, 199, 0.4);">
+                <span>📦</span> <span>Download Full Platform Archive (.ZIP)</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- STATS COUNTERS -->
+    <div class="download-stats-grid">
+        <div class="download-stat-item">
+            <div class="download-stat-icon">📑</div>
+            <div>
+                <div class="download-stat-val">{{ total_sections }}</div>
+                <div class="download-stat-lbl">Sections Available</div>
+            </div>
+        </div>
+        <div class="download-stat-item">
+            <div class="download-stat-icon" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3); color:#34d399;">🔢</div>
+            <div>
+                <div class="download-stat-val text-emerald" style="color:#34d399;">{{ total_records }}</div>
+                <div class="download-stat-lbl">Total Live Records</div>
+            </div>
+        </div>
+        <div class="download-stat-item">
+            <div class="download-stat-icon" style="background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); color:#fbbf24;">📊</div>
+            <div>
+                <div class="download-stat-val" style="color:#fbbf24;">CSV &bull; JSON &bull; ZIP</div>
+                <div class="download-stat-lbl">Export Formats</div>
+            </div>
+        </div>
+        <div class="download-stat-item">
+            <div class="download-stat-icon" style="background:rgba(168,85,247,0.1); border-color:rgba(168,85,247,0.3); color:#c084fc;">🕒</div>
+            <div>
+                <div class="download-stat-val" style="font-size:14px; font-weight:700; color:#c084fc; line-height:1.2;">Live Live Synchronized</div>
+                <div class="download-stat-lbl">Extraction Timestamp</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK MASTER DOWNLOADS BANNER -->
+<div class="quick-master-banner">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:28px;">⚡</span>
+        <div>
+            <div style="font-size:14.5px; font-weight:800; color:#fff;">Priority Direct Downloads</div>
+            <div style="font-size:12px; color:var(--admin-muted);">Frequently requested executive datasets for immediate offline analysis.</div>
+        </div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="{% url 'admin_portal:data_export' 'companies' %}?format=csv" class="btn-admin btn-admin-secondary" style="font-size:12.5px;">
+            <span>🏢</span> Top 200 Companies (CSV)
+        </a>
+        <a href="{% url 'admin_portal:data_export' 'jobs' %}?format=csv" class="btn-admin btn-admin-secondary" style="font-size:12.5px;">
+            <span>💼</span> All 3,000+ Jobs (CSV)
+        </a>
+        <a href="{% url 'admin_portal:data_export' 'projects' %}?format=csv" class="btn-admin btn-admin-secondary" style="font-size:12.5px;">
+            <span>🌱</span> CSR Projects (CSV)
+        </a>
+        <a href="{% url 'admin_portal:data_export' 'opportunities' %}?format=csv" class="btn-admin btn-admin-secondary" style="font-size:12.5px;">
+            <span>📢</span> CSR Grants (CSV)
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER TOOLBAR -->
+<div class="search-filter-controls">
+    <input type="text" id="sectionSearch" class="section-search-input" placeholder="🔍 Search sections by name, model, table or keywords (e.g. jobs, companies, invoices, contacts)..." onkeyup="filterSectionCards()">
+    <div style="display:flex; gap:8px;">
+        <button class="btn-admin btn-admin-secondary" onclick="resetSectionFilter()">Show All ({{ total_sections }})</button>
+        <button class="btn-admin btn-admin-secondary" onclick="toggleAllFieldPreviews()">Toggle All Fields Preview</button>
+    </div>
+</div>
+
+<!-- SECTION DOWNLOAD CARDS GRID -->
+<div class="section-cards-grid" id="sectionsContainer">
+    {% for s in sections %}
+    <div class="download-section-card" data-title="{{ s.title|lower }}" data-key="{{ s.key|lower }}" data-table="{{ s.table_name|lower }}" data-desc="{{ s.desc|lower }}">
+        <div>
+            <div class="card-top-row">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">{{ s.icon }}</div>
+                    <div>
+                        <h3 class="card-title">{{ s.title }}</h3>
+                        <div class="card-table-meta">{{ s.model_name }} &bull; {{ s.table_name }}</div>
+                    </div>
+                </div>
+                <span class="badge-status badge-active" style="font-size:11px;">
+                    {{ s.count }} Records
+                </span>
+            </div>
+
+            <p class="card-desc">{{ s.desc }}</p>
+
+            <div class="card-fields-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><strong>{{ s.fields_count }} Columns</strong> in export</span>
+                    <button type="button" class="fields-toggle-btn" onclick="toggleFieldList('fields_{{ s.key }}')">
+                        <span>Preview Fields</span> <span>▾</span>
+                    </button>
+                </div>
+                <div id="fields_{{ s.key }}" class="fields-list-collapsible">
+                    {{ s.fields|join:", " }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-actions-row">
+            <a href="{{ s.csv_url }}" class="btn-download-primary" title="Download {{ s.title }} as CSV spreadsheet">
+                <span>📊</span> <span>Download CSV</span>
+            </a>
+            <a href="{{ s.json_url }}" class="btn-download-json" title="Download {{ s.title }} as JSON array">
+                <span>📦</span> <span>JSON</span>
+            </a>
+            <a href="{{ s.template_csv_url }}" class="btn-download-aux" title="Download blank CSV schema template">
+                <span>📋</span>
+            </a>
+            <a href="{{ s.quick_sync_url }}" class="btn-download-aux" onclick="return confirm('Sync {{ s.title }} from master backup?');" title="1-Click restore/sync from master backup">
+                <span>⚡</span>
+            </a>
+            <button type="button" class="btn-download-aux" onclick="openImportModal('{{ s.key }}', '{{ s.title }}');" title="Import data into {{ s.title }}">
+                <span>📤</span>
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- TECHNICAL COMPLIANCE & EXPORT NOTES -->
+<div class="admin-card" style="margin-top:32px; padding:24px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <span style="font-size:20px;">🛡️</span>
+        <h4 style="font-size:15px; font-weight:700; color:#fff; margin:0;">Export Integrity, Compliance &amp; Specifications</h4>
+    </div>
+    <ul style="font-size:13px; color:var(--admin-muted); line-height:1.7; margin:0; padding-left:20px;">
+        <li><strong>Character Encoding:</strong> All CSV and JSON exports are delivered in UTF-8 with RFC 4180 standard quotation and field delimiters.</li>
+        <li><strong>Foreign Key Resolution:</strong> Related company identifiers (<code style="color:var(--admin-accent);">company_id</code>) and human-readable names (<code style="color:var(--admin-accent);">company_name</code>) are dynamically joined for seamless offline reporting.</li>
+        <li><strong>Audit Logging:</strong> All data download events are logged to the immutable <code style="color:var(--admin-accent);">AuditTrail</code> table with timestamp and requesting administrative user credentials.</li>
+        <li><strong>ACID Consistency:</strong> Exports read directly from the primary MySQL application database (<code style="color:var(--admin-accent);">csr_intelligence_django</code>) with read-committed isolation.</li>
+    </ul>
+</div>
+
+<script>
+    function filterSectionCards() {
+        const query = (document.getElementById('sectionSearch').value || '').trim().toLowerCase();
+        const cards = document.querySelectorAll('.download-section-card');
+        
+        cards.forEach(card => {
+            const title = card.getAttribute('data-title') || '';
+            const key = card.getAttribute('data-key') || '';
+            const table = card.getAttribute('data-table') || '';
+            const desc = card.getAttribute('data-desc') || '';
+            
+            const match = !query || title.includes(query) || key.includes(query) || table.includes(query) || desc.includes(query);
+            card.style.display = match ? 'flex' : 'none';
+        });
+    }
+
+    function resetSectionFilter() {
+        const input = document.getElementById('sectionSearch');
+        if (input) input.value = '';
+        filterSectionCards();
+    }
+
+    function toggleFieldList(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+    }
+
+    let allPreviewsOpen = false;
+    function toggleAllFieldPreviews() {
+        allPreviewsOpen = !allPreviewsOpen;
+        const lists = document.querySelectorAll('.fields-list-collapsible');
+        lists.forEach(el => {
+            el.style.display = allPreviewsOpen ? 'block' : 'none';
+        });
+    }
+</script>
+{% endblock %}

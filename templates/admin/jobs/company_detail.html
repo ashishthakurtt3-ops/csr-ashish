@@ -1,0 +1,286 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ company.company_name }} — Company Jobs Intelligence{% endblock %}
+{% block page_title %}{{ company.company_name }} — Careers &amp; Job Dashboard{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs & Return Bar -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary);">
+        <a href="{% url 'admin_jobs:find' %}" style="color:var(--text-secondary); text-decoration:none;">Jobs</a>
+        <span>&rsaquo;</span>
+        <a href="{% url 'admin_jobs:companies' %}" style="color:var(--text-secondary); text-decoration:none;">Company Jobs</a>
+        <span>&rsaquo;</span>
+        <strong style="color:var(--text-primary);">{{ company.company_name }}</strong>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <a href="{% url 'admin_jobs:companies' %}" class="btn-admin btn-admin-secondary">
+            &larr; Back to Company Directory
+        </a>
+        <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary">
+            🏢 View CSR &amp; Company Dossier
+        </a>
+    </div>
+</div>
+
+<!-- COMPANY OVERVIEW CARD -->
+<div class="company-overview-banner">
+    <div style="display:flex; align-items:center; gap:18px;">
+        <div class="company-logo-avatar">
+            {{ company.company_name|make_list|first|upper }}
+        </div>
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
+                <h2 style="font-size:22px; font-weight:800; color:var(--text-primary); margin:0;">
+                    {{ company.company_name }}
+                </h2>
+                {% if company.nse_symbol %}
+                <span class="badge-status badge-info" style="font-family:var(--font-mono);">
+                    NSE: {{ company.nse_symbol }}
+                </span>
+                {% endif %}
+                {% if verified_jobs_count > 0 %}
+                <span class="badge-status badge-active">
+                    {{ verified_jobs_count }} Verified Active Openings
+                </span>
+                {% else %}
+                <span class="badge-status badge-pending" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">
+                    0 Verified Openings
+                </span>
+                {% endif %}
+            </div>
+            <div style="font-size:13.5px; color:var(--text-secondary); display:flex; gap:16px; flex-wrap:wrap;">
+                <span>🏢 <strong>Industry:</strong> {{ company.sector|default:"Diversified" }}</span>
+                <span>📍 <strong>Headquarters:</strong> {{ company.headquarters|default:"India" }}</span>
+                {% if company.cin %}
+                <span style="font-family:var(--font-mono);">CIN: {{ company.cin }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Portals Direct Links -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        {% if company.careers_url %}
+        <a href="{{ company.careers_url }}" target="_blank" class="btn-admin btn-admin-primary" style="font-size:12.5px;">
+            <span>Official Careers Portal ↗</span>
+        </a>
+        {% endif %}
+        {% if company.website_url %}
+        <a href="{{ company.website_url }}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:12.5px;">
+            <span>Corporate Website ↗</span>
+        </a>
+        {% endif %}
+        {% if company.csr_portal_url %}
+        <a href="{{ company.csr_portal_url }}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:12.5px;">
+            <span>CSR Portal ↗</span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JOBS INVENTORY HEADER & FILTERING -->
+<div class="admin-card" style="padding:22px; margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid var(--border-color); padding-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h3 style="margin:0; font-size:17px; font-weight:700; color:var(--text-primary);">
+                Verified Active Openings ({{ verified_jobs_count }})
+            </h3>
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                {% if verified_jobs_count > 0 %}
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ filtered_count }} authentic openings
+                {% else %}
+                No live vacancies currently indexed on employer career site
+                {% endif %}
+            </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{% url 'admin_jobs:company_jobs' company.company_id %}"
+               class="btn-admin btn-admin-primary"
+               style="padding:6px 12px; font-size:12px;">
+                Verified Live Openings ({{ verified_jobs_count }})
+            </a>
+            {% if company.careers_url %}
+            <a href="{{ company.careers_url }}" target="_blank"
+               class="btn-admin btn-admin-secondary"
+               style="padding:6px 12px; font-size:12px;">
+                Visit Official Careers Site ↗
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search & Facets Filter Form -->
+    <form method="GET" action="{% url 'admin_jobs:company_jobs' company.company_id %}">
+        <div style="display:grid; grid-template-columns: 2fr repeat(auto-fit, minmax(140px, 1fr)) auto; gap:10px; align-items:center;">
+            <div>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search company jobs..." class="search-input" style="height:40px;">
+            </div>
+
+            <div>
+                <select name="location" class="select-filter" style="width:100%; height:40px;">
+                    <option value="all">Location</option>
+                    {% for loc in company_locations %}
+                    <option value="{{ loc }}" {% if location == loc %}selected{% endif %}>{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <select name="experience" class="select-filter" style="width:100%; height:40px;">
+                    <option value="all">Experience</option>
+                    <option value="entry" {% if experience == "entry" %}selected{% endif %}>Entry (0-2 Yrs)</option>
+                    <option value="mid" {% if experience == "mid" %}selected{% endif %}>Mid (3-5 Yrs)</option>
+                    <option value="senior" {% if experience == "senior" %}selected{% endif %}>Senior (6-9 Yrs)</option>
+                    <option value="lead" {% if experience == "lead" %}selected{% endif %}>Lead (10+ Yrs)</option>
+                </select>
+            </div>
+
+            <div>
+                <select name="work_mode" class="select-filter" style="width:100%; height:40px;">
+                    <option value="all">Work Mode</option>
+                    <option value="Hybrid" {% if work_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                    <option value="On-site" {% if work_mode == "On-site" %}selected{% endif %}>On-site</option>
+                    <option value="Remote" {% if work_mode == "Remote" %}selected{% endif %}>Remote</option>
+                </select>
+            </div>
+
+            <div>
+                <select name="department" class="select-filter" style="width:100%; height:40px;">
+                    <option value="all">Department</option>
+                    {% for d in company_depts %}
+                    <option value="{{ d }}" {% if department == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <select name="sort" class="select-filter" style="width:100%; height:40px;">
+                    <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+                    <option value="title" {% if sort == "title" %}selected{% endif %}>Title</option>
+                    <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:6px;">
+                <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Apply</button>
+                {% if q or location or experience or work_mode or department %}
+                <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-secondary" style="height:40px; padding:0 10px;">Reset</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- JOBS LIST (List/Cards View as specified) -->
+<div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+    {% for j in page_obj %}
+    <div class="admin-card" style="padding:18px 22px; margin-bottom:0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div style="flex:1; min-width:280px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <h4 style="font-size:16px; font-weight:700; margin:0;">
+                    <a href="{% url 'admin_jobs:detail' j.job_row_id %}" style="color:var(--text-primary); text-decoration:none;">{{ j.job_title }}</a>
+                </h4>
+                <span class="badge-status {% if j.status == 'ACTIVE' %}badge-active{% else %}badge-pending{% endif %}">
+                    {{ j.status|default:"ACTIVE" }}
+                </span>
+            </div>
+
+            <div style="font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <strong style="color:var(--text-primary);">{{ company.company_name }}</strong>
+                <span>&bull;</span>
+                <span>📍 {{ j.location|default:"India" }}</span>
+                <span>&bull;</span>
+                <span>💼 {{ j.work_mode|default:"Full-time" }}</span>
+                {% if j.experience %}
+                <span>&bull;</span>
+                <span>⏱ {{ j.experience }}</span>
+                {% endif %}
+            </div>
+
+            <div style="display:flex; align-items:center; gap:12px; font-size:12px; color:var(--text-muted); flex-wrap:wrap;">
+                <span>Posted: {{ j.posted_date|default:"Recent" }}</span>
+                {% if j.department %}
+                <span>&bull; Dept: {{ j.department }}</span>
+                {% endif %}
+                {% if j.skills %}
+                <span>&bull; Skills: <span style="color:var(--text-secondary);">{{ j.skills|truncatechars:50 }}</span></span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+            <a href="{% url 'admin_jobs:detail' j.job_row_id %}" class="btn-admin btn-admin-primary" style="padding:7px 16px;">
+                <span>View Job</span>
+            </a>
+            {% if j.application_url %}
+            <a href="{{ j.application_url }}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:7px 12px;" title="Official Application Portal">
+                <span>Apply ↗</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'admin_jobs:edit' j.job_row_id %}" class="btn-admin btn-admin-secondary" style="padding:7px 10px;" title="Edit Job Record">
+                <span>Edit</span>
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        {% if not show_all and verified_jobs_count == 0 %}
+            <div class="empty-state-icon">🛡️</div>
+            <h3 class="empty-state-title">0 Live Verified Openings Indexed</h3>
+            <p class="empty-state-text" style="max-width:620px; margin:0 auto 16px; line-height:1.6;">
+                The platform strictly enforces a <strong>Zero-Fabrication Real-Data Mandate</strong>. {{ company.company_name }}'s official career portal currently has zero verified live job postings indexed.
+                {% if legacy_jobs_count > 0 %}
+                <br><span style="color:var(--text-muted); font-size:12px;">({{ legacy_jobs_count }} legacy synthetic mock records were quarantined into the audit archive to prevent displaying artificial data).</span>
+                {% endif %}
+            </p>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                {% if company.careers_url %}
+                <a href="{{ company.careers_url }}" target="_blank" class="btn-primary">Visit Official Careers Portal ↗</a>
+                {% endif %}
+                {% if legacy_jobs_count > 0 %}
+                <a href="{% url 'admin_jobs:company_jobs' company.company_id %}?show_all=true" class="btn-secondary">
+                    Inspect Quarantined Seed Records ({{ legacy_jobs_count }}) &rarr;
+                </a>
+                {% endif %}
+            </div>
+        {% elif q or location and location != 'all' or work_mode and work_mode != 'all' or experience and experience != 'all' or department and department != 'all' %}
+            <div class="empty-state-icon">📋</div>
+            <h3 class="empty-state-title">No Openings Match Selected Filters</h3>
+            <p class="empty-state-text">No job openings found matching your criteria for {{ company.company_name }}. Try resetting your search filters.</p>
+            <a href="{% url 'admin_jobs:company_jobs' company.company_id %}{% if show_all %}?show_all=true{% endif %}" class="btn-primary">Reset Filters</a>
+        {% elif company.crawl_status in 'FAILED BLOCKED REDIRECT_BLOCKED' %}
+            <div class="empty-state-icon">⚠️</div>
+            <h3 class="empty-state-title">Career Source Verification Pending / Blocked</h3>
+            <p class="empty-state-text">{{ company.company_name }}'s official career source returned an access restriction or connection timeout. Live jobs could not be automatically extracted.</p>
+            {% if company.careers_url %}
+            <a href="{{ company.careers_url }}" target="_blank" class="btn-primary" style="margin-top:10px;">Open Careers Portal Manually ↗</a>
+            {% endif %}
+        {% else %}
+            <div class="empty-state-icon">📋</div>
+            <h3 class="empty-state-title">No Job Openings Available</h3>
+            <p class="empty-state-text">No job openings are currently listed for {{ company.company_name }}.</p>
+            {% if company.careers_url %}
+            <a href="{{ company.careers_url }}" target="_blank" class="btn-primary" style="margin-top:10px;">Visit Official Careers Portal ↗</a>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="pagination-bar">
+    <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ filtered_count }} total jobs for {{ company.company_name }})</div>
+    <div class="pagination-links">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}{% if show_all %}&show_all=true{% endif %}" class="page-link-btn">&larr; Prev</a>
+        {% endif %}
+        <span class="page-link-btn active">{{ page_obj.number }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&location={{ location }}&work_mode={{ work_mode }}&experience={{ experience }}&department={{ department }}&sort={{ sort }}{% if show_all %}&show_all=true{% endif %}" class="page-link-btn">Next &rarr;</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Enterprise Document Repository{% endblock %}
+{% block page_title %}CSR Document Verification &amp; Proposals ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:600px;">
+            <select name="type" style="padding:8px 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
+                <option value="all">All Document Types</option>
+                {% for t_code, t_label in doc_types %}
+                <option value="{{ t_code }}" {% if selected_type == t_code %}selected{% endif %}>{{ t_label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" style="padding:8px 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
+                <option value="all">All Status</option>
+                {% for s_code, s_label in status_choices %}
+                <option value="{{ s_code }}" {% if selected_status == s_code %}selected{% endif %}>{{ s_label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+        </form>
+
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="documents" title="Documents" %}
+            <a href="{% url 'admin_documents:upload' %}" class="btn-admin btn-admin-primary">
+                <span>+</span> <span>Upload Document</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Document Title</th>
+                    <th>Type</th>
+                    <th>Company</th>
+                    <th>Uploaded By</th>
+                    <th>Format &amp; Size</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:var(--text-primary);">{{ doc.title }}</strong>
+                        {% if doc.notes %}
+                        <div style="font-size:11px; color:var(--text-secondary);">{{ doc.notes }}</div>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge-status badge-pending">{{ doc.get_document_type_display }}</span></td>
+                    <td>
+                        {% if doc.company %}
+                        <a href="{% url 'admin_companies:detail' doc.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ doc.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ doc.uploaded_by.username|default:"System" }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
+                        {{ doc.file_format|upper }} &bull; {{ doc.file_size|filesizeformat }}
+                    </td>
+                    <td>
+                        {% if doc.status == "VERIFIED" %}
+                        <span class="badge-status badge-active">Verified</span>
+                        {% elif doc.status == "PENDING" %}
+                        <span class="badge-status badge-pending">Pending</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ doc.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right;">
+                        <div style="display:flex; justify-content:flex-end; gap:6px;">
+                            {% if doc.file %}
+                            <a href="{{ doc.file.url }}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11px;">View</a>
+                            {% endif %}
+                            {% if doc.status == "PENDING" %}
+                            <form method="POST" action="{% url 'admin_documents:action' doc.document_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="VERIFY">
+                                <button type="submit" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11px;">Approve</button>
+                            </form>
+                            <form method="POST" action="{% url 'admin_documents:action' doc.document_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="REJECT">
+                                <button type="submit" class="btn-admin btn-admin-danger" style="padding:4px 8px; font-size:11px;">Reject</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No documents in repository.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&type={{ selected_type }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&type={{ selected_type }}&status={{ selected_status }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

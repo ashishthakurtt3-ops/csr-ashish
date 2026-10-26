@@ -1,0 +1,92 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}CSR Projects Portfolio{% endblock %}
+{% block page_title %}CSR Initiatives &amp; Grant Projects ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:850px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search project name, company, sector, state..." class="search-input" style="flex:2; min-width:200px; height:40px;">
+            <input type="text" name="category" value="{{ selected_category }}" placeholder="Category (e.g. Education)..." class="search-input" style="flex:1; min-width:140px; height:40px;">
+            <input type="text" name="state" value="{{ selected_state }}" placeholder="State (e.g. Maharashtra)..." class="search-input" style="flex:1; min-width:140px; height:40px;">
+            <select name="verification" class="select-filter" style="height:40px;">
+                <option value="PUBLISHED" {% if selected_verification == "PUBLISHED" %}selected{% endif %}>Published &amp; Verified</option>
+                <option value="all" {% if selected_verification == "all" %}selected{% endif %}>All Records</option>
+                <option value="REJECTED" {% if selected_verification == "REJECTED" %}selected{% endif %}>Quarantined / Rejected</option>
+            </select>
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
+            {% if q or selected_category or selected_state or selected_verification != "PUBLISHED" %}
+            <a href="{% url 'admin_opportunities:projects' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+            {% endif %}
+        </form>
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="projects" title="CSR Projects" %}
+            <a href="{% url 'admin_opportunities:list' %}" class="btn-admin btn-admin-secondary">View Opportunities</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Company</th>
+                    <th>Category</th>
+                    <th>State</th>
+                    <th>Budget</th>
+                    <th>Confidence</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:var(--text-primary);">{{ p.project_name }}</strong>
+                        {% if p.description %}
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.company %}
+                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ p.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><span class="badge-status badge-pending">{{ p.category|default:"Not Available" }}</span></td>
+                    <td>{% if p.state %}{{ p.state }}{% else %}<span style="color:var(--text-muted); font-size:12px;">Not Available</span>{% endif %}</td>
+                    <td style="font-family:var(--font-mono); font-weight:700;">{% if p.budget %}&#8377; {{ p.budget }}{% else %}<span style="color:var(--text-muted); font-size:12px; font-weight:normal;">Not Available</span>{% endif %}</td>
+                    <td><span class="badge-status badge-active">{{ p.confidence|floatformat:2 }}</span></td>
+                    <td>
+                        {% if p.verification_status == "PUBLISHED" or p.verification_status == "SOURCE_CONFIRMED" %}
+                        <span class="badge-status badge-active">Verified</span>
+                        {% elif p.verification_status == "REJECTED" %}
+                        <span class="badge-status badge-rejected">Rejected</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">{{ p.verification_status|default:"Pending" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">No CSR projects found matching query.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total projects)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&category={{ selected_category }}&state={{ selected_state }}&verification={{ selected_verification }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&category={{ selected_category }}&state={{ selected_state }}&verification={{ selected_verification }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

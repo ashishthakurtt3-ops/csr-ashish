@@ -1,0 +1,305 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}SafeCrawler Engine Telemetry{% endblock %}
+{% block page_title %}Crawler &amp; URL Verification Telemetry{% endblock %}
+
+{% block content %}
+<div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:24px;">
+    <div class="admin-card" style="margin-bottom:0; padding:16px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Pages Catalogued</div>
+        <div style="font-size:22px; font-weight:800; color:var(--primary-brand);">{{ telemetry.pages_catalogued }}</div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:16px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Enterprises Monitored</div>
+        <div style="font-size:22px; font-weight:800; color:var(--success);">{{ telemetry.companies_crawled }} / {{ telemetry.companies_monitored }}</div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:16px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Live Jobs Discovered</div>
+        <div style="font-size:22px; font-weight:800; color:var(--text-primary);">{{ live_stats.jobs_discovered|default:0 }}</div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:16px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">CSR Projects Discovered</div>
+        <div style="font-size:22px; font-weight:800; color:var(--success);">{{ live_stats.csr_projects|default:0 }}</div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:16px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">CSR PDFs / Contacts</div>
+        <div style="font-size:22px; font-weight:800; color:var(--text-primary);">{{ live_stats.csr_pdfs|default:0 }} / {{ live_stats.contacts_found|default:0 }}</div>
+    </div>
+</div>
+
+<div class="admin-card" style="margin-bottom:24px;">
+    <h3 style="margin-top:0; font-size:15px; font-weight:700; border-bottom:1px solid var(--border-color); padding-bottom:10px; color:var(--text-primary);">
+        Engine Configuration &amp; Telemetry Signature
+    </h3>
+    <table style="width:100%; font-size:13px; border-collapse:collapse;">
+        <tr><td style="padding:10px 0; color:var(--text-secondary); width:200px;">Active Engine:</td><td style="color:var(--text-primary); font-weight:600;">{{ telemetry.crawler_engine }}</td></tr>
+        <tr><td style="padding:10px 0; color:var(--text-secondary);">User-Agent Signature:</td><td style="font-family:var(--font-mono); color:var(--primary-brand);">{{ telemetry.user_agent }}</td></tr>
+        <tr><td style="padding:10px 0; color:var(--text-secondary);">Security Standard:</td><td><span class="badge-status badge-active">{{ telemetry.compliance_status }}</span></td></tr>
+        <tr><td style="padding:10px 0; color:var(--text-secondary);">Engine State:</td><td><span class="badge-status {% if is_running %}badge-active{% else %}badge-pending{% endif %}">{% if is_running %}RUNNING BACKGROUND PIPELINE{% else %}IDLE / STANDBY{% endif %}</span></td></tr>
+    </table>
+</div>
+
+<!-- Per-Company Crawl Summary Breakdown Table -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:15px; font-weight:700; color:var(--text-primary);">
+                🏢 Per-Company Crawl Runs &amp; Intelligence Breakdown (Latest 30)
+            </h3>
+            <div style="font-size:12px; color:var(--text-secondary);">
+                Granular outcome of each enterprise crawl run across Careers, ATS, and CSR portals.
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>ATS / Platform</th>
+                    <th>Jobs (Disc / Pub / Exp)</th>
+                    <th>CSR (Pages / PDFs / Proj)</th>
+                    <th>Contacts</th>
+                    <th>Outcome</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sum in recent_summaries %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_companies:detail' sum.company.company_id %}" style="color:var(--primary-brand); font-weight:700; text-decoration:none;">
+                            {{ sum.company.company_name }}
+                        </a>
+                    </td>
+                    <td>
+                        <span style="font-size:12px; font-weight:600;">{{ sum.ats_platform|default:"General HTML" }}</span>
+                    </td>
+                    <td style="font-family:var(--font-mono); font-size:12px;">
+                        <span style="color:var(--text-primary);">{{ sum.jobs_discovered }}</span> /
+                        <span style="color:var(--success); font-weight:700;">{{ sum.jobs_published }}</span> /
+                        <span style="color:var(--text-muted);">{{ sum.jobs_expired }}</span>
+                    </td>
+                    <td style="font-family:var(--font-mono); font-size:12px;">
+                        <span>{{ sum.csr_pages_found }}p</span> /
+                        <span>{{ sum.csr_pdfs_found }}pdf</span> /
+                        <span style="color:var(--success); font-weight:700;">{{ sum.csr_projects_discovered }}proj</span>
+                    </td>
+                    <td style="font-family:var(--font-mono); font-size:12px;">
+                        {{ sum.contacts_discovered }}
+                    </td>
+                    <td>
+                        <span class="badge-status {% if sum.crawl_status == 'CRAWLED' %}badge-active{% elif sum.crawl_status == 'BLOCKED' %}badge-rejected{% else %}badge-pending{% endif %}">
+                            {{ sum.crawl_status }}
+                        </span>
+                    </td>
+                    <td style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);">
+                        {{ sum.crawl_started_at|truncatechars:19 }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center; padding:24px; color:var(--text-secondary);">
+                        No per-company crawl summaries recorded yet. Run "Fetch Live Data" to record authentic telemetry.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+<!-- Company-by-Company Coverage Report (Requirement 17) -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:var(--text-primary);">
+                📊 Company-by-Company Job Coverage Report ({{ coverage_total_count }} Corporations)
+            </h3>
+            <div style="font-size:12.5px; color:var(--text-secondary);">
+                Authoritative coverage and verification status for all enterprise careers sources.
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <a href="?export=csv{% if coverage_q %}&coverage_q={{ coverage_q }}{% endif %}{% if coverage_status %}&coverage_status={{ coverage_status }}{% endif %}" class="btn-admin btn-admin-primary" style="font-size:12px;">
+                📥 Export Coverage Report (CSV)
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <form method="GET" style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+        <div style="flex:1; min-width:240px;">
+            <input type="text" name="coverage_q" value="{{ coverage_q }}" placeholder="Search company by name, symbol, or ATS..." class="search-input" style="height:38px; font-size:13px;">
+        </div>
+        <div style="min-width:180px;">
+            <select name="coverage_status" class="select-filter" style="height:38px; font-size:13px; width:100%;">
+                <option value="all">All Crawl Statuses</option>
+                <option value="CRAWLED" {% if coverage_status == 'CRAWLED' %}selected{% endif %}>CRAWLED</option>
+                <option value="PENDING" {% if coverage_status == 'PENDING' %}selected{% endif %}>PENDING</option>
+                <option value="FAILED" {% if coverage_status == 'FAILED' %}selected{% endif %}>FAILED</option>
+                <option value="NO_CAREER_URL" {% if coverage_status == 'NO_CAREER_URL' %}selected{% endif %}>NO_CAREER_URL</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-admin btn-admin-primary" style="height:38px; font-size:12px;">Filter Report</button>
+        {% if coverage_q or coverage_status and coverage_status != 'all' %}
+        <a href="{% url 'admin_verification:crawler_status' %}" class="btn-admin btn-admin-secondary" style="height:38px; font-size:12px; line-height:36px; padding:0 12px;">Reset</a>
+        {% endif %}
+    </form>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Official Website</th>
+                    <th>Careers Source</th>
+                    <th>ATS / Platform</th>
+                    <th>Jobs Found</th>
+                    <th>Jobs Published</th>
+                    <th>CSR Records</th>
+                    <th>Crawl Status</th>
+                    <th>Last Verified</th>
+                    <th>Reason / Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in coverage_page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_companies:detail' c.company_id %}" style="color:var(--primary-brand); font-weight:700; text-decoration:none;">
+                            {{ c.company_name }}
+                        </a>
+                        {% if c.nse_symbol %}
+                        <div style="font-size:10.5px; color:var(--text-secondary); font-family:var(--font-mono);">NSE: {{ c.nse_symbol }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.website_url %}
+                        <a href="{{ c.website_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--text-secondary); font-size:11.5px; text-decoration:none;">🌐 Web &nearr;</a>
+                        {% else %}<span style="color:var(--text-muted); font-size:11px;">—</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if c.careers_url %}
+                        <a href="{{ c.careers_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-size:11.5px; text-decoration:none;" title="{{ c.careers_url }}">💼 Careers &nearr;</a>
+                        {% else %}<span style="color:var(--text-muted); font-size:11px;">Not Configured</span>{% endif %}
+                    </td>
+                    <td>
+                        <span style="font-size:12px; font-weight:600;">{{ c.ats_platform|default:"Direct / HTML" }}</span>
+                    </td>
+                    <td style="font-family:var(--font-mono); font-weight:700; color:var(--text-primary);">
+                        {{ c.jobs_found }}
+                    </td>
+                    <td style="font-family:var(--font-mono); font-weight:700; color:var(--success);">
+                        {{ c.jobs_published }}
+                    </td>
+                    <td style="font-family:var(--font-mono); font-weight:700; color:var(--primary-brand);">
+                        {{ c.csr_records }}
+                    </td>
+                    <td>
+                        {% if c.jobs_published > 0 %}
+                        <span class="badge-status badge-active">VERIFIED ({{ c.jobs_published }})</span>
+                        {% elif c.crawl_status == 'CRAWLED' %}
+                        <span class="badge-status badge-pending" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">0 JOBS VERIFIED</span>
+                        {% elif c.crawl_status == 'PENDING' %}
+                        <span class="badge-status badge-pending" style="background:#f8fafc; color:#64748b; border:1px dashed #cbd5e1;">CRAWL PENDING</span>
+                        {% elif c.crawl_status == 'NO_CAREER_URL' %}
+                        <span class="badge-status badge-pending" style="background:#fef3c7; color:#92400e;">SOURCE UNAVAILABLE</span>
+                        {% elif c.crawl_status == 'BLOCKED' %}
+                        <span class="badge-status badge-rejected" style="background:#fee2e2; color:#991b1b;">BLOCKED (403)</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ c.crawl_status|default:"PENDING" }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">
+                        {{ c.last_crawled|default:"Never"|truncatechars:19 }}
+                    </td>
+                    <td style="font-size:11.5px; color:var(--text-secondary); max-width:260px; line-height:1.4;">
+                        {% if c.jobs_published > 0 or c.csr_records > 0 %}
+                        <span style="color:var(--success); font-weight:600;">✓ Verified</span>: {{ c.jobs_published }} jobs, {{ c.csr_records }} CSR records
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ c.zero_explanation|default:"Pending Live Verification" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align:center; padding:24px; color:var(--text-secondary);">
+                        No companies match the coverage filter.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination for Coverage Report -->
+    {% if coverage_page_obj.has_other_pages %}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:12px; border-top:1px solid var(--border-color); font-size:12.5px;">
+        <span style="color:var(--text-secondary);">
+            Showing {{ coverage_page_obj.start_index }} to {{ coverage_page_obj.end_index }} of {{ coverage_total_count }} Corporations
+        </span>
+        <div style="display:flex; gap:6px;">
+            {% if coverage_page_obj.has_previous %}
+            <a href="?coverage_page={{ coverage_page_obj.previous_page_number }}{% if coverage_q %}&coverage_q={{ coverage_q }}{% endif %}{% if coverage_status %}&coverage_status={{ coverage_status }}{% endif %}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:11.5px;">&larr; Prev</a>
+            {% endif %}
+            <span style="padding:4px 8px; color:var(--text-primary); font-weight:700;">Page {{ coverage_page_obj.number }} of {{ coverage_page_obj.paginator.num_pages }}</span>
+            {% if coverage_page_obj.has_next %}
+            <a href="?coverage_page={{ coverage_page_obj.next_page_number }}{% if coverage_q %}&coverage_q={{ coverage_q }}{% endif %}{% if coverage_status %}&coverage_status={{ coverage_status }}{% endif %}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:11.5px;">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary);">
+            Recent Crawled Web Pages (Latest 25)
+        </h3>
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="pages" title="Crawled Pages" %}
+            <a href="{% url 'admin_verification:queue' %}" class="btn-admin btn-admin-secondary">Review Queue</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Page Title</th>
+                    <th>URL</th>
+                    <th>HTTP Status</th>
+                    <th>Depth</th>
+                    <th>Crawled Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in recent_pages %}
+                <tr>
+                    <td>
+                        {% if page.company %}
+                        <a href="{% url 'admin_companies:detail' page.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ page.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><strong style="color:var(--text-primary);">{{ page.title|default:"Untitled Page"|truncatechars:35 }}</strong></td>
+                    <td>
+                        <a href="{{ page.url }}" target="_blank" style="color:var(--text-secondary); font-size:12px; font-family:var(--font-mono);">{{ page.url|truncatechars:40 }} &nearr;</a>
+                    </td>
+                    <td>
+                        {% if page.http_status == 200 %}
+                        <span class="badge-status badge-active">200 OK</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ page.http_status|default:"Pending" }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family:var(--font-mono);">{{ page.depth }}</td>
+                    <td style="font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);">{{ page.crawled_at|truncatechars:19 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-secondary);">No crawl pages logged yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

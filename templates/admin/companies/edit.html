@@ -1,0 +1,134 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Edit {{ company.company_name }}{% endblock %}
+{% block page_title %}Update Corporate Record: {{ company.company_name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary">
+        &larr; Back to Company Dossier
+    </a>
+</div>
+
+<div class="admin-card" style="max-width: 880px; margin: 0 auto; padding: 28px;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+        <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">
+            Edit Corporate Intelligence Record &amp; Login Access Settings
+        </h2>
+        <div style="font-size: 13px; color: var(--text-secondary);">
+            Update statutory profile, official CSR webpage/PDF URLs, and login-wall indicators for <strong>{{ company.company_name }}</strong>.
+        </div>
+    </div>
+
+    <form method="POST" style="display:flex; flex-direction:column; gap:20px;">
+        {% csrf_token %}
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Company Name *</label>
+                <input type="text" name="company_name" value="{{ company.company_name }}" required class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Legal Entity Name</label>
+                <input type="text" name="legal_name" value="{{ company.legal_name|default_if_none:'' }}" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Sector</label>
+                <input type="text" name="sector" value="{{ company.sector|default_if_none:'' }}" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Headquarters</label>
+                <input type="text" name="headquarters" value="{{ company.headquarters|default_if_none:'' }}" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Crawl Status</label>
+                <select name="crawl_status" class="select-filter" style="width:100%; height:42px;">
+                    <option value="CRAWLED" {% if company.crawl_status == "CRAWLED" %}selected{% endif %}>CRAWLED</option>
+                    <option value="PENDING" {% if company.crawl_status == "PENDING" %}selected{% endif %}>PENDING</option>
+                    <option value="FAILED" {% if company.crawl_status == "FAILED" %}selected{% endif %}>FAILED</option>
+                    <option value="BLOCKED" {% if company.crawl_status == "BLOCKED" %}selected{% endif %}>BLOCKED</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Corporate Website URL</label>
+                <input type="url" name="website_url" value="{{ company.website_url|default_if_none:'' }}" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Careers Portal URL (ATS)</label>
+                <input type="url" name="careers_url" value="{{ company.careers_url|default_if_none:'' }}" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div style="border:1px solid var(--border-color); border-radius:10px; padding:16px;">
+            <div style="font-size:13.5px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">🌱 Official CSR Webpage &amp; Document URLs</div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
+                Different companies publish CSR disclosures across webpages, foundations, sustainability/ESG portals, or PDF reports (BRSR / Annual Report). Enter all verified official links below:
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">CSR Portal Webpage URL</label>
+                    <input type="url" name="csr_portal_url" value="{{ company.csr_portal_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Corporate Foundation URL</label>
+                    <input type="url" name="foundation_url" value="{{ company.foundation_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Sustainability Webpage URL</label>
+                    <input type="url" name="sustainability_url" value="{{ company.sustainability_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">ESG Webpage URL</label>
+                    <input type="url" name="esg_url" value="{{ company.esg_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">SEBI BRSR Report / PDF URL</label>
+                    <input type="url" name="brsr_url" value="{{ company.brsr_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Annual Report / PDF URL</label>
+                    <input type="url" name="annual_report_url" value="{{ company.annual_report_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Investor Relations URL</label>
+                    <input type="url" name="investor_url" value="{{ company.investor_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Contact Us Page URL</label>
+                    <input type="url" name="contact_page_url" value="{{ company.contact_page_url|default_if_none:'' }}" class="search-input" style="height:38px;">
+                </div>
+            </div>
+        </div>
+
+        <div style="border:1.5px solid var(--warning-border, #f59e0b); background:var(--warning-bg, #fffbeb); border-radius:10px; padding:16px;">
+            <div style="font-size:13.5px; font-weight:800; color:#92400E; margin-bottom:4px;">🔒 Login-Required Data Visibility Settings</div>
+            <div style="font-size:12px; color:#78350F; margin-bottom:12px;">
+                Choose <b>Visible only after login on the company website</b> when the company's website requires user login to view that section.
+                Both the Admin Panel and Public Website will clearly display <em>"{{ login_required_text }}"</em> instead of empty or guessed values.
+            </div>
+            {% for field, label, current in access_fields %}
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                <label style="width:90px; font-size:12px; font-weight:700; text-transform:uppercase; color:#78350F;">{{ label }}</label>
+                <select name="{{ field }}" class="search-input" style="height:38px; flex:1; background:#fff;">
+                    {% for value, text in access_choices %}
+                    <option value="{{ value }}" {% if value == current %}selected{% endif %}>{{ text }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+            <label style="display:block; font-size:12px; font-weight:700; text-transform:uppercase; color:#78350F; margin:8px 0 6px;">Admin Note (what requires login on the company website)</label>
+            <textarea name="data_access_note" rows="2" class="search-input" style="width:100%; background:#fff;">{{ company.data_access_note|default_if_none:"" }}</textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px; border-top:1px solid var(--border-color); padding-top:18px;">
+            <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" class="btn-admin btn-admin-primary" style="padding:9px 24px;">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

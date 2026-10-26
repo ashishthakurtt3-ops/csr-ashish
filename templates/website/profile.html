@@ -1,0 +1,640 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account &amp; Billing — ImpactBridge™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body.profile-body {
+            background: #F7F9FC;
+            color: #0F172A;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 32px 20px 80px;
+        }
+        .profile-container {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .profile-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .profile-nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #0F766E;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        .profile-nav-link:hover {
+            color: #115E59;
+            text-decoration: underline;
+        }
+        .card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .card-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: #0F172A;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-active { background: #DCFCE7; color: #16A34A; border: 1px solid #BBF7D0; }
+        .badge-pending { background: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }
+        .badge-warning { background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; }
+        .badge-danger { background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; }
+
+        .btn-custom {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .btn-primary-c {
+            background: #0F766E;
+            color: #FFFFFF;
+            border-color: #0F766E;
+        }
+        .btn-primary-c:hover {
+            background: #0D655E;
+        }
+        .btn-secondary-c {
+            background: #FFFFFF;
+            color: #334155;
+            border-color: #CBD5E1;
+        }
+        .btn-secondary-c:hover {
+            background: #F8FAFC;
+            border-color: #94A3B8;
+        }
+        .btn-danger-c {
+            background: #FEE2E2;
+            color: #DC2626;
+            border-color: #FECACA;
+        }
+        .btn-danger-c:hover {
+            background: #FCA5A5;
+            color: #991B1B;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: #F8FAFC;
+            color: #64748B;
+            font-weight: 600;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .data-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #F1F5F9;
+            color: #334155;
+        }
+        .data-table tr:hover td {
+            background: #F8FAFC;
+        }
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .messages {
+            margin-bottom: 24px;
+        }
+        .msg {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .msg-error { background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; }
+        .msg-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #16A34A; }
+        .msg-info { background: #F0FDFA; border: 1px solid #CCFBF1; color: #0F766E; }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 31, 51, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-box {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15);
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 18px 24px;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            background: #F8FAFC;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body class="profile-body">
+    <div class="profile-container">
+        <!-- Navigation Breadcrumbs -->
+        <div class="profile-nav-bar">
+            <a href="/" class="profile-nav-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Back to Platform Dashboard</span>
+            </a>
+            <div style="font-size:13px; color:#64748B;">
+                Signed in as <strong style="color:#0F172A;">{{ user.username }}</strong>
+                &bull; <a href="{% url 'website:user_logout' %}" style="color:#DC2626; text-decoration:none; font-weight:600;">Sign Out</a>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="msg {% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- User Account Summary Card -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h1 class="card-title">
+                        {{ user.first_name }} {{ user.last_name|default:user.username }}
+                    </h1>
+                    <div style="font-size:13px; color:#64748B; margin-top:3px;">
+                        {{ user.organization_name|default:"Independent Researcher / NGO" }} &bull; <code>@{{ user.username }}</code>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge badge-active">{{ user.get_role_display }}</span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+                <div style="background:#F8FAFC; padding:14px 16px; border-radius:10px; border:1px solid #E2E8F0;">
+                    <div style="font-size:11px; text-transform:uppercase; color:#64748B; font-weight:700;">Email Address</div>
+                    <div style="font-size:14px; font-weight:600; color:#0F172A; margin-top:3px;">{{ user.email }}</div>
+                </div>
+                <div style="background:#F8FAFC; padding:14px 16px; border-radius:10px; border:1px solid #E2E8F0;">
+                    <div style="font-size:11px; text-transform:uppercase; color:#64748B; font-weight:700;">Member Since</div>
+                    <div style="font-size:14px; font-weight:600; color:#0F172A; margin-top:3px;">{{ user.date_joined|date:"M d, Y" }}</div>
+                </div>
+                <div style="background:#F8FAFC; padding:14px 16px; border-radius:10px; border:1px solid #E2E8F0;">
+                    <div style="font-size:11px; text-transform:uppercase; color:#64748B; font-weight:700;">Tenant Identifier</div>
+                    <div style="font-size:13px; font-weight:600; color:#0F766E; margin-top:3px;" class="mono">{{ subscription.tenant_id }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2 Column Section: Subscription & Prototype Wallet -->
+        <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; align-items:start; margin-bottom:24px;">
+            <!-- ACTIVE SUBSCRIPTION CARD -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">
+                    <div>
+                        <span style="font-size:11px; text-transform:uppercase; color:#0F766E; font-weight:700; letter-spacing:0.5px;">My Subscription</span>
+                        <h2 style="margin:2px 0 0; font-size:20px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;">
+                            {{ plan.name|default:subscription.plan_id|upper }}
+                            {% if subscription.status == "ACTIVE" %}
+                            <span class="badge badge-active">ACTIVE</span>
+                            {% else %}
+                            <span class="badge badge-danger">{{ subscription.status }}</span>
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:20px; font-weight:800; color:#16A34A;" class="mono">
+                            {% if plan.monthly_price_paise == 0 %}
+                            Free
+                            {% else %}
+                            &#8377; {{ plan.monthly_price_inr|floatformat:0 }}<span style="font-size:12px; color:#64748B;">/mo</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size:11.5px; color:#64748B;">{{ subscription.billing_cycle|default:"Monthly" }} cycle</div>
+                    </div>
+                </div>
+
+                <!-- Subscription Details Grid -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:18px;">
+                    <div style="background:#F8FAFC; padding:12px 14px; border-radius:8px; border:1px solid #E2E8F0;">
+                        <div style="font-size:11px; color:#64748B; font-weight:600;">Current Period End</div>
+                        <div style="font-size:13.5px; font-weight:700; color:#0F172A; margin-top:2px;">
+                            {{ subscription.current_period_end|date:"M d, Y"|default:"Indefinite" }}
+                        </div>
+                    </div>
+                    <div style="background:#F8FAFC; padding:12px 14px; border-radius:8px; border:1px solid #E2E8F0;">
+                        <div style="font-size:11px; color:#64748B; font-weight:600;">Auto-Renewal</div>
+                        <div style="font-size:13.5px; font-weight:700; color:{% if subscription.auto_renew %}#16A34A{% else %}#64748B{% endif %}; margin-top:2px;">
+                            {% if subscription.auto_renew %}ON (Auto-Pay){% else %}OFF{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if subscription.pending_change_plan %}
+                <div style="background:#FEF3C7; border:1px solid #FDE68A; border-radius:10px; padding:12px 14px; font-size:13px; color:#D97706; margin-bottom:16px;">
+                    <strong>Scheduled Plan Change:</strong> Your plan will switch to <strong>{{ subscription.pending_change_plan|upper }}</strong> at current period end.
+                </div>
+                {% endif %}
+
+                {% if subscription.cancel_at_period_end %}
+                <div style="background:#FEE2E2; border:1px solid #FECACA; border-radius:10px; padding:12px 14px; font-size:13px; color:#DC2626; margin-bottom:16px;">
+                    <strong>Cancellation Scheduled:</strong> Your subscription will expire on {{ subscription.current_period_end|date:"M d, Y" }}. Access will remain active until then.
+                </div>
+                {% endif %}
+
+                <!-- Entitlements Summary -->
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#64748B; margin-bottom:10px;">Plan Capabilities:</div>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        {% for ent in entitlements %}
+                        <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:6px 10px; background:#F8FAFC; border-radius:6px; border:1px solid #F1F5F9;">
+                            <span style="color:#334155;">{{ ent.name }}</span>
+                            <span class="mono" style="font-weight:700; color:#0F766E;">{{ ent.raw_value }}</span>
+                        </div>
+                        {% empty %}
+                        <div style="font-size:12.5px; color:#64748B;">Standard Community features.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Actions Bar -->
+                <div style="display:flex; gap:10px; flex-wrap:wrap; padding-top:16px; border-top:1px solid #E2E8F0;">
+                    <a href="/#tab-pricing" class="btn-custom btn-primary-c">
+                        Change Plan
+                    </a>
+
+                    {% if subscription.plan_id != "starter" %}
+                        {% if subscription.auto_renew %}
+                        <form id="form-cancel-autorenew" method="POST" style="margin:0;" onsubmit="return openAutoRenewOffModal(event);">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="cancel_autorenew">
+                            <button type="submit" class="btn-custom btn-secondary-c" style="color:#D97706;">
+                                Turn Off Auto-Renew
+                            </button>
+                        </form>
+                        {% else %}
+                        <form id="form-enable-autorenew" method="POST" style="margin:0;" onsubmit="return openAutoRenewOnModal(event);">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reactivate_autorenew">
+                            <button type="submit" class="btn-custom btn-secondary-c" style="color:#16A34A;">
+                                Enable Auto-Renewal
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <form id="form-cancel-sub" method="POST" style="margin:0;" onsubmit="return openCancelSubModal(event);">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="cancel_subscription">
+                            <button type="submit" class="btn-custom btn-danger-c">
+                                Cancel Subscription
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- PROTOTYPE WALLET CARD -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">
+                    <div>
+                        <span style="font-size:11px; text-transform:uppercase; color:#0F766E; font-weight:700; letter-spacing:0.5px;">Account Wallet</span>
+                        <h2 style="margin:2px 0 0; font-size:20px; font-weight:800; color:#0F172A;">
+                            Prototype Balance
+                        </h2>
+                    </div>
+                    <div class="badge badge-active">Active</div>
+                </div>
+
+                <div style="background:#F0FDFA; border:1px solid #CCFBF1; border-radius:12px; padding:20px; text-align:center; margin-bottom:20px;">
+                    <div style="font-size:12px; text-transform:uppercase; color:#0F766E; font-weight:700; letter-spacing:0.5px;">Current Funds Available</div>
+                    <div style="font-size:32px; font-weight:800; color:#0F766E; margin-top:4px;" class="mono">
+                        &#8377; {{ wallet.balance_rupees|floatformat:2 }}
+                    </div>
+                    <div style="font-size:11.5px; color:#64748B; margin-top:4px;">
+                        Instant checkout &amp; automated auto-renewal billing
+                    </div>
+                </div>
+
+                <!-- Self-Service Top-up Form -->
+                <div>
+                    <div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:10px;">Add Funds to Wallet:</div>
+                    <form method="POST" style="margin-bottom:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="topup">
+                        <div style="display:flex; gap:8px; margin-bottom:12px;">
+                            <input type="number" name="amount_inr" id="topup-input" value="1000" min="100" max="50000" step="100"
+                                   style="flex:1; height:42px; padding:0 12px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; font-size:15px; font-weight:700; color:#0F172A;" class="mono">
+                            <button type="submit" class="btn-custom btn-primary-c" style="height:42px; padding:0 20px;">
+                                Top-up Funds
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Quick Amount Buttons -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="btn-custom btn-secondary-c" onclick="document.getElementById('topup-input').value=500;" style="font-size:12px; padding:4px 10px;">+ ₹500</button>
+                        <button type="button" class="btn-custom btn-secondary-c" onclick="document.getElementById('topup-input').value=1000;" style="font-size:12px; padding:4px 10px;">+ ₹1,000</button>
+                        <button type="button" class="btn-custom btn-secondary-c" onclick="document.getElementById('topup-input').value=5000;" style="font-size:12px; padding:4px 10px;">+ ₹5,000</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WALLET TRANSACTIONS & INVOICES LEDGER -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start;">
+            <!-- Transaction History Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">Recent Wallet Activity</h3>
+                    <span style="font-size:12px; color:#64748B;">Last 20 events</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in wallet_txs %}
+                            <tr>
+                                <td>
+                                    {% if tx.tx_type == "CREDIT" %}
+                                    <span class="badge badge-active" style="font-size:10px;">CREDIT</span>
+                                    {% else %}
+                                    <span class="badge badge-danger" style="font-size:10px;">DEBIT</span>
+                                    {% endif %}
+                                </td>
+                                <td class="mono" style="font-weight:700; color:{% if tx.tx_type == 'CREDIT' %}#16A34A{% else %}#DC2626{% endif %};">
+                                    {% if tx.tx_type == 'CREDIT' %}+{% else %}-{% endif %}&#8377; {{ tx.amount_rupees|floatformat:2 }}
+                                </td>
+                                <td style="font-size:12px; color:#334155;">{{ tx.description }}</td>
+                                <td style="font-size:11.5px; color:#64748B;">{{ tx.created_at|date:"M d, H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:20px; color:#64748B;">
+                                    No wallet transactions yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tax Invoices Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">GST Tax Invoices</h3>
+                    <span style="font-size:12px; color:#64748B;">Automated 18% GST</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Plan</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Receipt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inv in invoices %}
+                            <tr>
+                                <td class="mono" style="font-size:12px; color:#0F172A; font-weight:600;">{{ inv.invoice_id }}</td>
+                                <td><span class="badge badge-active">{{ inv.plan_id|upper }}</span></td>
+                                <td class="mono" style="color:#16A34A; font-weight:700;">&#8377; {{ inv.total_amount|floatformat:2 }}</td>
+                                <td style="font-size:11.5px; color:#64748B;">{{ inv.issued_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'admin_subscriptions:invoice_detail' inv.invoice_id %}" target="_blank" style="color:#0F766E; font-size:12px; text-decoration:none; font-weight:600;">
+                                        View Receipt &nearr;
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align:center; padding:20px; color:#64748B;">
+                                    No invoices issued yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-autorenew-off" class="modal-backdrop">
+        <div class="modal-box" style="max-width:520px;">
+            <div class="modal-header" style="display:flex; align-items:center; gap:12px; padding:18px 24px; border-bottom:1px solid #E2E8F0;">
+                <div style="width:38px; height:38px; border-radius:10px; background:#FEF3C7; border:1px solid #FDE68A; display:flex; align-items:center; justify-content:center; color:#D97706; font-size:18px; flex-shrink:0;">
+                    ⚠️
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#0F172A;">Disable Automatic Renewal</h3>
+                    <div style="font-size:12px; color:#64748B; margin-top:2px;">Plan will not renew automatically on the next billing date</div>
+                </div>
+            </div>
+            <div class="modal-body" style="padding:22px 24px;">
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                        <span style="color:#64748B;">Current Plan:</span>
+                        <strong style="color:#0F172A;">{{ subscription.plan_id|upper }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px;">
+                        <span style="color:#64748B;">Active Until:</span>
+                        <strong style="color:#0F766E;">{{ subscription.current_period_end|date:"F j, Y" }}</strong>
+                    </div>
+                </div>
+                <div style="font-size:13px; color:#334155; line-height:1.6; margin-bottom:12px;">
+                    <strong>What to expect when auto-renewal is turned off:</strong>
+                    <ul style="margin:8px 0 0 20px; padding:0; color:#475569;">
+                        <li style="margin-bottom:6px;">You will retain full uninterrupted access to all plan features until <strong>{{ subscription.current_period_end|date:"M d, Y" }}</strong>.</li>
+                        <li style="margin-bottom:6px;">No automatic charge will be debited from your wallet or payment method.</li>
+                        <li>After this date, your account will downgrade to the free Community Starter tier unless manually renewed.</li>
+                    </ul>
+                </div>
+                <div style="font-size:12px; color:#64748B; background:#F0FDFA; border:1px solid #CCFBF1; border-radius:8px; padding:10px 12px;">
+                    💡 You can re-enable automatic renewal at any time before your billing cycle ends.
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:14px 24px; background:#F8FAFC; border-top:1px solid #E2E8F0; display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeModals()" class="btn-custom btn-primary-c">Keep Auto-Renewal On</button>
+                <button type="button" onclick="confirmAutoRenewOff()" class="btn-custom btn-secondary-c" style="color:#DC2626; border-color:#FECACA;">Yes, Disable Auto-Renewal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-cancel-sub" class="modal-backdrop">
+        <div class="modal-box" style="max-width:540px;">
+            <div class="modal-header" style="display:flex; align-items:center; gap:12px; padding:18px 24px; border-bottom:1px solid #FEE2E2; background:#FFF5F5;">
+                <div style="width:38px; height:38px; border-radius:10px; background:#FEE2E2; border:1px solid #FECACA; display:flex; align-items:center; justify-content:center; color:#DC2626; font-size:18px; flex-shrink:0;">
+                    🛡️
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#991B1B;">Cancel Subscription Confirmation</h3>
+                    <div style="font-size:12px; color:#7F1D1D; margin-top:2px;">Enterprise access retention review</div>
+                </div>
+            </div>
+            <div class="modal-body" style="padding:22px 24px;">
+                <div style="background:#FFF7ED; border:1px solid #FFEDD5; border-radius:10px; padding:14px; margin-bottom:18px;">
+                    <div style="font-size:13px; color:#9A3412; line-height:1.5;">
+                        Your subscription will remain active until <strong>{{ subscription.current_period_end|date:"F j, Y" }}</strong>. You can continue using your full allocation until that date.
+                    </div>
+                </div>
+
+                <div style="font-size:13px; font-weight:700; color:#0F172A; margin-bottom:8px;">
+                    Access revoked after {{ subscription.current_period_end|date:"M d, Y" }}:
+                </div>
+                <div style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:18px; font-size:12.5px; color:#475569;">
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Unmasked CSR Decision-Maker Direct Phones &amp; Official Emails</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Live Corporate Career ATS Crawler Synchronizations</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Full CSV &amp; Excel Intelligence Exports for Top 200 Companies</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
+                        <span style="color:#DC2626; font-weight:700;">✕</span>
+                        <span>Institutional Grant Matching &amp; RFP Early Notifications</span>
+                    </div>
+                </div>
+
+                <div style="font-size:12px; color:#64748B; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:8px; padding:10px 14px;">
+                    💼 <strong>Need help or customized terms?</strong> Contact our institutional accounts desk at <a href="mailto:support@impactbridge.org" style="color:#0F766E; font-weight:600;">support@impactbridge.org</a> to pause your account or discuss annual team pricing.
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:14px 24px; background:#F8FAFC; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <button type="button" onclick="confirmCancelSub()" class="btn-custom btn-danger-c" style="font-size:12.5px;">
+                    Confirm &amp; Cancel Plan
+                </button>
+                <button type="button" onclick="closeModals()" class="btn-custom btn-primary-c" style="font-size:13px; padding:9px 20px;">
+                    Keep My Subscription (Recommended)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAutoRenewOffModal(e) {
+            e.preventDefault();
+            document.getElementById('modal-autorenew-off').style.display = 'flex';
+            return false;
+        }
+        function confirmAutoRenewOff() {
+            document.getElementById('form-cancel-autorenew').submit();
+        }
+        function openCancelSubModal(e) {
+            e.preventDefault();
+            document.getElementById('modal-cancel-sub').style.display = 'flex';
+            return false;
+        }
+        function confirmCancelSub() {
+            document.getElementById('form-cancel-sub').submit();
+        }
+        function closeModals() {
+            document.getElementById('modal-autorenew-off').style.display = 'none';
+            document.getElementById('modal-cancel-sub').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

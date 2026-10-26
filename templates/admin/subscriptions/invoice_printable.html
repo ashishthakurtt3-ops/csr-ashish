@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tax Invoice #{{ invoice.invoice_id }} — ImpactBridge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px 20px;
+            font-size: 13.5px;
+            line-height: 1.5;
+        }
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            padding: 40px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .header-table, .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .items-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .items-table td {
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .badge-paid {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+        .no-print {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .btn-print {
+            background: #0F766E;
+            color: #fff;
+            padding: 10px 22px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13.5px;
+            transition: background 0.15s ease;
+        }
+        .btn-print:hover {
+            background: #0D655E;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .invoice-box { border: none; box-shadow: none; padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="invoice-box">
+    <!-- Top Bar -->
+    <table class="header-table" style="margin-bottom: 30px;">
+        <tr>
+            <td style="vertical-align: top;">
+                <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+                    ImpactBridge<span style="color: #14B8A6;">™</span>
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                    Microlan IT Services Private Limited<br>
+                    GSTIN: 27AABCM8291Q1ZP &bull; State Code: 27 (Maharashtra)<br>
+                    SAC Code: 998314 (IT &amp; Software SaaS Services)
+                </div>
+            </td>
+            <td style="text-align: right; vertical-align: top;">
+                <span class="badge badge-paid">{{ invoice.status }}</span>
+                <div style="font-size: 18px; font-weight: 800; margin-top: 8px; color: #0f172a;">
+                    TAX INVOICE
+                </div>
+                <div class="mono" style="font-size: 12.5px; color: #64748b; margin-top: 4px;">
+                    Invoice #: <strong>{{ invoice.invoice_id }}</strong><br>
+                    Date: {{ invoice.issued_at|date:"M d, Y" }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+
+    <!-- Billing Info -->
+    <table class="header-table" style="margin-bottom: 30px;">
+        <tr>
+            <td style="width: 50%; vertical-align: top;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px;">Billed To:</div>
+                <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-top: 4px;">
+                    {{ user.first_name }} {{ user.last_name }} ({{ user.username }})
+                </div>
+                <div style="font-size: 12.5px; color: #64748b; margin-top: 2px;">
+                    Email: {{ user.email }}<br>
+                    Tenant Reference: {{ sub.tenant_id|default:user.username }}
+                </div>
+            </td>
+            <td style="width: 50%; vertical-align: top; text-align: right;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px;">Subscription Terms:</div>
+                <div style="font-size: 13px; color: #0f172a; margin-top: 4px;">
+                    Plan: <strong>{{ invoice.plan_id|upper }}</strong><br>
+                    Billing Cycle: <strong>{{ invoice.billing_cycle|default:sub.billing_interval|default:"Monthly" }}</strong><br>
+                    {% if invoice.period_start and invoice.period_end %}
+                    Coverage: {{ invoice.period_start|date:"M d, Y" }} – {{ invoice.period_end|date:"M d, Y" }}
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Line Items Table -->
+    <table class="items-table" style="margin-bottom: 24px;">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>SAC</th>
+                <th style="text-align: right;">Taxable Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>ImpactBridge CSR Intelligence Subscription</strong>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                        Plan: {{ invoice.plan_id|upper }} &bull; Enterprise CSR &amp; Job Intelligence Platform Access
+                    </div>
+                </td>
+                <td class="mono" style="font-size: 12px; color: #64748b;">998314</td>
+                <td style="text-align: right;" class="mono">&#8377; {{ invoice.amount_due|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Tax Breakdown & Total -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+            <td style="width: 55%; vertical-align: top; font-size: 12px; color: #64748b;">
+                <strong>Payment Confirmation:</strong><br>
+                Reference ID: <span class="mono">{{ invoice.payment_reference|default:payment.payment_id|default:"WALLET-PAY" }}</span><br>
+                Payment Method: {{ payment.payment_method|default:"PROTOTYPE WALLET" }}<br>
+                <div style="margin-top: 10px; padding: 8px 12px; background: #eff6ff; border-radius: 6px; color: #1e40af; font-size: 11px;">
+                    <strong>Prototype Billing Notice:</strong> This document represents a simulated billing transaction within the ImpactBridge platform demonstration environment.
+                </div>
+            </td>
+            <td style="width: 45%; vertical-align: top;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b;">Taxable Amount:</td>
+                        <td style="padding: 6px 0; text-align: right;" class="mono">&#8377; {{ invoice.amount_due|floatformat:2 }}</td>
+                    </tr>
+                    {% if not is_inter_state %}
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b;">CGST (9.0%):</td>
+                        <td style="padding: 6px 0; text-align: right;" class="mono">&#8377; {{ cgst_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b;">SGST (9.0%):</td>
+                        <td style="padding: 6px 0; text-align: right;" class="mono">&#8377; {{ sgst_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b;">IGST (18.0%):</td>
+                        <td style="padding: 6px 0; text-align: right;" class="mono">&#8377; {{ igst_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr style="border-top: 2px solid #0f172a; font-weight: 800; font-size: 16px;">
+                        <td style="padding: 10px 0; color: #0f172a;">Total Paid:</td>
+                        <td style="padding: 10px 0; text-align: right; color: #15803d;" class="mono">&#8377; {{ invoice.total_amount|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11.5px; color: #94a3b8; text-align: center;">
+        Thank you for choosing ImpactBridge CSR Intelligence &bull; For billing queries contact billing@impactbridge.ai
+    </div>
+</div>
+
+</body>
+</html>

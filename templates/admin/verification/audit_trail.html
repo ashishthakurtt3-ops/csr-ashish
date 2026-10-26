@@ -1,0 +1,62 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Immutable Audit Trail{% endblock %}
+{% block page_title %}Security &amp; Modification Audit Trail ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; gap:10px;">
+            <a href="{% url 'admin_verification:queue' %}" class="btn-admin btn-admin-secondary">&larr; Back to Verification Queue</a>
+            <a href="{% url 'admin_verification:crawler_status' %}" class="btn-admin btn-admin-secondary">Crawler Telemetry</a>
+        </div>
+        {% include "admin/components/exchange_toolbar.html" with entity="audits" title="System Audit Trail" %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Record Type</th>
+                    <th>Record ID</th>
+                    <th>Action</th>
+                    <th>Previous Value</th>
+                    <th>New Value</th>
+                    <th>Actor Role</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in page_obj %}
+                <tr>
+                    <td><span class="badge-status badge-pending">{{ a.record_type }}</span></td>
+                    <td style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-primary); font-weight:600;">{{ a.record_id }}</td>
+                    <td><strong style="color:var(--primary-brand);">{{ a.action }}</strong></td>
+                    <td style="font-size:12px; color:var(--text-secondary);">{{ a.previous_value|default:"—"|truncatechars:30 }}</td>
+                    <td style="font-size:12px; color:var(--text-primary);">{{ a.new_value|default:"—"|truncatechars:35 }}</td>
+                    <td><span class="badge-status badge-active">{{ a.user_role }}</span></td>
+                    <td style="font-size:12px; color:var(--text-secondary);">{{ a.timestamp|truncatechars:20 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No audit events recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

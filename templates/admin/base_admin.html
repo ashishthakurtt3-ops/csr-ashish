@@ -1,0 +1,551 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Enterprise ESG Console{% endblock %} — ImpactBridge™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* Admin-specific layout refinements */
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            color: #94A3B8;
+            padding: 5px 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            margin-right: 12px;
+        }
+        .sidebar-toggle-btn:hover {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.16);
+        }
+        .admin-sidebar.collapsed {
+            width: 72px;
+        }
+        .admin-sidebar.collapsed .sidebar-brand-title,
+        .admin-sidebar.collapsed .sidebar-brand-sub,
+        .admin-sidebar.collapsed .nav-section-title,
+        .admin-sidebar.collapsed .sidebar-link span,
+        .admin-sidebar.collapsed .sidebar-link .badge-status,
+        .admin-sidebar.collapsed .sidebar-user-meta {
+            display: none !important;
+        }
+        .admin-sidebar.collapsed .sidebar-link {
+            justify-content: center;
+            padding: 10px;
+        }
+        .admin-sidebar.collapsed .sidebar-brand {
+            justify-content: center;
+            padding: 16px 8px;
+        }
+        .admin-sidebar.collapsed + .admin-main {
+            margin-left: 72px;
+            width: calc(100% - 72px);
+        }
+        .theme-toggle-btn {
+            background: var(--bg-surface-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            padding: 7px 11px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .theme-toggle-btn:hover {
+            color: var(--text-primary);
+            border-color: #CBD5E1;
+        }
+        /* Data Exchange Modal */
+        .export-dropdown { position: relative; display: inline-block; }
+        .export-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-modal);
+            z-index: 1000;
+            min-width: 190px;
+            overflow: hidden;
+        }
+        .export-menu.show { display: block; }
+        .export-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.15s ease;
+        }
+        .export-item:hover {
+            background: var(--bg-surface-subtle);
+            color: var(--primary-brand);
+        }
+        .import-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 31, 51, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .import-modal-backdrop.show { display: flex; }
+        .import-modal {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--shadow-modal);
+            overflow: hidden;
+            animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .import-modal-header {
+            padding: 18px 24px;
+            background: var(--bg-surface-subtle);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .import-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .import-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .import-modal-close:hover { color: var(--text-primary); }
+        .import-modal-body { padding: 24px; }
+        .import-dropzone {
+            border: 2px dashed #CBD5E1;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            background: var(--bg-surface-subtle);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 18px;
+        }
+        .import-dropzone:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-body">
+
+    <!-- ADMIN SIDEBAR (Deep Navy #0B1F33 with Teal #14B8A6 accents) -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <a href="{% url 'admin_portal:dashboard' %}" class="sidebar-brand">
+            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 2px 10px rgba(15,118,110,0.4); flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <div>
+                <div class="sidebar-brand-title">ImpactBridge<span style="font-size:10px; color:#14B8A6;">™</span></div>
+                <div class="sidebar-brand-sub">ESG Intelligence</div>
+            </div>
+        </a>
+
+        <div class="sidebar-nav">
+            <!-- GROUP 1: OVERVIEW -->
+            <div class="nav-section-title">Overview</div>
+            <a href="{% url 'admin_portal:dashboard' %}" class="sidebar-link {% if request.resolver_match.view_name == 'admin_portal:dashboard' %}active{% endif %}" title="Dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- GROUP 2: CSR & ESG INTELLIGENCE -->
+            <div class="nav-section-title">CSR &amp; ESG Intelligence</div>
+            <a href="{% url 'admin_companies:list' %}" class="sidebar-link {% if 'companies' in request.path and 'jobs' not in request.path %}active{% endif %}" title="Companies">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
+                <span>Companies</span>
+            </a>
+            <a href="{% url 'admin_opportunities:projects' %}" class="sidebar-link {% if 'opportunities/projects' in request.path %}active{% endif %}" title="CSR Projects">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>CSR Projects</span>
+            </a>
+            <a href="{% url 'admin_opportunities:list' %}" class="sidebar-link {% if 'opportunities/opportunities' in request.path %}active{% endif %}" title="Opportunities & Grants">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span>Opportunities &amp; RFPs</span>
+            </a>
+
+            <!-- GROUP 3: JOBS & CAREERS (DEDICATED EXPERIENCES) -->
+            <div class="nav-section-title">Jobs &amp; Careers</div>
+            <a href="{% url 'admin_jobs:list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'list' and 'jobs' in request.path %}active{% endif %}" title="All Jobs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span>All Jobs</span>
+            </a>
+            <a href="{% url 'admin_jobs:find' %}" class="sidebar-link {% if request.resolver_match.url_name == 'find' and 'jobs' in request.path %}active{% endif %}" title="Find Jobs Discovery">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Find Jobs</span>
+                <span class="badge-status badge-active" style="margin-left:auto; font-size:10px; padding:1px 6px;">New</span>
+            </a>
+            <a href="{% url 'admin_jobs:companies' %}" class="sidebar-link {% if request.resolver_match.url_name in 'companies,company_jobs' and 'jobs' in request.path %}active{% endif %}" title="Company Jobs Directory">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Company Jobs</span>
+            </a>
+
+            <!-- GROUP 4: ANALYTICS & REPORTS -->
+            <div class="nav-section-title">Analytics &amp; Reports</div>
+            <a href="{% url 'admin_portal:download_hub' %}" class="sidebar-link {% if 'downloads' in request.path %}active{% endif %}" title="Download Hub">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download Hub</span>
+            </a>
+
+            <!-- GROUP 5: OPERATIONS & AUDIT -->
+            <div class="nav-section-title">Operations &amp; Audit</div>
+            <a href="{% url 'admin_documents:list' %}" class="sidebar-link {% if 'documents' in request.path %}active{% endif %}" title="Document Hub">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span>Document Hub</span>
+            </a>
+            <a href="{% url 'admin_verification:queue' %}" class="sidebar-link {% if 'verification/queue' in request.path %}active{% endif %}" title="Verification Queue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Verification Queue</span>
+            </a>
+            <a href="{% url 'admin_verification:crawler_status' %}" class="sidebar-link {% if 'crawler-status' in request.path %}active{% endif %}" title="Crawler Telemetry">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>Crawler Telemetry</span>
+            </a>
+            <a href="{% url 'admin_verification:audit_trail' %}" class="sidebar-link {% if 'audit-trail' in request.path %}active{% endif %}" title="Audit Logs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Audit Logs</span>
+            </a>
+
+            <!-- GROUP 6: ADMINISTRATION -->
+            <div class="nav-section-title">Administration</div>
+            <a href="{% url 'admin_users:list' %}" class="sidebar-link {% if 'users' in request.path %}active{% endif %}" title="User Accounts">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>User Accounts</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'list' and 'subscriptions' in request.path %}active{% endif %}" title="Subscriptions & GST">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Subscriptions &amp; GST</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:plans_list' %}" class="sidebar-link {% if 'plans' in request.path %}active{% endif %}" title="Pricing Plans">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span>Pricing Plans</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:payments_list' %}" class="sidebar-link {% if 'payments' in request.path %}active{% endif %}" title="Payments Ledger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <span>Payments Ledger</span>
+            </a>
+            <a href="{% url 'admin_subscriptions:wallets_list' %}" class="sidebar-link {% if 'wallets' in request.path %}active{% endif %}" title="User Wallets">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="2"/></svg>
+                <span>User Wallets</span>
+            </a>
+            <a href="{% url 'admin_ai_config:index' %}" class="sidebar-link {% if 'ai-config' in request.path %}active{% endif %}" title="AI Models & API Configuration">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                <span>AI Models &amp; API Config</span>
+            </a>
+
+            <!-- EXTERNAL SYSTEM SHORTCUTS -->
+            <div class="nav-section-title">Portals</div>
+            <a href="/" target="_blank" class="sidebar-link" title="Live Public Portal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>Public Portal ↗</span>
+            </a>
+            <a href="/django-admin/" target="_blank" class="sidebar-link" title="Django Admin Console">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Django Admin ↗</span>
+            </a>
+        </div>
+
+        <div class="sidebar-user">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px;">
+                    {{ request.user.username|make_list|first|upper|default:"A" }}
+                </div>
+                <div class="sidebar-user-meta">
+                    <div class="sidebar-user-name">{{ request.user.username }}</div>
+                    <div class="sidebar-user-role">{{ request.user.get_role_display|default:"System Admin" }}</div>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'admin_portal:logout' %}" style="color:#F87171; text-decoration:none; font-size:12px; font-weight:700;" title="Logout">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ADMIN SIDEBAR BACKDROP FOR MOBILE -->
+    <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" onclick="closeAdminSidebar()"></div>
+
+    <!-- ADMIN MAIN CONTENT AREA -->
+    <main class="admin-main" id="adminMain">
+        <header class="admin-topbar">
+            <div style="display:flex; align-items:center;">
+                <button type="button" class="admin-mobile-toggle" onclick="toggleAdminSidebar()" aria-label="Toggle Mobile Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <button type="button" class="sidebar-toggle-btn" onclick="toggleSidebarCollapse()" title="Collapse/Expand Sidebar" style="display:none;" id="desktopSidebarToggle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <h1 class="topbar-title">{% block page_title %}Admin Control Panel{% endblock %}</h1>
+            </div>
+
+            <div class="topbar-actions">
+                <!-- Theme Switcher (Light / Dark mode toggle) -->
+                <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" title="Toggle Light/Dark Theme">
+                    <span id="themeToggleIcon">🌙</span>
+                    <span id="themeToggleLabel" style="font-size:12px;">Dark</span>
+                </button>
+
+                <a href="{% url 'admin_portal:download_hub' %}" class="btn-admin btn-admin-secondary" style="font-weight:600;" title="Download datasets from all sections">
+                    <span>📥</span> <span>Download Hub</span>
+                </a>
+                <a href="/" target="_blank" class="btn-admin btn-admin-secondary">
+                    <span>🌐</span> <span>Live Public Site</span>
+                </a>
+                <a href="{% url 'admin_documents:upload' %}" class="btn-admin btn-admin-primary">
+                    <span>📤</span> <span>Upload Document</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert-bar alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- UNIVERSAL ENTERPRISE DATA IMPORT MODAL -->
+    <div id="globalImportModal" class="import-modal-backdrop" onclick="if(event.target === this) closeImportModal();">
+        <div class="import-modal">
+            <div class="import-modal-header">
+                <h3 class="import-modal-title">
+                    <span>📤</span>
+                    <span>Import Intelligence: <span id="importEntityTitle" style="color:var(--primary-brand);">Data</span></span>
+                </h3>
+                <button type="button" class="import-modal-close" onclick="closeImportModal();">&times;</button>
+            </div>
+            <form id="importForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="import-modal-body">
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.5;">
+                        Upload authentic database records in <strong style="color:var(--text-primary);">CSV</strong> or <strong style="color:var(--text-primary);">JSON</strong>.
+                        All records are parsed with ACID transaction safety and logged in the immutable audit trail.
+                    </div>
+
+                    <!-- 1-Click Master Backup Sync Shortcut -->
+                    <div style="background:var(--accent-light); border:1px solid #CCFBF1; border-radius:var(--radius-md); padding:12px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-size:13px; font-weight:700; color:var(--primary-brand); display:flex; align-items:center; gap:6px;">
+                                <span>⚡</span> <span>1-Click Fast Sync from Master Backup</span>
+                            </div>
+                            <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">
+                                Immediately restore all authentic records for this section from master server backup.
+                            </div>
+                        </div>
+                        <a id="modalQuickSyncBtn" href="#" class="btn-admin btn-admin-primary" style="padding:6px 14px; font-size:12px; text-decoration:none;" onclick="return confirm('⚡ 1-Click Fast Sync: Load all authentic records for this section directly from master server backup?');">
+                            <span>⚡</span> <span>1-Click Load Data</span>
+                        </a>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-bottom:16px; align-items:center;">
+                        <span style="font-size:12px; color:var(--text-secondary);">Download clean schema template:</span>
+                        <a id="sampleCsvBtn" href="#" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px;">📥 Template (.CSV)</a>
+                        <a id="sampleJsonBtn" href="#" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px;">📥 Template (.JSON)</a>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div class="import-dropzone" onclick="document.getElementById('importFileInput').click();">
+                        <div style="font-size:32px; margin-bottom:8px;">📁</div>
+                        <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:4px;">Click or drag file to select</div>
+                        <div id="selectedFileName" style="font-size:12px; color:var(--primary-brand); font-family:var(--font-mono);">Supports .CSV, .JSON, and db_backup_*.json</div>
+                        <input type="file" id="importFileInput" name="file" accept=".csv,.json" style="display:none;" onchange="handleFileSelect(this);" required>
+                    </div>
+
+                    <!-- Import Mode -->
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Import Strategy</div>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-primary); cursor:pointer; margin-bottom:6px;">
+                            <input type="radio" name="mode" value="upsert" checked>
+                            <span><strong>Update &amp; Insert (Upsert):</strong> Overwrite existing matched records, insert new ones</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-primary); cursor:pointer;">
+                            <input type="radio" name="mode" value="insert_only">
+                            <span><strong>Insert Only:</strong> Skip existing records to prevent overwrites</span>
+                        </label>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn-admin btn-admin-secondary" onclick="closeImportModal();">Cancel</button>
+                        <button type="submit" class="btn-admin btn-admin-primary" style="padding:8px 18px;">
+                            <span>🚀</span> <span>Process &amp; Import Data</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme Management (Light by default, dark mode supported)
+        function initTheme() {
+            var savedTheme = localStorage.getItem('impactbridge_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+            updateThemeButton(savedTheme);
+        }
+
+        function toggleTheme() {
+            var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            if (newTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+            localStorage.setItem('impactbridge_theme', newTheme);
+            updateThemeButton(newTheme);
+        }
+
+        function updateThemeButton(theme) {
+            var icon = document.getElementById('themeToggleIcon');
+            var label = document.getElementById('themeToggleLabel');
+            if (icon && label) {
+                if (theme === 'dark') {
+                    icon.innerText = '☀️';
+                    label.innerText = 'Light';
+                } else {
+                    icon.innerText = '🌙';
+                    label.innerText = 'Dark';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initTheme);
+
+        // Sidebar Desktop Collapse
+        function toggleSidebarCollapse() {
+            var sidebar = document.getElementById('adminSidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+                var isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('admin_sidebar_collapsed', isCollapsed ? '1' : '0');
+            }
+        }
+
+        // Mobile Sidebar Drawer
+        function toggleAdminSidebar() {
+            var sidebar = document.getElementById('adminSidebar');
+            var backdrop = document.getElementById('adminSidebarBackdrop');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (backdrop) backdrop.classList.toggle('show');
+        }
+
+        function closeAdminSidebar() {
+            var sidebar = document.getElementById('adminSidebar');
+            var backdrop = document.getElementById('adminSidebarBackdrop');
+            if (sidebar) sidebar.classList.remove('show');
+            if (backdrop) backdrop.classList.remove('show');
+        }
+
+        // Export Dropdown
+        function toggleExportDropdown(id) {
+            var allMenus = document.querySelectorAll('.export-menu');
+            allMenus.forEach(function(m) {
+                if (m.id !== id) m.classList.remove('show');
+            });
+            var target = document.getElementById(id);
+            if (target) target.classList.toggle('show');
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.export-dropdown')) {
+                document.querySelectorAll('.export-menu').forEach(function(m) {
+                    m.classList.remove('show');
+                });
+            }
+        });
+
+        // Import Modal
+        function openImportModal(entityKey, entityTitle) {
+            var backdrop = document.getElementById('globalImportModal');
+            if (!backdrop) return;
+            document.getElementById('importEntityTitle').innerText = entityTitle;
+            document.getElementById('importForm').action = "/admin-portal/exchange/import/" + entityKey + "/";
+            document.getElementById('sampleCsvBtn').href = "/admin-portal/exchange/template/" + entityKey + "/?format=csv";
+            document.getElementById('sampleJsonBtn').href = "/admin-portal/exchange/template/" + entityKey + "/?format=json";
+            var quickSyncBtn = document.getElementById('modalQuickSyncBtn');
+            if (quickSyncBtn) {
+                quickSyncBtn.href = "/admin-portal/exchange/quick-sync/" + entityKey + "/";
+            }
+            document.getElementById('selectedFileName').innerText = "Supports .CSV, .JSON, and db_backup_*.json";
+            document.getElementById('importFileInput').value = "";
+            backdrop.classList.add('show');
+        }
+
+        function closeImportModal() {
+            var backdrop = document.getElementById('globalImportModal');
+            if (backdrop) backdrop.classList.remove('show');
+        }
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var sizeKb = (file.size / 1024).toFixed(1);
+                document.getElementById('selectedFileName').innerHTML = '✅ <strong>Ready:</strong> ' + file.name + ' (' + sizeKb + ' KB)';
+            }
+        }
+    </script>
+    {% include "admin/components/enterprise_confirm_modal.html" %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

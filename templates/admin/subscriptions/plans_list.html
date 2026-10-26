@@ -1,0 +1,202 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Pricing Plans Catalog{% endblock %}
+{% block page_title %}Subscription Plans Catalog ({{ total_count }}){% endblock %}
+
+{% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="plans" %}
+
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:16px; color:var(--text-primary); font-weight:700;">Active Catalog &amp; Entitlements</h3>
+            <p style="margin:0; font-size:12.5px; color:var(--text-secondary);">
+                Plans configured here dynamically control the public pricing page, available plan upgrades and changes, and feature access limits.
+            </p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <a href="{% url 'admin_subscriptions:plan_create' %}" class="btn-primary" style="display:inline-flex; align-items:center; gap:6px; height:38px; padding:0 16px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create New Plan
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width:60px;">Order</th>
+                    <th>Plan Name &amp; Code</th>
+                    <th>Monthly Price</th>
+                    <th>Yearly Price</th>
+                    <th>Badge / Highlights</th>
+                    <th>Entitlements</th>
+                    <th>Flags</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in plans %}
+                <tr>
+                    <td style="font-family:var(--font-mono); color:var(--text-secondary); font-size:12px;">
+                        #{{ p.display_order }}
+                    </td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <strong style="color:var(--text-primary); font-size:14px;">{{ p.name }}</strong>
+                            {% if p.is_popular %}
+                            <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">POPULAR</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--admin-accent);">
+                            code: <code>{{ p.code }}</code>
+                        </div>
+                        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">
+                            {{ p.description|truncatechars:70 }}
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-family:var(--font-mono); font-weight:700; color:var(--text-primary); font-size:13.5px;">
+                            &#8377; {{ p.monthly_price_inr|floatformat:0 }}
+                        </span>
+                        <span style="font-size:11px; color:var(--text-secondary);">/mo</span>
+                    </td>
+                    <td>
+                        <span style="font-family:var(--font-mono); font-weight:700; color:var(--text-primary); font-size:13.5px;">
+                            &#8377; {{ p.yearly_price_inr|floatformat:0 }}
+                        </span>
+                        <span style="font-size:11px; color:var(--text-secondary);">/yr</span>
+                        {% if p.monthly_price_paise > 0 and p.yearly_price_paise > 0 %}
+                        <div style="font-size:10.5px; color:var(--admin-success);">
+                            Annual rate: &#8377; {{ p.yearly_price_inr|floatformat:0 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.badge %}
+                        <span style="display:inline-block; padding:2px 8px; border-radius:4px; font-size:10.5px; font-weight:600; background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.4); margin-bottom:4px;">
+                            {{ p.badge }}
+                        </span>
+                        {% endif %}
+                        <div style="font-size:11px; color:var(--admin-muted);">
+                            {{ p.features_list|length }} feature bullets
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge-status badge-active" style="font-size:11px;">
+                            {{ p.entitlements.count }} Entitlements
+                        </span>
+                        {% if p.trial_days > 0 %}
+                        <div style="font-size:10.5px; color:#38bdf8; margin-top:2px;">
+                            {{ p.trial_days }} days trial
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; flex-direction:column; gap:2px; font-size:11px;">
+                            <span style="color:{% if p.is_visible %}var(--admin-success){% else %}var(--admin-muted){% endif %};">
+                                {% if p.is_visible %}&check; Visible on Web{% else %}&cross; Hidden{% endif %}
+                            </span>
+                            <span style="color:{% if p.auto_renew_default %}var(--admin-accent){% else %}var(--admin-muted){% endif %};">
+                                {% if p.auto_renew_default %}&check; Auto-Renew Default{% else %}Manual Renew{% endif %}
+                            </span>
+                            <span style="color:var(--admin-muted);">
+                                {% if p.is_contact_sales %}Contact Sales{% else %}Self-Checkout{% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if p.is_active %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">Archived</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right;">
+                        <div style="display:inline-flex; gap:6px; align-items:center;">
+                            <a href="{% url 'admin_subscriptions:plan_edit' p.code %}" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 8px;">
+                                Edit
+                            </a>
+                            <form method="POST" action="{% url 'admin_subscriptions:plan_duplicate' p.code %}" style="display:inline; margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                                title: 'Duplicate Pricing Plan Specification',
+                                subtitle: 'Generate a cloned draft copy of this subscription plan tier.',
+                                severity: 'info',
+                                entity: {
+                                    'Source Plan': '{{ p.name }}',
+                                    'Source Code': '{{ p.code }}',
+                                    'Pricing': '&#8377; {{ p.price_monthly|floatformat:2 }}/mo &bull; &#8377; {{ p.price_yearly|floatformat:2 }}/yr'
+                                },
+                                impacts: [
+                                    'Creates an inactive copy with a unique slug and code prefix',
+                                    'Preserves all feature sets, quotas, limits, and pricing settings',
+                                    'Allows safe staging and testing before activating to clients'
+                                ],
+                                confirmText: 'Create Cloned Plan Copy'
+                            });">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 8px;" title="Duplicate Plan">
+                                    Copy
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'admin_subscriptions:plan_toggle' p.code %}" style="display:inline; margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                                title: '{% if p.is_active %}Archive &amp; Deactivate{% else %}Publish &amp; Activate{% endif %} Pricing Plan',
+                                subtitle: 'Modify catalog visibility and onboarding availability.',
+                                severity: 'warning',
+                                entity: {
+                                    'Plan Name': '{{ p.name }} ({{ p.code }})',
+                                    'Current State': '{% if p.is_active %}ACTIVE (Available){% else %}ARCHIVED (Hidden){% endif %}',
+                                    'Target State': '{% if p.is_active %}ARCHIVED (Hidden){% else %}ACTIVE (Available){% endif %}'
+                                },
+                                impacts: [
+                                    '{% if p.is_active %}New customers will no longer be able to select or upgrade to this tier.{% else %}Plan will immediately be made available for customer subscriptions.{% endif %}',
+                                    'Existing subscribers will maintain their current coverage without interruption'
+                                ],
+                                confirmText: '{% if p.is_active %}Deactivate Plan{% else %}Activate Plan{% endif %}'
+                            });">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 8px;">
+                                    {% if p.is_active %}Disable{% else %}Enable{% endif %}
+                                </button>
+                            </form>
+                            {% if p.code != "starter" %}
+                            <form method="POST" action="{% url 'admin_subscriptions:plan_delete' p.code %}" style="display:inline; margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+                                title: 'Delete Subscription Plan Specification',
+                                subtitle: 'Permanent deletion of this tier from the product catalog.',
+                                severity: 'danger',
+                                entity: {
+                                    'Plan Name': '{{ p.name }}',
+                                    'Plan Identifier': '{{ p.code }}'
+                                },
+                                impacts: [
+                                    'Permanently deletes the plan record and configured entitlements',
+                                    'Operation will be rejected if any active subscriptions are attached',
+                                    'Cannot be recovered once executed'
+                                ],
+                                alert: 'CRITICAL: Only proceed if you are certain this plan specification is obsolete.',
+                                requireAck: true,
+                                ackText: 'I confirm permanent deletion of plan {{ p.name }} ({{ p.code }}).',
+                                confirmText: 'Permanently Delete Plan'
+                            });">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-admin btn-admin-danger" style="font-size:11.5px; padding:4px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444;">
+                                    Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align:center; padding:32px; color:var(--admin-muted);">
+                        No plans found in database. Run <code>python manage.py seed_subscription_plans</code> to populate default plans.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

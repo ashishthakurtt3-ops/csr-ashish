@@ -1,0 +1,581 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}{% if is_new %}Create New Subscription Plan{% else %}Edit Plan: {{ plan.name }}{% endif %} | Admin Control{% endblock %}
+
+{% block extra_css %}
+<style>
+    #plan-admin-form .admin-card {
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    #plan-admin-form .admin-card h3 {
+        color: var(--text-primary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+    #plan-admin-form label {
+        color: var(--text-secondary) !important;
+        font-weight: 600;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+    #plan-admin-form input[type="text"],
+    #plan-admin-form input[type="number"],
+    #plan-admin-form select,
+    #plan-admin-form textarea {
+        background: var(--bg-input) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--text-primary) !important;
+        font-family: inherit;
+        box-shadow: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    #plan-admin-form input[type="text"]:focus,
+    #plan-admin-form input[type="number"]:focus,
+    #plan-admin-form select:focus,
+    #plan-admin-form textarea:focus {
+        outline: none !important;
+        border-color: var(--primary-brand) !important;
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+    }
+    #plan-admin-form input[readonly] {
+        background: var(--bg-surface-subtle) !important;
+        color: var(--text-secondary) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="plans" %}
+
+<form id="plan-admin-form" method="POST" onsubmit="return handlePlanFormSubmit(event)" style="display:flex; flex-direction:column; gap:24px;">
+    {% csrf_token %}
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-secondary">
+            &larr; Back to Catalog
+        </a>
+        <div style="display:flex; gap:10px;">
+            <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" class="btn-admin btn-admin-primary" style="font-weight:700; padding:8px 22px;">
+                Save Plan &amp; Entitlements
+            </button>
+        </div>
+    </div>
+
+    <!-- Section 1: General Plan Info & Badges -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">1</span>
+            General Plan Information &amp; Badges
+        </h3>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:18px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Plan Name *</label>
+                <input type="text" id="field-name" name="name" value="{{ plan.name|default:'' }}" required placeholder="e.g. Basic, Pro, Business"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">
+                    Plan Code * {% if not is_new %}<span style="color:#f59e0b;">(Immutable unique ID)</span>{% endif %}
+                </label>
+                {% if is_new %}
+                <input type="text" id="field-code" name="code" value="" required placeholder="e.g. basic, pro, business"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:var(--admin-accent); font-size:13.5px; font-family:'JetBrains Mono',monospace;">
+                {% else %}
+                <input type="text" id="field-code" value="{{ plan.code }}" readonly disabled
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.05); border-radius:6px; color:var(--admin-accent); font-size:13.5px; font-family:'JetBrains Mono',monospace;">
+                {% endif %}
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">URL Slug</label>
+                <input type="text" id="field-slug" name="slug" value="{{ plan.slug|default:'' }}" placeholder="e.g. pro-plan"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Plan Badge Text</label>
+                <input type="text" id="field-badge" name="badge" value="{{ plan.badge|default:'' }}" placeholder="e.g. Most Popular, Recommended"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:14px; padding:12px; background:rgba(15,23,42,0.5); border-radius:6px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-is_popular" name="is_popular" {% if plan.is_popular %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Popular Badge (Highlight Card)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-is_recommended" name="is_recommended" {% if plan.is_recommended %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Recommended Badge</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-is_contact_sales" name="is_contact_sales" {% if plan.is_contact_sales %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Contact Sales (Custom Quote)</span>
+            </label>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-top:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Card Short Description</label>
+                <textarea id="field-card_description" name="card_description" rows="2" placeholder="Brief tagline shown on the pricing card..."
+                          style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">{{ plan.card_description|default:plan.description|default:'' }}</textarea>
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Full Plan Description</label>
+                <textarea id="field-description" name="description" rows="2" placeholder="Full summary of plan capabilities..."
+                          style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">{{ plan.description|default:'' }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Pricing, Currency, Discounts & Wallet -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">2</span>
+            Pricing, Currency, Discounts &amp; Wallet Control
+        </h3>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Currency</label>
+                <select id="field-currency" name="currency" style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+                    <option value="INR" {% if plan.currency == "INR" or not plan %}selected{% endif %}>INR (₹)</option>
+                    <option value="USD" {% if plan.currency == "USD" %}selected{% endif %}>USD ($)</option>
+                    <option value="EUR" {% if plan.currency == "EUR" %}selected{% endif %}>EUR (€)</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Monthly Price *</label>
+                <input type="number" step="0.01" id="field-monthly_price_inr" name="monthly_price_inr" value="{{ plan.price_monthly|default:'0' }}" required
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Yearly Price *</label>
+                <input type="number" step="0.01" id="field-yearly_price_inr" name="yearly_price_inr" value="{{ plan.price_yearly|default:'0' }}" required
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace; font-weight:700;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Renewal Price</label>
+                <input type="number" step="0.01" id="field-renewal_price_inr" name="renewal_price_inr" value="{{ plan.price_renewal|default:plan.price_monthly|default:'0' }}"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace;">
+                <span style="font-size:11px; color:var(--admin-muted);">Defaults to monthly price</span>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Wallet Deduction</label>
+                <input type="number" step="0.01" id="field-wallet_deduction_inr" name="wallet_deduction_inr" value="{{ plan.price_wallet_deduction|default:plan.price_monthly|default:'0' }}"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace;">
+                <span style="font-size:11px; color:var(--admin-muted);">Amount charged to wallet</span>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-top:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Discount (%)</label>
+                <input type="number" id="field-discount_percent" name="discount_percent" value="{{ plan.discount_percent|default:'0' }}" min="0" max="100"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Savings Text</label>
+                <input type="text" id="field-savings_text" name="savings_text" value="{{ plan.savings_text|default:'' }}" placeholder="e.g. Save ₹989 / 16% off"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Trial Period (Days)</label>
+                <input type="number" id="field-trial_days" name="trial_days" value="{{ plan.trial_days|default:'0' }}" min="0" max="365"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Billing Footnote</label>
+                <input type="text" id="field-billing_note" name="billing_note" value="{{ plan.billing_note|default:'' }}" placeholder="e.g. Billed monthly (+18% GST)"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Plan Button, Ordering & Visibility Controls -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">3</span>
+            Card Button, Order &amp; System Visibility
+        </h3>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Card Button Text</label>
+                <input type="text" id="field-button_text" name="button_text" value="{{ plan.button_text|default:plan.cta_text|default:'Change Plan' }}" placeholder="e.g. Change Plan, Switch Plan"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Button Order</label>
+                <input type="number" id="field-button_order" name="button_order" value="{{ plan.button_order|default:'1' }}" min="1" max="10"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Display Order</label>
+                <input type="number" id="field-display_order" name="display_order" value="{{ plan.display_order|default:'0' }}"
+                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-top:16px; padding:14px; background:rgba(15,23,42,0.5); border-radius:6px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-button_visible" name="button_visible" {% if plan.button_visible or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Button Visible on Card</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-is_active" name="is_active" {% if plan.is_active or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Active Status</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-is_visible" name="is_visible" {% if plan.is_visible or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Visible to Users in Catalog</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-allow_upgrade" name="allow_upgrade" {% if plan.allow_upgrade or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Allow Higher Plan Changes</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-allow_downgrade" name="allow_downgrade" {% if plan.allow_downgrade or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Allow Lower Plan Changes</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-allow_cancel" name="allow_cancel" {% if plan.allow_cancel or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Allow Cancellation</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-auto_renew_default" name="auto_renew_default" {% if plan.auto_renew_default or is_new %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Auto-Renew Enabled by Default</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Section 4: Marketing Feature Bullets -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">4</span>
+            Marketing Feature Bullets (Public Card List)
+        </h3>
+        <p style="font-size:12px; color:var(--admin-muted); margin-bottom:8px;">
+            Enter each feature on a new line. These are rendered with checkmarks on the user pricing and subscription cards.
+        </p>
+        <textarea id="field-features" name="features" rows="6" placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+                  style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px; line-height:1.5;">{{ features_str }}</textarea>
+    </div>
+
+    <!-- Section 5: Usage Limits & Entitlements -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">5</span>
+            Usage Limits &amp; Entitlements
+        </h3>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Jobs Limit</label>
+                <input type="text" id="field-limit_jobs" name="limit_jobs" value="{{ limits.jobs|default:'' }}" placeholder="e.g. 100 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">API Requests Limit</label>
+                <input type="text" id="field-limit_api_requests" name="limit_api_requests" value="{{ limits.api_requests|default:'' }}" placeholder="e.g. 5000 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Storage Allowance</label>
+                <input type="text" id="field-limit_storage" name="limit_storage" value="{{ limits.storage|default:'10 GB' }}" placeholder="e.g. 10 GB"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Credits Limit</label>
+                <input type="text" id="field-limit_credits" name="limit_credits" value="{{ limits.credits|default:'' }}" placeholder="e.g. 500 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Search Queries Limit</label>
+                <input type="text" id="field-limit_search" name="limit_search" value="{{ limits.search_limit|default:'' }}" placeholder="e.g. 200 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Export Limit (Rows)</label>
+                <input type="text" id="field-limit_export" name="limit_export" value="{{ limits.export_limit|default:limits.export_rows_per_month|default:'' }}" placeholder="e.g. 1000 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-top:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Team Seats</label>
+                <input type="number" id="field-limit_seats" name="limit_seats" value="{{ limits.seats|default:'1' }}" min="1" max="100"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Daily Matchmaker Queries</label>
+                <input type="text" id="field-limit_daily_matches" name="limit_daily_matches" value="{{ limits.daily_matches|default:'' }}" placeholder="e.g. 10 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:16px; padding:12px; background:rgba(15,23,42,0.5); border-radius:6px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-limit_api_access" name="limit_api_access" {% if limits.api_access %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Developer REST API Access</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-limit_live_reprobe" name="limit_live_reprobe" {% if limits.live_reprobe %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Live Domain Probing</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-limit_view_contacts" name="limit_view_contacts" {% if limits.view_contacts %}checked{% endif %} style="width:16px; height:16px;">
+                <span>View Corporate Contacts</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
+                <input type="checkbox" id="field-limit_audit_packs" name="limit_audit_packs" {% if limits.audit_packs %}checked{% endif %} style="width:16px; height:16px;">
+                <span>Section 135 Audit Evidence Packs</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Section 6: Additional Information, Terms & Notes -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">6</span>
+            Additional Information, Terms &amp; Notes
+        </h3>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Additional Information</label>
+                <textarea id="field-additional_info" name="additional_info" rows="3" placeholder="Special highlights or details visible to users..."
+                          style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">{{ plan.additional_info|default:'' }}</textarea>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Plan Terms</label>
+                <textarea id="field-terms" name="terms" rows="3" placeholder="Subscription terms and compliance conditions..."
+                          style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">{{ plan.terms|default:'' }}</textarea>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Admin Notes</label>
+                <textarea id="field-notes" name="notes" rows="3" placeholder="Internal notes for administrators..."
+                          style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">{{ plan.notes|default:'' }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Submit Bar -->
+    <div style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:40px;">
+        <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+        <button type="submit" class="btn-admin btn-admin-primary" style="font-weight:700; padding:10px 28px; font-size:14px;">
+            Save Plan &amp; Entitlements
+        </button>
+    </div>
+</form>
+
+<!-- MODAL: Confirmation & Diff Dialog (Requirement 10 & 11) -->
+<div id="modal-plan-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(11,31,51,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:16px; width:100%; max-width:560px; box-shadow:0 20px 25px -5px rgba(15,23,42,0.15); overflow:hidden; animation:fadeIn 0.2s ease;">
+        <div style="padding:18px 24px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; background:#F8FAFC;">
+            <h3 id="plan-confirm-title" style="margin:0; font-size:17px; font-weight:700; color:#0F172A; display:flex; align-items:center; gap:8px;">
+                Confirm Changes
+            </h3>
+            <button type="button" onclick="closeConfirmModal()" style="background:none; border:none; color:#64748B; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+
+        <div style="padding:24px; max-height:65vh; overflow-y:auto;">
+            <div style="font-size:13.5px; color:#64748B; margin-bottom:12px;">
+                Plan: <strong id="plan-confirm-name" style="color:#0F172A;">{{ plan.name|default:'New Plan' }}</strong>
+            </div>
+
+            <div id="plan-diff-container" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px; margin-bottom:18px;">
+                <!-- Diffs rendered dynamically -->
+            </div>
+
+            <div style="font-size:13.5px; color:#334155;">
+                Are you sure you want to save these changes?
+            </div>
+        </div>
+
+        <div style="padding:16px 24px; border-top:1px solid #E2E8F0; background:#F8FAFC; display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" onclick="closeConfirmModal()" class="btn-admin btn-admin-secondary" style="padding:8px 18px;">
+                Cancel
+            </button>
+            <button type="button" id="btn-confirm-save-plan" onclick="proceedPlanSave()" class="btn-admin btn-admin-primary" style="padding:8px 22px; font-weight:700;">
+                Confirm &amp; Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let initialFormValues = {};
+let isConfirmedSubmit = false;
+
+const fieldLabels = {
+    'name': 'Plan Name',
+    'code': 'Plan Code',
+    'slug': 'URL Slug',
+    'badge': 'Marketing Badge',
+    'is_popular': 'Popular Badge',
+    'is_recommended': 'Recommended Badge',
+    'is_contact_sales': 'Contact Sales Mode',
+    'card_description': 'Card Short Description',
+    'description': 'Full Description',
+    'currency': 'Currency',
+    'monthly_price_inr': 'Monthly Price',
+    'yearly_price_inr': 'Yearly Price',
+    'renewal_price_inr': 'Renewal Price',
+    'wallet_deduction_inr': 'Wallet Deduction',
+    'discount_percent': 'Discount (%)',
+    'savings_text': 'Savings Text',
+    'trial_days': 'Trial Days',
+    'billing_note': 'Billing Note',
+    'button_text': 'Button Text',
+    'button_order': 'Button Order',
+    'display_order': 'Display Order',
+    'button_visible': 'Button Visibility',
+    'is_active': 'Plan Status (Active)',
+    'is_visible': 'Catalog Visibility',
+    'allow_upgrade': 'Allow Higher Plan Changes',
+    'allow_downgrade': 'Allow Lower Plan Changes',
+    'allow_cancel': 'Allow Cancellation',
+    'auto_renew_default': 'Auto-Renew Default',
+    'features': 'Feature Bullets',
+    'limit_jobs': 'Jobs Limit',
+    'limit_api_requests': 'API Requests Limit',
+    'limit_storage': 'Storage Allowance',
+    'limit_credits': 'Credits Limit',
+    'limit_search': 'Search Queries Limit',
+    'limit_export': 'Export Limit',
+    'limit_seats': 'Team Seats',
+    'limit_daily_matches': 'Daily Matches Limit',
+    'limit_api_access': 'API Access',
+    'limit_live_reprobe': 'Live Probing',
+    'limit_view_contacts': 'View Contacts',
+    'limit_audit_packs': 'Audit Packs',
+    'additional_info': 'Additional Information',
+    'terms': 'Terms',
+    'notes': 'Admin Notes'
+};
+
+function captureInitialValues() {
+    for (let key in fieldLabels) {
+        const el = document.getElementById('field-' + key);
+        if (el) {
+            if (el.type === 'checkbox') {
+                initialFormValues[key] = el.checked;
+            } else {
+                initialFormValues[key] = (el.value || '').trim();
+            }
+        }
+    }
+}
+
+window.addEventListener('DOMContentLoaded', captureInitialValues);
+
+function handlePlanFormSubmit(e) {
+    if (isConfirmedSubmit) {
+        return true;
+    }
+    e.preventDefault();
+
+    const planNameEl = document.getElementById('field-name');
+    const planName = planNameEl ? planNameEl.value : 'Plan';
+    document.getElementById('plan-confirm-name').textContent = planName;
+
+    const diffs = [];
+    for (let key in fieldLabels) {
+        const el = document.getElementById('field-' + key);
+        if (!el) continue;
+
+        let curVal = (el.type === 'checkbox') ? el.checked : (el.value || '').trim();
+        let initVal = initialFormValues[key] !== undefined ? initialFormValues[key] : '';
+
+        if (curVal !== initVal) {
+            let label = fieldLabels[key];
+            let displayInit = initVal;
+            let displayCur = curVal;
+
+            if (typeof initVal === 'boolean') {
+                displayInit = initVal ? 'Yes' : 'No';
+                displayCur = curVal ? 'Yes' : 'No';
+            } else {
+                if (key.includes('price')) {
+                    displayInit = '₹' + (displayInit || '0');
+                    displayCur = '₹' + (displayCur || '0');
+                }
+            }
+
+            diffs.push({ label, oldVal: displayInit, newVal: displayCur });
+        }
+    }
+
+    const container = document.getElementById('plan-diff-container');
+    const titleEl = document.getElementById('plan-confirm-title');
+
+    if (diffs.length === 0) {
+        titleEl.textContent = "{% if is_new %}Confirm New Plan Creation{% else %}Confirm Plan Save{% endif %}";
+        container.innerHTML = `
+            <div style="font-size:13px; color:#94a3b8; text-align:center; padding:10px;">
+                No attributes modified or creating plan with default settings.
+            </div>
+        `;
+    } else {
+        titleEl.textContent = "Confirm Changes";
+        let diffHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+        diffs.forEach(d => {
+            diffHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="color:#94a3b8; font-weight:600;">${d.label}:</span>
+                    <span class="mono" style="color:#fff;">
+                        <span style="color:#f87171; text-decoration:line-through; margin-right:6px;">${d.oldVal || 'None'}</span>
+                        &rarr;
+                        <span style="color:#34d399; font-weight:700; margin-left:6px;">${d.newVal || 'None'}</span>
+                    </span>
+                </div>
+            `;
+        });
+        diffHtml += '</div>';
+        container.innerHTML = diffHtml;
+    }
+
+    const modal = document.getElementById('modal-plan-confirm');
+    modal.style.display = 'flex';
+    return false;
+}
+
+function closeConfirmModal() {
+    document.getElementById('modal-plan-confirm').style.display = 'none';
+}
+
+function proceedPlanSave() {
+    isConfirmedSubmit = true;
+    closeConfirmModal();
+    document.getElementById('plan-admin-form').submit();
+}
+</script>
+{% endblock %}

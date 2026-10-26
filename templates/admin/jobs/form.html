@@ -1,0 +1,92 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Edit Job: {{ job.job_title }}{% endblock %}
+{% block page_title %}Update Job Intelligence: {{ job.job_title }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'admin_jobs:detail' job.job_row_id %}" class="btn-admin btn-admin-secondary">
+        &larr; Back to Job Details
+    </a>
+</div>
+
+<div class="admin-card" style="max-width: 840px; margin: 0 auto; padding: 28px;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+        <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">
+            Edit Career Opening Record
+        </h2>
+        <div style="font-size: 13px; color: var(--text-secondary);">
+            Modify role specifications, location, ATS application URL, and verified status for <strong>{{ job.company.company_name }}</strong>.
+        </div>
+    </div>
+
+    <form method="POST" style="display:flex; flex-direction:column; gap:20px;">
+        {% csrf_token %}
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Job Title *</label>
+            <input type="text" name="job_title" value="{{ job.job_title }}" required class="search-input" style="height:42px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Department / Function</label>
+                <input type="text" name="department" value="{{ job.department }}" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Work Mode</label>
+                <select name="work_mode" class="select-filter" style="width:100%; height:42px;">
+                    <option value="Hybrid" {% if job.work_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                    <option value="On-site" {% if job.work_mode == "On-site" %}selected{% endif %}>On-site</option>
+                    <option value="Remote" {% if job.work_mode == "Remote" %}selected{% endif %}>Remote</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Location</label>
+                <input type="text" name="location" value="{{ job.location }}" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Status</label>
+                <select name="status" class="select-filter" style="width:100%; height:42px;">
+                    <option value="ACTIVE" {% if job.status == "ACTIVE" %}selected{% endif %}>ACTIVE</option>
+                    <option value="CLOSED" {% if job.status == "CLOSED" %}selected{% endif %}>CLOSED</option>
+                    <option value="PENDING" {% if job.status == "PENDING" %}selected{% endif %}>PENDING</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Experience Level</label>
+                <input type="text" name="experience" value="{{ job.experience|default:'' }}" placeholder="e.g. 3-5 Years" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Salary / CTC Range</label>
+                <input type="text" name="salary" value="{{ job.salary|default:'' }}" placeholder="e.g. ₹12-18 LPA or Not Disclosed" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Official Application URL (ATS Link)</label>
+            <input type="url" name="application_url" value="{{ job.application_url }}" placeholder="https://..." class="search-input" style="height:42px;">
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Required Skills (Comma-separated)</label>
+            <textarea name="skills" rows="2" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.skills }}</textarea>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Job Description</label>
+            <textarea name="job_description" rows="5" class="search-input" style="height:auto; padding:10px 12px; font-family:inherit;">{{ job.job_description }}</textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px; border-top:1px solid var(--border-color); padding-top:18px;">
+            <a href="{% url 'admin_jobs:detail' job.job_row_id %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" class="btn-admin btn-admin-primary" style="padding:9px 24px;">Save &amp; Update Job</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

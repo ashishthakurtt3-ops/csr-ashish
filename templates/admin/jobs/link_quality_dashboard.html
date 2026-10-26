@@ -1,0 +1,209 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Link Quality & Strategy Intelligence Dashboard - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-content-container">
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h1 style="font-size:24px; font-weight:800; color:var(--text-primary); margin:0 0 4px;">
+                Link Quality & Extraction Strategy Dashboard
+            </h1>
+            <p style="font-size:14px; color:var(--text-secondary); margin:0;">
+                Deterministic URL verification metrics, strategy distribution, and live crawl health.
+            </p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a href="{% url 'admin_jobs:list' %}?link_quality=DIRECT" class="btn-admin" style="background:#059669; color:#fff; border:none; padding:8px 14px; font-weight:700;">
+                View Direct Jobs ({{ direct_count }})
+            </a>
+            <a href="{% url 'admin_jobs:list' %}?link_quality=LISTING_FALLBACK" class="btn-admin" style="background:#f59e0b; color:#fff; border:none; padding:8px 14px; font-weight:700;">
+                View Fallback Jobs ({{ fallback_count }})
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Pills -->
+    <div style="display:flex; gap:8px; margin-bottom:24px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+        <a href="{% url 'admin_jobs:list' %}" class="jobs-nav-pill">All Jobs</a>
+        <a href="{% url 'admin_jobs:link_quality' %}" class="jobs-nav-pill active">Link Quality Dashboard</a>
+        <a href="{% url 'admin_jobs:find' %}" class="jobs-nav-pill">Search & Filter</a>
+        <a href="{% url 'admin_jobs:companies' %}" class="jobs-nav-pill">Companies Directory</a>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:28px;">
+        <div class="admin-card" style="padding:20px; border-left:4px solid #3b82f6;">
+            <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                Total Active Jobs
+            </div>
+            <div style="font-size:28px; font-weight:800; color:var(--text-primary); margin-top:6px;">
+                {{ total_active|default:"0" }}
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                Stored in MySQL
+            </div>
+        </div>
+
+        <div class="admin-card" style="padding:20px; border-left:4px solid #10b981;">
+            <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                Direct Job Openings
+            </div>
+            <div style="font-size:28px; font-weight:800; color:#059669; margin-top:6px;">
+                {{ direct_pct }}%
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                {{ direct_count }} jobs land on specific opening
+            </div>
+        </div>
+
+        <div class="admin-card" style="padding:20px; border-left:4px solid #f59e0b;">
+            <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                Listing Fallbacks
+            </div>
+            <div style="font-size:28px; font-weight:800; color:#d97706; margin-top:6px;">
+                {{ fallback_count }}
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                Honest fallback with text highlight
+            </div>
+        </div>
+
+        <div class="admin-card" style="padding:20px; border-left:4px solid #6b7280;">
+            <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                Unverified Jobs
+            </div>
+            <div style="font-size:28px; font-weight:800; color:var(--text-secondary); margin-top:6px;">
+                {{ unverified_count }}
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                Pending verification gate
+            </div>
+        </div>
+    </div>
+
+    <!-- 2 Column Layout: Strategies & Fallback Reasons -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:28px;">
+        <!-- Strategy Distribution -->
+        <div class="admin-card" style="padding:20px;">
+            <h3 style="font-size:16px; font-weight:800; margin:0 0 14px; color:var(--text-primary); border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                Extraction Strategy Distribution
+            </h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Strategy</th>
+                        <th style="text-align:right;">Companies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in strategies %}
+                    <tr>
+                        <td style="font-weight:600; color:var(--text-primary);">
+                            <code>{{ s.extraction_strategy }}</code>
+                        </td>
+                        <td style="text-align:right; font-weight:700;">{{ s.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No strategies cached yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Common Fallback Reasons -->
+        <div class="admin-card" style="padding:20px;">
+            <h3 style="font-size:16px; font-weight:800; margin:0 0 14px; color:var(--text-primary); border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                Top Fallback / Verification Notes
+            </h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Reason / Note</th>
+                        <th style="text-align:right;">Jobs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in failing_reasons %}
+                    <tr>
+                        <td style="font-size:13px; color:var(--text-secondary);">
+                            {{ r.link_check_note|default:"Unspecified" }}
+                        </td>
+                        <td style="text-align:right; font-weight:700;">{{ r.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No fallbacks recorded.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Attention / Failing Companies Table -->
+    <div class="admin-card" style="padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+            <h3 style="font-size:16px; font-weight:800; margin:0; color:var(--text-primary);">
+                Companies Needing Attention (Low Direct % or Fallback Rate)
+            </h3>
+            <span style="font-size:12px; color:var(--text-muted);">Click Re-crawl to trigger Strategy Cascade</span>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Sector</th>
+                        <th>Current Strategy</th>
+                        <th>ATS Type</th>
+                        <th>Direct %</th>
+                        <th>Crawl Status</th>
+                        <th style="text-align:right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in failing_companies %}
+                    <tr>
+                        <td style="font-weight:700;">
+                            <a href="{% url 'admin_jobs:company_jobs' c.company_id %}" style="color:var(--text-primary); text-decoration:none;">
+                                {{ c.company_name }}
+                            </a>
+                        </td>
+                        <td>{{ c.sector|default:"N/A" }}</td>
+                        <td>
+                            <code>{{ c.extraction_strategy|default:"none" }}</code>
+                        </td>
+                        <td>{{ c.ats_type|default:c.ats_platform|default:"-" }}</td>
+                        <td>
+                            {% if c.last_strategy_success_rate %}
+                            <span style="font-weight:700; color:{% if c.last_strategy_success_rate >= 80 %}#059669{% elif c.last_strategy_success_rate >= 50 %}#d97706{% else %}#dc2626{% endif %};">
+                                {{ c.last_strategy_success_rate }}%
+                            </span>
+                            {% else %}
+                            <span style="color:var(--text-muted);">0.0%</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge-status {% if c.crawl_status == 'FAILED' or c.crawl_status == 'SUSPECT_DROP' %}badge-inactive{% else %}badge-pending{% endif %}">
+                                {{ c.crawl_status }}
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <a href="{% url 'admin_jobs:recrawl_company' c.company_id %}" class="btn-admin btn-admin-primary" style="padding:4px 10px; font-size:11.5px;">
+                                Re-crawl ↻
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                            All companies meet high link quality thresholds!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

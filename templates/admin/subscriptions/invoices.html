@@ -1,0 +1,89 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Billing &amp; Tax Invoices{% endblock %}
+{% block page_title %}GST Tax Invoices &amp; Ledger ({{ total_count }}){% endblock %}
+
+{% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="invoices" %}
+
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <span style="font-size:13px; color:var(--admin-muted);">
+            All tax invoices automatically calculate 18% GST (CGST/SGST intrastate, IGST interstate).
+        </span>
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="invoices" title="Invoices" %}
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>User</th>
+                    <th>Plan / Interval</th>
+                    <th>Taxable Value</th>
+                    <th>GST (18%)</th>
+                    <th>Total Paid</th>
+                    <th>Status</th>
+                    <th>Issued Date</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in page_obj %}
+                <tr>
+                    <td style="font-family:var(--font-mono); color:var(--text-primary); font-size:12.5px;">
+                        <a href="{% url 'admin_subscriptions:invoice_detail' inv.invoice_id %}" target="_blank" style="color:var(--admin-accent); font-weight:600; text-decoration:none;">
+                            {{ inv.invoice_id }} &nearr;
+                        </a>
+                    </td>
+                    <td>
+                        <strong style="color:var(--text-primary);">{{ inv.user.username }}</strong>
+                        <div style="font-size:11px; color:var(--text-secondary);">{{ inv.user.email }}</div>
+                    </td>
+                    <td>
+                        <span class="badge-status badge-active" style="font-size:10.5px;">{{ inv.plan_id|upper }}</span>
+                        <span style="font-size:11px; color:var(--text-secondary);">{{ inv.billing_cycle|default:"Monthly" }}</span>
+                    </td>
+                    <td style="font-family:var(--font-mono);">&#8377; {{ inv.amount_due|floatformat:2 }}</td>
+                    <td style="font-family:var(--font-mono); color:var(--text-secondary);">&#8377; {{ inv.gst_amount|floatformat:2 }}</td>
+                    <td style="font-family:var(--font-mono); color:var(--admin-success); font-weight:700;">&#8377; {{ inv.total_amount|floatformat:2 }}</td>
+                    <td>
+                        {% if inv.status == "PAID" %}
+                        <span class="badge-status badge-active">PAID</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">{{ inv.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; color:var(--text-secondary);">{{ inv.issued_at|date:"M d, Y" }}</td>
+                    <td style="text-align:right;">
+                        <a href="{% url 'admin_subscriptions:invoice_detail' inv.invoice_id %}" target="_blank" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:3px 8px;">
+                            Print Tax Invoice &nearr;
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" style="text-align:center; padding:24px; color:var(--admin-muted);">No invoices recorded in system.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

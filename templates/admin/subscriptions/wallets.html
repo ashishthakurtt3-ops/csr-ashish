@@ -1,0 +1,205 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Wallets &amp; Ledger{% endblock %}
+{% block page_title %}Prototype User Wallets &amp; Balance Management ({{ total_count }}){% endblock %}
+
+{% block content %}
+{% include "admin/subscriptions/components/sub_nav.html" with active_tab="wallets" %}
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; align-items:start;">
+    <!-- Left Column: Wallets Directory & Quick Adjust -->
+    <div class="admin-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+            <form method="GET" style="display:flex; gap:10px; flex:1; max-width:400px; align-items:center;">
+                <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search user or email..."
+                       class="input-search" style="flex:1; height:38px; padding:0 12px; font-size:13px;">
+                <button type="submit" class="btn-primary" style="height:38px; padding:0 14px;">Search</button>
+                {% if search_query %}
+                <a href="{% url 'admin_subscriptions:wallets_list' %}" class="btn-secondary" style="height:38px; padding:0 12px; display:inline-flex; align-items:center;">Clear</a>
+                {% endif %}
+            </form>
+            <span style="font-size:12px; color:var(--text-secondary);">
+                Atomic balance ledger &bull; Integer paise precision
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Current Balance</th>
+                        <th>Status</th>
+                        <th>Last Activity</th>
+                        <th style="text-align:right;">Quick Adjust</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in wallets %}
+                    <tr>
+                        <td>
+                            <strong style="color:var(--text-primary);">{{ w.user.username }}</strong>
+                            <div style="font-size:11px; color:var(--text-secondary);">{{ w.user.email }}</div>
+                        </td>
+                        <td>
+                            <span style="font-family:var(--font-mono); font-weight:700; color:var(--admin-success); font-size:14px;">
+                                &#8377; {{ w.balance_inr|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if w.is_active %}
+                            <span class="badge-status badge-active">Active</span>
+                            {% else %}
+                            <span class="badge-status badge-rejected">Disabled</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:12px; color:var(--text-secondary);">
+                            {{ w.updated_at|date:"M d, Y H:i" }}
+                        </td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 10px;"
+                                    onclick="openAdjustModal('{{ w.user.id }}', '{{ w.user.username }}', '{{ w.balance_inr|floatformat:2 }}')">
+                                Adjust Funds
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:24px; color:var(--text-secondary);">
+                            No user wallets found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Ledger Transactions -->
+    <div class="admin-card">
+        <h3 style="margin-top:0; font-size:14.5px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:var(--text-primary); display:flex; justify-content:space-between; align-items:center;">
+            <span>Recent Ledger Activity</span>
+            <span style="font-size:11px; color:var(--text-secondary); font-weight:normal;">Last 30 entries</span>
+        </h3>
+
+        <div style="display:flex; flex-direction:column; gap:10px; max-height:600px; overflow-y:auto; padding-right:4px;">
+            {% for tx in recent_transactions %}
+            <div style="padding:10px 12px; background:var(--bg-canvas); border:1px solid var(--admin-border); border-radius:8px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <span style="font-weight:700; color:var(--text-primary);">{{ tx.user.username }}</span>
+                    {% if tx.credit_or_debit == "CREDIT" %}
+                    <span style="font-family:var(--font-mono); color:var(--admin-success); font-weight:700;">+&#8377;{{ tx.amount_inr|floatformat:2 }}</span>
+                    {% else %}
+                    <span style="font-family:var(--font-mono); color:var(--admin-danger); font-weight:700;">-&#8377;{{ tx.amount_inr|floatformat:2 }}</span>
+                    {% endif %}
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary);">
+                    <span>{{ tx.transaction_type }}</span>
+                    <span>{{ tx.created_at|date:"M d, H:i" }}</span>
+                </div>
+                {% if tx.description %}
+                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                    {{ tx.description }}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div style="text-align:center; padding:20px; color:var(--text-secondary); font-size:12px;">
+                No wallet transactions recorded yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adjust Wallet -->
+<div id="adjustModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-card); border:1px solid var(--admin-border); border-radius:12px; padding:24px; width:100%; max-width:440px; box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 8px; font-size:16px; color:var(--text-primary); font-weight:700;">Adjust User Prototype Balance</h3>
+        <p style="margin:0 0 16px; font-size:12.5px; color:var(--text-secondary);" id="modalUserText"></p>
+
+        <form id="adjustForm" method="POST" action="" onsubmit="return handleWalletAdjustSubmit(event)">
+            {% csrf_token %}
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">Operation Type *</label>
+                <select name="action" required class="select-filter" style="width:100%; height:38px;">
+                    <option value="CREDIT">CREDIT (+) Add Funds</option>
+                    <option value="DEBIT">DEBIT (-) Deduct Funds</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">Amount (INR &#8377;) *</label>
+                <input type="number" step="0.01" name="amount_inr" min="0.01" required placeholder="e.g. 500.00"
+                       class="input-search" style="width:100%; height:38px; font-size:14px; font-family:var(--font-mono);">
+            </div>
+
+            <div style="margin-bottom:18px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">Reason / Description</label>
+                <input type="text" name="description" placeholder="e.g. Admin customer support credit, manual correction"
+                       class="input-search" style="width:100%; height:38px; font-size:13px;">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn-secondary" onclick="closeAdjustModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Commit Transaction</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentAdjustContext = {};
+
+function openAdjustModal(userId, username, currentBalance) {
+    currentAdjustContext = { userId, username, currentBalance };
+    document.getElementById('modalUserText').textContent = 'User: ' + username + ' | Current Balance: ₹' + currentBalance;
+    document.getElementById('adjustForm').action = '/admin-portal/subscriptions/wallets/' + userId + '/adjust/';
+    var modal = document.getElementById('adjustModal');
+    modal.style.display = 'flex';
+}
+
+function closeAdjustModal() {
+    document.getElementById('adjustModal').style.display = 'none';
+}
+
+function handleWalletAdjustSubmit(event) {
+    event.preventDefault();
+    const form = document.getElementById('adjustForm');
+    const actionType = form.querySelector('select[name=action]').value;
+    const amountVal = parseFloat(form.querySelector('input[name=amount_inr]').value || 0).toFixed(2);
+    const descVal = form.querySelector('input[name=description]').value || 'Administrative balance adjustment';
+
+    closeAdjustModal();
+
+    EnterpriseConfirm.show({
+        title: 'Authorize Institutional Wallet Mutation',
+        subtitle: 'Review and confirm direct debit/credit transaction against client funds.',
+        severity: 'finance',
+        entity: {
+            'Target Account': currentAdjustContext.username || ('User #' + currentAdjustContext.userId),
+            'Current Balance': '&#8377; ' + currentAdjustContext.currentBalance,
+            'Transaction Direction': actionType === 'CREDIT' ? 'CREDIT (+) Adding Funds' : 'DEBIT (-) Deducting Funds',
+            'Transaction Amount': '&#8377; ' + amountVal,
+            'Stated Purpose': descVal
+        },
+        impacts: [
+            actionType === 'CREDIT' ? 'User wallet will be immediately credited with ₹' + amountVal : 'User wallet will be debited with ₹' + amountVal,
+            'Creates an immutable transaction ledger entry with timestamp and admin attribution',
+            'Cannot be automatically undone once committed'
+        ],
+        alert: 'This transaction will be committed to the master database immediately.',
+        confirmText: 'Commit Funds ' + actionType,
+        form: form
+    });
+    return false;
+}
+
+window.onclick = function(event) {
+    var modal = document.getElementById('adjustModal');
+    if (event.target == modal) {
+        closeAdjustModal();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ job.job_title }} — {{ company.company_name }} — Job Details{% endblock %}
+{% block page_title %}{{ job.job_title }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs & Quick Return -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary);">
+        <a href="{% url 'admin_jobs:find' %}" style="color:var(--text-secondary); text-decoration:none;">Jobs</a>
+        <span>&rsaquo;</span>
+        <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" style="color:var(--text-secondary); text-decoration:none;">{{ company.company_name }}</a>
+        <span>&rsaquo;</span>
+        <strong style="color:var(--text-primary);">{{ job.job_title }}</strong>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center;">
+        <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-admin btn-admin-secondary">
+            &larr; All Jobs at {{ company.company_name }}
+        </a>
+        <a href="{% url 'admin_jobs:edit' job.job_row_id %}" class="btn-admin btn-admin-secondary">
+            ✏️ Edit Job
+        </a>
+        {% if job.application_url %}
+        <a href="{{ job.application_url }}" target="_blank" class="btn-admin btn-admin-primary" style="padding:8px 18px; font-weight:700;">
+            <span>View Opportunity / Apply ↗</span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Job Details Grid -->
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom:32px;">
+    <!-- LEFT: Overview, Description, Requirements -->
+    <div>
+        <!-- Hero Header Card -->
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size:24px; font-weight:800; color:var(--text-primary); margin:0 0 6px;">
+                        {{ job.job_title }}
+                    </h2>
+                    <!-- Clickable Company link to Company Jobs -->
+                    <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" style="font-size:16px; font-weight:600; color:var(--primary-brand); text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        <span>🏢 {{ company.company_name }}</span>
+                        {% if company.nse_symbol %}
+                        <span class="badge-status badge-info" style="font-size:11px;">NSE: {{ company.nse_symbol }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+                <span class="badge-status {% if job.status == 'ACTIVE' %}badge-active{% else %}badge-pending{% endif %}" style="font-size:12px; padding:4px 12px;">
+                    {{ job.status|default:"ACTIVE" }}
+                </span>
+            </div>
+
+            <!-- Meta Quick Badges -->
+            <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border-color);">
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>📍</span> <strong>Location:</strong> {{ job.location|default:"India" }}
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>💼</span> <strong>Work Mode:</strong> {{ job.work_mode|default:"On-site" }}
+                </div>
+                {% if job.employment_type %}
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>📋</span> <strong>Type:</strong> {{ job.employment_type }}
+                </div>
+                {% endif %}
+                {% if job.experience %}
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>⏱</span> <strong>Experience:</strong> {{ job.experience }}
+                </div>
+                {% endif %}
+                {% if job.salary %}
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>💰</span> <strong>Compensation:</strong> {{ job.salary }}
+                </div>
+                {% endif %}
+                {% if job.posted_date %}
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                    <span>📅</span> <strong>Posted:</strong> {{ job.posted_date }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Description Card -->
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                Role Overview &amp; Description
+            </h3>
+            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
+                {% if job.job_description %}
+                {{ job.job_description }}
+                {% else %}
+                This opening is an official verified career position at <strong>{{ company.company_name }}</strong> within the <strong>{{ job.department|default:"corporate" }}</strong> function. Candidates are invited to inspect full role requirements and apply through the company's verified application portal.
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Responsibilities -->
+        {% if job.responsibilities %}
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                Key Responsibilities &amp; Accountabilities
+            </h3>
+            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
+                {{ job.responsibilities }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Requirements & Qualifications -->
+        {% if job.requirements or job.qualifications %}
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                Requirements &amp; Qualifications
+            </h3>
+            {% if job.requirements %}
+            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line; margin-bottom:16px;">
+                {{ job.requirements }}
+            </div>
+            {% endif %}
+            {% if job.qualifications %}
+            <div style="font-size:13.5px; line-height:1.6; color:var(--text-primary); white-space:pre-line; padding-top:12px; border-top:1px dashed var(--border-color);">
+                <strong>Formal Qualifications:</strong><br>
+                {{ job.qualifications }}
+            </div>
+            {% endif %}
+            {% if job.preferred_qualifications %}
+            <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary); white-space:pre-line; padding-top:12px; border-top:1px dashed var(--border-color);">
+                <strong>Preferred / Nice-to-have:</strong><br>
+                {{ job.preferred_qualifications }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Benefits & Perks -->
+        {% if job.benefits %}
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                Benefits &amp; Total Rewards
+            </h3>
+            <div style="font-size:14px; line-height:1.7; color:var(--text-primary); white-space:pre-line;">
+                {{ job.benefits }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Work Conditions / Meta Details -->
+        {% if job.travel_required or job.shift or job.work_authorization or job.application_deadline %}
+        <div class="admin-card" style="margin-bottom:24px; padding:24px;">
+            <h3 style="font-size:15px; font-weight:700; margin:0 0 14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                Role Specifications
+            </h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; font-size:13px;">
+                {% if job.travel_required %}<div><strong>Travel:</strong> {{ job.travel_required }}</div>{% endif %}
+                {% if job.shift %}<div><strong>Shift:</strong> {{ job.shift }}</div>{% endif %}
+                {% if job.work_authorization %}<div><strong>Work Authorization:</strong> {{ job.work_authorization }}</div>{% endif %}
+                {% if job.application_deadline %}<div><strong>Deadline:</strong> <span style="color:var(--warning); font-weight:700;">{{ job.application_deadline }}</span></div>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Skills & Competencies -->
+        {% if job.skills %}
+        <div class="admin-card" style="margin-bottom:24px; padding:28px;">
+            <h3 style="font-size:16px; font-weight:700; margin:0 0 16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                Key Skills &amp; Domain Expertise
+            </h3>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                {% for skill in job.skills.split %}
+                <span class="skill-pill" style="font-size:12.5px; padding:4px 12px; background:var(--accent-light); color:var(--primary-brand); border:1px solid #CCFBF1; font-weight:600;">
+                    {{ skill }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Source Verification & Provenance Dossier -->
+        <div class="admin-card" style="margin-bottom:24px; padding:24px; background:var(--bg-surface-subtle);">
+            <h3 style="font-size:15px; font-weight:700; margin:0 0 12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                🔒 Source Verification &amp; Provenance Record
+            </h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; font-size:12.5px;">
+                <div><strong>ATS Platform:</strong> {{ job.ats_platform|default:"Official Portal" }}</div>
+                {% if job.external_job_id %}<div><strong>ATS External ID:</strong> <code>{{ job.external_job_id }}</code></div>{% endif %}
+                <div><strong>Provenance:</strong> {{ job.data_provenance|default:"Live Web Extraction" }}</div>
+                <div><strong>Status:</strong> <span class="badge-status badge-active">{{ job.verification_status|default:"EXTRACTED" }}</span></div>
+                {% if job.content_hash %}<div><strong>Content Hash:</strong> <code>{{ job.content_hash|truncatechars:16 }}</code></div>{% endif %}
+            </div>
+            {% if job.source_url %}
+            <div style="margin-top:10px; font-size:12px;">
+                <strong>Official Source URL:</strong> <a href="{{ job.source_url }}" target="_blank" style="color:var(--primary-brand); word-break:break-all;">{{ job.source_url }} ↗</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Application Link Callout -->
+        <div style="background:var(--accent-light); border:1px solid #CCFBF1; border-radius:var(--radius-lg); padding:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+                <h4 style="margin:0 0 4px; font-size:15px; font-weight:700; color:var(--primary-brand);">
+                    Ready to Apply or Inspect Opportunity?
+                </h4>
+                <div style="font-size:13px; color:var(--text-secondary);">
+                    Direct link to {{ company.company_name }}'s verified ATS career portal. No intermediaries.
+                </div>
+            </div>
+            {% if job.application_url %}
+            <a href="{{ job.application_url }}" target="_blank" class="btn-primary" style="padding:0 24px; font-weight:700;">
+                <span>View Opportunity / Apply ↗</span>
+            </a>
+            {% else %}
+            <span style="font-size:13px; color:var(--text-muted);">Application link pending crawler verification</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Company Snapshot & Related Jobs -->
+    <div>
+        <!-- Company Snapshot Card -->
+        <div class="admin-card" style="margin-bottom:24px; padding:24px;">
+            <h3 style="font-size:15px; font-weight:700; margin:0 0 14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                About the Employer
+            </h3>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div class="company-logo-avatar" style="width:48px; height:48px; font-size:18px;">
+                    {{ company.company_name|make_list|first|upper }}
+                </div>
+                <div>
+                    <h4 style="font-size:15px; font-weight:700; margin:0 0 2px;">
+                        <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" style="color:var(--text-primary); text-decoration:none;">{{ company.company_name }}</a>
+                    </h4>
+                    <div style="font-size:12px; color:var(--text-secondary);">{{ company.sector|default:"Diversified" }}</div>
+                </div>
+            </div>
+
+            <div style="font-size:12.5px; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                <div>📍 <strong>Headquarters:</strong> {{ company.headquarters|default:"India" }}</div>
+                {% if company.nse_symbol %}
+                <div>📈 <strong>NSE Ticker:</strong> {{ company.nse_symbol }}</div>
+                {% endif %}
+                <div>💼 <strong>Active Openings:</strong> {{ company_verified_jobs_count|default:0 }} Verified Jobs</div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border-subtle); padding-top:12px;">
+                <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-admin btn-admin-primary" style="justify-content:center;">
+                    <span>Browse All {{ company_verified_jobs_count|default:0 }} Openings &rarr;</span>
+                </a>
+                <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary" style="justify-content:center;">
+                    <span>View Company Profile &amp; CSR</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Related Jobs from same Company/Sector -->
+        {% if related_jobs %}
+        <div class="admin-card" style="padding:24px;">
+            <h3 style="font-size:15px; font-weight:700; margin:0 0 14px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                Related Openings
+            </h3>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                {% for rj in related_jobs %}
+                <div style="border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+                    <a href="{% url 'admin_jobs:detail' rj.job_row_id %}" style="font-size:13.5px; font-weight:700; color:var(--text-primary); text-decoration:none; display:block; margin-bottom:2px;">
+                        {{ rj.job_title }}
+                    </a>
+                    <div style="font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between;">
+                        <span>📍 {{ rj.location|default:"India" }}</span>
+                        <span>{{ rj.work_mode|default:"On-site" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

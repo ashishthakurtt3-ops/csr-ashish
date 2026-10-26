@@ -1,0 +1,147 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}All Jobs — Job Market Intelligence{% endblock %}
+{% block page_title %}Job Intelligence Management Catalog ({{ total_count }} Openings){% endblock %}
+
+{% block content %}
+<!-- Jobs Sub-navigation Pills -->
+<div class="jobs-nav-pills">
+    <a href="{% url 'admin_jobs:list' %}" class="jobs-nav-pill active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>All Jobs (Table)</span>
+        <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">Active</span>
+    </a>
+    <a href="{% url 'admin_jobs:link_quality' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Link Quality Dashboard</span>
+    </a>
+    <a href="{% url 'admin_jobs:find' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Find Jobs (Discovery)</span>
+    </a>
+    <a href="{% url 'admin_jobs:companies' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Company Jobs</span>
+    </a>
+</div>
+
+<div class="admin-card">
+    <!-- Filter and Toolbar Row -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:980px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search title, company, skills, location..." class="search-input" style="flex:2; min-width:180px; height:40px;">
+            
+            <select name="work_mode" class="select-filter" style="flex:1; min-width:120px; height:40px;">
+                <option value="all">Work Mode</option>
+                <option value="Hybrid" {% if selected_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                <option value="On-site" {% if selected_mode == "On-site" %}selected{% endif %}>On-site</option>
+                <option value="Remote" {% if selected_mode == "Remote" %}selected{% endif %}>Remote</option>
+            </select>
+
+            <select name="link_quality" class="select-filter" style="flex:1; min-width:140px; height:40px;">
+                <option value="all">Link Quality (All)</option>
+                <option value="DIRECT" {% if selected_link_quality == "DIRECT" %}selected{% endif %}>Direct URL</option>
+                <option value="LISTING_FALLBACK" {% if selected_link_quality == "LISTING_FALLBACK" %}selected{% endif %}>Listing Fallback</option>
+                <option value="UNVERIFIED" {% if selected_link_quality == "UNVERIFIED" %}selected{% endif %}>Unverified</option>
+            </select>
+
+            <select name="link_status" class="select-filter" style="flex:1; min-width:130px; height:40px;">
+                <option value="all">Link Status</option>
+                <option value="SOURCE_CONFIRMED" {% if selected_link_status == "SOURCE_CONFIRMED" %}selected{% endif %}>Source Confirmed</option>
+                <option value="PUBLISHED" {% if selected_link_status == "PUBLISHED" %}selected{% endif %}>Published</option>
+                <option value="PENDING" {% if selected_link_status == "PENDING" %}selected{% endif %}>Pending</option>
+                <option value="DEAD_LINK" {% if selected_link_status == "DEAD_LINK" %}selected{% endif %}>Dead Link</option>
+            </select>
+
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
+            {% if q or selected_mode != 'all' and selected_mode or selected_link_status != 'all' and selected_link_status or selected_link_quality != 'all' and selected_link_quality %}
+            <a href="{% url 'admin_jobs:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+            {% endif %}
+        </form>
+
+        {% include "admin/components/exchange_toolbar.html" with entity="jobs" title="Jobs" %}
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Department</th>
+                    <th>Location</th>
+                    <th>Work Mode</th>
+                    <th>Link Quality</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_jobs:detail' j.job_row_id %}" style="color:var(--text-primary); font-weight:700; text-decoration:none;">
+                            {{ j.job_title }}
+                        </a>
+                        {% if j.skills %}
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">{{ j.skills|truncatechars:45 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if j.company %}
+                        <!-- Clickable Company Name -> Company Jobs Dashboard -->
+                        <a href="{% url 'admin_jobs:company_jobs' j.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;" title="View all jobs for {{ j.company.company_name }}">
+                            {{ j.company.company_name }}
+                        </a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ j.department|default:"General" }}</td>
+                    <td>{{ j.location|default:"India" }}</td>
+                    <td>
+                        <span class="badge-status badge-info">{{ j.work_mode|default:"On-site" }}</span>
+                    </td>
+                    <td>
+                        {% if j.link_quality == "DIRECT" %}
+                        <span class="badge-status" style="background:#059669; color:#fff; font-size:11px; font-weight:700;">DIRECT</span>
+                        {% elif j.link_quality == "LISTING_FALLBACK" %}
+                        <span class="badge-status" style="background:#f59e0b; color:#fff; font-size:11px; font-weight:700;" title="{{ j.link_check_note }}">FALLBACK</span>
+                        {% else %}
+                        <span class="badge-status" style="background:#6b7280; color:#fff; font-size:11px;">{{ j.link_quality|default:"UNVERIFIED" }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'admin_jobs:detail' j.job_row_id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">View</a>
+                        <a href="{% url 'admin_jobs:edit' j.job_row_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                        {% if j.application_url %}
+                        <a href="{% if j.link_quality == 'DIRECT' %}{{ j.canonical_url|default:j.application_url }}{% else %}{{ j.application_url }}{% endif %}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" title="{% if j.link_quality == 'DIRECT' %}Direct Job URL{% else %}Listing Fallback Page{% endif %}">&nearr;</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">
+                        No job records match the selected filters. Try broadening your search.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total openings)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&work_mode={{ selected_mode }}&link_status={{ selected_link_status }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&work_mode={{ selected_mode }}&link_status={{ selected_link_status }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

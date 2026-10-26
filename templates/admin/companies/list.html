@@ -1,0 +1,406 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Enterprise Companies Directory ({{ total_count }}){% endblock %}
+{% block page_title %}Enterprise Companies Portfolio ({{ total_count }} Companies){% endblock %}
+
+{% block content %}
+<!-- SEPARATE ADMIN SECTION: COMPANIES WHERE LOGIN IS REQUIRED TO VIEW DETAILS ON THEIR WEBSITE -->
+<div class="admin-card" id="login-required-companies-section" style="margin-bottom:24px; border:1.5px solid var(--warning-border, #f59e0b); background:var(--warning-bg, #fffbeb);">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:16px; font-weight:800; color:#92400E; display:flex; align-items:center; gap:8px;">
+                <span>🔒 Separate Section: Companies Requiring User Login on Their Website to View Details ({{ login_required_count }})</span>
+            </h3>
+            <div style="font-size:12.5px; color:#78350F; line-height:1.5;">
+                For these companies, Jobs, CSR, or Contact details can only be viewed after logging in on the company's official website. Both the Admin Panel and Public Website explicitly show: <strong>"{{ login_required_text }} (You need to login on the company website to view the data)"</strong>.
+            </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="?access=LOGIN_REQUIRED&per_page=all" class="btn-admin {% if selected_access == 'LOGIN_REQUIRED' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12px;">
+                Filter Directory to Login-Required ({{ login_required_count }})
+            </a>
+            <a href="?per_page=all" class="btn-admin {% if per_page == 'all' and not selected_access %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12px;">
+                Show All {{ total_count }} Companies on 1 Page
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Admin Form to Mark Any Company as "Login Required to View Details" -->
+    <form method="POST" style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:12px 14px; margin-bottom:14px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="quick_update_access">
+        <div style="flex:2; min-width:220px;">
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Company</label>
+            <select name="company_id" required class="select-filter" style="width:100%; height:36px;">
+                <option value="">-- Select Company to Mark Login Requirement --</option>
+                {% for comp_opt in all_companies_for_select %}
+                <option value="{{ comp_opt.company_id }}">{{ comp_opt.company_name }}{% if comp_opt.nse_symbol %} ({{ comp_opt.nse_symbol }}){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Jobs Access</label>
+            <select name="jobs_access" class="select-filter" style="width:100%; height:36px;">
+                <option value="LOGIN_REQUIRED" selected>Visible only after login</option>
+                <option value="PUBLIC">Publicly visible</option>
+                <option value="NOT_PUBLISHED">Not available on website</option>
+            </select>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">CSR Access</label>
+            <select name="csr_access" class="select-filter" style="width:100%; height:36px;">
+                <option value="PUBLIC" selected>Publicly visible</option>
+                <option value="LOGIN_REQUIRED">Visible only after login</option>
+                <option value="NOT_PUBLISHED">Not available on website</option>
+            </select>
+        </div>
+        <div style="flex:1; min-width:140px;">
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Contacts Access</label>
+            <select name="contacts_access" class="select-filter" style="width:100%; height:36px;">
+                <option value="PUBLIC" selected>Publicly visible</option>
+                <option value="LOGIN_REQUIRED">Visible only after login</option>
+                <option value="NOT_PUBLISHED">Not available on website</option>
+            </select>
+        </div>
+        <div style="flex:2; min-width:200px;">
+            <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Login Requirement Note</label>
+            <input type="text" name="data_access_note" placeholder="e.g. Candidate login required on company portal" class="search-input" style="width:100%; height:36px;">
+        </div>
+        <button type="submit" class="btn-admin btn-admin-primary" style="height:36px; padding:0 14px; font-size:12px;">
+            Save Login Status
+        </button>
+    </form>
+
+    {% if login_required_companies %}
+    <div class="table-responsive" style="background:#fff; border-radius:8px; border:1px solid var(--border-color);">
+        <table class="admin-table" style="margin:0;">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Ticker</th>
+                    <th>Sections Requiring Login</th>
+                    <th>Notice Displayed (Admin &amp; Public)</th>
+                    <th>Official Portal Links</th>
+                    <th style="text-align:right;">Manage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lc in login_required_companies %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_companies:detail' lc.company_id %}" style="font-weight:700; color:var(--text-primary); text-decoration:none;">
+                            {{ lc.company_name }}
+                        </a>
+                        <div style="font-size:11px; color:var(--text-secondary);">ID: {{ lc.company_id }}</div>
+                    </td>
+                    <td>
+                        {% if lc.nse_symbol %}
+                        <span class="badge-status badge-info" style="font-family:var(--font-mono);">{{ lc.nse_symbol }}</span>
+                        {% else %}
+                        <span style="font-size:11px; color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            {% if lc.jobs_access == 'LOGIN_REQUIRED' %}
+                            <span class="badge-status badge-pending" style="font-size:11px;">🔒 Jobs: Login Required</span>
+                            {% endif %}
+                            {% if lc.csr_access == 'LOGIN_REQUIRED' %}
+                            <span class="badge-status badge-pending" style="font-size:11px;">🔒 CSR: Login Required</span>
+                            {% endif %}
+                            {% if lc.contacts_access == 'LOGIN_REQUIRED' %}
+                            <span class="badge-status badge-pending" style="font-size:11px;">🔒 Contacts: Login Required</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="font-size:12px; color:#92400E;">
+                        <strong>{{ login_required_text }} (Login required to view details)</strong>
+                        {% if lc.data_access_note %}
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">{{ lc.data_access_note }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            {% if lc.careers_url %}
+                            <a href="{{ lc.careers_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-secondary" style="padding:2px 8px; font-size:11px;">🔑 Careers Login ↗</a>
+                            {% endif %}
+                            {% if lc.csr_portal_url %}
+                            <a href="{{ lc.csr_portal_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-secondary" style="padding:2px 8px; font-size:11px;">🔑 CSR Page ↗</a>
+                            {% endif %}
+                            {% if lc.website_url %}
+                            <a href="{{ lc.website_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-secondary" style="padding:2px 8px; font-size:11px;">🌐 Website ↗</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'admin_companies:detail' lc.company_id %}" class="btn-admin btn-admin-primary" style="padding:3px 8px; font-size:11px;">Dossier</a>
+                        <a href="{% url 'admin_companies:edit' lc.company_id %}" class="btn-admin btn-admin-secondary" style="padding:3px 8px; font-size:11px;">Edit Access</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="background:#fff; border:1px dashed var(--border-color); border-radius:8px; padding:12px 16px; font-size:12.5px; color:var(--text-secondary);">
+        Currently 0 companies are marked as requiring website login. Run <code>python manage.py crawl_all_companies</code> or <code>python manage.py set_company_access --detect</code> to auto-detect login-walled portals across all 200 companies, or use the quick form above to mark a company immediately.
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- SHARED ATS PORTAL LEGAL-ENTITY MAPPING SECTION (Adani Oracle, Unilever Workday, etc.) -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <details>
+        <summary style="cursor:pointer; font-size:14.5px; font-weight:800; color:var(--text-primary); outline:none;">
+            🏢 Shared Conglomerate ATS Portal Legal-Entity Mapping (Adani Group, Unilever/HUL, etc.) — Click to Expand
+        </summary>
+        <div style="margin-top:14px; font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+            When multiple listed companies share a single ATS portal (such as Adani Group on <code>eibd.fa.em2.oraclecloud.com</code> or Unilever on <code>unilever.wd3.myworkdayjobs.com</code>), each job requisition is mapped to exactly one company by its legal-entity / business-unit alias or exclusive site code.
+        </div>
+        <form method="POST" style="margin-top:12px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_shared_tenant">
+            <div style="flex:2; min-width:200px;">
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Shared ATS Host</label>
+                <input type="text" name="tenant_host" value="eibd.fa.em2.oraclecloud.com" required class="search-input" style="width:100%; height:36px;">
+            </div>
+            <div style="flex:1; min-width:130px;">
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">NSE Symbol</label>
+                <input type="text" name="nse_symbol" placeholder="e.g. ADANIENT" required class="search-input" style="width:100%; height:36px;">
+            </div>
+            <div style="flex:2; min-width:220px;">
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Legal Entity / Business Unit Aliases (comma-separated)</label>
+                <input type="text" name="entity_aliases" placeholder="e.g. adani enterprises, ael" class="search-input" style="width:100%; height:36px;">
+            </div>
+            <div style="flex:1; min-width:130px;">
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Exclusive Site (optional)</label>
+                <input type="text" name="site_code" placeholder="e.g. CX_3003" class="search-input" style="width:100%; height:36px;">
+            </div>
+            <button type="submit" class="btn-admin btn-admin-primary" style="height:36px; padding:0 14px; font-size:12px;">Save Mapping</button>
+        </form>
+        {% if shared_tenants %}
+        <div style="margin-top:12px; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:10px;">
+            {% for st in shared_tenants %}
+            <div style="padding:10px 12px; border:1px solid var(--border-color); border-radius:6px; font-size:12px;">
+                <div><strong>{{ st.group }}</strong> (<code>{{ st.host }}</code>)</div>
+                {% if st.site_owner %}
+                <div style="margin-top:4px; color:var(--text-secondary);"><strong>Exclusive Sites:</strong> {% for sc, owner in st.site_owner.items %}{{ sc }} &rarr; {{ owner }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                {% endif %}
+                {% if st.entity_aliases %}
+                <div style="margin-top:4px; color:var(--text-secondary);"><strong>Entity Aliases:</strong> {% for sym, als in st.entity_aliases.items %}<b>{{ sym }}</b>: {{ als|join:", " }}{% if not forloop.last %} | {% endif %}{% endfor %}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </details>
+</div>
+
+<!-- MAIN ALL-COMPANIES DIRECTORY (Shows all 200+ companies with Jobs, CSR, and Login/Availability status) -->
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="?per_page=all" class="btn-admin {% if per_page == 'all' and not selected_access %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="height:40px; display:inline-flex; align-items:center;" title="View all {{ total_count }} companies on one page">
+                📋 View All ({{ total_count }})
+            </a>
+            <a href="?access=LOGIN_REQUIRED&per_page=all" class="btn-admin {% if selected_access == 'LOGIN_REQUIRED' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="height:40px; display:inline-flex; align-items:center;" title="Filter to companies whose website shows data only after user login">
+                🔒 Login-Required Only ({{ login_required_count }})
+            </a>
+            {% if selected_access or per_page == 'all' %}
+            <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary" style="height:40px; display:inline-flex; align-items:center;">
+                 Paginated View
+            </a>
+            {% endif %}
+        </div>
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:850px; flex-wrap:wrap;">
+            {% if selected_access %}
+            <input type="hidden" name="access" value="{{ selected_access }}">
+            {% endif %}
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search company name, symbol, sector, HQ..." class="search-input" style="flex:2; min-width:200px; height:40px;">
+            <select name="sector" class="select-filter" style="flex:1; min-width:150px; height:40px;">
+                <option value="all">All Sectors</option>
+                {% for sec in all_sectors %}
+                <option value="{{ sec }}" {% if selected_sector == sec %}selected{% endif %}>{{ sec }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="select-filter" style="flex:1; min-width:120px; height:40px;">
+                <option value="all">All Status</option>
+                <option value="CRAWLED" {% if selected_status == "CRAWLED" %}selected{% endif %}>Crawled</option>
+                <option value="PENDING" {% if selected_status == "PENDING" %}selected{% endif %}>Pending</option>
+                <option value="FAILED" {% if selected_status == "FAILED" %}selected{% endif %}>Failed</option>
+            </select>
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
+            {% if q or selected_sector and selected_sector != 'all' or selected_status and selected_status != 'all' or selected_access %}
+            <a href="{% url 'admin_companies:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+            {% endif %}
+        </form>
+        {% include "admin/components/exchange_toolbar.html" with entity="companies" title="Companies" %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Company Name &amp; Login Notice</th>
+                    <th>Ticker</th>
+                    <th>Sector</th>
+                    <th>Headquarters</th>
+                    <th>Jobs Data</th>
+                    <th>CSR Webpage &amp; Data</th>
+                    <th>Crawl Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_companies:detail' c.company_id %}" style="color:var(--text-primary); font-weight:700; text-decoration:none;">
+                            {{ c.company_name }}
+                        </a>
+                        <div style="font-size:11px; color:var(--text-secondary);">ID: {{ c.company_id }}</div>
+                        {% if c.jobs_access == 'LOGIN_REQUIRED' or c.csr_access == 'LOGIN_REQUIRED' or c.contacts_access == 'LOGIN_REQUIRED' %}
+                        <div style="margin-top:4px;">
+                            <span class="badge-status badge-pending" style="font-size:10.5px;" title="{{ c.data_access_note|default:login_required_text }}">
+                                🔒 Login required for details:
+                                {% if c.jobs_access == 'LOGIN_REQUIRED' %}Jobs {% endif %}
+                                {% if c.csr_access == 'LOGIN_REQUIRED' %}CSR {% endif %}
+                                {% if c.contacts_access == 'LOGIN_REQUIRED' %}Contacts{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.nse_symbol %}
+                        <span class="badge-status badge-info" style="font-family:var(--font-mono);">{{ c.nse_symbol }}</span>
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.sector %}
+                        {{ c.sector }}
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ c.headquarters|default:not_available_text }}">
+                        {% if c.headquarters %}
+                        {{ c.headquarters }}
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.jobs_access == 'LOGIN_REQUIRED' %}
+                        <div style="font-size:11.5px; color:#d97706; font-weight:700; margin-bottom:3px;">🔒 {{ login_required_text }}</div>
+                        {% elif c.verified_jobs_total > 0 %}
+                        <a href="{% url 'admin_jobs:company_jobs' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:3px 10px; font-size:11.5px; font-weight:600; text-decoration:none;">
+                            <span>💼 {{ c.verified_jobs_total }} Verified Jobs &rarr;</span>
+                        </a>
+                        {% else %}
+                        <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:3px;">{{ not_available_text }}</div>
+                        <a href="{% url 'admin_jobs:company_jobs' c.company_id %}" style="font-size:11px; color:var(--primary-brand); text-decoration:none;">View Jobs Inventory (0) &rarr;</a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.csr_access == 'LOGIN_REQUIRED' %}
+                        <div style="font-size:11.5px; color:#d97706; font-weight:700; margin-bottom:3px;">🔒 {{ login_required_text }}</div>
+                        {% elif c.verified_csr_total > 0 %}
+                        <div style="font-size:11.5px; color:var(--success); font-weight:700; margin-bottom:3px;">🌱 {{ c.verified_csr_total }} Verified CSR Projects</div>
+                        {% elif not c.csr_portal_url and not c.foundation_url and not c.sustainability_url and not c.esg_url %}
+                        <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:3px;">{{ not_available_text }}</div>
+                        {% endif %}
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <a href="{% url 'admin_companies:detail' c.company_id %}#csr-section" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11.5px; font-weight:600; text-decoration:none;" title="View CSR details and projects for {{ c.company_name }}">
+                                🌱 View CSR ({{ c.verified_csr_total|default:0 }})
+                            </a>
+                            {% if c.csr_portal_url %}
+                            <a href="{{ c.csr_portal_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-primary" style="padding:3px 8px; font-size:11px; text-decoration:none;" title="Open official CSR webpage for {{ c.company_name }}">
+                                🌐 CSR Page ↗
+                            </a>
+                            {% elif c.foundation_url %}
+                            <a href="{{ c.foundation_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-primary" style="padding:3px 8px; font-size:11px; text-decoration:none;" title="Open official Foundation webpage for {{ c.company_name }}">
+                                🌐 Foundation ↗
+                            </a>
+                            {% elif c.sustainability_url %}
+                            <a href="{{ c.sustainability_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-primary" style="padding:3px 8px; font-size:11px; text-decoration:none;" title="Open official Sustainability webpage for {{ c.company_name }}">
+                                🌐 ESG/CSR ↗
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if c.crawl_status == "CRAWLED" %}
+                        <span class="badge-status badge-active">Crawled</span>
+                        {% elif c.crawl_status == "PENDING" %}
+                        <span class="badge-status badge-pending">Pending</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ c.crawl_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <button type="button" class="btn-admin" style="padding:4px 8px; font-size:11.5px; background:rgba(37,99,235,0.15); border:1px solid #3b82f6; color:#2563eb; font-weight:700;" onclick="adminFetchLiveCompany('{{ c.company_id }}', this)">
+                            🔄 Live Sync
+                        </button>
+                        <a href="{% url 'admin_companies:detail' c.company_id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">Dossier</a>
+                        <a href="{% url 'admin_companies:detail' c.company_id %}#csr-section" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">CSR View</a>
+                        <a href="{% url 'admin_companies:edit' c.company_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-secondary);">No corporate records matched your filters.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total corporations)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&sector={{ selected_sector }}&status={{ selected_status }}&access={{ selected_access }}&per_page={{ per_page }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&sector={{ selected_sector }}&status={{ selected_status }}&access={{ selected_access }}&per_page={{ per_page }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+async function adminFetchLiveCompany(companyId, btn) {
+    if (!companyId) return;
+    const orig = btn ? btn.innerHTML : '🔄 Live Sync';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Syncing...';
+    }
+    try {
+        const res = await fetch(`/api/companies/${encodeURIComponent(companyId)}/fetch-live/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            alert(data.message || '1:1 Live Sync Succeeded!');
+            window.location.reload();
+        } else {
+            alert('Live Sync Failed: ' + (data.message || data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Live Sync Network Failure: ' + e.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        }
+    }
+}
+</script>
+{% endblock %}

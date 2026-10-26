@@ -1,0 +1,201 @@
+company_id,company_name,legal_name,isin,nse_symbol,bse_scrip_code,listed_on_nse,listed_on_bse,listing_status,website_url,website_source,website_verification_status,website_enrichment_date
+COMP_TOP200_001,Reliance Industries Limited,,INE002A01018,RELIANCE,,True,False,ACTIVE,https://www.ril.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_002,HDFC Bank Limited,,INE040A01034,HDFCBANK,,True,False,ACTIVE,https://www.hdfcbank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_003,ICICI Bank Limited,,INE090A01021,ICICIBANK,,True,False,ACTIVE,https://www.icicibank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_004,State Bank of India,,INE062A01020,SBIN,,True,False,ACTIVE,https://sbi.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_005,Tata Consultancy Services Limited,,INE467B01029,TCS,,True,False,ACTIVE,https://www.tcs.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_006,Bajaj Finance Limited,,INE296A01032,BAJFINANCE,,True,False,ACTIVE,https://www.bajajfinserv.in/bajaj-finance,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_007,Larsen & Toubro Limited,,INE018A01030,LT,,True,False,ACTIVE,https://www.larsentoubro.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_008,Life Insurance Corporation Of India,,INE0J1Y01017,LICI,,True,False,ACTIVE,https://licindia.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_009,Hindustan Unilever Limited,,INE030A01027,HINDUNILVR,,True,False,ACTIVE,https://www.hul.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_010,Infosys Limited,,INE009A01021,INFY,,True,False,ACTIVE,https://www.infosys.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_011,Mahindra & Mahindra Limited,,INE101A01026,M&M,,True,False,ACTIVE,https://www.mahindra.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_012,Adani Power Limited,,INE814H01029,ADANIPOWER,,True,False,ACTIVE,https://www.adanipower.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_013,Adani Ports and Special Economic Zone Limited,,INE742F01042,ADANIPORTS,,True,False,ACTIVE,https://www.adaniports.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_014,HCL Technologies Limited,,INE860A01027,HCLTECH,,True,False,ACTIVE,https://www.hcltech.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_015,ITC Limited,,INE154A01025,ITC,,True,False,ACTIVE,https://www.itcportal.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_016,UltraTech Cement Limited,,INE481G01011,ULTRACEMCO,,True,False,ACTIVE,https://www.ultratechcement.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_017,Adani Enterprises Limited,,INE423A01024,ADANIENT,,True,False,ACTIVE,https://www.adanienterprises.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_018,NTPC Limited,,INE733E01010,NTPC,,True,False,ACTIVE,https://www.ntpc.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_019,Hindustan Aeronautics Limited,,INE066F01020,HAL,,True,False,ACTIVE,https://hal-india.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_020,Bajaj Auto Limited,,INE917I01010,BAJAJ-AUTO,,True,False,ACTIVE,https://www.bajajauto.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_021,Bajaj Finserv Limited,,INE918I01026,BAJAJFINSV,,True,False,ACTIVE,https://www.bajajfinserv.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_022,JSW Steel Limited,,INE019A01038,JSWSTEEL,,True,False,ACTIVE,https://www.jsw.in/steel,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_023,Oil & Natural Gas Corporation Limited,,INE213A01029,ONGC,,True,False,ACTIVE,https://www.ongcindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_024,Nestle India Limited,,INE239A01024,NESTLEIND,,True,False,ACTIVE,https://www.nestle.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_025,Zomato Limited,,INE758T01015,ZOMATO,,True,False,ACTIVE,https://www.zomato.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_026,Bharat Electronics Limited,,INE263A01024,BEL,,True,False,ACTIVE,https://bel-india.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_027,Shriram Finance Limited,,INE721A01047,SHRIRAMFIN,,True,False,ACTIVE,https://www.shriramfinance.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_028,Coal India Limited,,INE522F01014,COALINDIA,,True,False,ACTIVE,https://www.coalindia.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_029,Avenue Supermarts Limited,,INE192R01011,DMART,,True,False,ACTIVE,https://www.dmartindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_030,Power Grid Corporation of India Limited,,INE752E01010,POWERGRID,,True,False,ACTIVE,https://www.powergrid.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_031,Hindalco Industries Limited,,INE038A01020,HINDALCO,,True,False,ACTIVE,https://www.hindalco.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_032,Tata Steel Limited,,INE081A01020,TATASTEEL,,True,False,ACTIVE,https://www.tatasteel.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_033,Adani Green Energy Limited,,INE364U01010,ADANIGREEN,,True,False,ACTIVE,https://www.adanigreenenergy.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_034,Grasim Industries Limited,,INE047A01021,GRASIM,,True,False,ACTIVE,https://www.grasim.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_035,Eicher Motors Limited,,INE066A01021,EICHERMOT,,True,False,ACTIVE,https://www.eicher.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_036,InterGlobe Aviation Limited,,INE646L01027,INDIGO,,True,False,ACTIVE,https://www.goindigo.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_037,Indian Oil Corporation Limited,,INE242A01010,IOC,,True,False,ACTIVE,https://iocl.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_038,Wipro Limited,,INE075A01022,WIPRO,,True,False,ACTIVE,https://www.wipro.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_039,Adani Energy Solutions Limited,,INE931S01010,ADANIENSOL,,True,False,ACTIVE,https://www.adanienergysolutions.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_040,SBI Life Insurance Company Limited,,INE123W01016,SBILIFE,,True,False,ACTIVE,https://www.sbilife.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_041,Hyundai Motor India Limited,,INE0V6F01027,HYUNDAI,,True,False,ACTIVE,https://www.hyundai.com/in/en,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_042,Samvardhana Motherson International Limited,,INE775A01035,MOTHERSON,,True,False,ACTIVE,https://www.motherson.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_043,Jio Financial Services Limited,,INE758E01017,JIOFIN,,True,False,ACTIVE,https://www.jfs.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_044,Solar Industries India Limited,,INE343H01029,SOLARINDS,,True,False,ACTIVE,https://www.solargroup.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_045,Torrent Pharmaceuticals Limited,,INE685A01028,TORNTPHARM,,True,False,ACTIVE,https://www.torrentpharma.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_046,Trent Limited,,INE849A01020,TRENT,,True,False,ACTIVE,https://trentlimited.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_047,Cholamandalam Investment and Finance Company Limited,,INE121A01024,CHOLAFIN,,True,False,ACTIVE,https://www.cholamandalam.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_048,Cummins India Limited,,INE298A01020,CUMMINSIND,,True,False,ACTIVE,https://www.cummins.com/en-in,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_049,Varun Beverages Limited,,INE200M01039,VBL,,True,False,ACTIVE,https://www.varunbeverages.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_050,Hitachi Energy India Limited,,INE07Y701011,POWERINDIA,,True,False,ACTIVE,https://www.hitachienergy.com/in,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_051,Tech Mahindra Limited,,INE669C01036,TECHM,,True,False,ACTIVE,https://www.techmahindra.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_052,Bharat Heavy Electricals Limited,,INE257A01026,BHEL,,True,False,ACTIVE,https://www.bhel.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_053,BSE Limited,,INE118H01025,BSE,,True,False,ACTIVE,https://www.bseindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_054,Union Bank of India,,INE692A01016,UNIONBANK,,True,False,ACTIVE,https://www.unionbankofindia.bank/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_055,Polycab India Limited,,INE455K01017,POLYCAB,,True,False,ACTIVE,https://polycab.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_056,Power Finance Corporation Limited,,INE134E01011,PFC,,True,False,ACTIVE,https://www.pfcindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_057,CG Power and Industrial Solutions Limited,,INE067A01029,CGPOWER,,True,False,ACTIVE,https://www.cgglobal.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_058,LTIMindtree Limited,,INE214T01019,LTIM,,True,False,ACTIVE,https://www.ltimindtree.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_059,Bharat Petroleum Corporation Limited,,INE029A01011,BPCL,,True,False,ACTIVE,https://www.bharatpetroleum.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_060,Britannia Industries Limited,,INE216A01030,BRITANNIA,,True,False,ACTIVE,https://www.britannia.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_061,Punjab National Bank,,INE160A01022,PNB,,True,False,ACTIVE,https://www.pnbindia.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_062,Bank of Baroda,,INE028A01039,BANKBARODA,,True,False,ACTIVE,https://www.bankofbaroda.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_063,Apollo Hospitals Enterprise Limited,,INE437A01024,APOLLOHOSP,,True,False,ACTIVE,https://www.apollohospitals.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_064,Bosch Limited,,INE323A01026,BOSCHLTD,,True,False,ACTIVE,https://www.bosch.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_065,Bajaj Holdings & Investment Limited,,INE118A01012,BAJAJHLDNG,,True,False,ACTIVE,https://www.bajajholdings.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_066,Lodha Developers Limited,,INE670K01029,LODHA,,True,False,ACTIVE,https://www.lodhagroup.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_067,Canara Bank,,INE476A01022,CANBK,,True,False,ACTIVE,https://www.canarabank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_068,Cipla Limited,,INE059A01026,CIPLA,,True,False,ACTIVE,https://www.cipla.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_069,Lloyds Metals And Energy Limited,,INE281B01032,LLOYDSME,,True,False,ACTIVE,https://www.lloyds.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_070,HDFC Life Insurance Company Limited,,INE795G01014,HDFCLIFE,,True,False,ACTIVE,https://www.hdfclife.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_071,Muthoot Finance Limited,,INE414G01012,MUTHOOTFIN,,True,False,ACTIVE,https://www.muthootfinance.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_072,Indian Railway Finance Corporation Limited,,INE053F01010,IRFC,,True,False,ACTIVE,https://irfc.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_073,Hero MotoCorp Limited,,INE158A01026,HEROMOTOCO,,True,False,ACTIVE,https://www.heromotocorp.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_074,GAIL (India) Limited,,INE129A01019,GAIL,,True,False,ACTIVE,https://www.gailonline.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_075,JINDAL STEEL LIMITED,,INE749A01030,JINDALSTEL,,True,False,ACTIVE,https://www.jindalsteel.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_076,Zydus Lifesciences Limited,,INE010B01027,ZYDUSLIFE,,True,False,ACTIVE,https://www.zyduslife.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_077,Aditya Birla Capital Limited,,INE674K01013,ABCAPITAL,,True,False,ACTIVE,https://www.adityabirlacapital.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_078,United Spirits Limited,,INE854D01024,UNITDSPR,,True,False,ACTIVE,https://www.diageoindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_079,HDFC Asset Management Company Limited,,INE127D01025,HDFCAMC,,True,False,ACTIVE,https://www.hdfcfund.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_080,Vedanta Limited,,INE205A01025,VEDL,,True,False,ACTIVE,https://www.vedantalimited.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_081,Lupin Limited,,INE326A01037,LUPIN,,True,False,ACTIVE,https://www.lupin.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_082,Ambuja Cements Limited,,INE079A01024,AMBUJACEM,,True,False,ACTIVE,https://www.ambujacement.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_083,TATA CONSUMER PRODUCTS LIMITED,,INE192A01025,TATACONSUM,,True,False,ACTIVE,https://www.tataconsumer.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_084,Max Healthcare Institute Limited,,INE027H01010,MAXHEALTH,,True,False,ACTIVE,https://www.maxhealthcare.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_085,The Indian Hotels Company Limited,,INE053A01029,INDHOTEL,,True,False,ACTIVE,https://www.ihcltata.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_086,JSW Energy Limited,,INE121E01018,JSWENERGY,,True,False,ACTIVE,https://www.jswenergy.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_087,Oracle Financial Services Software Limited,,INE881D01027,OFSS,,True,False,ACTIVE,https://www.ofss.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_088,Indus Towers Limited,,INE121J01017,INDUSTOWER,,True,False,ACTIVE,https://www.industowers.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_089,Mazagon Dock Shipbuilders Limited,,INE249Z01020,MAZDOCK,,True,False,ACTIVE,https://mazagondock.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_090,Mankind Pharma Limited,,INE634S01028,MANKIND,,True,False,ACTIVE,https://www.mankindpharma.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_091,Laurus Labs Limited,,INE947Q01028,LAURUSLABS,,True,False,ACTIVE,https://www.lauruslabs.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_092,REC Limited,,INE020B01018,RECLTD,,True,False,ACTIVE,https://recindia.nic.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_093,Aurobindo Pharma Limited,,INE406A01037,AUROPHARMA,,True,False,ACTIVE,https://www.aurobindo.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_094,FSN E-Commerce Ventures Limited,,INE388Y01029,NYKAA,,True,False,ACTIVE,https://www.nykaa.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_095,One 97 Communications Limited,,INE982J01020,PAYTM,,True,False,ACTIVE,https://paytm.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_096,The Federal Bank  Limited,,INE171A01029,FEDERALBNK,,True,False,ACTIVE,https://www.federalbank.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_097,Dixon Technologies (India) Limited,,INE935N01020,DIXON,,True,False,ACTIVE,https://www.dixoninfo.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_098,Persistent Systems Limited,,INE262H01021,PERSISTENT,,True,False,ACTIVE,https://www.persistent.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_099,Hindustan Petroleum Corporation Limited,,INE094A01015,HINDPETRO,,True,False,ACTIVE,https://www.hindustanpetroleum.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_100,ICICI Lombard General Insurance Company Limited,,INE765G01017,ICICIGI,,True,False,ACTIVE,https://www.icicilombard.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_101,Axis Bank Limited,,INE238A01034,AXISBANK,,True,False,ACTIVE,https://www.axisbank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_102,Maruti Suzuki India Limited,,INE585B01010,MARUTI,,True,False,ACTIVE,https://www.marutisuzuki.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_103,Sun Pharmaceutical Industries Limited,,INE044A01036,SUNPHARMA,,True,False,ACTIVE,https://www.sunpharma.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_104,Asian Paints Limited,,INE021A01026,ASIANPAINT,,True,False,ACTIVE,https://www.asianpaints.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_105,Tata Power Company Limited,,INE245A01021,TATAPOWER,,True,False,ACTIVE,https://www.tatapower.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_106,Dr. Reddy's Laboratories Limited,,INE089A01031,DRREDDY,,True,False,ACTIVE,https://www.drreddys.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_107,Kotak Mahindra Bank Limited,,INE237A01036,KOTAKBANK,,True,False,ACTIVE,https://www.kotak.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_108,IndusInd Bank Limited,,INE095A01012,INDUSINDBK,,True,False,ACTIVE,https://www.indusind.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_109,National Aluminium Company Limited,,INE139A01034,NATIONALUM,,True,False,ACTIVE,https://nalcoindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_110,NMDC Limited,,INE584A01023,NMDC,,True,False,ACTIVE,https://www.nmdc.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_111,Steel Authority of India Limited,,INE114A01011,SAIL,,True,False,ACTIVE,https://www.sail.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_112,Indian Railway Catering And Tourism Corporation Limited,,INE335Y01020,IRCTC,,True,False,ACTIVE,https://www.irctc.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_113,Indian Bank,,INE562A01011,INDIANB,,True,False,ACTIVE,https://indianbank.bank.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_114,Bank of India,,INE084A01016,BANKINDIA,,True,False,ACTIVE,https://bankofindia.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_115,UCO Bank,,INE691A01018,UCOBANK,,True,False,ACTIVE,https://www.ucobank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_116,Central Bank of India,,INE483A01010,CENTRALBK,,True,False,ACTIVE,https://www.centralbankofindia.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_117,IDFC First Bank Limited,,INE092T01019,IDFCFIRSTB,,True,False,ACTIVE,https://www.idfcfirstbank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_118,RBL Bank Limited,,INE976G01028,RBLBANK,,True,False,ACTIVE,https://www.rblbank.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_119,Yes Bank Limited,,INE528G01035,YESBANK,,True,False,ACTIVE,https://www.yesbank.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_120,Indian Renewable Energy Development Agency Limited,,INE202E01016,IREDA,,True,False,ACTIVE,https://www.ireda.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_121,NHPC Limited,,INE848E01016,NHPC,,True,False,ACTIVE,https://www.nhpcindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_122,SJVN Limited,,INE002L01015,SJVN,,True,False,ACTIVE,https://sjvn.nic.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_123,Oil India Limited,,INE274J01014,OIL,,True,False,ACTIVE,https://www.oil-india.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_124,Hindustan Zinc Limited,,INE267A01025,HINDZINC,,True,False,ACTIVE,https://www.hzlindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_125,Godrej Consumer Products Limited,,INE102D01028,GODREJCP,,True,False,ACTIVE,https://www.godrejcp.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_126,Dabur India Limited,,INE016A01026,DABUR,,True,False,ACTIVE,https://www.dabur.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_127,Colgate Palmolive (India) Limited,,INE259A01022,COLPAL,,True,False,ACTIVE,https://www.colgatepalmolive.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_128,Marico Limited,,INE196A01026,MARICO,,True,False,ACTIVE,https://marico.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_129,Pidilite Industries Limited,,INE318A01026,PIDILITIND,,True,False,ACTIVE,https://www.pidilite.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_130,Berger Paints (I) Limited,,INE463A01038,BERGEPAINT,,True,False,ACTIVE,https://www.bergerpaints.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_131,Kansai Nerolac Paints Limited,,INE531A01024,KANSAINER,,True,False,ACTIVE,https://www.nerolac.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_132,Page Industries Limited,,INE761H01022,PAGEIND,,True,False,ACTIVE,https://www.pageind.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_133,Jubilant Foodworks Limited,,INE797F01020,JUBLFOOD,,True,False,ACTIVE,https://www.jubilantfoodworks.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_134,Voltas Limited,,INE226A01021,VOLTAS,,True,False,ACTIVE,https://www.voltas.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_135,Havells India Limited,,INE176B01034,HAVELLS,,True,False,ACTIVE,https://www.havells.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_136,Crompton Greaves Consumer Electricals Limited,,INE299U01018,CROMPTON,,True,False,ACTIVE,https://www.crompton.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_137,Whirlpool of India Limited,,INE716A01013,WHIRLPOOL,,True,False,ACTIVE,https://corporate.whirlpool.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_138,Alkem Laboratories Limited,,INE540L01014,ALKEM,,True,False,ACTIVE,https://www.alkemlabs.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_139,Biocon Limited,,INE376G01013,BIOCON,,True,False,ACTIVE,https://www.biocon.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_140,Glenmark Pharmaceuticals Limited,,INE935A01035,GLENMARK,,True,False,ACTIVE,https://www.glenmarklife.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_141,Fortis Healthcare Limited,,INE061F01013,FORTIS,,True,False,ACTIVE,https://www.fortishealthcare.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_142,Dr. Lal Path Labs Ltd.,,INE600L01024,LALPATHLAB,,True,False,ACTIVE,https://www.lalpathlabs.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_143,Metropolis Healthcare Limited,,INE112L01020,METROPOLIS,,True,False,ACTIVE,https://www.metropolisindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_144,PVR INOX Limited,,INE191H01014,PVRINOX,,True,False,ACTIVE,https://www.pvrcinemas.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_145,Delhivery Limited,,INE148O01028,DELHIVERY,,True,False,ACTIVE,https://www.delhivery.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_146,Info Edge (India) Limited,,INE663F01032,NAUKRI,,True,False,ACTIVE,https://www.infoedge.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_147,Container Corporation of India Limited,,INE111A01025,CONCOR,,True,False,ACTIVE,https://www.concorindia.co.in/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_148,Ashok Leyland Limited,,INE208A01029,ASHOKLEY,,True,False,ACTIVE,https://www.ashokleyland.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_149,TVS Motor Company Limited,,INE494B01023,TVSMOTOR,,True,False,ACTIVE,https://www.tvsmotor.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_150,Bharat Forge Limited,,INE465A01025,BHARATFORG,,True,False,ACTIVE,https://www.bharatforge.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_151,Tube Investments of India Limited,,INE974X01010,TIINDIA,,True,False,ACTIVE,https://www.tiindia.com/,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_152,ABB India Limited,,INE117A01022,ABB,,True,False,ACTIVE,https://www.abb.com/in,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_153,Siemens Limited,,INE003A01024,SIEMENS,,True,False,ACTIVE,https://www.siemens.com/in/en.html,original_dataset,ORIGINAL_DATASET,2026-09-16
+COMP_TOP200_154,20 Microns Limited,,INE144J01027,20MICRONS,,True,False,ACTIVE,https://www.20microns.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_155,21st Century Management Services Limited,,INE253B01015,21STCENMGM,,True,False,ACTIVE,https://www.21stcentury.co.in/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_156,360 ONE WAM LIMITED,,INE466L01038,360ONE,,True,False,ACTIVE,https://www.360.one/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_157,3B Blackbio Dx Limited,,INE994E01018,3BBLACKBIO,,True,False,ACTIVE,https://3bblackbio.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_158,3M India Limited,,INE470A01017,3MINDIA,,True,False,ACTIVE,https://www.3mindia.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_159,3P Land Holdings Limited,,INE105C01023,3PLAND,,True,False,ACTIVE,https://3pland.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_160,3i Infotech Limited,,INE748C01038,3IINFOLTD,,True,False,ACTIVE,https://www.3i-infotech.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_161,5Paisa Capital Limited,,INE618L01018,5PAISA,,True,False,ACTIVE,https://www.5paisa.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_162,63 moons technologies limited,,INE111B01023,63MOONS,,True,False,ACTIVE,https://www.63moons.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_163,A B Cotspin India Limited,,INE08PH01015,ABCOTS,,True,False,ACTIVE,https://abcotspin.co.in/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_164,A B Infrabuild Limited,,INE00YB01025,ABINFRA,,True,False,ACTIVE,https://www.abinfrabuild.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_165,A2Z Infra Engineering Limited,,INE619I01012,A2ZINFRA,,True,False,ACTIVE,https://www.a2zinfra.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_166,AAA Technologies Limited,,INE0D0U01013,AAATECH,,True,False,ACTIVE,https://www.aaatechnologies.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_167,ABM International Limited,,INE251C01025,ABMINTLLTD,,True,False,ACTIVE,https://www.abmintl.in/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_168,ABM Knowledgeware Limited,,INE850B01026,ABMKNO,,True,False,ACTIVE,https://abmindia.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_169,ACC Limited,,INE012A01025,ACC,,True,False,ACTIVE,https://www.acclimited.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_170,ACS Technologies Limited,,INE366C01021,ACSTECH,,True,False,ACTIVE,https://www.acstechnologies.co.in/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_171,ADF Foods Limited,,INE982B01027,ADFFOODS,,True,False,ACTIVE,https://adf-foods.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_172,AGI Greenpac Limited,,INE415A01038,AGI,,True,False,ACTIVE,https://agigreenpac.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_173,AGS Transact Technologies Limited,,INE583L01014,AGSTRA,,True,False,ACTIVE,https://www.agsindia.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_174,AIA Engineering Limited,,INE212H01026,AIAENG,,True,False,ACTIVE,https://www.aiaengineering.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_175,AION-TECH SOLUTIONS LIMITED,,INE805A01014,GOLDTECH,,True,False,ACTIVE,https://www.aiontech.ai/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_176,AK Capital Services Limited,,INE701G01012,AKCAPIT,,True,False,ACTIVE,https://www.akcapital.in/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_177,AKI India Limited,,INE642Z01026,AKI,,True,False,ACTIVE,https://www.akiindia.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_178,AMD Industries Limited,,INE005I01014,AMDIND,,True,False,ACTIVE,https://www.amdindustries.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_179,ANDHRA PAPER LIMITED,,INE435A01051,ANDHRAPAP,,True,False,ACTIVE,https://andhrapaper.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_180,APL Apollo Tubes Limited,,INE702C01027,APLAPOLLO,,True,False,ACTIVE,https://aplapollo.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_181,ARCL Organics Limited,,INE372M01010,ARCL,,True,False,ACTIVE,https://www.arclorganics.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_182,ASK Automotive Limited,,INE491J01022,ASKAUTOLTD,,True,False,ACTIVE,https://askbrake.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_183,ATLANTAA LIMITED,,INE285H01022,ATLANTAA,,True,False,ACTIVE,https://www.atlantaalimited.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_184,AU Small Finance Bank Limited,,INE949L01017,AUBANK,,True,False,ACTIVE,https://www.aubank.in/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_185,AURUS GEM CORPORATION LIMITED,,INE142K01011,AURUS,,True,False,ACTIVE,https://www.aurusgem.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_186,AVG Logistics Limited,,INE680Z01018,AVG,,True,False,ACTIVE,https://www.avglogistics.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_187,AVRO INDIA LIMITED,,INE652Z01025,AVROIND,,True,False,ACTIVE,https://www.avroindia.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_188,AVT Natural Products Limited,,INE488D01021,AVTNPL,,True,False,ACTIVE,https://www.avtnatural.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_189,AWL Agri Business Limited,,INE699H01024,AWL,,True,False,ACTIVE,https://www.awl.in/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_190,AXISCADES Technologies Limited,,INE555B01013,AXISCADES,,True,False,ACTIVE,https://www.axiscades.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_191,AYM Syntex Limited,,INE193B01039,AYMSYNTEX,,True,False,ACTIVE,https://www.aymsyntex.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_192,Aadhar Housing Finance Limited,,INE883F01010,AADHARHFC,,True,False,ACTIVE,https://www.aadharhousing.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_193,Aakash Exploration Services Limited,,INE087Z01024,AAKASH,,True,False,ACTIVE,https://www.aakashexploration.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_194,Aarey Drugs & Pharmaceuticals Limited,,INE198H01019,AAREYDRUGS,,True,False,ACTIVE,https://www.aareydrugs.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_195,Aarnav Fashions Limited,,INE750R01016,AARNAV,,True,False,ACTIVE,https://www.aarnavfashions.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_196,Aaron Industries Limited,,INE721Z01010,AARON,,True,False,ACTIVE,https://www.aaronindustries.com/,candidate-domain-from-company-identity,PENDING_CRAWL_VALIDATION,2026-09-16
+COMP_TOP200_197,Aartech Solonics Limited,,INE01C001026,AARTECH,,True,False,ACTIVE,https://www.aartechsolonics.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_198,Aarti Drugs Limited,,INE767A01016,AARTIDRUGS,,True,False,ACTIVE,https://www.aartidrugs.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_199,Aarti Industries Limited,,INE769A01020,AARTIIND,,True,False,ACTIVE,https://www.aarti-industries.com/,web-search,SEARCH_VERIFIED,2026-09-16
+COMP_TOP200_200,Aarti Pharmalabs Limited,,INE0LRU01027,AARTIPHARM,,True,False,ACTIVE,https://www.aartipharmalabs.com/,web-search,SEARCH_VERIFIED,2026-09-16

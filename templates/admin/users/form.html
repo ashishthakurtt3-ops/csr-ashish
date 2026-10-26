@@ -1,0 +1,88 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if edit_user %}Edit User: {{ edit_user.username }}{% else %}Create New User Account{% endif %}{% endblock %}
+{% block page_title %}{% if edit_user %}Edit User: {{ edit_user.username }}{% else %}Create New User Account{% endif %}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'admin_users:list' %}" class="btn-admin btn-admin-secondary">
+        &larr; Back to User List
+    </a>
+</div>
+
+<div class="admin-card" style="max-width: 840px; margin: 0 auto; padding: 28px;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+        <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">
+            {% if edit_user %}Update User Credentials &amp; Access Roles{% else %}Provision New User Account{% endif %}
+        </h2>
+        <div style="font-size: 13px; color: var(--text-secondary);">
+            Configure role permissions, organization association, and credentials with enterprise RBAC security.
+        </div>
+    </div>
+
+    <form method="POST" style="display:flex; flex-direction:column; gap:20px;">
+        {% csrf_token %}
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Username *</label>
+                <input type="text" name="username" value="{% if edit_user %}{{ edit_user.username }}{% endif %}" {% if edit_user %}readonly style="opacity:0.75;"{% endif %} required class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Email Address</label>
+                <input type="email" name="email" value="{% if edit_user %}{{ edit_user.email }}{% endif %}" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">First Name</label>
+                <input type="text" name="first_name" value="{% if edit_user %}{{ edit_user.first_name }}{% endif %}" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Last Name</label>
+                <input type="text" name="last_name" value="{% if edit_user %}{{ edit_user.last_name }}{% endif %}" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Platform Role *</label>
+                <select name="role" required class="select-filter" style="width:100%; height:42px;">
+                    {% for r_code, r_label in role_choices %}
+                    <option value="{{ r_code }}" {% if edit_user and edit_user.role == r_code %}selected{% endif %}>{{ r_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Organization Name</label>
+                <input type="text" name="organization_name" value="{% if edit_user %}{{ edit_user.organization_name }}{% endif %}" placeholder="e.g. HelpAge India, Tata Trust" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Designation</label>
+                <input type="text" name="designation" value="{% if edit_user %}{{ edit_user.designation }}{% endif %}" placeholder="e.g. Program Director, ESG Lead" class="search-input" style="height:42px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Phone Number</label>
+                <input type="text" name="phone" value="{% if edit_user %}{{ edit_user.phone }}{% endif %}" placeholder="+91 98765 43210" class="search-input" style="height:42px;">
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                {% if edit_user %}Set New Password (leave blank to keep unchanged){% else %}Initial Password *{% endif %}
+            </label>
+            <input type="password" {% if edit_user %}name="new_password"{% else %}name="password" required{% endif %} placeholder="••••••••" class="search-input" style="height:42px;">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px; border-top:1px solid var(--border-color); padding-top:18px;">
+            <a href="{% url 'admin_users:list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" class="btn-admin btn-admin-primary" style="padding:9px 24px;">
+                {% if edit_user %}Save Changes{% else %}Create User Account{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

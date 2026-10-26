@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# Django
+*.log
+local_settings.py
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
+# Static collected
+staticfiles/
+
+# Media uploads in production
+media/cache/
+
+# OS specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+
+# --- added by data-integrity fix ---
+.env
+.env.*
+!.env.example
+db.sqlite3*
+*.sqlite3
+*.sqlite3.*
+runserver*.log
+
+# AI Classifier Cache, Checkpoints and Reports
+.cache/
+.checkpoints/
+reports/
+data/db_backup_*.json
+tests/regression_fixtures/
+

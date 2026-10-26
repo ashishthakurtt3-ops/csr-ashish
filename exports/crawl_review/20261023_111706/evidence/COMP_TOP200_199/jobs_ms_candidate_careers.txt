@@ -1,0 +1,8 @@
+URL: https://aartiindustries.darwinbox.in/ms/candidate/careers
+HTTP_STATUS: 200
+CATEGORY: JOBS
+RETRIEVED_AT: 2026-10-23T05:50:13.646570+00:00
+--------------------------------------------------------------------------------
+MAIN_TEXT_PREVIEW (first 2,000 characters):
+--------------------------------------------------------------------------------
+Please enable Javascript!

@@ -1,0 +1,772 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ company.company_name }} — Corporate Intelligence Dossier{% endblock %}
+{% block page_title %}{{ company.company_name }} — Intelligence Dossier{% endblock %}
+
+{% block content %}
+<!-- Top Action Bar -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary">&larr; Back to Directory</a>
+        {% if company.nse_symbol %}
+        <span class="badge-status badge-info" style="font-family:var(--font-mono);">NSE: {{ company.nse_symbol }}</span>
+        {% endif %}
+        {% if company.bse_scrip_code %}
+        <span class="badge-status badge-info" style="font-family:var(--font-mono);">BSE: {{ company.bse_scrip_code }}</span>
+        {% endif %}
+        {% if company.isin %}
+        <span class="badge-status badge-pending" style="font-family:var(--font-mono);">ISIN: {{ company.isin }}</span>
+        {% endif %}
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button type="button" class="btn-admin" style="background:#2563eb; color:#fff; font-weight:700; border:none; padding:6px 14px; cursor:pointer;" onclick="adminFetchLiveCompany('{{ company.company_id }}', this)">
+            🔄 Fetch Live Data
+        </button>
+        <span class="badge-status badge-info" style="font-size:11.5px; padding:6px 10px;">
+            🕒 Last Live Verified: {{ company.last_live_synced_at|default:company.last_crawled|default:"Never" }}
+        </span>
+        <a href="#csr-section" class="btn-admin btn-admin-primary" title="Jump to CSR Webpage Link, CSR Details & Projects for {{ company.company_name }}">
+            <span>🌱 View CSR Page &amp; Details ({{ projects|length }}) &darr;</span>
+        </a>
+        {% if csr_webpage_url %}
+        <a href="{{ csr_webpage_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-secondary" title="Open Official CSR Webpage / Portal on Company Website">
+            <span>🌐 Open CSR Webpage ↗</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-admin btn-admin-secondary">
+            <span>💼 Company Jobs ({{ active_jobs_count }} Verified) &rarr;</span>
+        </a>
+        <a href="{% url 'admin_companies:edit' company.company_id %}" class="btn-admin btn-admin-secondary">
+            <span>✏️ Edit Information &amp; Login Access</span>
+        </a>
+    </div>
+</div>
+
+<!-- LOGIN-REQUIRED NOTICE BANNER (Shown whenever any section requires user login on the company website) -->
+{% if login_required_sections %}
+<div style="background:var(--warning-bg, #fffbeb); border:1.5px solid var(--warning-border, #f59e0b); border-radius:10px; padding:16px 20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div>
+        <div style="font-size:14px; font-weight:800; color:#92400E; display:flex; align-items:center; gap:8px;">
+            <span>🔒 Data Available Only After User Login on Company Website</span>
+        </div>
+        <div style="font-size:13px; color:#78350F; margin-top:4px; line-height:1.5;">
+            For <strong>{{ company.company_name }}</strong>, the following section(s) on the company's official website can only be viewed after user login:
+            <strong>{{ login_required_sections|join:", " }}</strong>.
+            The public portal displays <em>"{{ login_required_text }}"</em> for those sections instead of showing empty or guessed data.
+            {% if company.data_access_note %}
+            <div style="margin-top:4px; font-size:12px;"><strong>Admin Note:</strong> {{ company.data_access_note }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <a href="{% url 'admin_companies:edit' company.company_id %}" class="btn-admin btn-admin-secondary" style="font-size:12px;">
+        Update Access Settings
+    </a>
+</div>
+{% endif %}
+
+<!-- EXECUTIVE METRICS BANNER -->
+<div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-bottom:24px;">
+    <div class="admin-card" style="margin-bottom:0; padding:18px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Sector</div>
+        <div style="font-size:16px; font-weight:800; color:var(--primary-brand);">{{ company.sector|default:not_available_text }}</div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:18px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Crawl Status</div>
+        <div>
+            {% if company.crawl_status == 'CRAWLED' %}
+            <span class="badge-status badge-active" style="font-size:13px;">● {{ company.crawl_status }}</span>
+            {% elif company.crawl_status == 'BLOCKED' %}
+            <span class="badge-status badge-rejected" style="font-size:13px;">● BLOCKED</span>
+            {% elif company.crawl_status == 'FAILED' %}
+            <span class="badge-status badge-rejected" style="font-size:13px;">● FAILED</span>
+            {% else %}
+            <span class="badge-status badge-pending" style="font-size:13px;">● {{ company.crawl_status|default:"PENDING" }}</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:18px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">ATS Architecture</div>
+        <div style="font-size:15px; font-weight:800; color:var(--text-primary);">
+            {% if company.jobs_access == 'LOGIN_REQUIRED' %}
+            <span style="color:#d97706;">🔒 {{ login_required_text }}</span>
+            {% else %}
+            {{ company.ats_platform|default:not_available_text }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:18px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Verified Careers</div>
+        <div style="font-size:20px; font-weight:800; color:var(--text-primary);">
+            <a href="#jobs-section" style="color:var(--primary-brand); text-decoration:none;">{{ active_jobs_count }} Verified Active <span style="font-size:12.5px; color:var(--text-secondary); font-weight:500;">/ {{ total_company_jobs }} Total</span></a>
+        </div>
+    </div>
+    <div class="admin-card" style="margin-bottom:0; padding:18px;">
+        <div style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px;">Statutory CSR</div>
+        <div style="font-size:20px; font-weight:800; color:var(--success);">
+            <a href="#csr-section" style="color:var(--success); text-decoration:none;">{{ projects|length }} Verified Projects</a>
+            <div style="font-size:11px; color:var(--text-secondary); font-weight:600; margin-top:2px;">{{ csr_display_format }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 1: OFFICIAL CORPORATE IDENTITY & SOURCE REGISTRY -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+        <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-primary);">
+            🌐 Verified Official Corporate Source Registry
+        </h3>
+        <span style="font-size:12px; color:var(--text-secondary);">Strict Source Confirmation Enforced — 100% Real Website Data Only</span>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
+        <div>
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); width:165px; font-weight:600;">Legal Entity:</td>
+                    <td style="color:var(--text-primary); font-weight:700;">{{ company.legal_name|default:company.company_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">CIN:</td>
+                    <td style="font-family:var(--font-mono); color:var(--text-primary);">{{ company.cin|default:not_available_text }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Headquarters:</td>
+                    <td style="color:var(--text-primary);">{{ company.headquarters|default:not_available_text }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Official Domain:</td>
+                    <td>
+                        {% if company.official_domain %}
+                        <span style="font-family:var(--font-mono); font-weight:700; color:var(--primary-brand);">{{ company.official_domain }}</span>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Official Website:</td>
+                    <td>
+                        {% if company.website_url %}
+                        <a href="{{ company.website_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.website_url }} ↗</a>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Website Login Access:</td>
+                    <td style="padding:8px 0;">
+                        <div>Jobs: <strong {% if company.jobs_access == 'LOGIN_REQUIRED' %}style="color:#d97706;"{% endif %}>{{ company.get_jobs_access_display }}</strong></div>
+                        <div>CSR: <strong {% if company.csr_access == 'LOGIN_REQUIRED' %}style="color:#d97706;"{% endif %}>{{ company.get_csr_access_display }}</strong></div>
+                        <div>Contacts: <strong {% if company.contacts_access == 'LOGIN_REQUIRED' %}style="color:#d97706;"{% endif %}>{{ company.get_contacts_access_display }}</strong></div>
+                        {% if company.data_access_note %}<div style="color:var(--text-muted); font-size:12px; margin-top:4px;">{{ company.data_access_note }}</div>{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Careers Portal:</td>
+                    <td>
+                        {% if company.careers_url %}
+                        <a href="{{ company.careers_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.careers_url }} ↗</a>
+                        {% elif company.jobs_access == 'LOGIN_REQUIRED' %}
+                        <span style="color:#d97706; font-weight:600;">{{ login_required_text }}</span>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">ATS Platform &amp; URL:</td>
+                    <td>
+                        {% if company.ats_url %}
+                        <a href="{{ company.ats_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.ats_platform|default:"ATS" }} Portal ↗</a>
+                        {% elif company.ats_platform %}
+                        <span style="font-weight:700;">{{ company.ats_platform }}</span>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div>
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); width:165px; font-weight:600;">CSR Webpage / Portal:</td>
+                    <td>
+                        {% if company.csr_portal_url %}
+                        <a href="{{ company.csr_portal_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.csr_portal_url }} ↗</a>
+                        {% elif company.csr_access == 'LOGIN_REQUIRED' %}
+                        <span style="color:#d97706; font-weight:600;">{{ login_required_text }}</span>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Sustainability Page:</td>
+                    <td>
+                        {% if company.sustainability_url %}
+                        <a href="{{ company.sustainability_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.sustainability_url }} ↗</a>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">ESG Page:</td>
+                    <td>
+                        {% if company.esg_url %}
+                        <a href="{{ company.esg_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.esg_url }} ↗</a>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Foundation Page:</td>
+                    <td>
+                        {% if company.foundation_url %}
+                        <a href="{{ company.foundation_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.foundation_url }} ↗</a>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Investor Relations:</td>
+                    <td>
+                        {% if company.investor_url %}
+                        <a href="{{ company.investor_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.investor_url }} ↗</a>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Annual Report / BRSR:</td>
+                    <td>
+                        {% if company.annual_report_url %}
+                        <a href="{{ company.annual_report_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700;">Annual Report ↗</a>
+                        {% endif %}
+                        {% if company.brsr_url %}
+                        <a href="{{ company.brsr_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; margin-left:8px;">BRSR Filing ↗</a>
+                        {% endif %}
+                        {% if not company.annual_report_url and not company.brsr_url %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0; color:var(--text-secondary); font-weight:600;">Contact Us Page:</td>
+                    <td>
+                        {% if company.contact_page_url %}
+                        <a href="{{ company.contact_page_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-weight:700; word-break:break-all;">{{ company.contact_page_url }} ↗</a>
+                        {% else %}
+                        <span style="color:var(--text-muted);">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 2: ALL COMPANY JOB OPENINGS (COMPLETE VERIFIED INVENTORY) -->
+<div class="admin-card" id="jobs-section" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:16px; font-weight:800; color:var(--text-primary);">
+                💼 Verified Career Postings ({{ active_jobs_count }} Verified Active / {{ total_company_jobs }} Total)
+            </h3>
+            <div style="font-size:12.5px; color:var(--text-secondary);">
+                Only jobs with a live HTTP 200 verified application URL and unambiguous company ownership are published.
+            </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <a href="{% url 'admin_jobs:company_jobs' company.company_id %}" class="btn-admin btn-admin-secondary" style="font-size:12px;">
+                <span>Explore in Jobs Dashboard &rarr;</span>
+            </a>
+            {% if active_jobs_count > 0 %}
+            <a href="{% url 'admin_portal:data_export' 'jobs' %}?format=csv&company_id={{ company.company_id }}" class="btn-admin btn-admin-secondary" style="font-size:12px;">
+                <span>📥 Export CSV</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if company.jobs_access == 'LOGIN_REQUIRED' %}
+    <div style="background:var(--warning-bg, #fffbeb); border:1px solid var(--warning-border, #f59e0b); padding:12px 16px; border-radius:var(--radius-md); font-size:13px; color:#92400E; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+        <span>🔒</span>
+        <div><strong>{{ login_required_text }}:</strong> Job openings on this company's website can only be viewed after user login.</div>
+    </div>
+    {% elif latest_crawl_summary and latest_crawl_summary.crawl_status == 'FAILED' %}
+    <div style="background:var(--warning-bg); border:1px solid var(--warning-border); padding:12px 16px; border-radius:var(--radius-md); font-size:12.5px; color:#92400E; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+        <span>⚠️</span>
+        <div><strong>Crawl failed — last known jobs preserved.</strong> Network or access issue occurred during last run ({{ latest_crawl_summary.crawl_finished_at|default:latest_crawl_summary.crawl_started_at|truncatechars:19 }}).</div>
+    </div>
+    {% elif not company.careers_url %}
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md); font-size:12.5px; color:var(--text-secondary); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+        <span>ℹ️</span>
+        <div><strong>{{ not_available_text }}:</strong> No official career portal or ATS URL is published for this company.</div>
+    </div>
+    {% endif %}
+
+    <!-- Job Search & Filter -->
+    <form method="GET" action="{% url 'admin_companies:detail' company.company_id %}" style="display:grid; grid-template-columns: 2fr repeat(auto-fit, minmax(130px, 1fr)) auto; gap:10px; margin-bottom:16px; align-items:center;">
+        <input type="text" name="job_q" value="{{ job_q }}" placeholder="Search company openings..." class="search-input" style="height:38px;">
+        <select name="job_dept" class="select-filter" style="width:100%; height:38px;">
+            <option value="all">All Departments</option>
+            {% for d in company_depts %}
+            <option value="{{ d }}" {% if job_dept == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+        <select name="job_mode" class="select-filter" style="width:100%; height:38px;">
+            <option value="all">All Work Modes</option>
+            <option value="On-site" {% if job_mode == 'On-site' %}selected{% endif %}>On-site</option>
+            <option value="Remote" {% if job_mode == 'Remote' %}selected{% endif %}>Remote</option>
+            <option value="Hybrid" {% if job_mode == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+        </select>
+        <button type="submit" class="btn-admin btn-admin-primary" style="height:38px; padding:0 16px;">Filter</button>
+    </form>
+
+    <!-- Jobs Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Department / Function</th>
+                    <th>Location</th>
+                    <th>Work Mode</th>
+                    <th>ATS / External ID</th>
+                    <th>Link &amp; Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in jobs_page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_jobs:detail' j.job_row_id %}" style="color:var(--text-primary); font-weight:700; text-decoration:none;">
+                            {{ j.job_title }}
+                        </a>
+                        {% if j.experience %}
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">⏱ {{ j.experience }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ j.department|default:not_available_text }}</td>
+                    <td>{{ j.location|default:not_available_text }}</td>
+                    <td>
+                        {% if j.work_mode %}
+                        <span class="badge-status {% if j.work_mode == 'Remote' %}badge-active{% elif j.work_mode == 'Hybrid' %}badge-info{% else %}badge-pending{% endif %}">
+                            {{ j.work_mode }}
+                        </span>
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if j.ats_platform %}
+                        <span style="font-size:11.5px; font-weight:600; color:var(--text-secondary);">{{ j.ats_platform }}</span>
+                        {% endif %}
+                        {% if j.external_job_id %}
+                        <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">#{{ j.external_job_id }}</div>
+                        {% endif %}
+                        {% if not j.ats_platform and not j.external_job_id %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-status {% if j.status == 'ACTIVE' and j.link_status == 'VERIFIED_HTTP_200' %}badge-active{% else %}badge-pending{% endif %}">
+                            {{ j.status }} {% if j.link_status == 'VERIFIED_HTTP_200' %}(HTTP 200){% endif %}
+                        </span>
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'admin_jobs:detail' j.job_row_id %}" class="btn-admin btn-admin-primary" style="padding:3px 8px; font-size:11.5px;">View Details</a>
+                        {% if j.application_url and j.link_status == 'VERIFIED_HTTP_200' and j.owner_status == 'OWNED' %}
+                        <a href="{{ j.application_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-secondary" style="padding:3px 8px; font-size:11.5px;">Apply ↗</a>
+                        {% else %}
+                        <span style="font-size:11px; color:var(--text-muted); margin-left:4px;">Link unverified</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">
+                        <div style="font-size:24px; margin-bottom:8px;">{% if company.jobs_access == 'LOGIN_REQUIRED' %}🔒{% else %}🔍{% endif %}</div>
+                        <div style="font-weight:700; font-size:14px; color:var(--text-primary);">
+                            {% if company.jobs_access == 'LOGIN_REQUIRED' %}
+                            {{ login_required_text }}
+                            {% else %}
+                            No currently verified jobs found.
+                            {% endif %}
+                        </div>
+                        <div style="font-size:12.5px; margin-top:4px;">
+                            {% if company.jobs_access == 'LOGIN_REQUIRED' %}
+                            Job postings on this company's website require user login to view.
+                            {% elif company.careers_url %}
+                            Run <code>python manage.py verify_job_links --company {{ company.nse_symbol|default:company.company_id }}</code> or re-crawl to verify live openings.
+                            {% else %}
+                            {{ not_available_text }}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if jobs_page_obj.paginator.num_pages > 1 %}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; font-size:12.5px; color:var(--text-secondary);">
+        <div>Showing {{ jobs_page_obj.start_index }}–{{ jobs_page_obj.end_index }} of {{ jobs_page_obj.paginator.count }} jobs</div>
+        <div style="display:flex; gap:6px;">
+            {% if jobs_page_obj.has_previous %}
+            <a href="?job_page={{ jobs_page_obj.previous_page_number }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px;">&laquo; Prev</a>
+            {% endif %}
+            <span style="padding:4px 10px; font-weight:700;">Page {{ jobs_page_obj.number }} of {{ jobs_page_obj.paginator.num_pages }}</span>
+            {% if jobs_page_obj.has_next %}
+            <a href="?job_page={{ jobs_page_obj.next_page_number }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px;">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- SECTION 3: STATUTORY CSR WEBPAGE, DISCLOSURE LINKS & PROJECTS -->
+<div class="admin-card" id="csr-section" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:16px; font-weight:800; color:var(--text-primary);">
+                🌱 CSR Webpage, Disclosure Sources &amp; Statutory CSR Projects ({{ projects|length }})
+            </h3>
+            <div style="font-size:12.5px; color:var(--text-secondary);">
+                Companies publish CSR differently (dedicated CSR webpage, Foundation portal, Sustainability/ESG page, or PDF reports). All verified CSR links and extracted projects for <strong>{{ company.company_name }}</strong> are shown below.
+            </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            {% if csr_webpage_url %}
+            <a href="{{ csr_webpage_url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-primary" style="font-size:12px;">
+                🌐 View CSR Page for {{ company.company_name }} ↗
+            </a>
+            {% endif %}
+            <span class="badge-status badge-active">{{ projects|length }} Verified Initiatives</span>
+        </div>
+    </div>
+
+    {% if company.csr_access == 'LOGIN_REQUIRED' %}
+    <div style="background:var(--warning-bg, #fffbeb); border:1px solid var(--warning-border, #f59e0b); padding:12px 16px; border-radius:var(--radius-md); font-size:13px; color:#92400E; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+        <span>🔒</span>
+        <div><strong>{{ login_required_text }}:</strong> CSR disclosures on this company's website can only be viewed after user login.</div>
+    </div>
+    {% endif %}
+
+    <!-- Official Company CSR Webpage & PDF Sources Panel -->
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:13.5px; font-weight:800; color:var(--text-primary);">
+                🌐 Official CSR Webpage &amp; Document Links for {{ company.company_name }}
+            </div>
+            <span class="badge-status badge-info">Disclosure Format: {{ csr_display_format }}</span>
+        </div>
+        {% if csr_links %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:10px;">
+            {% for link in csr_links %}
+            <div style="padding:10px 12px; background:var(--bg-surface, #fff); border:1px solid var(--border-color); border-radius:6px; display:flex; flex-direction:column; justify-content:space-between; gap:6px;">
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <strong style="font-size:12.5px; color:var(--text-primary);">{{ link.label }}</strong>
+                        <span class="badge-status badge-pending" style="font-size:10px;">{{ link.format }}</span>
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); word-break:break-all; margin-top:4px;">{{ link.url }}</div>
+                </div>
+                <div>
+                    <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="btn-admin btn-admin-primary" style="padding:4px 10px; font-size:11.5px; text-decoration:none; display:inline-block;">
+                        Open CSR Source ↗
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="font-size:12.5px; color:var(--text-muted);">
+            {% if company.csr_access == 'LOGIN_REQUIRED' %}
+            {{ login_required_text }}
+            {% else %}
+            {{ not_available_text }}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Verified CSR Projects Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Project Name &amp; Extracted Details</th>
+                    <th>Thematic Category</th>
+                    <th>Geographic Focus</th>
+                    <th>Disclosed Budget</th>
+                    <th>Status</th>
+                    <th>Source Webpage / PDF Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in projects %}
+                <tr>
+                    <td>
+                        <strong style="color:var(--text-primary);">{{ p.project_name|default:not_available_text }}</strong>
+                        {% if p.description %}
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:3px; max-width:480px; line-height:1.4;">
+                            {{ p.description }}
+                        </div>
+                        {% else %}
+                        <div style="font-size:11.5px; color:var(--text-muted); margin-top:3px; font-style:italic;">
+                            Description: {{ not_available_text }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.category %}
+                        <span class="badge-status badge-pending">{{ p.category }}</span>
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.state or p.geographic_location %}
+                        {{ p.state|default:p.geographic_location }}
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family:var(--font-mono); font-weight:700;">
+                        {% if p.budget %}&#8377; {{ p.budget }}{% else %}<span style="color:var(--text-muted); font-family:inherit; font-weight:normal; font-size:11.5px;">{{ not_available_text }}</span>{% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-status {% if p.verification_status == 'PUBLISHED' %}badge-active{% else %}badge-info{% endif %}">
+                            {{ p.verification_status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if p.source_url %}
+                        <div>
+                            <a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-size:12px; font-weight:700;">Open Source ({{ p.source_format }}) ↗</a>
+                        </div>
+                        {% endif %}
+                        {% if csr_webpage_url and csr_webpage_url != p.source_url %}
+                        <div style="margin-top:3px;">
+                            <a href="{{ csr_webpage_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--text-secondary); font-size:11px;">Company CSR Webpage ↗</a>
+                        </div>
+                        {% endif %}
+                        {% if not p.source_url and not csr_webpage_url %}
+                        <span style="color:var(--text-muted); font-size:11.5px;">{{ not_available_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:28px; color:var(--text-secondary);">
+                        <div style="font-size:20px; margin-bottom:6px;">{% if company.csr_access == 'LOGIN_REQUIRED' %}🔒{% else %}🌱{% endif %}</div>
+                        <div>
+                            {% if company.csr_access == 'LOGIN_REQUIRED' %}
+                            <strong>{{ login_required_text }}</strong>
+                            {% else %}
+                            {{ not_available_text }} (No statutory CSR project rows extracted yet; use the official CSR Webpage/PDF links above to view company CSR disclosures).
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CSR Opportunities / Grants / RFPs Sub-section -->
+    <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color);">
+        <h4 style="margin:0 0 10px; font-size:14.5px; font-weight:800; color:var(--text-primary);">
+            📢 Open CSR Opportunities, Grants &amp; RFPs ({{ opportunities|length }})
+        </h4>
+        {% if opportunities %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px;">
+            {% for opp in opportunities %}
+            <div style="padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+                <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{{ opp.title }}</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">{{ opp.opportunity_type|default:not_available_text }} &bull; {{ opp.category|default:not_available_text }}</div>
+                <div style="font-size:11.5px; color:var(--text-secondary); margin-bottom:6px;">📅 Deadline: {{ opp.submission_deadline|default:not_available_text }}</div>
+                {% if opp.portal_url %}
+                <a href="{{ opp.portal_url }}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary-brand); font-weight:700;">View Call for Proposals ↗</a>
+                {% elif opp.source_url %}
+                <a href="{{ opp.source_url }}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary-brand); font-weight:700;">View Source ↗</a>
+                {% else %}
+                <span style="font-size:11.5px; color:var(--text-muted);">{{ not_available_text }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="font-size:12.5px; color:var(--text-secondary); padding:8px 0;">
+            {{ not_available_text }} (No open public CSR grant applications or partner RFPs currently published on the company website).
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- SECTION 4: OFFICIAL CORPORATE CONTACTS -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-primary);">
+            👥 Official Corporate CSR Contacts ({{ contacts|length }})
+        </h3>
+        <span style="font-size:12px; color:var(--text-secondary);">Direct Verified CSR Disclosures Only (Generic info@/webmaster@ Excluded)</span>
+    </div>
+
+    {% if company.contacts_access == 'LOGIN_REQUIRED' %}
+    <div style="background:var(--warning-bg, #fffbeb); border:1px solid var(--warning-border, #f59e0b); padding:12px 16px; border-radius:var(--radius-md); font-size:13px; color:#92400E; margin-bottom:16px;">
+        🔒 <strong>{{ login_required_text }}:</strong> Contact details on this company's website can only be viewed after user login.
+    </div>
+    {% endif %}
+
+    {% if contacts %}
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">
+        {% for con in contacts %}
+        <div style="padding:14px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+            <div style="font-weight:700; color:var(--text-primary); font-size:14px;">{{ con.name|default:not_available_text }}</div>
+            <div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:6px;">{{ con.designation|default:not_available_text }}{% if con.department %} &bull; {{ con.department }}{% endif %}</div>
+            <div style="font-size:12.5px; display:flex; flex-direction:column; gap:3px;">
+                <div>✉️ {% if con.email %}<a href="mailto:{{ con.email }}" style="color:var(--primary-brand); font-weight:600;">{{ con.email }}</a>{% else %}<span style="color:var(--text-muted);">{{ not_available_text }}</span>{% endif %}</div>
+                <div>📞 {% if con.phone %}<span>{{ con.phone }}</span>{% else %}<span style="color:var(--text-muted);">{{ not_available_text }}</span>{% endif %}</div>
+            </div>
+            {% if con.source_url %}
+            <div style="margin-top:8px; font-size:11px;">
+                <a href="{{ con.source_url }}" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);">Source Verification ↗</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="color:var(--text-secondary); padding:20px 0; font-size:13px; text-align:center;">
+        {% if company.contacts_access == 'LOGIN_REQUIRED' %}
+        {{ login_required_text }}
+        {% else %}
+        {{ not_available_text }}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- SECTION 5: SOURCE VERIFICATION & CRAWL TELEMETRY -->
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:16px; font-weight:800; color:var(--text-primary);">
+                🔍 Source Verification &amp; Crawl Telemetry
+            </h3>
+            <div style="font-size:12.5px; color:var(--text-secondary);">
+                Full provenance trace, live run outcomes, and authentic HTTP telemetry records.
+            </div>
+        </div>
+        {% if latest_crawl_summary %}
+        <span class="badge-status {% if latest_crawl_summary.crawl_status == 'CRAWLED' %}badge-active{% else %}badge-pending{% endif %}">
+            Last Crawl: {{ latest_crawl_summary.crawl_status }}
+        </span>
+        {% endif %}
+    </div>
+
+    {% if latest_crawl_summary %}
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px; margin-bottom:20px;">
+        <h4 style="margin:0 0 10px; font-size:13.5px; font-weight:700; color:var(--text-primary);">Latest Crawl Run Summary</h4>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; font-size:12.5px;">
+            <div><strong>Started:</strong> {{ latest_crawl_summary.crawl_started_at|truncatechars:19 }}</div>
+            <div><strong>Finished:</strong> {{ latest_crawl_summary.crawl_finished_at|default:"In Progress"|truncatechars:19 }}</div>
+            <div><strong>Jobs Discovered:</strong> {{ latest_crawl_summary.jobs_discovered }}</div>
+            <div><strong>Jobs Published:</strong> {{ latest_crawl_summary.jobs_published }}</div>
+            <div><strong>Jobs Updated:</strong> {{ latest_crawl_summary.jobs_updated }}</div>
+            <div><strong>Jobs Expired:</strong> {{ latest_crawl_summary.jobs_expired }}</div>
+            <div><strong>CSR Pages/PDFs:</strong> {{ latest_crawl_summary.csr_pages_found }} / {{ latest_crawl_summary.csr_pdfs_found }}</div>
+            <div><strong>Contacts Found:</strong> {{ latest_crawl_summary.contacts_discovered }}</div>
+        </div>
+        {% if latest_crawl_summary.error_log %}
+        <div style="margin-top:10px; font-size:12px; color:var(--warning); background:var(--warning-bg); padding:8px 12px; border-radius:var(--radius-sm);">
+            <strong>Notice / Error Log:</strong> {{ latest_crawl_summary.error_log }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <h4 style="margin:0 0 10px; font-size:14px; font-weight:700; color:var(--text-primary);">
+        Crawled Web Pages Telemetry ({{ crawled_pages|length }})
+    </h4>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Page Title</th>
+                    <th>Type</th>
+                    <th>URL</th>
+                    <th>HTTP Status</th>
+                    <th>Crawled At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in crawled_pages %}
+                <tr>
+                    <td><strong style="color:var(--text-primary);">{{ page.title|default:"Page"|truncatechars:45 }}</strong></td>
+                    <td><span class="badge-status badge-info">{{ page.page_type|default:"WEB" }}</span></td>
+                    <td><a href="{{ page.url }}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-brand); font-family:var(--font-mono); font-size:12px;">{{ page.url|truncatechars:55 }} ↗</a></td>
+                    <td>
+                        {% if page.status == '200' or page.http_status == 200 or page.http_status == '200' %}
+                        <span class="badge-status badge-active">200 OK</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">{{ page.status|default:page.http_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);">{{ page.last_crawled|default:page.crawled_at|truncatechars:19 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">
+                        No telemetry page records captured yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function adminFetchLiveCompany(companyId, btn) {
+    if (!companyId) return;
+    const orig = btn ? btn.innerHTML : '🔄 Fetch Live Data';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Syncing Live Website...';
+    }
+    try {
+        const res = await fetch(`/api/companies/${encodeURIComponent(companyId)}/fetch-live/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            alert(data.message || '1:1 Live Sync Succeeded!');
+            window.location.reload();
+        } else {
+            alert('Live Sync Failed: ' + (data.message || data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Live Sync Network Failure: ' + e.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        }
+    }
+}
+</script>
+{% endblock %}

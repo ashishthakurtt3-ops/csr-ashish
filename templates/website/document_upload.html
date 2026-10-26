@@ -1,0 +1,239 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Proposal or Compliance Document — ImpactBridge™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body.upload-page-body {
+            background: #F7F9FC;
+            color: #0F172A;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px 80px 20px;
+        }
+        .upload-container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .return-bar {
+            margin-bottom: 24px;
+        }
+        .return-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #0F766E;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        .return-link:hover {
+            color: #115E59;
+            text-decoration: underline;
+        }
+        .upload-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 36px 32px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        }
+        .card-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: #F0FDFA;
+            border: 1px solid #CCFBF1;
+            border-radius: 9999px;
+            color: #0F766E;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .upload-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0F172A;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
+        }
+        .upload-subtitle {
+            font-size: 14px;
+            color: #64748B;
+            margin: 0 0 28px 0;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 14px;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            color: #0F172A;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        select.form-input {
+            cursor: pointer;
+        }
+        textarea.form-input {
+            height: auto;
+            min-height: 96px;
+            padding: 12px 14px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #0F766E;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+        .file-dropzone {
+            border: 2px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 24px;
+            background: #F8FAFC;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .file-dropzone:hover {
+            border-color: #14B8A6;
+            background: #F0FDFA;
+        }
+        .file-dropzone input[type="file"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .btn-submit {
+            width: 100%;
+            height: 46px;
+            background: #0F766E;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+            margin-top: 24px;
+        }
+        .btn-submit:hover {
+            background: #0D655E;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+        @media (max-width: 640px) {
+            .upload-card {
+                padding: 24px 20px;
+                border-radius: 14px;
+            }
+        }
+    </style>
+</head>
+<body class="upload-page-body">
+    <div class="upload-container">
+        <div class="return-bar">
+            <a href="/" class="return-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Back to Public Platform</span>
+            </a>
+        </div>
+
+        <div class="upload-card">
+            <div class="card-header-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Document Ingestion Hub</span>
+            </div>
+
+            <h1 class="upload-title">Submit CSR Proposal or Compliance Document</h1>
+            <p class="upload-subtitle">
+                Upload your non-profit organization's statutory 80G/12A certificates, audited financial reports, or direct Section 135 grant proposals.
+            </p>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Document Title *</label>
+                    <input type="text" name="title" class="form-input" placeholder="e.g. 2026 Maharashtra Primary Education CSR Proposal" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Document Category *</label>
+                    <select name="document_type" class="form-input">
+                        {% for code, label in doc_types %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Target Corporate Donor (Optional)</label>
+                    <select name="company_id" class="form-input">
+                        <option value="">-- General Repository (Open to all verified donors) --</option>
+                        {% for comp in companies %}
+                        <option value="{{ comp.company_id }}">{{ comp.company_name }} ({{ comp.nse_symbol|default:"NSE" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Select File (PDF, DOCX, ZIP, Max 25MB) *</label>
+                    <div class="file-dropzone">
+                        <input type="file" name="file" class="form-input" style="border:none; background:transparent; padding:0;" required>
+                        <div style="font-size:12px; color:#64748B; margin-top:6px;">Supported file formats: PDF, DOCX, XLSX, ZIP</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes / Proposal Summary</label>
+                    <textarea name="notes" class="form-input" placeholder="Provide a concise executive summary, problem statement, or target beneficiary metrics..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <span>Upload &amp; Submit Document</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

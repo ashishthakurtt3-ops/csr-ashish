@@ -1,0 +1,9 @@
+{# Export-only toolbar for crawled data. Master Sync and CSV/JSON import are disabled to prevent unverified rows from entering the database. #}
+<div style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
+    <a href="{% url 'admin_portal:data_export' entity %}?format=csv" class="btn-admin btn-admin-secondary" style="height:38px; display:inline-flex; align-items:center; gap:6px; font-size:12px; text-decoration:none;" title="Export verified {{ title|default:entity }} as CSV">
+        <span>📥 Export CSV</span>
+    </a>
+    <a href="{% url 'admin_portal:data_export' entity %}?format=json" class="btn-admin btn-admin-secondary" style="height:38px; display:inline-flex; align-items:center; gap:6px; font-size:12px; text-decoration:none;" title="Export verified {{ title|default:entity }} as JSON">
+        <span>📄 Export JSON</span>
+    </a>
+</div>

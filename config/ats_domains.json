@@ -1,0 +1,130 @@
+{
+  "_comment": "Known enterprise Applicant Tracking System (ATS) career-site patterns and host patterns. Matches specific career-site URL patterns, not broad cloud provider root domains. Every match is routed through ownership.py and shared_tenants.json.",
+  "ats_list": [
+    {
+      "platform": "Workday",
+      "host_patterns": [
+        "*.myworkdayjobs.com"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.myworkdayjobs\\.com/.*"
+      ]
+    },
+    {
+      "platform": "Greenhouse",
+      "host_patterns": [
+        "boards.greenhouse.io",
+        "boards.eu.greenhouse.io",
+        "job-boards.greenhouse.io"
+      ],
+      "url_patterns": [
+        "^https?://(?:boards|job-boards)(?:\\.eu)?\\.greenhouse\\.io/[a-zA-Z0-9_-]+.*"
+      ]
+    },
+    {
+      "platform": "Lever",
+      "host_patterns": [
+        "jobs.lever.co"
+      ],
+      "url_patterns": [
+        "^https?://jobs\\.lever\\.co/[a-zA-Z0-9_-]+.*"
+      ]
+    },
+    {
+      "platform": "SmartRecruiters",
+      "host_patterns": [
+        "careers.smartrecruiters.com",
+        "jobs.smartrecruiters.com"
+      ],
+      "url_patterns": [
+        "^https?://(?:careers|jobs)\\.smartrecruiters\\.com/[a-zA-Z0-9_-]+.*"
+      ]
+    },
+    {
+      "platform": "Taleo",
+      "host_patterns": [
+        "*.taleo.net"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.taleo\\.net/careersection/.*"
+      ]
+    },
+    {
+      "platform": "Oracle_Cloud",
+      "host_patterns": [],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.oraclecloud\\.com/hcmUI/CandidateExperience/.*",
+        "^https?://[a-zA-Z0-9.-]+\\.oraclecloud\\.com/[a-zA-Z0-9_-]+/candidates/.*"
+      ]
+    },
+    {
+      "platform": "SuccessFactors",
+      "host_patterns": [
+        "*.successfactors.com",
+        "*.successfactors.eu",
+        "*.sapsf.com"
+      ],
+      "url_patterns": [
+        "^https?://(?:career[a-zA-Z0-9.-]*\\.|[a-zA-Z0-9.-]+\\.)(?:successfactors\\.(?:com|eu)|sapsf\\.com)/.*career.*"
+      ]
+    },
+    {
+      "platform": "Darwinbox",
+      "host_patterns": [
+        "*.darwinbox.in",
+        "*.darwinbox.com"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.darwinbox\\.(?:in|com)/(?:ms/candidate|careers).*"
+      ]
+    },
+    {
+      "platform": "ZohoRecruit",
+      "host_patterns": [
+        "*.zohorecruit.com",
+        "*.zohorecruit.in",
+        "recruit.zoho.com"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.zohorecruit\\.(?:com|in)/jobs/.*",
+        "^https?://recruit\\.zoho\\.com/recruit/.*"
+      ]
+    },
+    {
+      "platform": "Keka",
+      "host_patterns": [
+        "*.keka.com"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.keka\\.com/careers/.*"
+      ]
+    },
+    {
+      "platform": "PeopleStrong",
+      "host_patterns": [
+        "*.peoplestrong.com"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.peoplestrong\\.com/(?:careers|jobs)/.*"
+      ]
+    },
+    {
+      "platform": "ICIMS",
+      "host_patterns": [
+        "*.icims.com"
+      ],
+      "url_patterns": [
+        "^https?://[a-zA-Z0-9.-]+\\.icims\\.com/jobs/.*"
+      ]
+    },
+    {
+      "platform": "Ashby",
+      "host_patterns": [
+        "jobs.ashbyhq.com"
+      ],
+      "url_patterns": [
+        "^https?://jobs\\.ashbyhq\\.com/[a-zA-Z0-9_-]+.*"
+      ]
+    }
+  ]
+}

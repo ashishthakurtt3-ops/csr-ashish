@@ -1,0 +1,16 @@
+﻿company_id,company_name,website_url,crawl_result,reason,time_taken_seconds,pages_found,jobs_found,csr_items_found,contacts_found,ai_calls,cache_hits
+COMP_TOP200_017,Adani Enterprises Limited,https://www.adanienterprises.com/,PARTIAL,Partial extraction: Jobs portal not identified.,49.51,2,0,1,0,13,0
+COMP_TOP200_169,ACC Limited,https://www.acclimited.com/,PARTIAL,"Partial extraction: Jobs, CSR portal not identified.",48.0,2,0,0,0,12,0
+COMP_TOP200_160,3i Infotech Limited,https://www.3i-infotech.com/,PARTIAL,"Partial extraction: Jobs, CSR portal not identified.",74.71,1,0,0,3,6,0
+COMP_TOP200_199,Aarti Industries Limited,https://www.aarti-industries.com/,PARTIAL,Partial extraction: CSR portal not identified.,25.1,3,26,0,0,13,0
+COMP_TOP200_148,Ashok Leyland Limited,https://www.ashokleyland.com/,OK,Both Jobs and CSR intelligence successfully identified and extracted.,68.83,2,23,2,0,7,0
+COMP_TOP200_064,Bosch Limited,https://www.bosch.in/,FAILED,No target pages or structured data could be extracted.,27.25,0,0,0,0,0,0
+COMP_TOP200_073,Hero MotoCorp Limited,https://www.heromotocorp.com/en-in.html,FAILED,No target pages or structured data could be extracted.,22.91,0,0,0,0,0,0
+COMP_TOP200_095,One 97 Communications Limited,https://paytm.com/,FAILED,No target pages or structured data could be extracted.,16.94,0,0,0,0,0,0
+COMP_TOP200_003,ICICI Bank Limited,https://www.icicibank.com/,FAILED,No target pages or structured data could be extracted.,14.26,0,0,0,2,0,0
+COMP_TOP200_005,Tata Consultancy Services Limited,https://www.tcs.com/,FAILED,No target pages or structured data could be extracted.,46.16,0,0,0,0,0,0
+COMP_TOP200_015,ITC Limited,https://itcportal.com/,FAILED,No target pages or structured data could be extracted.,17.83,0,0,0,0,0,0
+COMP_TOP200_009,Hindustan Unilever Limited,https://www.hul.co.in/,FAILED,No target pages or structured data could be extracted.,11.22,0,0,0,0,0,0
+COMP_TOP200_081,Lupin Limited,https://www.lupin.com/,FAILED,No target pages or structured data could be extracted.,21.76,0,0,0,3,0,0
+COMP_TOP200_184,AU Small Finance Bank Limited,https://www.au.bank.in/,FAILED,No target pages or structured data could be extracted.,26.9,0,0,0,1,0,0
+COMP_TOP200_154,20 Microns Limited,https://www.20microns.com/,FAILED,No target pages or structured data could be extracted.,70.94,0,0,0,2,0,0

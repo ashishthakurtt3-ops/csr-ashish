@@ -1,0 +1,70 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Verification Queue{% endblock %}
+{% block page_title %}CSR Project Verification Queue (Confidence: 0.60 – 0.95){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <p style="margin:0; font-size:13px; color:var(--text-secondary);">
+            Human-in-the-loop review queue for discovered CSR initiatives with borderline confidence metrics. Verify to promote confidence to 0.99.
+        </p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            {% include "admin/components/exchange_toolbar.html" with entity="queue" title="Verification Queue" %}
+            <a href="{% url 'admin_verification:audit_trail' %}" class="btn-admin btn-admin-secondary">Audit Trail</a>
+            <a href="{% url 'admin_verification:crawler_status' %}" class="btn-admin btn-admin-secondary">Crawler Telemetry</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Corporate Entity</th>
+                    <th>Category</th>
+                    <th>Confidence</th>
+                    <th>Budget</th>
+                    <th style="text-align:right;">Verification Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pending_records %}
+                <tr>
+                    <td>
+                        <strong style="color:var(--text-primary);">{{ p.project_name }}</strong>
+                        {% if p.description %}
+                        <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">{{ p.description|truncatewords:15 }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.company %}
+                        <a href="{% url 'admin_companies:detail' p.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ p.company.company_name }}</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><span class="badge-status badge-pending">{{ p.category }}</span></td>
+                    <td><span class="badge-status badge-info">{{ p.confidence|floatformat:2 }}</span></td>
+                    <td style="font-family:var(--font-mono);">{% if p.budget_inr %}&#8377; {{ p.budget_inr }}{% else %}—{% endif %}</td>
+                    <td style="text-align:right;">
+                        <div style="display:flex; justify-content:flex-end; gap:6px;">
+                            <form method="POST" action="{% url 'admin_verification:action' p.csr_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="APPROVE">
+                                <button type="submit" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11px;">Verify</button>
+                            </form>
+                            <form method="POST" action="{% url 'admin_verification:action' p.csr_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="REJECT">
+                                <button type="submit" class="btn-admin btn-admin-danger" style="padding:4px 8px; font-size:11px;">Flag Low</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-secondary);">All CSR project records are fully audited and verified!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

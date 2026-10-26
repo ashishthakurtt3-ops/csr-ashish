@@ -1,0 +1,93 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Account Management{% endblock %}
+{% block page_title %}User Accounts &amp; Access Governance ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:650px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search by username, email, name or organization..." class="search-input" style="flex:1; min-width:200px; height:40px;">
+            <select name="role" class="select-filter" style="height:40px;">
+                <option value="all">All Roles</option>
+                {% for r_code, r_label in role_choices %}
+                <option value="{{ r_code }}" {% if selected_role == r_code %}selected{% endif %}>{{ r_label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
+            {% if q or selected_role and selected_role != 'all' %}
+            <a href="{% url 'admin_users:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+            {% endif %}
+        </form>
+
+        <div style="display:flex; gap:10px; align-items:center;">
+            {% include "admin/components/exchange_toolbar.html" with entity="users" title="Users" %}
+            <a href="{% url 'admin_users:create' %}" class="btn-admin btn-admin-primary">
+                <span>+</span> <span>Create User</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Organization</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color:var(--text-primary);">{{ u.username }}</strong>
+                        {% if u.is_superuser %}<span class="badge-status badge-active" style="margin-left:4px; font-size:9px;">SUPERUSER</span>{% endif %}
+                    </td>
+                    <td>{{ u.email|default:"—" }}</td>
+                    <td><span class="badge-status badge-info">{{ u.get_role_display }}</span></td>
+                    <td>{{ u.organization_name|default:"—" }}</td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'admin_users:edit' u.id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">Edit</a>
+                        {% if u != request.user %}
+                        <a href="{% url 'admin_users:toggle_status' u.id %}" class="btn-admin {% if u.is_active %}btn-admin-danger{% else %}btn-admin-secondary{% endif %}" style="padding:4px 8px; font-size:11.5px;">
+                            {% if u.is_active %}Disable{% else %}Enable{% endif %}
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">No users match the search criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total users)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&role={{ selected_role }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&role={{ selected_role }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

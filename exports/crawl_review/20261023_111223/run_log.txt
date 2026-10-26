@@ -1,0 +1,8 @@
+[2026-10-23 05:42:23] === ImpactBridge Crawl Review Sampler (DRY RUN) ===
+[2026-10-23 05:42:23] Timestamp: 20261023_111223
+[2026-10-23 05:42:23] Output directory: exports/crawl_review\20261023_111223
+[2026-10-23 05:42:23] Per-company timeout: 300s
+[2026-10-23 05:42:23] Initial DB row counts: {'Company': 201, 'Job': 6127, 'CSRProject': 1589, 'CSROpportunity': 1160, 'Contact': 41, 'AuditTrail': 8389}
+[2026-10-23 05:42:23] Loaded 201 records from homepage verification results map.
+[2026-10-23 05:42:24]  1. [COMP_TOP200_017] Adani Enterprises Limited - Reason: Explicitly requested via --company-ids: Eligible (homepage confirmed ALREADY_OK/CORRECT)
+[2026-10-23 05:42:24]  2. [COMP_TOP200_169] ACC Limited - Reason: Explicitly requested via --company-ids: Eligible (homepage confirmed ALREADY_OK/CORRECT)
