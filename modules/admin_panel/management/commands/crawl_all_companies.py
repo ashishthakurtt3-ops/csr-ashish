@@ -190,6 +190,14 @@ class Command(BaseCommand):
             call_command("verify_csr_links")
             call_command("verify_job_links")
 
+        self.stdout.write("--> Building and publishing authoritative snapshot...")
+        try:
+            from modules.admin_panel.snapshot_service import build_snapshots
+            build_snapshots(triggered_by="CRAWL_ALL_COMPANIES", notes="Automated post-crawl snapshot build")
+            self.stdout.write(self.style.SUCCESS("[OK] Authoritative snapshot built and published."))
+        except Exception as exc:
+            self.stderr.write(f"Snapshot build warning: {exc}")
+
     def _import_csv(self, csv_path_str: str, only_missing: bool = False):
         p = Path(csv_path_str)
         if not p.exists():

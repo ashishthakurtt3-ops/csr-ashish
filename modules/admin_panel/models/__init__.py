@@ -8,15 +8,21 @@ from .crawler import PageRecord, AuditTrail, CompanyCrawlSummary
 from .prospect import Prospect
 from .subscription import (
     Plan, PlanEntitlement, Wallet, WalletTransaction, Payment,
-    PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter
+    PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter,
+    SavedRecord, SavedSearch, TeamMembership, CompanyRefreshRequest
 )
 from .document import Document
 from .service import ServiceCatalog
 from .coverage import CompanyCompletenessRegister
 from .source_registry import CompanySource
 from .ai_config import AIProviderConfig, AISystemSettings, AIConfigurationAuditLog
+from .snapshot import AuditRun, StatsSnapshot, JobSummarySnapshot, CompanyMetrics
 
 __all__ = [
+    'AuditRun',
+    'StatsSnapshot',
+    'JobSummarySnapshot',
+    'CompanyMetrics',
     'CompanyCompletenessRegister',
     'User',
     'VerifiableModel',
@@ -41,6 +47,10 @@ __all__ = [
     'SubscriptionEvent',
     'Invoice',
     'UsageCounter',
+    'SavedRecord',
+    'SavedSearch',
+    'TeamMembership',
+    'CompanyRefreshRequest',
     'Document',
     'ServiceCatalog',
     'CompanySource',
@@ -48,4 +58,3 @@ __all__ = [
     'AISystemSettings',
     'AIConfigurationAuditLog',
 ]
-

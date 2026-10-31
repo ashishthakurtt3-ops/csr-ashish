@@ -598,9 +598,16 @@ class UniversalJobDetailExtractor:
         """Extract education credentials and experience duration from qualification text."""
         # 1. Look for specific degree pattern
         if not result['education']:
-            deg_m = re.search(r'\b(PhD|Doctorate|MBA|B\.?Tech|M\.?Tech|B\.?E|B\.?Com|B\.?Sc|M\.?Sc|Bachelor(?:\'s)?|Master(?:\'s)?|Diploma|Graduat(?:e|ion))\b[^\n.;]*', text, re.I)
+            deg_m = re.search(r'\b(PhD|Doctorate|MBA|B\.?Tech|M\.?Tech|B\.?E|B\.?Com|B\.?Sc|M\.?Sc|Bachelor(?:\'s)?|Master(?:\'s)?|Diploma|Graduat(?:e|ion))\b([^\n.;]*)', text, re.I)
             if deg_m:
-                result['education'] = deg_m.group(0).strip()
+                matched_degree = deg_m.group(1).strip()
+                extra = deg_m.group(2).strip()
+                extra_clean = re.sub(r'^(?:with|and|\/|\+)\b.*', '', extra, flags=re.I).strip()
+                extra_clean = re.sub(r'\s+(?:with|and|\/|\+)\b.*', '', extra_clean, flags=re.I).strip()
+                if extra_clean:
+                    result['education'] = f"{matched_degree} {extra_clean}".strip()
+                else:
+                    result['education'] = matched_degree
 
         # 2. Look for experience pattern e.g. "1-3 years", "1-3 yrs", "8-10 years"
         if not result['experience']:

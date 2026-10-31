@@ -75,5 +75,7 @@ db.sqlite*
 *.sqlite
 *.sqlite3*
 *.db
+*.dump
 data/db_backup_*.json
 data/jobs_backup_*.json
+data/backups/

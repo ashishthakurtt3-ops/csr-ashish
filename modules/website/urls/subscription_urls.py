@@ -6,7 +6,9 @@ from modules.website.views.subscription_api_views import (
     subscription_invoices, subscription_usage, rotate_subscription_api_key,
     wallet_topup, wallet_balance, wallet_transactions,
     subscription_upgrade, subscription_downgrade, subscription_change_plan, subscription_toggle_auto_renew,
-    admin_run_renewals_now, admin_refund_payment
+    admin_run_renewals_now, admin_refund_payment,
+    saved_records_api, saved_searches_api, team_members_api,
+    company_refresh_api, subscription_comparison_api, user_quota_api
 )
 
 urlpatterns = [
@@ -71,4 +73,24 @@ urlpatterns = [
     path('api/admin/renewals/run/', admin_run_renewals_now, name='admin_run_renewals_slash'),
     path('api/admin/payments/<str:payment_id>/refund', admin_refund_payment, name='admin_refund_payment'),
     path('api/admin/payments/<str:payment_id>/refund/', admin_refund_payment, name='admin_refund_payment_slash'),
+
+    # Dynamic Comparison & Entitlements
+    path('api/subscription/comparison', subscription_comparison_api, name='subscription_comparison'),
+    path('api/subscription/comparison/', subscription_comparison_api, name='subscription_comparison_slash'),
+
+    # User Limits & Quotas
+    path('api/user/quotas', user_quota_api, name='user_quotas'),
+    path('api/user/quotas/', user_quota_api, name='user_quotas_slash'),
+
+    # Saved Records & Searches (User features)
+    path('api/user/saved-records', saved_records_api, name='user_saved_records'),
+    path('api/user/saved-records/', saved_records_api, name='user_saved_records_slash'),
+    path('api/user/saved-searches', saved_searches_api, name='user_saved_searches'),
+    path('api/user/saved-searches/', saved_searches_api, name='user_saved_searches_slash'),
+
+    # Ultra features: Team & Refresh
+    path('api/user/team', team_members_api, name='user_team_members'),
+    path('api/user/team/', team_members_api, name='user_team_members_slash'),
+    path('api/user/company-refresh', company_refresh_api, name='user_company_refresh'),
+    path('api/user/company-refresh/', company_refresh_api, name='user_company_refresh_slash'),
 ]

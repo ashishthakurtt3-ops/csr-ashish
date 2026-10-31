@@ -10,6 +10,17 @@ Tests:
 5. Scoping of related jobs strictly to the same company.
 """
 
+import os
+import sys
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+import django
+django.setup()
+
 import json
 from django.test import TestCase, Client
 from django.utils import timezone
@@ -22,8 +33,12 @@ from modules.website.views.job_api_views import serialize_job_item
 class JobDetailIntegrityTestCase(TestCase):
     def setUp(self):
         self.client = Client()
+        Job.objects.filter(job_row_id__in=[99996570, 99996571, 99998001]).delete()
+        Job.objects.filter(job_id__in=["HERO-6570", "HERO-6571", "MARUTI-8001"]).delete()
+        Company.objects.filter(company_id__in=["HEROMOTO_TEST", "MARUTI_TEST"]).delete()
+
         self.company = Company.objects.create(
-            company_id="HEROMOTO",
+            company_id="HEROMOTO_TEST",
             company_name="Hero MotoCorp Limited",
             nse_symbol="HEROMOTOCO",
             website_url="https://www.heromotocorp.com",
@@ -33,7 +48,7 @@ class JobDetailIntegrityTestCase(TestCase):
             crawl_status="CRAWLED",
         )
         self.other_company = Company.objects.create(
-            company_id="MARUTI",
+            company_id="MARUTI_TEST",
             company_name="Maruti Suzuki India Limited",
             nse_symbol="MARUTI",
             website_url="https://www.marutisuzuki.com",
@@ -44,7 +59,7 @@ class JobDetailIntegrityTestCase(TestCase):
         )
 
         self.rich_job = Job.objects.create(
-            job_row_id=6570,
+            job_row_id=99996570,
             job_id="HERO-6570",
             company=self.company,
             job_title="TERRITORY MANAGER-SALES",
@@ -82,7 +97,7 @@ class JobDetailIntegrityTestCase(TestCase):
         self.rich_job.save()
 
         self.unfetched_job = Job.objects.create(
-            job_row_id=6571,
+            job_row_id=99996571,
             job_id="HERO-6571",
             company=self.company,
             job_title="TERRITORY SALES EXECUTIVE",
@@ -103,7 +118,7 @@ class JobDetailIntegrityTestCase(TestCase):
         self.unfetched_job.save()
 
         self.other_job = Job.objects.create(
-            job_row_id=8001,
+            job_row_id=99998001,
             job_id="MARUTI-8001",
             company=self.other_company,
             job_title="AREA SALES MANAGER",
@@ -117,9 +132,14 @@ class JobDetailIntegrityTestCase(TestCase):
         self.other_job.verification_status = "PUBLISHED"
         self.other_job.save()
 
+    def tearDown(self):
+        Job.objects.filter(job_row_id__in=[99996570, 99996571, 99998001]).delete()
+        Job.objects.filter(job_id__in=["HERO-6570", "HERO-6571", "MARUTI-8001"]).delete()
+        Company.objects.filter(company_id__in=["HEROMOTO_TEST", "MARUTI_TEST"]).delete()
+
     def test_database_fields_integrity(self):
         """Verify that all rich fields are accurately stored in the Job model."""
-        job = Job.objects.get(job_row_id=6570)
+        job = Job.objects.get(job_row_id=self.rich_job.job_row_id)
         self.assertEqual(job.pay_band, "E4 to M2")
         self.assertEqual(job.function, "India BU")
         self.assertEqual(job.location, "Raipur, CT, IN, 492001")
@@ -239,3 +259,101 @@ class JobDetailIntegrityTestCase(TestCase):
         self.assertIn("Sales planning", res["technical_skills"])
         self.assertIn("Negotiation", res["behavioural_skills"])
         self.assertIn("Hero MotoCorp is India's leading", res["employer_info"])
+
+    def test_job_refresh_async_non_blocking(self):
+        """Verify refresh=1 returns immediately with refresh_status='PENDING' without blocking."""
+        response = self.client.get(f"/api/jobs/{self.rich_job.job_row_id}/?refresh=1")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        item = data.get("job") or data
+        self.assertIn(item.get("refresh_status"), ["PENDING", "COMPLETED", "RATE_LIMITED"])
+
+    def test_job_refresh_status_endpoint(self):
+        """Verify /jobs/<id>/refresh-status returns valid JSON structure."""
+        response = self.client.get(f"/jobs/{self.rich_job.job_row_id}/refresh-status")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("status", data)
+        self.assertIn("job_row_id", data)
+
+    def test_list_payload_excludes_large_fields(self):
+        """Verify serialize_job_item with is_detail=False omits heavy fields and adds summary."""
+        list_data = serialize_job_item(self.rich_job, is_detail=False)
+        detail_data = serialize_job_item(self.rich_job, is_detail=True)
+        self.assertIn("summary", list_data)
+        self.assertNotIn("description_raw", list_data)
+        self.assertNotIn("responsibilities_list", list_data)
+        self.assertIn("role_purpose", detail_data)
+
+    def test_job_pagination_envelope_and_keys(self):
+        """Verify pagination envelope contract is preserved."""
+        response = self.client.get("/jobs?page=1&page_size=12")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        for key in ['items', 'total', 'page', 'page_size', 'total_pages', 'has_next', 'has_prev']:
+            self.assertIn(key, data, f"Missing required envelope key: {key}")
+        self.assertEqual(data['page'], 1)
+        self.assertEqual(data['page_size'], 12)
+
+    def test_static_assets_minified_and_self_hosted_fonts(self):
+        """Verify index.html references minified assets and contains no external font links."""
+        from django.conf import settings
+        from pathlib import Path
+        index_path = Path(settings.BASE_DIR) / 'templates' / 'website' / 'index.html'
+        self.assertTrue(index_path.exists())
+        with open(index_path, 'r', encoding='utf-8') as f:
+            html = f.read()
+        self.assertTrue('app.min.js' in html or ('app.js' in html and 'STATIC_VERSION' in html), "index.html must reference versioned app asset")
+        self.assertTrue('style.min.css' in html or 'style.css' in html, "index.html must reference style asset")
+        self.assertNotIn('app.js?v=3.6.0', html, "index.html must not use old hardcoded app.js?v=3.6.0")
+        self.assertNotIn('fonts.googleapis.com', html, "index.html must not link to fonts.googleapis.com")
+        self.assertNotIn('fonts.gstatic.com', html, "index.html must not link to fonts.gstatic.com")
+        self.assertIn("rel=\"preload\"", html, "index.html must preload core woff2 fonts")
+
+    def test_warm_cache_runs_successfully(self):
+        """Verify warm_cache management command executes without errors."""
+        from django.core.management import call_command
+        import io
+        out = io.StringIO()
+        call_command('warm_cache', stdout=out)
+        self.assertIn("All core caches successfully warmed", out.getvalue())
+
+    def test_home_numbers_equal_stats_numbers(self):
+        """Verify home page context numbers equal /stats numbers and /jobs list total."""
+        res_home = self.client.get('/')
+        self.assertEqual(res_home.status_code, 200)
+        res_stats = self.client.get('/stats')
+        self.assertEqual(res_stats.status_code, 200)
+        s_data = res_stats.json()
+        if res_home.context:
+            self.assertEqual(res_home.context.get('jobs_tracked'), s_data.get('jobs_tracked'))
+            self.assertEqual(res_home.context.get('total_companies'), s_data.get('total_companies'))
+            self.assertEqual(res_home.context.get('csr_projects'), s_data.get('csr_projects'))
+
+    def test_static_files_served_with_hashed_name_or_version(self):
+        """Verify static files storage has hashed names or versions in WhiteNoise manifest."""
+        from django.conf import settings
+        from pathlib import Path
+        manifest_path = Path(settings.BASE_DIR) / 'staticfiles' / 'staticfiles.json'
+        self.assertTrue(manifest_path.exists(), "WhiteNoise manifest staticfiles.json must exist")
+        with open(manifest_path, 'r', encoding='utf-8') as f:
+            manifest = json.load(f)
+        paths = manifest.get('paths', {})
+        self.assertTrue('js/app.min.js' in paths or 'css/style.min.css' in paths)
+
+
+if __name__ == '__main__':
+    import os
+    import sys
+    import django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    django.setup()
+    from django.test.utils import setup_test_environment
+    setup_test_environment()
+    import unittest
+    suite = unittest.TestLoader().loadTestsFromTestCase(JobDetailIntegrityTestCase)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    sys.exit(0 if result.wasSuccessful() else 1)
+
+
+

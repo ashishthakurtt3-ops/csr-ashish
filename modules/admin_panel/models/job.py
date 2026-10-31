@@ -138,6 +138,10 @@ class Job(VerifiableModel):
     mismatch_diff = models.JSONField(default=dict, blank=True)
     last_reconciled_at = models.DateTimeField(blank=True, null=True)
 
+    # Snapshot & Performance: Precomputed defect flag & rules version
+    is_defective = models.BooleanField(default=False, db_index=True)
+    defect_rules_version = models.IntegerField(default=1, db_index=True)
+
     class Meta:
         ordering = ['-last_checked_date', '-job_row_id']
         constraints = [
@@ -145,6 +149,11 @@ class Job(VerifiableModel):
                                     name='uniq_job_per_ats_tenant'),
             models.UniqueConstraint(fields=['company', 'canonical_url_hash'],
                                     name='uniq_job_company_canonical_hash'),
+        ]
+        indexes = [
+            models.Index(fields=['status', 'is_defective', 'verification_status'], name='idx_job_stat_def_ver'),
+            models.Index(fields=['company', 'status', 'is_defective'], name='idx_job_cmp_stat_def'),
+            models.Index(fields=['work_mode', 'status', 'is_defective'], name='idx_job_wm_stat_def'),
         ]
 
     @property
@@ -187,7 +196,11 @@ class Job(VerifiableModel):
             import hashlib
             canon = canonicalize_job_url(raw_url)
             self.canonical_url = canon
-            self.canonical_url_hash = hashlib.sha256(canon.encode('utf-8')).hexdigest() if canon else None
+            # Only DIRECT unique links should enforce unique canonical_url_hash per company
+            if getattr(self, 'link_quality', None) == 'DIRECT':
+                self.canonical_url_hash = hashlib.sha256(canon.encode('utf-8')).hexdigest() if canon else None
+            else:
+                self.canonical_url_hash = None
 
         # Synchronize salary fields
         if self.salary and not self.salary_text:
@@ -199,6 +212,14 @@ class Job(VerifiableModel):
             self.currency = self.salary_currency
         elif self.currency and not self.salary_currency:
             self.salary_currency = self.currency
+
+        # Automatically evaluate and store defect status
+        try:
+            from modules.admin_panel.verification import is_defective_job_record
+            self.is_defective = is_defective_job_record(self.job_title, self.application_url, self.source_url)
+            self.defect_rules_version = 1
+        except Exception:
+            pass
 
         super().save(*args, **kwargs)
 

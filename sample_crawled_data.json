@@ -1,0 +1,403 @@
+{
+  "good": [
+    {
+      "company": {
+        "company_id": "COMP_TOP200_042",
+        "company_name": "Samvardhana Motherson International Limited",
+        "official_domain": null,
+        "website_url": "https://www.motherson.com/",
+        "careers_url": "https://careers.motherson.com/en",
+        "csr_portal_url": "https://www.motherson.com/company/sustainability-and-global-citizenship",
+        "ats_platform": null,
+        "extraction_strategy": "embedded_state_json",
+        "crawl_status": "SUSPECT_DROP",
+        "jobs_access": "PUBLIC",
+        "csr_access": "PUBLIC",
+        "data_access_note": ""
+      },
+      "summary": {
+        "summary_id": 125,
+        "crawl_status": "CRAWLED",
+        "extraction_strategy": "embedded_state_json",
+        "jobs_discovered": 4,
+        "jobs_published": 4,
+        "csr_projects_discovered": 0,
+        "error_log": null
+      },
+      "sample_jobs": [
+        {
+          "job_row_id": 7334,
+          "job_title": "Sr. Manager- Regulatory Affairs",
+          "location": "Bengaluru",
+          "department": "Corporate Openings",
+          "canonical_url": "https://careers.motherson.com/en/job/sr-manager-regulatory-affairs-604051",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 7333,
+          "job_title": "Business Development Manager (Electronics)",
+          "location": "Bengaluru",
+          "department": "Corporate Openings",
+          "canonical_url": "https://careers.motherson.com/en/job/business-development-manager-electronics-604058",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 7332,
+          "job_title": "Social Media Executive",
+          "location": "Gurugram",
+          "department": "Corporate Openings",
+          "canonical_url": "https://careers.motherson.com/en/job/social-media-executive-604701",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        }
+      ],
+      "sample_csr": [
+        {
+          "csr_id": 2541,
+          "project_name": "Motherson is proud to support the principles of the United Nations Global Compact across h",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Mumbai, Maharashtra",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://www.motherson.com/company/sustainability-and-global-citizenship#:~:text=Motherson%20is%20proud%20to%20support%20the%20principles"
+        },
+        {
+          "csr_id": 2540,
+          "project_name": "This commitment goes beyond compliance",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Mumbai, Maharashtra",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://www.motherson.com/company/sustainability-and-global-citizenship#:~:text=This%20commitment%20goes%20beyond%20compliance%3B%20it%27s%20a"
+        },
+        {
+          "csr_id": 2539,
+          "project_name": "At Motherson, sustainability is at the heart of everything we do",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Mumbai, Maharashtra",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://www.motherson.com/company/sustainability-and-global-citizenship#:~:text=At%20Motherson%2C%20sustainability%20is%20at%20the%20heart"
+        }
+      ]
+    },
+    {
+      "company": {
+        "company_id": "COMP_0",
+        "company_name": "Razorpay",
+        "official_domain": null,
+        "website_url": "https://razorpay.com/",
+        "careers_url": "https://razorpay.com/careers/",
+        "csr_portal_url": "https://razorpay.com/about/",
+        "ats_platform": "GREENHOUSE",
+        "extraction_strategy": "anchor_cards",
+        "crawl_status": "SUSPECT_DROP",
+        "jobs_access": "PUBLIC",
+        "csr_access": "PUBLIC",
+        "data_access_note": ""
+      },
+      "summary": {
+        "summary_id": 123,
+        "crawl_status": "CRAWLED",
+        "extraction_strategy": "anchor_cards",
+        "jobs_discovered": 1,
+        "jobs_published": 1,
+        "csr_projects_discovered": 0,
+        "error_log": null
+      },
+      "sample_jobs": [
+        {
+          "job_row_id": 6816,
+          "job_title": "Territory Manager, Bank Retail & Direct Enterprise Sales",
+          "location": "Kolkata",
+          "department": "Corporate",
+          "canonical_url": "https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4736982005",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 6815,
+          "job_title": "Technical Account Manager",
+          "location": "Bengaluru",
+          "department": "Corporate",
+          "canonical_url": "https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4721861005",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 6814,
+          "job_title": "Solutions Consultant",
+          "location": "Malaysia",
+          "department": "Corporate",
+          "canonical_url": "https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4721391005",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        }
+      ],
+      "sample_csr": [
+        {
+          "csr_id": 2367,
+          "project_name": "For a long time, we have felt that enabling frictionless transactions is a major problem a",
+          "category": "Education & Skill Development",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Pan-India",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://razorpay.com/about/#:~:text=For%20a%20long%20time%2C%20we%20have%20felt"
+        },
+        {
+          "csr_id": 1898,
+          "project_name": "For a long time, we have felt that enabling frictionless transactions is a major problem a",
+          "category": "Education & Skill Development",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Pan-India",
+          "verification_status": "PUBLISHED",
+          "source_url": "https://razorpay.com/about/#:~:text=For%20a%20long%20time%2C%20we%20have%20felt"
+        }
+      ]
+    },
+    {
+      "company": {
+        "company_id": "COMP_TOP200_103",
+        "company_name": "Sun Pharmaceutical Industries Limited",
+        "official_domain": null,
+        "website_url": "https://www.sunpharma.com/",
+        "careers_url": "https://sunpharma.com/careers/",
+        "csr_portal_url": "https://sunpharma.com/csr/",
+        "ats_platform": null,
+        "extraction_strategy": "anchor_cards",
+        "crawl_status": "SUSPECT_DROP",
+        "jobs_access": "PUBLIC",
+        "csr_access": "PUBLIC",
+        "data_access_note": ""
+      },
+      "summary": {
+        "summary_id": 129,
+        "crawl_status": "CRAWLED",
+        "extraction_strategy": "anchor_cards",
+        "jobs_discovered": 4,
+        "jobs_published": 4,
+        "csr_projects_discovered": 0,
+        "error_log": null
+      },
+      "sample_jobs": [
+        {
+          "job_row_id": 8146,
+          "job_title": "SME- Packing",
+          "location": "Mumbai",
+          "department": "Corporate Openings",
+          "canonical_url": "https://careers.sunpharma.com/job/Mumbai-SME-Packing/51733144",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 8145,
+          "job_title": "Executive - Procurement",
+          "location": "Mumbai",
+          "department": "Corporate Openings",
+          "canonical_url": "https://careers.sunpharma.com/job/Mumbai-Executive-Procurement/57099844",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 8144,
+          "job_title": "Senior Manager- Microbiology SME",
+          "location": "India",
+          "department": "Corporate Openings",
+          "canonical_url": "https://careers.sunpharma.com/job/Baroda-Senior-Manager-Microbiology-SME/56961844",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        }
+      ],
+      "sample_csr": [
+        {
+          "csr_id": 2940,
+          "project_name": "We have established an ISO14001",
+          "category": "Education & Skill Development",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Vadodara, Gujarat",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://sunpharma.com/csr/#:~:text=We%20have%20established%20an%20ISO14001%3A2015%20compliant%20Environmental"
+        },
+        {
+          "csr_id": 2939,
+          "project_name": "As a part of this commitment, our EHS Policy provides for the creation of a safe and healt",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Vadodara, Gujarat",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://sunpharma.com/csr/#:~:text=As%20a%20part%20of%20this%20commitment%2C%20our"
+        },
+        {
+          "csr_id": 2938,
+          "project_name": "At Sun Pharma, we remain fully committed to achieving excellence through our Environmental",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Vadodara, Gujarat",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://sunpharma.com/csr/#:~:text=At%20Sun%20Pharma%2C%20we%20remain%20fully%20committed"
+        }
+      ]
+    }
+  ],
+  "bad": [
+    {
+      "company": {
+        "company_id": "COMP_TOP200_010",
+        "company_name": "Infosys Limited",
+        "official_domain": null,
+        "website_url": "https://www.infosys.com/",
+        "careers_url": "https://www.infosys.com/",
+        "csr_portal_url": "https://www.infosys.com/",
+        "ats_platform": null,
+        "extraction_strategy": "anchor_cards",
+        "crawl_status": "BLOCKED",
+        "jobs_access": "PUBLIC",
+        "csr_access": "PUBLIC",
+        "data_access_note": ""
+      },
+      "summary": {
+        "summary_id": 109,
+        "crawl_status": "CRAWLED",
+        "extraction_strategy": "anchor_cards",
+        "jobs_discovered": 141,
+        "jobs_published": 141,
+        "csr_projects_discovered": 0,
+        "error_log": null
+      },
+      "sample_jobs": [],
+      "sample_csr": [
+        {
+          "csr_id": 2394,
+          "project_name": "In a rapidly changing business environment, the need for stable and reliable core operatio",
+          "category": "Education & Skill Development",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Bengaluru, Karnataka",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://www.infosys.com/#:~:text=In%20a%20rapidly%20changing%20business%20environment%2C%20the"
+        },
+        {
+          "csr_id": 2393,
+          "project_name": "Agentic commerce",
+          "category": "Education & Skill Development",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Bengaluru, Karnataka",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://www.infosys.com/#:~:text=Agentic%20commerce%3A%20How%20to%20build%20agent-aware%20digital"
+        },
+        {
+          "csr_id": 1687,
+          "project_name": "In a rapidly changing business environment, the need for stable and reliable core operatio",
+          "category": "Education & Skill Development",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Bengaluru, Karnataka",
+          "verification_status": "PUBLISHED",
+          "source_url": "https://www.infosys.com/#:~:text=In%20a%20rapidly%20changing%20business%20environment%2C%20the"
+        }
+      ]
+    },
+    {
+      "company": {
+        "company_id": "COMP_TOP200_158",
+        "company_name": "3M India Limited",
+        "official_domain": null,
+        "website_url": "https://www.3mindia.com/",
+        "careers_url": "https://www.3mindia.com/",
+        "csr_portal_url": "https://www.3mindia.com/",
+        "ats_platform": null,
+        "extraction_strategy": "none",
+        "crawl_status": "FAILED",
+        "jobs_access": "NOT_PUBLISHED",
+        "csr_access": "NOT_PUBLISHED",
+        "data_access_note": ""
+      },
+      "summary": {
+        "summary_id": 58,
+        "crawl_status": "FAILED",
+        "extraction_strategy": null,
+        "jobs_discovered": 0,
+        "jobs_published": 0,
+        "csr_projects_discovered": 0,
+        "error_log": null
+      },
+      "sample_jobs": [],
+      "sample_csr": []
+    },
+    {
+      "company": {
+        "company_id": "COMP_TOP200_018",
+        "company_name": "NTPC Limited",
+        "official_domain": null,
+        "website_url": "https://validate.perfdrive.com/?ssa=b5e2a8b4-897e-4f44-8875-87279c0a98e7&ssb=03330299198&ssc=https://www.ntpc.co.in/&ssi=5f2ade5c-cs5n-403f-b7e9-645128908f7b&ssk=botmanager_support@radware.com&ssm=65327321743373975107197202222145&ssn=f97456eaa0f48928ec92cc089a672f745ae1322608e9-e39d-49bf-bceb2b&sso=9f62d740-fe4bbcc74eef3afc428d1b928e6d1c26301aa543adc473f7&ssp=17349938631791439093179145477554895&ssq=47944862606462634216926064248298545316759&ssr=NDkuMzYuMTAzLjI0Ng==&sst=Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64)+AppleWebKit/537.36&ssu=&ssv=&ssw=&ssx=eyJ1em14IjoiN2ZjMDAwMTRjNzEzYTItMGQxZC00MTdlLThiZjMtYTNlYjYyNjVmYTc1MS0xNzkxNDI2MDY0NTQxMC0wMDg5MGRhZDNjYmE2ZGJkNTg4MTAiLCJfX3V6bWYiOiI3ZjkwMDAzMjI2MDhlOS1lMzlkLTQ5YmYtYjc0MC1mZTRiYmNjNzRlZWYxLTE3OTE0MjYwNjQ1NDEwLTAwNTM5NTM4NTJmODQwZTU4MzAxMCIsInJkIjoibnRwYy5jby5pbiJ9",
+        "careers_url": "https://ntpc.co.in/jobs-ntpc",
+        "csr_portal_url": "https://ntpc.co.in/",
+        "ats_platform": null,
+        "extraction_strategy": "none",
+        "crawl_status": "SUSPECT_DROP",
+        "jobs_access": "NOT_PUBLISHED",
+        "csr_access": "PUBLIC",
+        "data_access_note": ""
+      },
+      "summary": null,
+      "sample_jobs": [
+        {
+          "job_row_id": 6933,
+          "job_title": "Post of Director (Finance) in NTPC limited",
+          "location": "India",
+          "department": "Corporate Openings",
+          "canonical_url": "https://www.ntpc.co.in/sites/default/files/downloads/NTPC-Requirement-Ad-8x5-15-02-2019.pdf",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 6931,
+          "job_title": "Post of Director (Fuel)",
+          "location": "India",
+          "department": "Corporate Openings",
+          "canonical_url": "https://www.ntpc.co.in/sites/default/files/downloads/Artwork.jpg",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        },
+        {
+          "job_row_id": 6929,
+          "job_title": "Click here to view",
+          "location": "India",
+          "department": "Corporate Openings",
+          "canonical_url": "https://ntpc.co.in/sites/default/files/inline-files/PESB.jpeg",
+          "verification_status": "SOURCE_CONFIRMED",
+          "status": "ACTIVE"
+        }
+      ],
+      "sample_csr": [
+        {
+          "csr_id": 2428,
+          "project_name": "NTPC is India\u2019s largest power conglomerate with roots planted way back in 1975 to accelera",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Delhi / New Delhi, Delhi",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://ntpc.co.in/ntpc-overview#:~:text=NTPC%20is%20India%E2%80%99s%20largest%20power%20conglomerate%20with"
+        },
+        {
+          "csr_id": 2427,
+          "project_name": "NTPC has pioneered green hydrogen projects, reducing carbon footprint, and promoting susta",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Delhi / New Delhi, Delhi",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://ntpc.co.in/sustainability#:~:text=NTPC%20has%20pioneered%20green%20hydrogen%20projects%2C%20reducing"
+        },
+        {
+          "csr_id": 2426,
+          "project_name": "Staying true to our Biodiversity Policy, we're protecting natural habitats, conserving end",
+          "category": "Environment & Sustainability",
+          "budget": "Verified on Official Portal",
+          "geographic_location": "Delhi / New Delhi, Delhi",
+          "verification_status": "SOURCE_CONFIRMED",
+          "source_url": "https://ntpc.co.in/sustainability#:~:text=Staying%20true%20to%20our%20Biodiversity%20Policy%2C%20we%27re"
+        }
+      ]
+    }
+  ]
+}

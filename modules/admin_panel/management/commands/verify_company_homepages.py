@@ -332,3 +332,7 @@ class Command(BaseCommand):
                     f"  Note:       {item['evidence']}"
                 )
         self.stdout.write("\n" + "=" * 80 + "\n")
+
+
+
+

@@ -16,7 +16,46 @@ from modules.crawler_engine.normalizers import (
     is_generic_or_non_csr_contact_email,
 )
 
+from django.core.cache import cache
+
 VERIFIED_CONTACT_STATUSES = set(PUBLIC_VERIFICATION_STATUSES)
+
+
+def companies_lookup_api(request):
+    """
+    Lightweight endpoint returning only id, name, nse_symbol (plus access).
+    No prefetch, no annotations. Cached for 15 minutes (900s).
+    Used for dropdowns, filter selectors, and modal lookups.
+    """
+    cache_key = 'companies_lookup_lightweight'
+    data = cache.get(cache_key)
+    if data is None:
+        qs = Company.objects.values(
+            'company_id', 'company_name', 'nse_symbol',
+            'jobs_access', 'csr_access', 'contacts_access'
+        ).order_by('company_name')
+
+        items = [
+            {
+                'id': c['company_id'],
+                'company_id': c['company_id'],
+                'name': c['company_name'],
+                'company_name': c['company_name'],
+                'nse_symbol': c['nse_symbol'] or '',
+                'access': c['jobs_access'] or 'OPEN',
+                'jobs_access': c['jobs_access'] or 'OPEN',
+                'csr_access': c['csr_access'] or 'OPEN',
+                'contacts_access': c['contacts_access'] or 'OPEN',
+            }
+            for c in qs
+        ]
+        data = {
+            'total': len(items),
+            'items': items,
+            'companies': items,
+        }
+        cache.set(cache_key, data, 900)
+    return JsonResponse(data)
 
 
 def _valid_http_url(u):
@@ -87,7 +126,7 @@ def _normalize_company_dict(d):
     return d
 
 
-def serialize_company_list_item(c: Company):
+def serialize_company_list_item(c: Company, is_detail: bool = False):
     if hasattr(c, 'active_verified_jobs_count'):
         verified_jobs_count = c.active_verified_jobs_count
     else:
@@ -106,31 +145,32 @@ def serialize_company_list_item(c: Company):
         open_opps = public_records(c.open_opportunities.all()).filter(status='OPEN').count()
 
     primary_project = None
-    if published_csr_count > 0:
-        # Avoid database roundtrip by using prefetched objects if available
-        if hasattr(c, '_prefetched_objects_cache') and 'csr_projects' in c._prefetched_objects_cache:
-            proj_candidates = [p for p in c.csr_projects.all() if (p.verification_status or '') in PUBLIC_VERIFICATION_STATUSES]
-            if proj_candidates:
-                primary_project = max(proj_candidates, key=lambda p: (getattr(p, 'confidence', 0.0) or 0.0))
-        else:
-            primary_project = public_records(c.csr_projects.all()).order_by('-confidence').first()
-
     primary_job = None
-    if verified_jobs_count > 0:
-        if hasattr(c, '_prefetched_objects_cache') and 'jobs' in c._prefetched_objects_cache:
-            job_candidates = [j for j in c.jobs.all() if (j.verification_status or '') in PUBLIC_VERIFICATION_STATUSES or j.status == 'ACTIVE']
-            if job_candidates:
-                primary_job = max(job_candidates, key=lambda j: (j.last_checked_date or ''))
-        else:
-            primary_job = public_jobs(c.jobs.all()).order_by('-last_checked_date').first()
-
     primary_ngo = None
-    if published_csr_count > 0:
-        if hasattr(c, '_prefetched_objects_cache') and 'ngo_collaborations' in c._prefetched_objects_cache:
-            ngo_candidates = [n for n in c.ngo_collaborations.all() if (n.verification_status or '') in PUBLIC_VERIFICATION_STATUSES]
-            primary_ngo = ngo_candidates[0] if ngo_candidates else None
-        else:
-            primary_ngo = public_records(c.ngo_collaborations.all()).first()
+
+    if is_detail:
+        if published_csr_count > 0:
+            if hasattr(c, '_prefetched_objects_cache') and 'csr_projects' in c._prefetched_objects_cache:
+                proj_candidates = [p for p in c.csr_projects.all() if (p.verification_status or '') in PUBLIC_VERIFICATION_STATUSES]
+                if proj_candidates:
+                    primary_project = max(proj_candidates, key=lambda p: (getattr(p, 'confidence', 0.0) or 0.0))
+            else:
+                primary_project = public_records(c.csr_projects.all()).order_by('-confidence').first()
+
+        if verified_jobs_count > 0:
+            if hasattr(c, '_prefetched_objects_cache') and 'jobs' in c._prefetched_objects_cache:
+                job_candidates = [j for j in c.jobs.all() if (j.verification_status or '') in PUBLIC_VERIFICATION_STATUSES or j.status == 'ACTIVE']
+                if job_candidates:
+                    primary_job = max(job_candidates, key=lambda j: (j.last_checked_date or ''))
+            else:
+                primary_job = public_jobs(c.jobs.all()).order_by('-last_checked_date').first()
+
+        if published_csr_count > 0:
+            if hasattr(c, '_prefetched_objects_cache') and 'ngo_collaborations' in c._prefetched_objects_cache:
+                ngo_candidates = [n for n in c.ngo_collaborations.all() if (n.verification_status or '') in PUBLIC_VERIFICATION_STATUSES]
+                primary_ngo = ngo_candidates[0] if ngo_candidates else None
+            else:
+                primary_ngo = public_records(c.ngo_collaborations.all()).first()
 
     score_obj = getattr(c, 'score_record', None)
 
@@ -299,6 +339,18 @@ def serialize_contact(ct: Contact):
 
 
 def _annotate_company_metrics(qs):
+    from modules.admin_panel.snapshot_service import get_current_stats_snapshot
+    from django.db.models import F
+    _, _, current_run_id, _ = get_current_stats_snapshot()
+    if current_run_id:
+        return qs.filter(
+            audit_metrics__audit_run_id=current_run_id
+        ).annotate(
+            active_verified_jobs_count=F('audit_metrics__active_jobs_count'),
+            published_csr_count_annotated=F('audit_metrics__csr_projects_count'),
+            open_opps_count_annotated=F('audit_metrics__open_opps_count')
+        ).order_by('-audit_metrics__active_jobs_count', 'company_name')
+
     jobs_subquery = Subquery(
         Job.objects.filter(
             company_id=OuterRef('company_id')
@@ -335,7 +387,7 @@ def _annotate_company_metrics(qs):
         active_verified_jobs_count=Coalesce(jobs_subquery, 0),
         published_csr_count_annotated=Coalesce(csr_subquery, 0),
         open_opps_count_annotated=Coalesce(opps_subquery, 0)
-    ).order_by('-active_verified_jobs_count', '-score_record__score', 'company_name')
+    ).order_by('-active_verified_jobs_count', 'company_name')
 
 
 def companies_list_api(request):
@@ -349,9 +401,7 @@ def companies_list_api(request):
     page_size = request.GET.get('page_size', 12)
     limit = int(request.GET.get('limit', 5000))
 
-    qs = Company.objects.select_related('score_record').prefetch_related(
-        'csr_projects', 'jobs', 'ngo_collaborations', 'open_opportunities'
-    )
+    qs = Company.objects.select_related('score_record')
 
     if q:
         qs = qs.filter(
@@ -377,12 +427,6 @@ def companies_list_api(request):
         )
     if status and status != 'all':
         qs = qs.filter(crawl_status=status)
-    if access == 'LOGIN_REQUIRED':
-        qs = qs.filter(
-            Q(jobs_access='LOGIN_REQUIRED') |
-            Q(csr_access='LOGIN_REQUIRED') |
-            Q(contacts_access='LOGIN_REQUIRED')
-        )
     if opp_only:
         qs = qs.filter(
             open_opportunities__status='OPEN',
@@ -391,13 +435,30 @@ def companies_list_api(request):
 
     qs = _annotate_company_metrics(qs)
 
+    has_filter = bool(q or (sector and sector != 'all') or (state and state != 'all') or (status and status != 'all') or access or opp_only)
+    cache_key = None
+    if not has_filter and str(page) in ('1', 'None', '') and str(page_size) in ('12', '24'):
+        cache_key = f"companies_list_p{page}_ps{page_size}"
+        cached_res = cache.get(cache_key)
+        if cached_res is not None:
+            return JsonResponse(cached_res, safe=False)
+
+    total_count = None
+    if not has_filter:
+        from modules.admin_panel.snapshot_service import get_current_stats_snapshot
+        stats_data, _, _, _ = get_current_stats_snapshot()
+        total_count = stats_data.get('total_companies')
+
     data = paginate_queryset(
         queryset=qs,
         serialize_func=serialize_company_list_item,
         page=page,
         page_size=page_size,
-        fallback_limit=limit
+        fallback_limit=limit,
+        total_count=total_count
     )
+    if cache_key:
+        cache.set(cache_key, data, 60)
     return JsonResponse(data, safe=False)
 
 
@@ -447,12 +508,17 @@ def company_dossier_api(request, company_id):
     Provides standardized data across all 10 universal sections with strict source verification,
     including all CSR webpage/PDF links and login-required indicators.
     """
+    cache_key = f"company_dossier_data_{company_id}"
+    cached_payload = cache.get(cache_key)
+    if cached_payload is not None:
+        return JsonResponse(cached_payload)
+
     from modules.website.views.job_api_views import serialize_job_item, apply_job_safety_filters
     from modules.website.views.opportunity_api_views import (
         serialize_project_item, serialize_opportunity_item, extract_reporting_period
     )
     try:
-        c = Company.objects.get(company_id=company_id)
+        c = Company.objects.select_related('completeness_register', 'score_record', 'prospect_entry').get(company_id=company_id)
     except Company.DoesNotExist:
         return JsonResponse({'detail': 'Company not found'}, status=404)
 
@@ -746,7 +812,7 @@ def company_dossier_api(request, company_id):
         'updated_at': prospect_obj.updated_at,
     } if prospect_obj else None
 
-    return JsonResponse({
+    dossier_response = {
         'company': comp_dict,
         'opportunity_score': score_dict,
         'intelligence_summary': intelligence_summary,
@@ -791,7 +857,9 @@ def company_dossier_api(request, company_id):
         'opportunities': opps,
         'closed_opportunities': closed_opps,
         'prospect_info': prospect_dict
-    })
+    }
+    cache.set(cache_key, dossier_response, 60)
+    return JsonResponse(dossier_response)
 
 
 def company_csr_api(request, company_id):
@@ -857,9 +925,7 @@ def recommendations_api(request):
     cause = request.GET.get('cause', '').strip().lower()
     access = request.GET.get('access', '').strip().upper()
 
-    qs = Company.objects.select_related('score_record').prefetch_related(
-        'csr_projects', 'jobs', 'ngo_collaborations', 'open_opportunities'
-    )
+    qs = Company.objects.select_related('score_record')
     if min_score > 0:
         qs = qs.filter(score_record__score__gte=min_score)
     if q:

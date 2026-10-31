@@ -4,9 +4,11 @@ import re
 import urllib.parse
 from typing import Optional
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.core.cache import cache
 from modules.admin_panel.models import CSRProject, CSROpportunity
 from modules.website.utils.pagination import paginate_queryset
+from modules.website.utils.entitlement_service import EntitlementService, EntitlementError
 
 from modules.admin_panel.verification import (
     PUBLIC_VERIFICATION_STATUSES, public_records, NOT_AVAILABLE_TEXT, LOGIN_REQUIRED_TEXT, LINK_OK,
@@ -184,7 +186,7 @@ def get_verbatim_csr_budget_display(p: CSRProject) -> str:
     return "Not disclosed"
 
 
-def serialize_project_item(p: CSRProject):
+def serialize_project_item(p: CSRProject, is_detail: bool = False):
     c = p.company
     from modules.admin_panel.verification import format_relative_time
     raw_category = clean_text(getattr(p, 'raw_category', None) or p.category)
@@ -224,7 +226,9 @@ def serialize_project_item(p: CSRProject):
         (c.verification_status not in ('VERIFIED', 'SOURCE_CONFIRMED')))
     )
 
-    return {
+    short_summary = (desc[:250] + '...') if (desc and len(desc) > 250) else desc
+
+    item = {
         'csr_id': p.csr_id,
         'company_id': p.company_id,
         'project_name': cleaned_title,
@@ -236,7 +240,7 @@ def serialize_project_item(p: CSRProject):
         'schedule_vii_classification': sch_vii,
         'implementing_partner': partner,
         'reporting_period': fy_period,
-        'description': desc,
+        'summary': short_summary,
         'geographic_location': clean_text(getattr(p, 'raw_location', None) or p.geographic_location),
         'raw_location': clean_text(getattr(p, 'raw_location', None) or p.geographic_location),
         'state': clean_text(p.state),
@@ -258,9 +262,6 @@ def serialize_project_item(p: CSRProject):
         'fingerprint': p.fingerprint,
         'verification_status': p.verification_status,
         'verification_reason': clean_text(p.verification_reason),
-        'evidence_text': p.evidence_text,
-        'evidence_locator': p.evidence_locator,
-        'content_hash': p.content_hash,
         'retrieved_at': retrieved_str,
         'company_name': c.company_name if c else None,
         'legal_name': c.legal_name if c else None,
@@ -280,14 +281,35 @@ def serialize_project_item(p: CSRProject):
         'data_access_note': c.data_access_note if c else None,
         'not_available_text': NOT_AVAILABLE_TEXT,
         'login_required_text': LOGIN_REQUIRED_TEXT,
-        'field_source': getattr(p, 'field_source', None) or {},
         'verified_badge_text': verified_badge_text,
         'verified_relative_time': rel_time,
         'is_company_unverifiable': is_company_unverifiable,
         'last_reconciled_at': (p.last_reconciled_at.isoformat() if hasattr(p.last_reconciled_at, 'isoformat') else str(p.last_reconciled_at)) if getattr(p, 'last_reconciled_at', None) else None,
         'mismatch_reason': getattr(p, 'mismatch_reason', None),
-        'mismatch_diff': getattr(p, 'mismatch_diff', None),
     }
+
+    if is_detail:
+        item.update({
+            'description': desc,
+            'evidence_text': p.evidence_text,
+            'evidence_locator': p.evidence_locator,
+            'content_hash': p.content_hash,
+            'field_source': getattr(p, 'field_source', None) or {},
+            'mismatch_diff': getattr(p, 'mismatch_diff', None),
+            'raw_metadata': getattr(p, 'raw_metadata', None) or {},
+        })
+    else:
+        item.update({
+            'description': None,
+            'evidence_text': None,
+            'evidence_locator': None,
+            'content_hash': None,
+            'field_source': {},
+            'mismatch_diff': None,
+            'raw_metadata': {},
+        })
+
+    return item
 
 
 def csr_project_detail_api(request, csr_id):
@@ -299,14 +321,14 @@ def csr_project_detail_api(request, csr_id):
         if not project:
             return JsonResponse({'error': 'CSR project not found or not verified'}, status=404)
 
-        data = serialize_project_item(project)
+        data = serialize_project_item(project, is_detail=True)
 
         related_qs = public_records(CSRProject.objects.select_related('company')).filter(
             company_id=project.company_id
         ).exclude(csr_id=project.csr_id)
 
         data['related_projects'] = [
-            serialize_project_item(rp) for rp in related_qs[:12]
+            serialize_project_item(rp, is_detail=False) for rp in related_qs[:12]
             if not is_page_title_not_csr_project(rp.project_name, rp.company.company_name if rp.company else None)
         ]
         return JsonResponse(data)
@@ -314,7 +336,7 @@ def csr_project_detail_api(request, csr_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-def serialize_opportunity_item(o: CSROpportunity):
+def serialize_opportunity_item(o: CSROpportunity, is_detail: bool = False):
     c = o.company
     raw_category = clean_text(o.category)
     norm_category = get_normalized_csr_category(raw_category) if raw_category else None
@@ -323,8 +345,10 @@ def serialize_opportunity_item(o: CSROpportunity):
     # Strictly use the opportunity's own portal_url or source_url — never fall back to company homepage
     p_url = _valid_http_url(o.portal_url) or _valid_http_url(o.source_url)
     company_csr_url = _company_best_csr_webpage(c)
+    clean_req = clean_text(o.requirements)
+    short_summary = (clean_req[:250] + '...') if (clean_req and len(clean_req) > 250) else clean_req
 
-    return {
+    item = {
         'opp_id': o.opp_id,
         'company_id': o.company_id,
         'title': cleaned_title,
@@ -338,7 +362,7 @@ def serialize_opportunity_item(o: CSROpportunity):
         'submission_url': p_url,
         'source_url': _valid_http_url(o.source_url),
         'company_csr_webpage_url': company_csr_url,
-        'requirements': clean_text(o.requirements),
+        'summary': short_summary,
         'budget': None,
         'estimated_grant': None,
         'status': o.status,
@@ -357,6 +381,17 @@ def serialize_opportunity_item(o: CSROpportunity):
         'not_available_text': NOT_AVAILABLE_TEXT,
         'login_required_text': LOGIN_REQUIRED_TEXT,
     }
+
+    if is_detail:
+        item['requirements'] = clean_req
+        item['evidence_text'] = getattr(o, 'evidence_text', None)
+        item['raw_metadata'] = getattr(o, 'raw_metadata', None) or {}
+    else:
+        item['requirements'] = None
+        item['evidence_text'] = None
+        item['raw_metadata'] = {}
+
+    return item
 
 
 def csr_projects_api(request):
@@ -414,9 +449,32 @@ def csr_projects_api(request):
     if fy and fy != 'all':
         qs = qs.filter(discovered_date__icontains=fy)
 
+    qs = qs.defer('field_source', 'evidence_locator', 'mismatch_diff', 'raw_metadata')
     qs = qs.order_by('-confidence', '-csr_id')
 
     if request.GET.get('format') == 'csv' or request.GET.get('export') == 'csv':
+        _req_limit = int(request.GET.get('limit', 2000))
+        _export_count = min(qs.count(), _req_limit)
+        # ── Entitlement: export quota check ──────────────────────────
+        from modules.admin_panel.models import User as _User
+        if getattr(request, 'user', None) and request.user.is_authenticated:
+            _export_user = request.user
+        else:
+            _export_user = _User.objects.filter(is_active=True).order_by('id').first()
+        if _export_user:
+            _export_svc = EntitlementService(_export_user)
+            try:
+                _export_svc.check_export_quota(count=_export_count)
+            except EntitlementError as _ex_err:
+                return JsonResponse({
+                    'error': _ex_err.message,
+                    'feature': _ex_err.feature,
+                    'limit': _ex_err.limit,
+                    'current': _ex_err.current,
+                    'upgrade_to': _ex_err.upgrade_to,
+                    'code': 'entitlement_exceeded',
+                }, status=403)
+        # ── End entitlement check ────────────────────────────────────
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
@@ -426,8 +484,9 @@ def csr_projects_api(request):
             'Implementing Agency / Partner', 'Company CSR Webpage URL', 'Source Document URL',
             'Source Format', 'Evidence Locator', 'Verification Status'
         ])
+        _rows_written = 0
         for p in qs:
-            item = serialize_project_item(p)
+            item = serialize_project_item(p, is_detail=True)
             writer.writerow([
                 p.csr_id,
                 item.get('company_name') or NOT_AVAILABLE_TEXT,
@@ -447,16 +506,35 @@ def csr_projects_api(request):
                 p.evidence_locator or NOT_AVAILABLE_TEXT,
                 item.get('verification_status') or 'PUBLISHED',
             ])
+            _rows_written += 1
+        # ── Entitlement: record export usage ─────────────────────────
+        if _export_user and _rows_written > 0:
+            _export_svc.record_export_usage(count=_rows_written)
+        # ── End record usage ─────────────────────────────────────────
         response = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = 'attachment; filename="impactbridge_csr_projects.csv"'
         return response
 
+    has_filter = bool(
+        q or (status and status.lower() != 'all') or
+        (company and company.lower() != 'all') or
+        (category and category.lower() != 'all') or
+        (state and state != 'all') or
+        (fy and fy != 'all')
+    )
+    total_count = None
+    if not has_filter:
+        from modules.admin_panel.snapshot_service import get_current_stats_snapshot
+        stats_data, _, _, _ = get_current_stats_snapshot()
+        total_count = stats_data.get('csr_projects')
+
     data = paginate_queryset(
         queryset=qs,
-        serialize_func=serialize_project_item,
+        serialize_func=lambda p: serialize_project_item(p, is_detail=False),
         page=page,
         page_size=page_size,
-        fallback_limit=limit
+        fallback_limit=limit,
+        total_count=total_count
     )
     return JsonResponse(data, safe=False)
 
@@ -471,12 +549,10 @@ def csr_opportunities_api(request):
     page_size = request.GET.get('page_size', 12)
     limit = int(request.GET.get('limit', 500))
 
-    # Strictly verified records (PUBLIC_VERIFICATION_STATUSES) with status='OPEN', source URL and evidence_text
-    qs = public_records(CSROpportunity.objects.select_related('company')).filter(status='OPEN').exclude(
+    # Return all remaining genuine opportunities without restricting only to status='OPEN'
+    qs = public_records(CSROpportunity.objects.select_related('company')).exclude(
         (Q(source_url__isnull=True) | Q(source_url='')) & (Q(portal_url__isnull=True) | Q(portal_url=''))
-    ).exclude(
-        evidence_text__isnull=True
-    ).exclude(evidence_text='')
+    )
 
     if scope in ('procurement', 'vendor', 'b2b'):
         qs = qs.filter(opportunity_type='Procurement / Vendor EOI')
@@ -513,12 +589,34 @@ def csr_opportunities_api(request):
     if opp_type and opp_type != 'all':
         qs = qs.filter(opportunity_type=opp_type)
 
+    qs = qs.defer('requirements', 'evidence_text', 'raw_metadata')
     qs = qs.order_by('-opp_id')
 
     if request.GET.get('format') == 'csv' or request.GET.get('export') == 'csv':
+        # ── Entitlement: export quota check ──────────────────────────
+        from modules.admin_panel.models import User as _User
+        if getattr(request, 'user', None) and request.user.is_authenticated:
+            _export_user = request.user
+        else:
+            _export_user = _User.objects.filter(is_active=True).order_by('id').first()
+        if _export_user:
+            _export_svc = EntitlementService(_export_user)
+            try:
+                _export_svc.check_export_quota(count=qs.count())
+            except EntitlementError as _ex_err:
+                return JsonResponse({
+                    'error': _ex_err.message,
+                    'feature': _ex_err.feature,
+                    'limit': _ex_err.limit,
+                    'current': _ex_err.current,
+                    'upgrade_to': _ex_err.upgrade_to,
+                    'code': 'entitlement_exceeded',
+                }, status=403)
+        # ── End entitlement check ────────────────────────────────────
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(['Opportunity ID', 'Company ID', 'Company Name', 'Title', 'Type', 'Category', 'Normalized Category', 'Deadline', 'Status', 'Portal URL', 'Source URL', 'Verification Status'])
+        _rows_written = 0
         for o in qs:
             c = o.company
             writer.writerow([
@@ -535,15 +633,73 @@ def csr_opportunities_api(request):
                 o.source_url or NOT_AVAILABLE_TEXT,
                 o.verification_status,
             ])
+            _rows_written += 1
+        # ── Entitlement: record export usage ─────────────────────────
+        if _export_user and _rows_written > 0:
+            _export_svc.record_export_usage(count=_rows_written)
+        # ── End record usage ─────────────────────────────────────────
         response = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = 'attachment; filename="impactbridge_csr_opportunities.csv"'
         return response
 
     data = paginate_queryset(
         queryset=qs,
-        serialize_func=serialize_opportunity_item,
+        serialize_func=lambda o: serialize_opportunity_item(o, is_detail=False),
         page=page,
         page_size=page_size,
         fallback_limit=limit
     )
     return JsonResponse(data, safe=False)
+
+
+def csr_filters_api(request):
+    """
+    Returns distinct states, districts/geographic locations, and focus categories
+    extracted across all verified Section 135 CSR projects for dynamic filter dropdown population.
+    """
+    cache_key = "csr_filter_options_cache"
+    if not request.GET.get('refresh'):
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return JsonResponse(cached)
+
+    base_qs = public_records(CSRProject.objects.filter(status='ACTIVE'))
+
+    # States
+    raw_states = (
+        base_qs.exclude(state__isnull=True)
+        .exclude(state='')
+        .values('state')
+        .annotate(cnt=Count('csr_id'))
+        .order_by('-cnt')
+    )
+    states = [r['state'] for r in raw_states if r['state'] and r['state'] != 'None']
+
+    # Geographic locations / districts
+    raw_geos = (
+        base_qs.exclude(geographic_location__isnull=True)
+        .exclude(geographic_location='')
+        .values('geographic_location')
+        .annotate(cnt=Count('csr_id'))
+        .order_by('-cnt')
+    )
+    locations = [r['geographic_location'] for r in raw_geos if r['geographic_location'] and r['geographic_location'] != 'None']
+
+    # Focus categories
+    raw_cats = (
+        base_qs.exclude(category__isnull=True)
+        .exclude(category='')
+        .values('category')
+        .annotate(cnt=Count('csr_id'))
+        .order_by('-cnt')
+    )
+    categories = [r['category'] for r in raw_cats if r['category']]
+
+    data = {
+        'states': states,
+        'locations': locations,
+        'categories': categories,
+    }
+    cache.set(cache_key, data, 120)
+    return JsonResponse(data)
+

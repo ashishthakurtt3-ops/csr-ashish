@@ -535,3 +535,200 @@ def ai_config_delete_provider_api(request, provider):
         logger.exception("Error deleting provider %s: %s", provider, e)
         return JsonResponse({'success': False, 'error': f"Internal error: {str(e)}"}, status=500)
 
+
+
+
+# ==============================================================================
+# ENTERPRISE CONTROL CENTER APIS: DIAGNOSTICS, TELEMETRY, ROUTING & CATALOG
+# ==============================================================================
+
+from modules.admin_panel.services.ai_config_service import (
+    search_companies,
+    run_company_diagnostic,
+    test_routing_and_failover,
+    test_all_providers_batch,
+    get_model_catalog_list,
+)
+from modules.admin_panel.services.ai_telemetry_service import telemetry_store
+
+
+@login_required
+@require_http_methods(["GET"])
+def ai_config_company_search_api(request):
+    """
+    GET API to search real company records from MySQL for company-specific AI diagnostics.
+    Query parameter: ?q=<search_string>&limit=15
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    q = request.GET.get('q', '').strip()
+    limit = min(50, max(1, int(request.GET.get('limit', 15))))
+    results = search_companies(query=q, limit=limit)
+    return JsonResponse({'success': True, 'count': len(results), 'companies': results})
+
+
+@login_required
+@require_http_methods(["POST"])
+def ai_config_company_diagnostic_api(request):
+    """
+    POST API to execute a bounded, live, read-only AI diagnostic on a specific company.
+    Payload: {"company_id": "...", "task": "...", "provider": "...", "model": "..."}
+    Guarantees zero database modifications to jobs, CSR projects, or company records.
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    try:
+        try:
+            payload = json.loads(request.body.decode('utf-8'))
+        except (ValueError, UnicodeDecodeError):
+            payload = request.POST.dict()
+
+        company_id = payload.get('company_id', '').strip()
+        task = payload.get('task', 'homepage_classification').strip()
+        provider = payload.get('provider', None)
+        model = payload.get('model', None)
+
+        if not company_id:
+            return JsonResponse({'success': False, 'error': 'Parameter company_id is required'}, status=400)
+
+        result = run_company_diagnostic(
+            company_id=company_id,
+            task=task,
+            provider_override=provider,
+            model_override=model,
+            user=request.user,
+            ip_address=get_client_ip(request)
+        )
+        status_code = 200 if result.get('success') else 400
+        return JsonResponse(result, status=status_code)
+
+    except Exception as e:
+        logger.exception("Error executing company AI diagnostic: %s", e)
+        return JsonResponse({'success': False, 'error': f"Internal error: {str(e)}"}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def ai_config_company_history_api(request, company_id=None):
+    """
+    GET API to retrieve historical AI diagnostic invocations for a company.
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    target_id = (company_id or request.GET.get('company_id', '')).strip()
+    limit = min(100, max(1, int(request.GET.get('limit', 20))))
+    history = telemetry_store.get_company_history(company_id=target_id, limit=limit)
+    return JsonResponse({'success': True, 'company_id': target_id, 'count': len(history), 'history': history})
+
+
+@login_required
+@require_http_methods(["POST"])
+def ai_config_test_routing_api(request):
+    """
+    POST API to simulate primary provider failure and verify failover routing to fallback.
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    try:
+        result = test_routing_and_failover(user=request.user, ip_address=get_client_ip(request))
+        return JsonResponse(result, status=200 if result.get('success') else 400)
+    except Exception as e:
+        logger.exception("Error testing AI routing and failover: %s", e)
+        return JsonResponse({'success': False, 'error': f"Internal error: {str(e)}"}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def ai_config_test_all_api(request):
+    """
+    POST API to sequentially test all configured AI providers with bounded health checks.
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    try:
+        results = test_all_providers_batch(user=request.user, ip_address=get_client_ip(request))
+        return JsonResponse({'success': True, 'count': len(results), 'results': results})
+    except Exception as e:
+        logger.exception("Error testing all AI providers: %s", e)
+        return JsonResponse({'success': False, 'error': f"Internal error: {str(e)}"}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def ai_config_usage_summary_api(request):
+    """
+    GET API to retrieve aggregated AI token usage, costs, and request distributions.
+    Parameters: ?days=30&provider=all&model=all&company_id=&task=all
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    days = int(request.GET.get('days', 30))
+    provider = request.GET.get('provider', 'all')
+    model = request.GET.get('model', 'all')
+    company_id = request.GET.get('company_id', '')
+    task = request.GET.get('task', 'all')
+
+    summary = telemetry_store.get_summary(
+        days=days,
+        provider=provider,
+        model=model,
+        company_id=company_id if company_id else None,
+        task=task
+    )
+    return JsonResponse({'success': True, 'summary': summary})
+
+
+@login_required
+@require_http_methods(["GET"])
+def ai_config_usage_events_api(request):
+    """
+    GET API to retrieve paginated, filterable raw AI invocation events.
+    Parameters: ?limit=25&offset=0&provider=all&company_id=&task=all&status=all
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    limit = min(100, max(1, int(request.GET.get('limit', 25))))
+    offset = max(0, int(request.GET.get('offset', 0)))
+    provider = request.GET.get('provider', 'all')
+    company_id = request.GET.get('company_id', '')
+    task = request.GET.get('task', 'all')
+    status = request.GET.get('status', 'all')
+
+    events, total = telemetry_store.get_events(
+        limit=limit,
+        offset=offset,
+        provider=provider,
+        company_id=company_id if company_id else None,
+        task=task,
+        status=status
+    )
+    return JsonResponse({
+        'success': True,
+        'count': len(events),
+        'total': total,
+        'limit': limit,
+        'offset': offset,
+        'events': events
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def ai_config_model_catalog_api(request):
+    """
+    GET API to retrieve full model catalog across providers with capability and pricing information.
+    Parameter: ?provider=all
+    """
+    if not is_authorized_admin(request.user):
+        return HttpResponseForbidden(json.dumps({'success': False, 'error': 'Forbidden: Administrator permissions required'}), content_type='application/json')
+
+    provider = request.GET.get('provider', 'all')
+    catalog = get_model_catalog_list(provider_filter=provider)
+    return JsonResponse({'success': True, 'count': len(catalog), 'catalog': catalog})

@@ -1,0 +1,36 @@
+{
+  "total_companies": 201,
+  "careers_urls": {
+    "real_deep_careers_url": 130,
+    "homepage_careers_url": 71
+  },
+  "csr_urls": {
+    "real_deep_csr_portal_url": 128,
+    "homepage_csr_portal_url": 73
+  },
+  "companies_coverage": {
+    "companies_with_active_jobs_gt_0": 77,
+    "companies_with_active_csr_gt_0": 146
+  },
+  "crawl_status_counts": {
+    "PENDING": 144,
+    "CRAWLED": 32,
+    "SUSPECT_DROP": 18,
+    "FAILED": 5,
+    "BLOCKED": 2
+  },
+  "active_jobs": {
+    "total_active_jobs": 1514,
+    "junk_active_jobs_count": 9,
+    "junk_percentage": 0.59,
+    "junk_breakdown_by_pattern": {
+      "/case-study/": 5,
+      "/case-studies/": 0,
+      "/news/": 0,
+      "/blog/": 0,
+      "/insights/": 0,
+      "/search?query=": 3,
+      "/press": 1
+    }
+  }
+}

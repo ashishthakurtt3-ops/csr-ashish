@@ -1,6 +1,8 @@
 import json
+import hashlib
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
 from modules.admin_panel.models import Company, CSRProject
 from modules.website.utils.scoring_service import calculate_ngo_match
 
@@ -29,15 +31,34 @@ def match_ngo_api(request):
         weights = None
         limit = int(request.GET.get('limit', 50))
 
-    companies = list(Company.objects.values())
-    all_projects = list(CSRProject.objects.values())
+    # Cache key based on profile, weights and limit
+    cache_str = f"{','.join(sorted(profile.get('sectors', [])))}_{profile.get('state', '')}_{profile.get('budget', '')}_{weights}_{limit}"
+    cache_key = f"ngo_match_{hashlib.md5(cache_str.encode('utf-8')).hexdigest()}"
+    cached_res = cache.get(cache_key)
+    if cached_res is not None:
+        return JsonResponse(cached_res, safe=False)
 
-    comp_projects = {}
-    for p in all_projects:
-        cid = p['company_id']
-        if cid not in comp_projects:
-            comp_projects[cid] = []
-        comp_projects[cid].append(p)
+    # Precompute / cache base inputs (companies and CSR projects) for 10 minutes
+    base_data = cache.get('ngo_matching_base_data')
+    if base_data is None:
+        companies = list(Company.objects.values(
+            'company_id', 'company_name', 'nse_symbol', 'sector', 'website_url', 'csr_portal_url'
+        ))
+        all_projects = list(CSRProject.objects.values(
+            'company_id', 'category', 'state', 'geographic_location'
+        ))
+
+        comp_projects = {}
+        for p in all_projects:
+            cid = p['company_id']
+            if cid not in comp_projects:
+                comp_projects[cid] = []
+            comp_projects[cid].append(p)
+        base_data = {'companies': companies, 'projects': comp_projects}
+        cache.set('ngo_matching_base_data', base_data, 600)
+    else:
+        companies = base_data['companies']
+        comp_projects = base_data['projects']
 
     results = []
     for comp in companies:
@@ -47,4 +68,6 @@ def match_ngo_api(request):
         results.append(match_data)
 
     results.sort(key=lambda x: x['match_score'], reverse=True)
-    return JsonResponse(results[:limit], safe=False)
+    out = results[:limit]
+    cache.set(cache_key, out, 600)
+    return JsonResponse(out, safe=False)

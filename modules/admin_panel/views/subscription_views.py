@@ -321,36 +321,52 @@ def plan_create_edit_view(request, code=None):
         highlight_raw = request.POST.get('highlight_features', '')
         highlight_list = [h.strip() for h in highlight_raw.split('\n') if h.strip()]
 
-        # Limits / entitlements
-        daily_matches = request.POST.get('limit_daily_matches')
-        daily_matches_val = None if daily_matches in ('', 'None', 'unlimited') else int(daily_matches)
+        # Safe numeric parser for optional plan limits
+        def _parse_opt_int(val):
+            if val is None:
+                return None
+            val_str = str(val).strip()
+            if val_str in ('', 'None', 'unlimited', 'null'):
+                return None
+            try:
+                return int(val_str)
+            except ValueError:
+                return None
+
+        # Limits / entitlements (Three-Tier Plan Configuration)
+        saved_records_val = _parse_opt_int(request.POST.get('limit_saved_records'))
+        saved_searches_val = _parse_opt_int(request.POST.get('limit_saved_searches'))
+        compare_companies_val = _parse_opt_int(request.POST.get('limit_compare_companies'))
+
+        alert_freq = str(request.POST.get('limit_alert_frequency') or 'weekly').strip().lower()
+        adv_filters = bool(request.POST.get('limit_advanced_filters'))
+        prio_support = bool(request.POST.get('limit_priority_support'))
+        refresh_req = bool(request.POST.get('limit_request_company_refresh'))
+
+        daily_matches_val = _parse_opt_int(request.POST.get('limit_daily_matches'))
         api_access = bool(request.POST.get('limit_api_access'))
         live_reprobe = bool(request.POST.get('limit_live_reprobe'))
         view_contacts = bool(request.POST.get('limit_view_contacts'))
         audit_packs = bool(request.POST.get('limit_audit_packs'))
-        seats = int(request.POST.get('limit_seats') or 1)
-        export_rows = request.POST.get('limit_export_rows')
-        export_rows_val = None if export_rows in ('', 'None', 'unlimited') else int(export_rows)
-        crm_limit = int(request.POST.get('limit_crm') or 10)
+        seats = _parse_opt_int(request.POST.get('limit_seats')) or 1
+        export_rows_val = _parse_opt_int(request.POST.get('limit_export_rows'))
+        crm_limit = _parse_opt_int(request.POST.get('limit_crm')) or 10
 
-        jobs_raw = request.POST.get('limit_jobs')
-        jobs_val = None if jobs_raw in ('', 'None', 'unlimited') else int(jobs_raw)
-
-        api_req_raw = request.POST.get('limit_api_requests')
-        api_req_val = None if api_req_raw in ('', 'None', 'unlimited') else int(api_req_raw)
-
+        jobs_val = _parse_opt_int(request.POST.get('limit_jobs'))
+        api_req_val = _parse_opt_int(request.POST.get('limit_api_requests'))
         storage_val = request.POST.get('limit_storage', '').strip() or '10 GB'
-
-        credits_raw = request.POST.get('limit_credits')
-        credits_val = None if credits_raw in ('', 'None', 'unlimited') else int(credits_raw)
-
-        search_raw = request.POST.get('limit_search')
-        search_val = None if search_raw in ('', 'None', 'unlimited') else int(search_raw)
-
-        export_limit_raw = request.POST.get('limit_export')
-        export_limit_val = None if export_limit_raw in ('', 'None', 'unlimited') else int(export_limit_raw)
+        credits_val = _parse_opt_int(request.POST.get('limit_credits'))
+        search_val = _parse_opt_int(request.POST.get('limit_search'))
+        export_limit_val = _parse_opt_int(request.POST.get('limit_export'))
 
         limits_dict = {
+            'saved_records_limit': saved_records_val,
+            'saved_searches_limit': saved_searches_val,
+            'compare_companies_limit': compare_companies_val,
+            'alert_frequency': alert_freq,
+            'advanced_filters': adv_filters,
+            'priority_support': prio_support,
+            'request_company_refresh': refresh_req,
             'daily_matches': daily_matches_val,
             'api_access': api_access,
             'live_reprobe': live_reprobe,
@@ -406,21 +422,17 @@ def plan_create_edit_view(request, code=None):
 
         plan_obj, created = Plan.objects.update_or_create(code=plan_code, defaults=defaults)
 
-        # Update structured entitlements
+        # Update structured entitlements (strictly canonical 16-row keys)
         entitlements_spec = [
-            ('daily_matches', 'Daily Matchmaker Queries', PlanEntitlement.TYPE_UNLIMITED if daily_matches_val is None else PlanEntitlement.TYPE_NUMERIC, daily_matches_val, daily_matches_val is None),
-            ('api_access', 'REST API Access', PlanEntitlement.TYPE_BOOLEAN, api_access, False),
-            ('live_reprobe', 'Live Domain Socket Probing', PlanEntitlement.TYPE_BOOLEAN, live_reprobe, False),
-            ('view_contacts', 'Unmasked Corporate Direct Contacts', PlanEntitlement.TYPE_BOOLEAN, view_contacts, False),
-            ('audit_packs', 'Section 135 Audit Packs', PlanEntitlement.TYPE_BOOLEAN, audit_packs, False),
-            ('seats', 'Team Seats', PlanEntitlement.TYPE_NUMERIC, seats, False),
-            ('export_rows_per_month', 'Monthly CSV Export Rows', PlanEntitlement.TYPE_UNLIMITED if export_rows_val is None else PlanEntitlement.TYPE_NUMERIC, export_rows_val, export_rows_val is None),
-            ('crm_limit', 'Outreach CRM Pipeline Limit', PlanEntitlement.TYPE_NUMERIC, crm_limit, False),
-            ('jobs', 'Jobs Limit', PlanEntitlement.TYPE_UNLIMITED if jobs_val is None else PlanEntitlement.TYPE_NUMERIC, jobs_val, jobs_val is None),
-            ('api_requests', 'API Requests Limit', PlanEntitlement.TYPE_UNLIMITED if api_req_val is None else PlanEntitlement.TYPE_NUMERIC, api_req_val, api_req_val is None),
-            ('credits', 'Credits Limit', PlanEntitlement.TYPE_UNLIMITED if credits_val is None else PlanEntitlement.TYPE_NUMERIC, credits_val, credits_val is None),
-            ('search_limit', 'Search Queries Limit', PlanEntitlement.TYPE_UNLIMITED if search_val is None else PlanEntitlement.TYPE_NUMERIC, search_val, search_val is None),
-            ('storage', 'Storage Allowance', PlanEntitlement.TYPE_TEXT, storage_val, False),
+            ('saved_records_limit', 'Saved jobs & CSR projects', PlanEntitlement.TYPE_UNLIMITED if saved_records_val is None else PlanEntitlement.TYPE_NUMERIC, saved_records_val, saved_records_val is None),
+            ('saved_searches_limit', 'Saved search queries', PlanEntitlement.TYPE_UNLIMITED if saved_searches_val is None else PlanEntitlement.TYPE_NUMERIC, saved_searches_val, saved_searches_val is None),
+            ('export_rows_per_month', 'Export data (CSV & Excel)', PlanEntitlement.TYPE_UNLIMITED if export_rows_val is None else PlanEntitlement.TYPE_NUMERIC, export_rows_val, export_rows_val is None),
+            ('company_comparison', 'Company comparison tool', PlanEntitlement.TYPE_TEXT, (f"Up to {compare_companies_val} Companies" if compare_companies_val else "Advanced Comparison") if compare_companies_val != 0 else False, False),
+            ('alert_notifications', 'Matching & alert notifications', PlanEntitlement.TYPE_TEXT, f"{alert_freq.title()} Alerts", False),
+            ('search_filters', 'Search & filter capabilities', PlanEntitlement.TYPE_TEXT, 'Advanced Filters' if adv_filters else 'Basic Filters', False),
+            ('data_refresh_requests', 'On-demand company data refresh', PlanEntitlement.TYPE_BOOLEAN, refresh_req, False),
+            ('support_level', 'Customer support', PlanEntitlement.TYPE_TEXT, 'Priority Dedicated Support' if prio_support else 'Standard Email Support', False),
+            ('team_members', 'Team members / account seats', PlanEntitlement.TYPE_TEXT, f"Up to {seats} Team Members" if seats > 1 else "1 Member", False),
         ]
 
         for k, dname, etype, val, is_unlim in entitlements_spec:
@@ -437,7 +449,7 @@ def plan_create_edit_view(request, code=None):
             )
 
         messages.success(request, f"Plan '{plan_obj.name}' successfully {'created' if created else 'saved'}!")
-        return redirect('admin_subscriptions:plans')
+        return redirect('admin_subscriptions:plans_list')
 
     features_str = '\n'.join(plan.features) if plan and plan.features else ''
     highlight_str = '\n'.join(plan.highlight_features) if plan and plan.highlight_features else ''
@@ -529,7 +541,7 @@ def plan_toggle_status_view(request, code):
     plan.save(update_fields=['is_active'])
     status_label = "Activated" if plan.is_active else "Deactivated"
     messages.success(request, f"Plan '{plan.name}' has been {status_label}.")
-    return redirect('admin_subscriptions:plans')
+    return redirect('admin_subscriptions:plans_list')
 
 
 @login_required
@@ -543,11 +555,11 @@ def plan_delete_view(request, code):
     active_subs = Subscription.objects.filter(plan_id=plan.code).count()
     if active_subs > 0:
         messages.error(request, f"Cannot delete plan '{plan.name}' because {active_subs} subscription(s) are currently attached. Deactivate it instead.")
-        return redirect('admin_subscriptions:plans')
+        return redirect('admin_subscriptions:plans_list')
 
     plan.delete()
     messages.success(request, f"Plan '{plan.name}' deleted successfully.")
-    return redirect('admin_subscriptions:plans')
+    return redirect('admin_subscriptions:plans_list')
 
 
 # ── PAYMENT MANAGEMENT (READ-ONLY FINANCIAL AUDIT) ───────────────────────────

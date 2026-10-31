@@ -1,0 +1,258 @@
+<USER_REQUEST>
+# MASTER TASK: REMOVE DATA VISIBILITY FILTERS, CLEAN FAKE DATA, AND DISPLAY ALL REMAINING DATABASE RECORDS
+
+**Project:** CSR Job Intelligence Production Ready  
+**Tech stack:** Existing Django + MySQL backend, frontend templates, JavaScript, APIs and crawler pipeline.
+
+## 1. MAIN OBJECTIVE
+
+Fix the existing project so that:
+
+1. Every remaining legitimate or not-yet-disproven record stored in the database is displayed in its appropriate frontend section.
+2. Remove unnecessary verification, classification, quality-status and legacy-status conditions that prevent existing records from reaching the frontend.
+3. Identify and remove confirmed fake, synthetic, placeholder and AI-hallucinated records that were not genuinely extracted from their claimed sources.
+4. Preserve genuine company jobs, CSR projects and CSR opportunities.
+5. Ensure the database, backend responses and frontend counts are reconciled and discrepancies are explained.
+
+Do not build a new application. Work on the existing project and fix the actual causes.
+
+## 2. BACKUP AND BASELINE
+
+Before changing anything:
+
+- Inspect the current Git status and preserve existing user modifications.
+- Create a database backup and verify that it can be read.
+- Record the current Git commit and create a clear change summary.
+- Record exact database row counts and primary-key inventories for jobs, CSR projects and CSR opportunities.
+- Record how many rows the backend returns and how many the frontend renders.
+- Preserve the current configuration, models, migrations, business logic and unrelated features.
+
+The previous report mentioned 5,549 jobs in the database and 1,492 jobs reaching the public frontend, leaving a reported gap of 4,057 jobs. These figures are historical and must be recalculated from the current database.
+
+Never run destructive cleanup without a recoverable backup.
+
+## 3. FIND EVERY FILTER THAT HIDES DATABASE RECORDS
+
+Inspect the complete database-to-frontend pipeline.
+
+Trace:
+
+MySQL → Django models → model managers → querysets → views/APIs → serializers → templates → JavaScript → frontend.
+
+Inspect all relevant code for:
+
+- `.filter()` and `.exclude()` conditions that restrict which records are returned.
+- `is_active`, `is_verified`, `is_valid`, `status`, `quality_status`, `confidence`, `published` and similar fields.
+- `LEGACY_UNVERIFIED`, `INACTIVE`, `QUARANTINED`, pending-review or rejected classifications.
+- Default and custom model managers and overridden `get_queryset()` methods.
+- API filter backends, serializers, pagination, aggregation and permissions.
+- Template conditions such as `{% if %}` that prevent records from rendering.
+- JavaScript `.filter()`, conditional rendering and response-processing logic.
+- Duplicate suppression, expiration rules, soft-delete conditions and hidden-record flags.
+- Caching or stale API responses that cause the frontend to show fewer records than the database contains.
+- Any restrictive rules introduced during earlier cleanup phases.
+
+For every condition, identify its exact file, line, purpose, affected row count and impact on the frontend.
+
+Do not assume all seven previously reported hiding layers still exist. Inspect the current implementation and prove which rules actually affect visibility.
+
+## 4. REMOVE UNNECESSARY VISIBILITY RESTRICTIONS
+
+Modify the existing code so that every record remaining in the relevant database tables can reach the frontend.
+
+Specifically:
+
+1. Remove blanket eligibility checks based on outdated verification or legacy classifications when they unnecessarily hide records.
+2. Remove unnecessary `is_active`, `is_verified`, quality-status or confidence restrictions where they cause genuine or not-yet-disproven records to disappear.
+3. Remove redundant filtering from Django managers, querysets, views, APIs, serializers, templates and JavaScript.
+4. Do not silently hide records because their source evidence is incomplete. Show such records with an appropriate `Unverified` label when necessary.
+5. Do not silently suppress stored records through automatic duplicate filtering. If duplicate records exist, display them unless they are independently confirmed fabricated records removed during cleanup.
+6. Do not silently discard expired or stale records. Where appropriate, display an `Expired` or `Outdated` label so they are not confused with current opportunities.
+7. Ensure search, category selection and pagination work normally and do not permanently exclude records from the listing.
+8. Ensure users can navigate through every page of results and access the corresponding record details.
+
+**Important:** Remove filters that hide records, not authentication, authorization, security checks or protections against unauthorized data access.
+
+Do not expose database credentials, API keys, internal logs, private user information or sensitive administrative fields on the public frontend.
+
+## 5. IDENTIFY CONFIRMED FAKE AND FABRICATED DATA
+
+Audit all stored records in these categories:
+
+- Company job listings.
+- CSR projects.
+- CSR opportunities.
+
+Inspect available evidence, including:
+
+- Original company website URLs and individual job-opening URLs.
+- Official company career portals and official ATS records.
+- Stored raw HTML, source snapshots and extraction logs.
+- Original job IDs, ATS identifiers and company associations.
+- Extraction timestamps and crawler/parser provenance.
+- AI provider, model, prompt and response records where available.
+- Fixture, demo, seed, placeholder and synthetic-data scripts.
+- Stored descriptions, titles, locations, salaries, project amounts, years and other material fields.
+
+Use the actual source material and extraction provenance to determine whether a record is fabricated.
+
+Classify each record as:
+
+- `SOURCE_VERIFIED`: Material information is supported by traceable authoritative source evidence.
+- `CONFIRMED_FABRICATED`: The record is demonstrably synthetic, invented or materially inconsistent with the source it claims to represent.
+- `UNVERIFIED`: Available evidence is insufficient to establish authenticity.
+- `EXPIRED_OR_STALE`: The record appears genuine but is no longer current.
+
+If the record is a proven test fixture or placeholder, classify it as synthetic rather than genuine extracted data.
+
+Do not assume every AI-generated record is fake. AI-assisted extraction is acceptable when the extracted information faithfully represents the original source.
+
+Missing source URLs, failed crawls, HTTP 403 errors, timeouts, old verification flags or low confidence alone do not prove that a record is fabricated.
+
+If individual fields are fabricated but the underlying record is genuine, correct or remove only those unsupported fields where possible. Do not unnecessarily delete the entire genuine record.
+
+## 6. REMOVE CONFIRMED FABRICATED RECORDS SAFELY
+
+Remove confirmed fabricated records from the active production dataset.
+
+Before removal:
+
+1. Generate an audit list containing the record ID, entity type, company, title/name, source URL and evidence for removal.
+2. Preserve a recoverable copy of the original record and its provenance.
+3. Record the exact reason the record was classified as fabricated.
+4. Use controlled database transactions and verify the result.
+5. Preserve an audit trail with removed-record counts and IDs.
+
+Never delete records merely because they are unverified, expired, old, inactive or missing evidence.
+
+Preserve uncertain records for review. Unless there is affirmative evidence that a record is fabricated, do not automatically delete it.
+
+Do not delete a record solely to improve the displayed-data percentage or match an expected row count.
+
+Do not generate replacement records to maintain the original totals.
+
+If the backup cannot be verified, stop destructive deletion until a recoverable backup is available. Complete any safe code-only visibility fixes that do not risk data loss.
+
+## 7. HANDLE JOBS, CSR PROJECTS AND CSR OPPORTUNITIES CORRECTLY
+
+### Jobs
+
+- Display all remaining stored job records.
+- Preserve genuine job titles, locations, descriptions, company relationships and other available fields.
+- Show direct links to individual job openings when available.
+- Display an appropriate status for expired or unverified jobs without hiding them unnecessarily.
+- Never invent a direct job URL or show an unrelated company careers page as if it were the actual opening.
+
+### CSR projects
+
+- Display all remaining CSR project records.
+- Preserve genuine project descriptions, amounts, reporting years, beneficiaries and source evidence.
+- Support evidence from official company CSR pages, annual reports, BRSR reports and other authoritative company-hosted documents.
+- Never invent project amounts, beneficiaries or completed-project claims.
+
+### CSR opportunities
+
+- Display all remaining CSR opportunity records.
+- Preserve their actual descriptions and source links.
+- Clearly distinguish proposed opportunities from completed projects or awarded contracts.
+
+Apply the same visibility principle consistently across all three categories.
+
+## 8. FIX THE FRONTEND AND BACKEND IMPLEMENTATION
+
+After the audit and cleanup:
+
+- Update existing Django querysets and model-manager behavior as needed.
+- Update APIs and serializers to return all appropriate remaining records.
+- Update templates and JavaScript so returned records are actually rendered.
+- Correct any counting discrepancies, pagination problems, stale caches or inconsistent response mappings.
+- Preserve existing UI/UX, styling, responsive layouts, record-detail navigation, search and user-facing features.
+- Ensure record IDs and database relationships remain correct.
+- Ensure the frontend does not display confirmed fabricated records that were removed.
+- Do not replace database-driven listings with hardcoded or mock frontend data.
+
+A record must not disappear because of an obsolete classification, missing confidence score or restrictive legacy verification flag.
+
+The expected behavior is that all remaining rows in each relevant database table can be accessed through the appropriate frontend listing, including across pagination.
+
+## 9. TEST AND RECONCILE EVERYTHING
+
+Run relevant automated tests and perform a complete count reconciliation.
+
+Generate a before-and-after report:
+
+| Measurement | Before | After |
+|---|---:|---:|
+| Total jobs in database | Actual count | Actual count |
+| Confirmed fabricated jobs | Actual count | Actual count |
+| Remaining job records | Actual count | Actual count |
+| Jobs returned by backend | Actual count | Actual count |
+| Jobs rendered across frontend pages | Actual count | Actual count |
+| Total CSR projects in database | Actual count | Actual count |
+| CSR projects returned and rendered | Actual count | Actual count |
+| Total CSR opportunities in database | Actual count | Actual count |
+| CSR opportunities returned and rendered | Actual count | Actual count |
+
+All values must be obtained from actual database queries, backend responses and frontend tests. Never invent or estimate test results.
+
+For each data category, verify that:
+
+`Remaining database rows = Total records accessible through the complete frontend listing`
+
+Account for documented exclusions only when they genuinely reflect records removed as fabricated, database integrity issues or a necessary security restriction.
+
+Confirm that:
+
+- Every remaining record is accessible through pagination.
+- Search and category controls still work.
+- Record detail pages load the correct record.
+- Job links do not point to unrelated openings.
+- CSR data remains correctly associated with its company.
+- Confirmed fabricated records are no longer returned or displayed.
+- Unverified records that were preserved remain accessible.
+- Database primary keys, relationships and unrelated features remain intact.
+- Tests pass, with every failure documented.
+
+## 10. REQUIRED FINAL REPORT
+
+Provide:
+
+1. Exact files changed and the purpose of each change.
+2. Every visibility filter removed or modified, with file and line references.
+3. The exact database conditions responsible for hiding records before the change.
+4. Counts of confirmed fabricated records removed by category.
+5. Counts of unverified records preserved.
+6. Database, API and frontend counts before and after.
+7. Automated test results and manual verification results.
+8. Any remaining hidden records and the proven reason for each discrepancy.
+9. Backup location and confirmation that the backup is readable.
+10. Git status and a summary of all modifications.
+
+Do not claim success without evidence.
+
+## FINAL ACCEPTANCE CRITERIA
+
+The task is complete only when:
+
+- Unnecessary visibility filters no longer hide remaining database records.
+- Every remaining record in the jobs, CSR projects and CSR opportunities datasets can be accessed through the frontend.
+- Confirmed fabricated records have been removed safely from the active dataset.
+- Unverified records have not been mistakenly deleted.
+- The database, backend and frontend counts are reconciled.
+- Relevant tests pass or outstanding failures are clearly documented.
+
+Implement the required changes in the existing project, validate them, and provide the evidence-based final report. Do not fabricate records, counts, tests or verification results.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-29T16:06:52+05:30.
+
+The user's current state is as follows:
+Active Document: d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\reports\stage1a_shortcut\manual_url_review_all_companies.csv (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\check_pairs.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\verify_db_checksum.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scripts\classify_stage1a_part2.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\modules\admin_panel\management\commands\stage1a_verify_homepages.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\extract_stats.py (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>

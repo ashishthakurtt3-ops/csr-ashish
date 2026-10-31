@@ -6,21 +6,23 @@
 {% block extra_css %}
 <style>
     /* ==========================================================================
-       Production SaaS AI Gateway Design System — ImpactBridge Admin
-       System Fonts • Light/Dark Mode • Responsive <768px • Accessibility
+       Enterprise AI Models & API Gateway Console — Modern ImpactBridge Design System
+       Spacious Layout • Responsive Slide-Over / Docked Drawer • High Legibility
        ========================================================================== */
 
     :root {
-        --ai-font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        --ai-topbar-offset: 64px;
+        --ai-font-stack: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --ai-mono-stack: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         --ai-navy: #0B2545;
         --ai-navy-hover: #133E6E;
+        --ai-navy-light: #EFF6FF;
         --ai-surface: #FFFFFF;
         --ai-surface-subtle: #F8FAFC;
+        --ai-surface-hover: #F1F5F9;
         --ai-border: #E2E8F0;
         --ai-border-strong: #CBD5E1;
         --ai-text-main: #0F172A;
-        --ai-text-muted: #475569;
+        --ai-text-muted: #64748B;
         --ai-text-subtle: #94A3B8;
         --ai-success: #059669;
         --ai-success-bg: #ECFDF5;
@@ -31,52 +33,59 @@
         --ai-danger: #DC2626;
         --ai-danger-bg: #FEF2F2;
         --ai-danger-border: #FECACA;
+        --ai-info: #2563EB;
         --ai-info-bg: #EFF6FF;
         --ai-info-border: #BFDBFE;
         --ai-radius: 12px;
         --ai-radius-sm: 8px;
-        --ai-transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-        --ai-shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+        --ai-radius-pill: 9999px;
+        --ai-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        --ai-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+        --ai-shadow-hover: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+        --ai-shadow-drawer: -12px 0 36px -4px rgba(15, 23, 42, 0.16);
     }
 
     [data-theme="dark"],
     .dark-theme {
         --ai-navy: #3B82F6;
         --ai-navy-hover: #60A5FA;
+        --ai-navy-light: rgba(59, 130, 246, 0.15);
         --ai-surface: #1E293B;
         --ai-surface-subtle: #0F172A;
+        --ai-surface-hover: #334155;
         --ai-border: #334155;
         --ai-border-strong: #475569;
         --ai-text-main: #F8FAFC;
         --ai-text-muted: #94A3B8;
         --ai-text-subtle: #64748B;
         --ai-success: #34D399;
-        --ai-success-bg: rgba(5, 150, 105, 0.15);
+        --ai-success-bg: rgba(5, 150, 105, 0.18);
         --ai-success-border: #065F46;
         --ai-warning: #FBBF24;
-        --ai-warning-bg: rgba(217, 119, 6, 0.15);
+        --ai-warning-bg: rgba(217, 119, 6, 0.18);
         --ai-warning-border: #92400E;
         --ai-danger: #F87171;
-        --ai-danger-bg: rgba(220, 38, 38, 0.15);
+        --ai-danger-bg: rgba(220, 38, 38, 0.18);
         --ai-danger-border: #991B1B;
-        --ai-info-bg: rgba(37, 99, 235, 0.15);
+        --ai-info: #60A5FA;
+        --ai-info-bg: rgba(37, 99, 235, 0.18);
         --ai-info-border: #1E40AF;
-        --ai-shadow-card: 0 1px 3px rgba(0,0,0,0.3);
+        --ai-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --ai-shadow-hover: 0 10px 25px -3px rgba(0, 0, 0, 0.4);
+        --ai-shadow-drawer: -12px 0 36px -4px rgba(0, 0, 0, 0.5);
     }
 
-    body {
-        font-family: var(--ai-font-stack);
-        background-color: var(--ai-surface-subtle);
-        color: var(--ai-text-main);
-        font-size: 14px;
-        line-height: 1.5;
+    /* Container Fluid Architecture — Spacious, Unconstrained */
+    .admin-content {
+        max-width: 100% !important;
+        padding: 24px 32px 80px !important;
+        box-sizing: border-box;
     }
 
     /* Breadcrumbs */
     .ai-config-breadcrumb {
         font-size: 13px;
         color: var(--ai-text-muted);
-        margin-top: 6px;
         margin-bottom: 12px;
         font-weight: 500;
         display: flex;
@@ -87,27 +96,27 @@
         color: var(--ai-text-subtle);
     }
 
-    /* Header Bar: Note duplicate body title REMOVED. Subtitle and actions only! */
+    /* Header Bar */
     .ai-config-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 16px;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
 
     .ai-config-subtitle {
-        font-size: 13.5px;
+        font-size: 14px;
         color: var(--ai-text-muted);
         margin: 0;
-        line-height: 1.45;
+        line-height: 1.5;
     }
 
     .header-actions {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
     .btn-header-outline {
@@ -115,19 +124,20 @@
         border: 1px solid var(--ai-border-strong);
         color: var(--ai-text-main);
         border-radius: var(--ai-radius-sm);
-        padding: 7px 16px;
+        padding: 8px 16px;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         transition: var(--ai-transition);
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .btn-header-outline:hover {
         background: var(--ai-surface-subtle);
         border-color: var(--ai-text-subtle);
+        transform: translateY(-1px);
     }
 
     .btn-header-primary {
@@ -135,27 +145,30 @@
         border: 1px solid var(--ai-navy);
         color: #FFFFFF;
         border-radius: var(--ai-radius-sm);
-        padding: 7px 18px;
+        padding: 8px 18px;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         transition: var(--ai-transition);
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        box-shadow: 0 1px 3px rgba(11,37,69,0.15);
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(11,37,69,0.18);
     }
     .btn-header-primary:hover {
         background: var(--ai-navy-hover);
         border-color: var(--ai-navy-hover);
+        transform: translateY(-1px);
     }
 
-    /* Main Tab Navigation (AI Providers vs Usage & Limits) */
+    /* Main Tab Navigation Bar */
     .ai-main-tabs-bar {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         border-bottom: 1px solid var(--ai-border);
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        overflow-x: auto;
+        padding-bottom: 2px;
     }
 
     .ai-tab-item {
@@ -163,72 +176,99 @@
         border: none;
         border-bottom: 2px solid transparent;
         color: var(--ai-text-muted);
-        padding: 8px 16px;
+        padding: 10px 18px;
         font-size: 13.5px;
         font-weight: 600;
         cursor: pointer;
         transition: var(--ai-transition);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
     }
     .ai-tab-item:hover {
         color: var(--ai-text-main);
+        background: var(--ai-surface-hover);
+        border-radius: 6px 6px 0 0;
     }
     .ai-tab-item.is-active {
         color: var(--ai-navy);
         border-bottom-color: var(--ai-navy);
+        font-weight: 700;
+    }
+    [data-theme="dark"] .ai-tab-item.is-active {
+        color: #60A5FA;
+        border-bottom-color: #60A5FA;
     }
 
     /* Paid Provider Notice Banner */
     .paid-warnings-container {
-        margin-bottom: 18px;
+        margin-bottom: 20px;
     }
     .paid-warning-item {
         background: var(--ai-warning-bg);
         border: 1px solid var(--ai-warning-border);
         color: #92400E;
-        padding: 10px 16px;
+        padding: 12px 18px;
         border-radius: var(--ai-radius-sm);
-        font-size: 12.5px;
+        font-size: 13px;
         font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 8px;
+        justify-content: space-between;
+        gap: 12px;
+        box-shadow: 0 1px 2px rgba(217, 119, 6, 0.05);
     }
     [data-theme="dark"] .paid-warning-item {
         color: #FDE68A;
     }
 
-    /* Summary Strip (3 KPI Cards) */
+    /* Executive Metric KPI Strip */
     .ai-summary-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 20px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
     }
 
     .ai-summary-card {
         background: var(--ai-surface);
         border: 1px solid var(--ai-border);
         border-radius: var(--ai-radius);
-        padding: 16px 20px;
+        padding: 18px 22px;
         box-shadow: var(--ai-shadow-card);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 104px;
+        transition: var(--ai-transition);
+    }
+    .ai-summary-card:hover {
+        border-color: var(--ai-border-strong);
+        box-shadow: var(--ai-shadow-hover);
+        transform: translateY(-2px);
+    }
+
+    .summary-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
     }
 
     .summary-label {
-        font-size: 11px;
+        font-size: 11.5px;
         font-weight: 700;
         color: var(--ai-text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 6px;
+        letter-spacing: 0.6px;
     }
 
     .summary-val {
-        font-size: 19px;
+        font-size: 21px;
         font-weight: 800;
         color: var(--ai-text-main);
-        letter-spacing: -0.3px;
-        margin-bottom: 4px;
+        letter-spacing: -0.4px;
+        margin-bottom: 6px;
     }
 
     .summary-sub {
@@ -236,7 +276,7 @@
         color: var(--ai-text-muted);
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -249,16 +289,16 @@
         display: inline-block;
         flex-shrink: 0;
     }
-    .summary-dot.is-green { background-color: var(--ai-success); }
-    .summary-dot.is-amber { background-color: var(--ai-warning); }
+    .summary-dot.is-green { background-color: var(--ai-success); box-shadow: 0 0 0 3px var(--ai-success-bg); }
+    .summary-dot.is-amber { background-color: var(--ai-warning); box-shadow: 0 0 0 3px var(--ai-warning-bg); }
 
-    /* Progress Bar for Test All Connections */
+    /* Test All Progress Wrap */
     .test-all-progress-wrap {
         background: var(--ai-surface);
         border: 1px solid var(--ai-border);
         border-radius: var(--ai-radius-sm);
-        padding: 12px 16px;
-        margin-bottom: 16px;
+        padding: 14px 20px;
+        margin-bottom: 20px;
         display: none;
     }
     .test-all-progress-bar-bg {
@@ -276,61 +316,81 @@
         transition: width 0.3s ease;
     }
 
-    /* Main Workspace Grid (Left Table, Right Sticky Drawer) */
+    /* ==========================================================================
+       Main Workspace Architecture: Full-Width Table + Slide-Over / Docked Drawer
+       ========================================================================== */
     .ai-workspace-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 390px;
-        gap: 20px;
-        align-items: start;
-        margin-bottom: 24px;
+        position: relative;
+        width: 100%;
+        margin-bottom: 30px;
     }
 
-    /* Left: Providers Table Card */
+    /* By Default: Full-Width Table Card */
     .providers-card {
+        width: 100%;
         background: var(--ai-surface);
         border: 1px solid var(--ai-border);
         border-radius: var(--ai-radius);
         box-shadow: var(--ai-shadow-card);
         overflow: hidden;
+        transition: var(--ai-transition);
     }
 
     .providers-card-header {
-        padding: 16px 20px;
+        padding: 18px 24px;
         border-bottom: 1px solid var(--ai-border);
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 16px;
+        background: var(--ai-surface);
     }
 
     .providers-card-title {
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 800;
         color: var(--ai-text-main);
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .search-filter-wrap {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         flex-wrap: wrap;
     }
 
+    .search-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .search-input-wrap svg {
+        position: absolute;
+        left: 12px;
+        color: var(--ai-text-subtle);
+        pointer-events: none;
+    }
+
     .search-input-ai {
-        width: 220px;
+        width: 250px;
         border: 1px solid var(--ai-border-strong);
         border-radius: var(--ai-radius-sm);
-        padding: 6px 12px;
-        font-size: 12.5px;
+        padding: 8px 14px 8px 36px;
+        font-size: 13px;
         background: var(--ai-surface);
         color: var(--ai-text-main);
+        transition: var(--ai-transition);
     }
     .search-input-ai:focus {
         outline: none;
         border-color: #2563EB;
-        box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        width: 290px;
     }
 
     .filter-pills-group {
@@ -344,13 +404,13 @@
         color: var(--ai-text-muted);
         font-size: 12px;
         font-weight: 600;
-        padding: 5px 12px;
-        border-radius: 20px;
+        padding: 6px 14px;
+        border-radius: var(--ai-radius-pill);
         cursor: pointer;
         transition: var(--ai-transition);
     }
     .filter-pill:hover {
-        background: var(--ai-border);
+        background: var(--ai-surface-hover);
         color: var(--ai-text-main);
     }
     .filter-pill.active {
@@ -359,52 +419,50 @@
         color: #FFFFFF;
     }
 
-    /* Table Styles */
+    /* Spacious Table Design */
     .table-container {
         width: 100%;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .providers-table {
         width: 100%;
-        table-layout: fixed;
         border-collapse: collapse;
-        font-size: 13px;
+        font-size: 13.5px;
     }
 
     .providers-table th {
         text-align: left;
-        padding: 12px 16px;
+        padding: 14px 20px;
         font-size: 11px;
         font-weight: 700;
         color: var(--ai-text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
         border-bottom: 1px solid var(--ai-border);
         background: var(--ai-surface-subtle);
+        white-space: nowrap;
     }
 
     .provider-row {
         cursor: pointer;
-        transition: background 0.12s ease;
+        transition: background 0.15s ease;
         border-bottom: 1px solid var(--ai-border);
     }
     .provider-row:hover {
-        background-color: var(--ai-surface-subtle);
+        background-color: var(--ai-surface-hover);
     }
     .provider-row.is-active-editing {
         background-color: var(--ai-info-bg) !important;
-        position: relative;
     }
     .provider-row.is-active-editing td:first-child {
         box-shadow: inset 4px 0 0 #2563EB;
     }
 
     .providers-table td {
-        padding: 12px 16px;
+        padding: 14px 20px;
         vertical-align: middle;
-        overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
     }
 
@@ -412,39 +470,41 @@
     .provider-cell-wrap {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
     }
 
     .prov-avatar {
-        width: 34px;
-        height: 34px;
-        border-radius: var(--ai-radius-sm);
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: 14px;
+        font-size: 15px;
         flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
     }
 
     .prov-meta {
         display: flex;
         flex-direction: column;
+        gap: 2px;
         overflow: hidden;
     }
 
     .prov-name {
         font-weight: 700;
-        font-size: 13.5px;
+        font-size: 14px;
         color: var(--ai-text-main);
     }
 
     .prov-sub {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--ai-text-muted);
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
     }
     .prov-sub.sub-primary {
         color: #2563EB;
@@ -459,41 +519,68 @@
     .model-cell-wrap {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
     }
     .model-name {
-        font-family: monospace;
-        font-size: 12.5px;
+        font-family: var(--ai-mono-stack);
+        font-size: 13px;
         font-weight: 600;
         color: var(--ai-text-main);
     }
 
     .tier-badge {
-        display: inline-block;
-        font-size: 10px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 10.5px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
-        padding: 2px 6px;
+        letter-spacing: 0.4px;
+        padding: 2px 8px;
         border-radius: 4px;
         width: fit-content;
     }
-    .tier-free { background: var(--ai-success-bg); color: var(--ai-success); }
-    .tier-paid { background: var(--ai-warning-bg); color: var(--ai-warning); }
+    .tier-free { background: var(--ai-success-bg); color: var(--ai-success); border: 1px solid var(--ai-success-border); }
+    .tier-paid { background: var(--ai-warning-bg); color: var(--ai-warning); border: 1px solid var(--ai-warning-border); }
     .tier-local { background: var(--ai-surface-subtle); color: var(--ai-text-muted); border: 1px solid var(--ai-border); }
+
+    /* Role Badge in Table */
+    .table-role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 6px;
+    }
+    .table-role-primary {
+        background: #EFF6FF;
+        color: #2563EB;
+        border: 1px solid #BFDBFE;
+    }
+    .table-role-failover {
+        background: #FFFBEB;
+        color: #D97706;
+        border: 1px solid #FDE68A;
+    }
+    .table-role-standby {
+        background: var(--ai-surface-subtle);
+        color: var(--ai-text-muted);
+        border: 1px solid var(--ai-border);
+    }
 
     /* Status Indicators */
     .status-indicator {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-size: 12px;
+        gap: 7px;
+        font-size: 12.5px;
         font-weight: 600;
     }
     .status-indicator::before {
         content: '';
-        width: 7px;
-        height: 7px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         display: inline-block;
     }
@@ -502,6 +589,7 @@
     }
     .status-indicator.is-operational::before {
         background-color: var(--ai-success);
+        box-shadow: 0 0 0 2px var(--ai-success-bg);
     }
     .status-indicator.is-unconfigured {
         color: var(--ai-text-subtle);
@@ -514,96 +602,237 @@
     }
     .status-indicator.is-error::before {
         background-color: var(--ai-danger);
+        box-shadow: 0 0 0 2px var(--ai-danger-bg);
     }
 
     .key-masked-text {
-        font-family: monospace;
+        font-family: var(--ai-mono-stack);
         font-size: 12.5px;
         color: var(--ai-text-muted);
         letter-spacing: 0.5px;
+        background: var(--ai-surface-subtle);
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--ai-border);
     }
 
     .btn-row-configure {
         background: var(--ai-surface);
         border: 1px solid var(--ai-border-strong);
         color: var(--ai-text-main);
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 600;
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 6px;
         cursor: pointer;
         transition: var(--ai-transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
     .btn-row-configure:hover {
         background: var(--ai-surface-subtle);
         border-color: var(--ai-text-subtle);
+        transform: translateY(-1px);
     }
     .btn-row-editing {
         background: #2563EB;
         border: 1px solid #2563EB;
         color: #FFFFFF;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 700;
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 6px;
         cursor: default;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 4px rgba(37,99,235,0.25);
     }
 
-    /* Right: Sticky Configuration Drawer */
+    /* ==========================================================================
+       Right: Modern Slide-Over Sheet (Drawer) & Docked Split Mode
+       ========================================================================== */
+    .drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+    }
+    .drawer-backdrop.is-open {
+        opacity: 1;
+        visibility: visible;
+    }
+
     .config-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 480px;
+        max-width: 92vw;
+        height: 100vh;
         background: var(--ai-surface);
-        border: 1px solid var(--ai-border);
-        border-radius: var(--ai-radius);
-        box-shadow: var(--ai-shadow-card);
-        padding: 22px;
+        border-left: 1px solid var(--ai-border);
+        box-shadow: var(--ai-shadow-drawer);
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        transform: translateX(100%);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+    .config-drawer.is-open {
+        transform: translateX(0);
+    }
+
+    .drawer-scroll-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        scrollbar-width: thin;
+    }
+
+    /* Docked Split Grid Mode (Optional for Ultra-Wide Screens >= 1500px) */
+    .ai-workspace-grid.is-docked {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(420px, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+    .ai-workspace-grid.is-docked .drawer-backdrop {
+        display: none !important;
+    }
+    .ai-workspace-grid.is-docked .config-drawer {
         position: sticky;
         top: 20px;
+        right: auto;
+        bottom: auto;
+        height: auto;
+        max-height: calc(100vh - 40px);
+        width: 100%;
+        max-width: 100%;
+        transform: none;
+        box-shadow: var(--ai-shadow-card);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        z-index: 10;
+    }
+    .ai-workspace-grid.is-docked.drawer-collapsed {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .ai-workspace-grid.is-docked.drawer-collapsed .config-drawer {
+        display: none !important;
     }
 
     .drawer-header {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 12px;
-        margin-bottom: 14px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--ai-border);
+        margin-bottom: 18px;
+    }
+    .drawer-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+    .drawer-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .drawer-close-btn {
+        background: transparent;
+        border: 1px solid var(--ai-border);
+        color: var(--ai-text-muted);
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        transition: var(--ai-transition);
+        flex-shrink: 0;
+    }
+    .drawer-close-btn:hover {
+        background: var(--ai-surface-subtle);
+        color: var(--ai-text-main);
+        border-color: var(--ai-border-strong);
+    }
+
+    .btn-drawer-dock {
+        background: var(--ai-surface-subtle);
+        border: 1px solid var(--ai-border);
+        color: var(--ai-text-muted);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--ai-transition);
+    }
+    .btn-drawer-dock:hover {
+        background: var(--ai-surface-hover);
+        color: var(--ai-text-main);
     }
 
     .drawer-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: var(--ai-radius-sm);
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 800;
         color: #FFFFFF;
         flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
 
     .drawer-title-wrap {
         overflow: hidden;
     }
     .drawer-prov-title {
-        font-size: 16.5px;
+        font-size: 18px;
         font-weight: 800;
         color: var(--ai-text-main);
         line-height: 1.25;
     }
     .drawer-prov-role {
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 600;
         color: var(--ai-text-muted);
+        margin-top: 2px;
     }
 
     .drawer-status-banner {
-        padding: 10px 14px;
+        padding: 12px 16px;
         border-radius: var(--ai-radius-sm);
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 600;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
     }
     .drawer-status-banner.is-active {
         background: var(--ai-success-bg);
@@ -626,27 +855,27 @@
         color: var(--ai-warning);
     }
 
-    /* Semantic Fieldset & Form Controls */
+    /* Form Controls inside Drawer */
     .form-group-ai {
-        margin-bottom: 16px;
+        margin-bottom: 18px;
         border: none;
         padding: 0;
     }
 
     .label-ai {
         display: block;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 700;
         color: var(--ai-text-main);
-        margin-bottom: 5px;
+        margin-bottom: 6px;
     }
 
     .input-ai {
         width: 100%;
         border: 1px solid var(--ai-border-strong);
-        border-radius: 6px;
-        padding: 8px 12px;
-        font-size: 13px;
+        border-radius: var(--ai-radius-sm);
+        padding: 9px 14px;
+        font-size: 13.5px;
         color: var(--ai-text-main);
         background: var(--ai-surface);
         box-sizing: border-box;
@@ -655,71 +884,106 @@
     .input-ai:focus {
         outline: none;
         border-color: #2563EB;
-        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
     }
 
     .hint-ai {
-        font-size: 11px;
+        font-size: 11.5px;
         color: var(--ai-text-muted);
-        margin-top: 4px;
-        line-height: 1.4;
+        margin-top: 5px;
+        line-height: 1.45;
     }
 
-    /* Role Radio Selector Fieldset */
-    .role-options-group {
-        display: flex;
-        flex-direction: column;
+    /* Role Segmented Cards Control */
+    .role-segmented-control {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 8px;
+        background: var(--ai-surface-subtle);
+        padding: 6px;
+        border: 1px solid var(--ai-border);
+        border-radius: 10px;
         margin-top: 6px;
     }
-
-    .role-option-card {
-        border: 1px solid var(--ai-border);
-        border-radius: var(--ai-radius-sm);
-        padding: 8px 12px;
+    .role-segment-item {
+        position: relative;
         cursor: pointer;
-        transition: var(--ai-transition);
+        margin: 0;
+        text-align: center;
+    }
+    .role-segment-item input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .role-segment-pill {
         display: flex;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    .role-option-card:hover {
-        background: var(--ai-surface-subtle);
-    }
-    .role-option-card input[type="radio"] {
-        margin-top: 3px;
-        cursor: pointer;
-        accent-color: var(--ai-navy);
-    }
-    .role-option-card.is-selected {
-        border-color: #2563EB;
-        background: var(--ai-info-bg);
-    }
-    .role-label-title {
-        font-size: 12.5px;
-        font-weight: 700;
-        color: var(--ai-text-main);
-    }
-    .role-label-desc {
-        font-size: 11px;
-        color: var(--ai-text-muted);
-        line-height: 1.35;
-    }
-
-    /* Allow Paid Calls Checkbox */
-    .checkbox-wrap-ai {
-        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        margin: 12px 0 6px 0;
+        justify-content: center;
+        gap: 4px;
+        padding: 10px 6px;
+        border-radius: 8px;
         font-size: 12.5px;
         font-weight: 600;
-        color: var(--ai-text-main);
-        cursor: pointer;
+        color: var(--ai-text-muted);
+        transition: var(--ai-transition);
+        border: 1px solid transparent;
     }
-    .checkbox-wrap-ai input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
+    .role-segment-pill:hover {
+        color: var(--ai-text-main);
+        background: rgba(0,0,0,0.03);
+    }
+    .role-segment-item.is-selected .role-segment-pill {
+        background: var(--ai-surface);
+        color: #2563EB;
+        font-weight: 700;
+        border-color: rgba(37, 99, 235, 0.25);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+    [data-theme="dark"] .role-segment-item.is-selected .role-segment-pill {
+        background: #334155;
+        color: #60A5FA;
+        border-color: rgba(96, 165, 250, 0.3);
+    }
+    .role-segment-icon {
+        font-size: 16px;
+    }
+    .role-segment-text {
+        font-size: 12px;
+    }
+    .role-active-desc {
+        font-size: 12px;
+        color: var(--ai-text-muted);
+        margin-top: 10px;
+        line-height: 1.45;
+        padding: 10px 14px;
+        background: var(--ai-surface-subtle);
+        border-radius: 8px;
+        border-left: 3px solid #2563EB;
+        transition: var(--ai-transition);
+    }
+
+    /* Allow Paid Calls Checkbox Card */
+    .checkbox-card-ai {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 16px;
+        background: var(--ai-surface-subtle);
+        border: 1px solid var(--ai-border);
+        border-radius: 8px;
+        margin-top: 14px;
+        cursor: pointer;
+        transition: var(--ai-transition);
+    }
+    .checkbox-card-ai:hover {
+        border-color: var(--ai-border-strong);
+    }
+    .checkbox-card-ai input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        margin-top: 2px;
         cursor: pointer;
         accent-color: var(--ai-navy);
     }
@@ -734,25 +998,29 @@
         background: var(--ai-surface);
         border: 1px solid var(--ai-border-strong);
         color: var(--ai-text-main);
-        padding: 7px 12px;
+        padding: 8px 14px;
         border-radius: 6px;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 600;
         cursor: pointer;
         white-space: nowrap;
         transition: var(--ai-transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
     .btn-sm-outline:hover {
         background: var(--ai-surface-subtle);
+        border-color: var(--ai-text-subtle);
     }
 
-    /* Drawer Actions */
+    /* Drawer Actions Footer */
     .drawer-actions-row {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-top: 18px;
-        margin-bottom: 12px;
+        gap: 12px;
+        margin-top: 22px;
+        margin-bottom: 14px;
     }
 
     .btn-drawer-test {
@@ -760,13 +1028,17 @@
         background: var(--ai-surface);
         border: 1px solid var(--ai-border-strong);
         color: var(--ai-text-main);
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-size: 12.5px;
+        padding: 10px 16px;
+        border-radius: var(--ai-radius-sm);
+        font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         transition: var(--ai-transition);
         text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
     }
     .btn-drawer-test:hover {
         background: var(--ai-surface-subtle);
@@ -774,27 +1046,34 @@
     }
 
     .btn-drawer-save {
-        flex: 1;
+        flex: 1.2;
         background: var(--ai-navy);
         border: 1px solid var(--ai-navy);
         color: #FFFFFF;
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-size: 12.5px;
-        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: var(--ai-radius-sm);
+        font-size: 13px;
+        font-weight: 700;
         cursor: pointer;
         transition: var(--ai-transition);
         text-align: center;
-        box-shadow: 0 1px 2px rgba(11,37,69,0.15);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(11,37,69,0.18);
     }
     .btn-drawer-save:hover {
         background: var(--ai-navy-hover);
+        transform: translateY(-1px);
     }
 
     .link-danger-remove {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         color: var(--ai-danger);
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 600;
         text-decoration: none;
         cursor: pointer;
@@ -804,24 +1083,28 @@
         text-decoration: underline;
     }
 
-    /* Bottom: Audit Trail Card */
+    /* ==========================================================================
+       Bottom: Audit Trail Card
+       ========================================================================== */
     .audit-card {
         background: var(--ai-surface);
         border: 1px solid var(--ai-border);
         border-radius: var(--ai-radius);
-        padding: 20px;
+        padding: 22px 24px;
         box-shadow: var(--ai-shadow-card);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .audit-card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
 
     .audit-card-title {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 800;
         color: var(--ai-text-main);
         margin: 0;
@@ -831,23 +1114,23 @@
         width: 100%;
         table-layout: fixed;
         border-collapse: collapse;
-        font-size: 12px;
+        font-size: 12.5px;
     }
 
     .audit-table th {
         text-align: left;
-        padding: 10px 12px;
-        font-size: 10.5px;
+        padding: 12px 14px;
+        font-size: 11px;
         font-weight: 700;
         color: var(--ai-text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
         border-bottom: 1px solid var(--ai-border);
         background: var(--ai-surface-subtle);
     }
 
     .audit-table td {
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-bottom: 1px solid var(--ai-border);
         color: var(--ai-text-main);
         overflow: hidden;
@@ -859,121 +1142,157 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-top: 14px;
-        font-size: 12px;
+        padding-top: 16px;
+        font-size: 12.5px;
         color: var(--ai-text-muted);
     }
 
-    /* Usage & Limits View Cards */
-    .usage-metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .usage-metric-card {
-        background: var(--ai-surface);
-        border: 1px solid var(--ai-border);
-        border-radius: var(--ai-radius);
-        padding: 18px;
-        box-shadow: var(--ai-shadow-card);
-    }
-
-    .usage-val-large {
-        font-size: 22px;
-        font-weight: 800;
-        color: var(--ai-text-main);
-        margin: 6px 0 4px 0;
-    }
-
-    .usage-breakdown-card {
-        background: var(--ai-surface);
-        border: 1px solid var(--ai-border);
-        border-radius: var(--ai-radius);
-        padding: 20px;
-        box-shadow: var(--ai-shadow-card);
-        margin-bottom: 20px;
-    }
-
-    /* Toast Notification */
-    .ai-toast-container {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        pointer-events: none;
-    }
-    .ai-toast {
-        min-width: 280px;
-        max-width: 440px;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #FFFFFF;
-        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
-        pointer-events: auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-    }
-    .ai-toast-success { background: #059669; }
-    .ai-toast-error { background: #DC2626; }
-    .ai-toast-info { background: #2563EB; }
-    .ai-toast-warning { background: #D97706; }
-
-    /* Modal Backdrop */
-    .modal-backdrop-ai {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(4px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1050;
-        padding: 20px;
-    }
-    .modal-card-ai {
-        background: var(--ai-surface);
-        border-radius: var(--ai-radius);
-        width: 100%;
-        max-width: 520px;
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: 24px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Narrow Width Responsive Layout (<768px) */
-    @media (max-width: 768px) {
+    /* Responsive Breakpoints */
+    @media (max-width: 1200px) {
+        .admin-content {
+            padding: 18px 20px 60px !important;
+        }
         .ai-summary-grid {
             grid-template-columns: 1fr;
-        }
-        .ai-workspace-grid {
-            grid-template-columns: 1fr;
+            gap: 12px;
         }
         .config-drawer {
-            position: static;
-        }
-        .providers-card-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .search-input-ai {
             width: 100%;
-        }
-        .header-actions {
-            width: 100%;
-            justify-content: space-between;
+            max-width: 100%;
         }
     }
+
+    @media (max-width: 900px) {
+        .providers-card-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+        }
+        .search-filter-wrap {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-input-ai {
+            width: 100% !important;
+        }
+        .filter-pills-group {
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+    }
+/* ==========================================================================
+       Enterprise Control Center Extensions: Diagnostics, Catalog, Testing
+       ========================================================================== */
+    .control-center-panel {
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border);
+        border-radius: var(--ai-radius);
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--ai-shadow-card);
+    }
+    .panel-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .panel-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--ai-text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .panel-subtitle {
+        font-size: 13px;
+        color: var(--ai-text-muted);
+        margin-top: 4px;
+    }
+    .company-search-box {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+    }
+    .company-dropdown-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--ai-surface);
+        border: 1px solid var(--ai-border-strong);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        max-height: 280px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    .company-dropdown-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--ai-border);
+        font-size: 13px;
+        transition: var(--ai-transition);
+    }
+    .company-dropdown-item:hover {
+        background: var(--ai-surface-subtle);
+    }
+    .company-dropdown-item:last-child {
+        border-bottom: none;
+    }
+    .diag-selected-company-card {
+        background: var(--ai-surface-subtle);
+        border: 1px solid var(--ai-border);
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .diag-evidence-box {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12.5px;
+        line-height: 1.5;
+        padding: 14px 16px;
+        border-radius: 8px;
+        max-height: 220px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        margin-top: 8px;
+    }
+    .catalog-search-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .trace-step-item {
+        border-left: 3px solid var(--ai-border);
+        padding-left: 16px;
+        margin-bottom: 16px;
+        position: relative;
+    }
+    .trace-step-item.is-success {
+        border-left-color: var(--ai-success);
+    }
+    .trace-step-item.is-blocked {
+        border-left-color: var(--ai-warning);
+    }
+    .trace-step-item.is-failed {
+        border-left-color: var(--ai-danger);
+    }
 </style>
+
 {% endblock %}
 
 {% block content %}
@@ -988,10 +1307,8 @@
         <p class="ai-config-subtitle">Configure crawler intelligence providers, primary/failover routing order, and zero-cost protection guards.</p>
     </div>
     <div class="header-actions">
-        <button type="button" class="btn-header-outline" id="themeToggleBtn" onclick="toggleDarkMode()" title="Toggle Light / Dark mode">
-            <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Dark Mode</span>
-        </button>
         <button type="button" class="btn-header-outline" onclick="testAllConnectionsLive()" id="btnTestAllConnections">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31L4.62 19.3A2 2 0 0 0 6.3 22h11.4a2 2 0 0 0 1.68-2.7L14 9.31V2"/></svg>
             <span>Test all connections</span>
         </button>
         <button type="button" class="btn-header-primary" onclick="openAddProviderModal()" id="btnAddProvider">
@@ -1000,36 +1317,64 @@
     </div>
 </div>
 
-<!-- Main Tab Switching (AI Providers vs Usage & Limits) -->
-<div class="ai-main-tabs-bar" role="tablist" aria-label="Configuration Sections">
+<!-- Main Enterprise SaaS Control Center Tabs -->
+<div class="ai-main-tabs-bar" role="tablist" aria-label="Control Center Sections">
     <button type="button" role="tab" id="tab-providers" aria-selected="true" aria-controls="viewProvidersSection" class="ai-tab-item is-active" onclick="switchMainTab('providers')">
-        AI Providers
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        AI Providers &amp; Routing
+    </button>
+    <button type="button" role="tab" id="tab-catalog" aria-selected="false" aria-controls="viewCatalogSection" class="ai-tab-item" onclick="switchMainTab('catalog')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Dynamic Model Catalog
+    </button>
+    <button type="button" role="tab" id="tab-diagnostics" aria-selected="false" aria-controls="viewDiagnosticsSection" class="ai-tab-item" onclick="switchMainTab('diagnostics')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Company AI Diagnostics
+    </button>
+    <button type="button" role="tab" id="tab-testing" aria-selected="false" aria-controls="viewTestingSection" class="ai-tab-item" onclick="switchMainTab('testing')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Connection &amp; Failover Testing
     </button>
     <button type="button" role="tab" id="tab-usage" aria-selected="false" aria-controls="viewUsageSection" class="ai-tab-item" onclick="switchMainTab('usage')">
-        Usage &amp; Limits
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Usage &amp; Cost Telemetry
+    </button>
+    <button type="button" role="tab" id="tab-audit" aria-selected="false" aria-controls="viewAuditSection" class="ai-tab-item" onclick="switchMainTab('audit')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:7px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        Audit Trail
     </button>
 </div>
 
 <!-- VIEW 1: AI PROVIDERS WORKSPACE -->
 <div id="viewProvidersSection" role="region" aria-labelledby="tab-providers">
 
-    <!-- Requirement 7: Paid Provider Warnings Notice (does NOT alter existing roles automatically) -->
+    <!-- Paid Provider Warnings Notice -->
     {% if paid_role_warnings %}
     <div class="paid-warnings-container" role="alert">
         {% for w in paid_role_warnings %}
         <div class="paid-warning-item">
-            <span style="font-size:16px;">⚠️</span>
-            <span>{{ w }}</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:16px;">⚠️</span>
+                <span>{{ w }}</span>
+            </div>
+            {% if settings.fallback_provider %}
+            <button type="button" class="btn-sm-outline" style="background:var(--ai-surface); font-size:11.5px; border-color:var(--ai-warning-border);" onclick="selectProvider('{{ settings.fallback_provider }}')">
+                Configure {{ settings.fallback_provider|title }} &rarr;
+            </button>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- 1. Summary Strip (3 KPI Cards) -->
+    <!-- 1. Executive Summary Strip (3 KPI Cards) -->
     <div class="ai-summary-grid">
         <!-- Card 1: Primary Provider -->
         <div class="ai-summary-card">
-            <div class="summary-label">PRIMARY PROVIDER (1ST)</div>
+            <div class="summary-card-top">
+                <div class="summary-label">PRIMARY PROVIDER (1ST)</div>
+                <span class="table-role-badge table-role-primary" style="font-size:10.5px;">Rank #1</span>
+            </div>
             <div class="summary-val" id="summaryPrimaryName">
                 {% for p in providers %}{% if p.is_primary %}{{ p.display_name }}{% endif %}{% endfor %}
             </div>
@@ -1053,7 +1398,10 @@
 
         <!-- Card 2: Failover Provider -->
         <div class="ai-summary-card">
-            <div class="summary-label">FAILOVER PROVIDER (2ND)</div>
+            <div class="summary-card-top">
+                <div class="summary-label">FAILOVER PROVIDER (2ND)</div>
+                <span class="table-role-badge table-role-failover" style="font-size:10.5px;">Rank #2</span>
+            </div>
             <div class="summary-val" id="summaryFailoverName">
                 {% for p in providers %}{% if p.is_fallback %}{{ p.display_name }}{% endif %}{% endfor %}
                 {% if not settings.fallback_enabled %}<span style="color:var(--ai-text-subtle); font-size:16px;">Disabled</span>{% endif %}
@@ -1078,19 +1426,23 @@
 
         <!-- Card 3: Connected Providers -->
         <div class="ai-summary-card">
-            <div class="summary-label">CONNECTED PROVIDERS</div>
+            <div class="summary-card-top">
+                <div class="summary-label">CONNECTED PROVIDERS</div>
+                <span class="table-role-badge" style="background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; font-size:10.5px;">Zero-Cost Active</span>
+            </div>
             <div class="summary-val">
                 <span id="summaryConnectedCount">{{ configured_count }}</span> of {{ total_providers }}
             </div>
             <div class="summary-sub" id="summaryConnectedList">
-                <span>{{ healthy_count }} operational</span>
+                <span class="summary-dot is-green"></span>
+                <span>{{ healthy_count }} operational &middot; Safe</span>
             </div>
         </div>
     </div>
 
     <!-- Test All Connections Progress Wrap -->
     <div class="test-all-progress-wrap" id="testAllProgressWrap">
-        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
+        <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700;">
             <span id="testAllProgressLabel">Testing provider connections...</span>
             <span id="testAllProgressPct">0%</span>
         </div>
@@ -1099,14 +1451,30 @@
         </div>
     </div>
 
-    <!-- 2. Main Workspace (Table on Left, Sticky Drawer on Right) -->
-    <div class="ai-workspace-grid">
-        <!-- Left Column: Providers Table -->
+    <!-- 2. Main Workspace (Full-Width Table + Slide-Over / Docked Drawer) -->
+    <div class="ai-workspace-grid drawer-collapsed" id="aiWorkspaceGrid">
+
+        <!-- Slide-Over Backdrop -->
+        <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleDrawerCollapse(true)"></div>
+
+        <!-- Providers Table Card (Spacious 100% Width) -->
         <div class="providers-card">
             <div class="providers-card-header">
-                <h3 class="providers-card-title">Providers</h3>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <h3 class="providers-card-title">
+                        <span>AI Routing Engine</span>
+                        <span style="font-size:12px; font-weight:600; color:var(--ai-text-muted); background:var(--ai-surface-subtle); border:1px solid var(--ai-border); padding:2px 8px; border-radius:12px;">{{ total_providers }} models</span>
+                    </h3>
+                    <button type="button" class="btn-drawer-dock" onclick="toggleDockMode()" id="btnDockToggle" title="Toggle side-by-side dock view">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+                        <span id="dockBtnText">Dock View</span>
+                    </button>
+                </div>
                 <div class="search-filter-wrap">
-                    <input type="search" id="providerSearchInput" class="search-input-ai" placeholder="Search providers or models..." oninput="onSearchInput(this.value)" aria-label="Search providers">
+                    <div class="search-input-wrap">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" id="providerSearchInput" class="search-input-ai" placeholder="Search providers or models..." oninput="onSearchInput(this.value)" aria-label="Search providers">
+                    </div>
                     <div class="filter-pills-group">
                         <button type="button" class="filter-pill active" onclick="setFilter('all', this)" id="pillAll">
                             All {{ total_providers }}
@@ -1125,16 +1493,16 @@
                 <table class="providers-table" id="providersTable">
                     <thead>
                         <tr>
-                            <th style="width:30%;">PROVIDER</th>
-                            <th style="width:30%;">MODEL</th>
-                            <th style="width:20%;">STATUS</th>
-                            <th style="width:10%;">KEY</th>
-                            <th style="width:10%; text-align:right;"></th>
+                            <th style="width:28%; min-width:200px;">PROVIDER</th>
+                            <th style="width:28%; min-width:200px;">MODEL</th>
+                            <th style="width:18%; min-width:140px;">STATUS</th>
+                            <th style="width:14%; min-width:110px;">KEY</th>
+                            <th style="width:12%; min-width:100px; text-align:right;">ACTION</th>
                         </tr>
                     </thead>
                     <tbody id="providersTableBody">
                         {% for p in providers %}
-                        <tr class="provider-row {% if forloop.first %}is-active-editing{% endif %}"
+                        <tr class="provider-row"
                             id="row-{{ p.provider }}"
                             data-provider="{{ p.provider }}"
                             data-display-name="{{ p.display_name|lower }}"
@@ -1151,10 +1519,12 @@
                                     <div class="prov-meta">
                                         <div class="prov-name">{{ p.display_name }}</div>
                                         <div class="prov-sub {% if p.is_primary %}sub-primary{% elif p.is_fallback %}sub-failover{% endif %}" id="prov-sub-{{ p.provider }}">
-                                            {% if p.is_primary %}Primary (1st)
-                                            {% elif p.is_fallback %}Failover (2nd)
+                                            {% if p.is_primary %}
+                                                <span class="table-role-badge table-role-primary">🥇 Primary (1st)</span>
+                                            {% elif p.is_fallback %}
+                                                <span class="table-role-badge table-role-failover">🛡️ Failover (2nd)</span>
                                             {% elif p.provider == 'openrouter' %}Multi-model router
-                                            {% elif p.provider == 'groq' %}Fast Llama
+                                            {% elif p.provider == 'groq' %}Fast Llama 3.3
                                             {% elif p.provider == 'openai' %}ChatGPT
                                             {% elif p.provider == 'anthropic' %}Claude 3.5 Haiku
                                             {% elif p.provider == 'deepseek' %}V3 reasoning
@@ -1208,10 +1578,10 @@
                             <!-- Action Cell -->
                             <td style="text-align:right;">
                                 <button type="button"
-                                        class="{% if forloop.first %}btn-row-editing{% else %}btn-row-configure{% endif %}"
+                                        class="btn-row-configure"
                                         id="btn-action-{{ p.provider }}"
                                         onclick="event.stopPropagation(); handleRowClick('{{ p.provider }}')">
-                                    {% if forloop.first %}Editing{% else %}Configure{% endif %}
+                                    Configure
                                 </button>
                             </td>
                         </tr>
@@ -1221,135 +1591,157 @@
             </div>
         </div>
 
-        <!-- Right Column: Configuration Drawer (Sticky) -->
+        <!-- Right / Slide-Over: Configuration Drawer (Offcanvas Sheet) -->
         <div class="config-drawer" id="configDrawer">
-            <!-- Header -->
-            <div class="drawer-header">
-                <div class="drawer-avatar" id="drawerAvatar" style="background-color: {{ providers.0.color }};">
-                    {{ providers.0.display_name|slice:":1" }}
-                </div>
-                <div class="drawer-title-wrap">
-                    <div class="drawer-prov-title" id="drawerTitle">{{ providers.0.display_name }}</div>
-                    <div class="drawer-prov-role" id="drawerRole">
-                        {% if providers.0.is_primary %}Primary provider (1st)
-                        {% elif providers.0.is_fallback %}Failover provider (2nd)
-                        {% else %}Secondary provider (Not used in routing){% endif %}
+            <div class="drawer-scroll-body">
+                <!-- Header with Close Button -->
+                <div class="drawer-header">
+                    <div class="drawer-header-left">
+                        <div class="drawer-avatar" id="drawerAvatar" style="background-color: {{ providers.0.color }};">
+                            {{ providers.0.display_name|slice:":1" }}
+                        </div>
+                        <div class="drawer-title-wrap">
+                            <div class="drawer-prov-title" id="drawerTitle">{{ providers.0.display_name }}</div>
+                            <div class="drawer-prov-role" id="drawerRole">
+                                {% if providers.0.is_primary %}Primary provider (1st)
+                                {% elif providers.0.is_fallback %}Failover provider (2nd)
+                                {% else %}Secondary provider (Not used in routing){% endif %}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Status Alert Banner -->
-            <div class="drawer-status-banner {% if providers.0.status == 'ACTIVE' or providers.0.has_api_key and providers.0.last_test_result == 'SUCCESS' %}is-active{% elif providers.0.has_api_key %}is-active{% elif providers.0.status == 'ERROR' or providers.0.status == 'FAILED' %}is-error{% else %}is-unconfigured{% endif %}" id="drawerStatusBanner">
-                {% if providers.0.status == 'ACTIVE' or providers.0.has_api_key and providers.0.last_test_result == 'SUCCESS' %}
-                    Operational &middot; 200 OK on last probe
-                {% elif providers.0.has_api_key %}
-                    Ready &middot; Key saved
-                {% elif providers.0.status == 'ERROR' or providers.0.status == 'FAILED' %}
-                    Attention required &middot; {{ providers.0.last_test_message|default:"Error on last check" }}
-                {% else %}
-                    Not configured &middot; No key saved
-                {% endif %}
-            </div>
-
-            <!-- Configuration Form with fieldset and legend -->
-            <form id="drawerForm" onsubmit="event.preventDefault(); saveCurrentProvider();">
-                {% csrf_token %}
-                <input type="hidden" id="currentProviderId" value="{{ providers.0.provider }}">
-                <input type="hidden" id="currentProviderVersion" value="{{ providers.0.version }}">
-
-                <!-- API Key Group -->
-                <div class="form-group-ai">
-                    <label class="label-ai" for="drawerApiKey">API key</label>
-                    <input type="password" id="drawerApiKey" class="input-ai" placeholder="Enter a new key to replace the saved one" autocomplete="off" oninput="markUnsaved()">
-                    <div class="hint-ai" id="drawerKeyHint">
-                        {% if providers.0.has_api_key %}Stored encrypted. Saved key ends in <strong>{{ providers.0.key_last4 }}</strong>.{% else %}No key currently saved.{% endif %}
-                    </div>
-                </div>
-
-                <!-- Base Endpoint URL -->
-                <div class="form-group-ai">
-                    <label class="label-ai" for="drawerBaseUrl">Base endpoint URL</label>
-                    <input type="text" id="drawerBaseUrl" class="input-ai" value="{{ providers.0.base_url }}" oninput="markUnsaved()">
-                </div>
-
-                <!-- Active Model Selection with Model Refresh Button -->
-                <div class="form-group-ai">
-                    <label class="label-ai" for="drawerModelSelect">Active model</label>
-                    <div class="model-select-row">
-                        <select id="drawerModelSelect" class="input-ai" style="font-weight:600;" onchange="markUnsaved()">
-                            {% for m in providers.0.available_models %}
-                                <option value="{{ m.id }}" {% if m.id == providers.0.selected_model %}selected{% endif %}>
-                                    {{ m.name }}{% if m.is_free_tier %} (free tier){% else %} (paid){% endif %}{% if m.is_deprecated %} [DEPRECATED]{% endif %}
-                                </option>
-                            {% empty %}
-                                <option value="{{ providers.0.selected_model }}" selected>{{ providers.0.selected_model|default:"Default Model" }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="button" class="btn-sm-outline" id="btnRefreshModels" onclick="refreshCurrentProviderModels()" title="Refresh model list from provider">
-                            Refresh
+                    <div class="drawer-header-actions">
+                        <button type="button" class="drawer-close-btn" onclick="toggleDrawerCollapse(true)" title="Close configuration panel" aria-label="Close configuration panel">
+                            &times;
                         </button>
                     </div>
-                    <div class="hint-ai" id="drawerModelHint">Model catalog cached locally with rate-limited live refresh.</div>
                 </div>
 
-                <!-- Role Selector (Primary / Failover / Not used) -->
-                <fieldset class="form-group-ai">
-                    <legend class="label-ai">Crawler Routing Role</legend>
-                    <div class="role-options-group">
-                        <label class="role-option-card {% if providers.0.role == 'primary' %}is-selected{% endif %}" id="roleCardPrimary">
-                            <input type="radio" name="providerRole" value="primary" {% if providers.0.role == 'primary' %}checked{% endif %} onchange="onRoleChange('primary')">
-                            <div>
-                                <div class="role-label-title">Primary (1st in routing)</div>
-                                <div class="role-label-desc">Always called first for company page classification and intelligence extraction.</div>
-                            </div>
-                        </label>
+                <!-- Status Alert Banner -->
+                <div class="drawer-status-banner {% if providers.0.status == 'ACTIVE' or providers.0.has_api_key and providers.0.last_test_result == 'SUCCESS' %}is-active{% elif providers.0.has_api_key %}is-active{% elif providers.0.status == 'ERROR' or providers.0.status == 'FAILED' %}is-error{% else %}is-unconfigured{% endif %}" id="drawerStatusBanner">
+                    {% if providers.0.status == 'ACTIVE' or providers.0.has_api_key and providers.0.last_test_result == 'SUCCESS' %}
+                        Operational &middot; 200 OK on last probe
+                    {% elif providers.0.has_api_key %}
+                        Ready &middot; Key saved
+                    {% elif providers.0.status == 'ERROR' or providers.0.status == 'FAILED' %}
+                        Attention required &middot; {{ providers.0.last_test_message|default:"Error on last check" }}
+                    {% else %}
+                        Not configured &middot; No key saved
+                    {% endif %}
+                </div>
 
-                        <label class="role-option-card {% if providers.0.role == 'failover' %}is-selected{% endif %}" id="roleCardFailover">
-                            <input type="radio" name="providerRole" value="failover" {% if providers.0.role == 'failover' %}checked{% endif %} onchange="onRoleChange('failover')">
-                            <div>
-                                <div class="role-label-title">Failover (2nd in routing)</div>
-                                <div class="role-label-desc">Takes over automatically if Primary fails, rate-limits, or exhausts quota.</div>
-                            </div>
-                        </label>
+                <!-- Configuration Form with fieldset and legend -->
+                <form id="drawerForm" onsubmit="event.preventDefault(); saveCurrentProvider();">
+                    {% csrf_token %}
+                    <input type="hidden" id="currentProviderId" value="{{ providers.0.provider }}">
+                    <input type="hidden" id="currentProviderVersion" value="{{ providers.0.version }}">
 
-                        <label class="role-option-card {% if providers.0.role == 'not_used' %}is-selected{% endif %}" id="roleCardNotUsed">
-                            <input type="radio" name="providerRole" value="not_used" {% if providers.0.role == 'not_used' %}checked{% endif %} onchange="onRoleChange('not_used')">
+                    <!-- API Key Group -->
+                    <div class="form-group-ai">
+                        <label class="label-ai" for="drawerApiKey">API key</label>
+                        <input type="password" id="drawerApiKey" class="input-ai" placeholder="Enter a new key to replace the saved one" autocomplete="off" oninput="markUnsaved()">
+                        <div class="hint-ai" id="drawerKeyHint">
+                            {% if providers.0.has_api_key %}Stored encrypted. Saved key ends in <strong>{{ providers.0.key_last4 }}</strong>.{% else %}No key currently saved.{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Base Endpoint URL -->
+                    <div class="form-group-ai">
+                        <label class="label-ai" for="drawerBaseUrl">Base endpoint URL</label>
+                        <input type="text" id="drawerBaseUrl" class="input-ai" value="{{ providers.0.base_url }}" oninput="markUnsaved()">
+                    </div>
+
+                    <!-- Active Model Selection with Model Refresh Button -->
+                    <div class="form-group-ai">
+                        <label class="label-ai" for="drawerModelSelect">Active model</label>
+                        <div class="model-select-row">
+                            <select id="drawerModelSelect" class="input-ai" style="font-weight:600;" onchange="markUnsaved()">
+                                {% for m in providers.0.available_models %}
+                                    <option value="{{ m.id }}" {% if m.id == providers.0.selected_model %}selected{% endif %}>
+                                        {{ m.name }}{% if m.is_free_tier %} (free tier){% else %} (paid){% endif %}{% if m.is_deprecated %} [DEPRECATED]{% endif %}
+                                    </option>
+                                {% empty %}
+                                    <option value="{{ providers.0.selected_model }}" selected>{{ providers.0.selected_model|default:"Default Model" }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" class="btn-sm-outline" id="btnRefreshModels" onclick="refreshCurrentProviderModels()" title="Refresh model list from provider">
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="hint-ai" id="drawerModelHint">Model catalog cached locally with rate-limited live refresh.</div>
+                    </div>
+
+                    <!-- Role Selector Segmented Control -->
+                    <fieldset class="form-group-ai">
+                        <legend class="label-ai">Crawler Routing Role</legend>
+                        <div class="role-segmented-control" role="radiogroup" aria-label="Crawler Routing Role">
+                            <label class="role-segment-item {% if providers.0.role == 'primary' %}is-selected{% endif %}" id="roleCardPrimary" title="Always called first for company intelligence extraction">
+                                <input type="radio" name="providerRole" value="primary" {% if providers.0.role == 'primary' %}checked{% endif %} onchange="onRoleChange('primary')">
+                                <span class="role-segment-pill">
+                                    <span class="role-segment-icon">🥇</span>
+                                    <span class="role-segment-text">Primary</span>
+                                </span>
+                            </label>
+
+                            <label class="role-segment-item {% if providers.0.role == 'failover' %}is-selected{% endif %}" id="roleCardFailover" title="Takes over if primary fails, rate-limits, or exhausts quota">
+                                <input type="radio" name="providerRole" value="failover" {% if providers.0.role == 'failover' %}checked{% endif %} onchange="onRoleChange('failover')">
+                                <span class="role-segment-pill">
+                                    <span class="role-segment-icon">🛡️</span>
+                                    <span class="role-segment-text">Failover</span>
+                                </span>
+                            </label>
+
+                            <label class="role-segment-item {% if providers.0.role == 'not_used' %}is-selected{% endif %}" id="roleCardNotUsed" title="Excluded from automated routing">
+                                <input type="radio" name="providerRole" value="not_used" {% if providers.0.role == 'not_used' %}checked{% endif %} onchange="onRoleChange('not_used')">
+                                <span class="role-segment-pill">
+                                    <span class="role-segment-icon">⏸️</span>
+                                    <span class="role-segment-text">Inactive</span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="role-active-desc" id="roleActiveDesc">
+                            {% if providers.0.role == 'primary' %}
+                                Primary: Always called first for company page classification and intelligence extraction.
+                            {% elif providers.0.role == 'failover' %}
+                                Failover: Automatically takes over if Primary fails, rate-limits, or exhausts quota.
+                            {% else %}
+                                Inactive: Excluded from automated crawler routing. Available for manual tests.
+                            {% endif %}
+                        </div>
+                    </fieldset>
+
+                    <!-- Allow Paid Calls Checkbox -->
+                    <div class="form-group-ai" id="allowPaidCallsGroup" style="margin-top:14px;">
+                        <label class="checkbox-card-ai" for="drawerAllowPaidCalls">
+                            <input type="checkbox" id="drawerAllowPaidCalls" {% if providers.0.allow_paid_calls %}checked{% endif %} onchange="onToggleAllowPaidCalls()">
                             <div>
-                                <div class="role-label-title">Not used</div>
-                                <div class="role-label-desc">Excluded from automated crawler routing. Available for manual tests.</div>
+                                <span style="font-weight:700; font-size:13px; color:var(--ai-text-main);">Allow paid calls for this provider</span>
+                                <div class="hint-ai" id="allowPaidCallsHint" style="margin-top:2px;">
+                                    Zero-cost protection guard: Paid providers cannot be Primary or Failover unless this is checked.
+                                </div>
                             </div>
                         </label>
                     </div>
-                </fieldset>
 
-                <!-- Allow Paid Calls Checkbox -->
-                <div class="form-group-ai" id="allowPaidCallsGroup" style="margin-top:12px;">
-                    <label class="checkbox-wrap-ai" for="drawerAllowPaidCalls">
-                        <input type="checkbox" id="drawerAllowPaidCalls" {% if providers.0.allow_paid_calls %}checked{% endif %} onchange="onToggleAllowPaidCalls()">
-                        <span>Allow paid calls for this provider</span>
-                    </label>
-                    <div class="hint-ai" id="allowPaidCallsHint">
-                        Zero-cost protection guard: Paid providers cannot be Primary or Failover unless this is checked.
+                    <!-- Action Buttons -->
+                    <div class="drawer-actions-row">
+                        <button type="button" class="btn-drawer-test" id="btnDrawerTest" onclick="testCurrentProvider()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31L4.62 19.3A2 2 0 0 0 6.3 22h11.4a2 2 0 0 0 1.68-2.7L14 9.31V2"/></svg>
+                            <span>Test connection</span>
+                        </button>
+                        <button type="submit" class="btn-drawer-save" id="btnDrawerSave">
+                            Save changes
+                        </button>
                     </div>
-                </div>
 
-                <!-- Action Buttons -->
-                <div class="drawer-actions-row">
-                    <button type="button" class="btn-drawer-test" id="btnDrawerTest" onclick="testCurrentProvider()">
-                        Test connection
-                    </button>
-                    <button type="submit" class="btn-drawer-save" id="btnDrawerSave">
-                        Save changes
-                    </button>
-                </div>
-
-                <!-- Remove Key Link -->
-                <div style="margin-top:12px;">
-                    <a href="javascript:void(0)" class="link-danger-remove" id="btnRemoveSavedKey" onclick="removeCurrentKey()" style="display: {% if providers.0.has_api_key %}inline-block{% else %}none{% endif %};">
-                        Remove saved key
-                    </a>
-                </div>
-            </form>
+                    <!-- Remove Key Link -->
+                    <div style="margin-top:12px; text-align:center;">
+                        <a href="javascript:void(0)" class="link-danger-remove" id="btnRemoveSavedKey" onclick="removeCurrentKey()" style="display: {% if providers.0.has_api_key %}inline-flex{% else %}none{% endif %};">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            <span>Remove saved key</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -1358,10 +1750,11 @@
         <div class="audit-card-header">
             <div>
                 <h3 class="audit-card-title">Audit trail</h3>
-                <p class="ai-config-subtitle" style="font-size:12px;">Immutable sanitized audit logs of configuration changes and connection probes.</p>
+                <p class="ai-config-subtitle" style="font-size:12.5px;">Immutable sanitized audit logs of configuration changes and connection probes.</p>
             </div>
             <button type="button" class="btn-sm-outline" onclick="loadAuditPage(currentAuditPage)">
-                Refresh
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <span>Refresh</span>
             </button>
         </div>
 
@@ -1391,26 +1784,26 @@
                     {% if recent_audits %}
                         {% for log in recent_audits %}
                         <tr>
-                            <td style="font-family:monospace; color:var(--ai-text-muted);">{{ log.timestamp|date:"M d, H:i:s" }}</td>
+                            <td style="font-family:var(--ai-mono-stack); color:var(--ai-text-muted);">{{ log.timestamp|date:"M d, H:i:s" }}</td>
                             <td style="font-weight:700;">{{ log.action }}</td>
                             <td><span style="font-weight:700;">{{ log.provider|upper }}</span></td>
-                            <td style="font-family:monospace;">{{ log.model_name|default:"—" }}</td>
+                            <td style="font-family:var(--ai-mono-stack);">{{ log.model_name|default:"—" }}</td>
                             <td>
                                 {% if log.status == 'SUCCESS' %}
-                                    <span style="color:#059669; font-weight:700;">SUCCESS</span>
+                                    <span style="color:#059669; font-weight:700; background:#ECFDF5; padding:2px 8px; border-radius:4px; border:1px solid #A7F3D0;">SUCCESS</span>
                                 {% elif log.status == 'FAILED' or log.status == 'ERROR' %}
-                                    <span style="color:#DC2626; font-weight:700;">{{ log.status }}</span>
+                                    <span style="color:#DC2626; font-weight:700; background:#FEF2F2; padding:2px 8px; border-radius:4px; border:1px solid #FECACA;">{{ log.status }}</span>
                                 {% else %}
-                                    <span>{{ log.status }}</span>
+                                    <span style="color:#D97706; font-weight:700; background:#FFFBEB; padding:2px 8px; border-radius:4px; border:1px solid #FDE68A;">{{ log.status }}</span>
                                 {% endif %}
                             </td>
-                            <td style="font-family:monospace;">{% if log.latency_ms %}{{ log.latency_ms }} ms{% else %}&mdash;{% endif %}</td>
+                            <td style="font-family:var(--ai-mono-stack);">{% if log.latency_ms %}{{ log.latency_ms }} ms{% else %}&mdash;{% endif %}</td>
                             <td>{{ log.actor_username|default:"system" }}</td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="7" style="text-align:center; padding:24px; color:var(--ai-text-muted);">
+                            <td colspan="7" style="text-align:center; padding:28px; color:var(--ai-text-muted);">
                                 No audit records logged yet.
                             </td>
                         </tr>
@@ -1419,7 +1812,6 @@
             </table>
         </div>
 
-        <!-- Audit Pagination Controls -->
         <div class="audit-pagination-bar">
             <span id="auditPageInfo">Page 1</span>
             <div style="display:flex; gap:8px;">
@@ -1522,6 +1914,290 @@
     </div>
 </div>
 
+
+<!-- VIEW 2: DYNAMIC MODEL CATALOG -->
+<div id="viewCatalogSection" style="display:none;" role="region" aria-labelledby="tab-catalog">
+    <div class="control-center-panel">
+        <div class="panel-header-row">
+            <div>
+                <div class="panel-title"><i class="fas fa-layer-group" style="color:var(--ai-navy);"></i> Authorized Model Catalog &amp; Rate Cards</div>
+                <div class="panel-subtitle">Dynamic, verifiable catalog across all registered AI providers. Filter by capability, free-tier status, or pricing.</div>
+            </div>
+            <div>
+                <button type="button" class="btn-ai btn-ai-primary" onclick="loadDynamicModelCatalog(true)" id="btnRefreshCatalog">
+                    <i class="fas fa-sync-alt" style="margin-right:6px;"></i>Refresh All Catalogs
+                </button>
+            </div>
+        </div>
+
+        <div class="catalog-search-bar">
+            <input type="text" id="catalogSearchInput" class="form-control-ai" placeholder="Search models by name or identifier..." style="max-width:320px;" oninput="filterModelCatalogUI()">
+            <select id="catalogProviderFilter" class="form-control-ai" style="max-width:200px;" onchange="filterModelCatalogUI()">
+                <option value="all">All Providers</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="grok">xAI Grok</option>
+                <option value="groq">Groq Cloud</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic Claude</option>
+                <option value="deepseek">DeepSeek AI</option>
+                <option value="mistral">Mistral AI</option>
+                <option value="ollama">Ollama Local</option>
+            </select>
+            <select id="catalogPricingFilter" class="form-control-ai" style="max-width:180px;" onchange="filterModelCatalogUI()">
+                <option value="all">All Tiers (Free &amp; Paid)</option>
+                <option value="free">Free Tier Only ($0.00)</option>
+                <option value="paid">Paid Models Only</option>
+            </select>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="ai-table" id="modelCatalogTable" style="width:100%; font-size:13px;">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Model Identifier</th>
+                        <th>Display Name</th>
+                        <th>Context Window</th>
+                        <th>Tier</th>
+                        <th>Input Price / 1M</th>
+                        <th>Output Price / 1M</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="modelCatalogTableBody">
+                    <tr><td colspan="9" style="text-align:center; padding:24px; color:var(--ai-text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading catalog models...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW 3: COMPANY-SPECIFIC AI DIAGNOSTICS -->
+<div id="viewDiagnosticsSection" style="display:none;" role="region" aria-labelledby="tab-diagnostics">
+    <div class="control-center-panel">
+        <div class="panel-header-row">
+            <div>
+                <div class="panel-title"><i class="fas fa-microscope" style="color:var(--ai-navy);"></i> Company-Specific AI Diagnostics Engine</div>
+                <div class="panel-subtitle">Select any real company record to test content classification, careers discovery, job extraction, or statutory CSR detection using live website evidence.</div>
+            </div>
+            <div style="font-size:12px; color:var(--ai-success); font-weight:600; background:var(--ai-success-bg); padding:6px 12px; border-radius:6px; border:1px solid var(--ai-success-border);">
+                <i class="fas fa-shield-alt"></i> STRICT READ-ONLY: 0 Database Writes
+            </div>
+        </div>
+
+        <!-- Searchable Company Selector -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div>
+                <label class="form-label-ai">Target Company Selection</label>
+                <div class="company-search-box">
+                    <input type="text" id="diagCompanySearch" class="form-control-ai" placeholder="Search company by name or ID (e.g. Reliance, HDFC, TCS)..." autocomplete="off" oninput="onDiagCompanySearchInput(this.value)">
+                    <div id="diagCompanyDropdown" class="company-dropdown-results"></div>
+                </div>
+                <div class="hint-ai">Queries real records from MySQL <code>admin_panel_company</code>.</div>
+            </div>
+
+            <div>
+                <label class="form-label-ai">Diagnostic Pipeline Task</label>
+                <select id="diagTaskSelect" class="form-control-ai">
+                    <option value="homepage_classification">1. Homepage Content Classification (Entity type &amp; structure)</option>
+                    <option value="careers_discovery">2. Careers Page &amp; ATS Discovery (Workday/SAP sourcing)</option>
+                    <option value="job_extraction">3. Job Vacancy Schema Extraction (JSON-LD &amp; DOM)</option>
+                    <option value="csr_identification">4. CSR Statutory Disclosure Analysis (Section 135)</option>
+                    <option value="csr_project_extraction">5. CSR Project Candidate Discovery (Schedule VII)</option>
+                    <option value="opportunity_classification">6. Procurement &amp; Tender Opportunity Detection (RFP/EOI)</option>
+                    <option value="routing_test">7. AI Routing &amp; Policy Verification</option>
+                    <option value="fallback_test">8. Failover Fail-Safe Verification</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Selected Company Banner -->
+        <div id="diagSelectedCompanyCard" class="diag-selected-company-card" style="display:none;">
+            <div>
+                <div style="font-weight:700; font-size:15px; color:var(--ai-text-main);" id="diagTargetName">-</div>
+                <div style="font-size:12.5px; color:var(--ai-text-muted); margin-top:2px;">
+                    ID: <code id="diagTargetId">-</code> &bull; Sector: <span id="diagTargetIndustry">-</span> &bull; URL: <a id="diagTargetUrlLink" href="#" target="_blank" rel="noopener" style="color:var(--ai-navy); text-decoration:underline;">-</a>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="btn-ai btn-ai-primary" id="btnExecuteDiagnostic" onclick="executeCompanyDiagnostic()">
+                    <i class="fas fa-play" style="margin-right:6px;"></i>Run Live Diagnostic
+                </button>
+            </div>
+        </div>
+
+        <!-- Diagnostic Execution Output -->
+        <div id="diagResultsContainer" style="display:none; margin-top:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="font-size:15px; font-weight:700; color:var(--ai-text-main);">
+                    Diagnostic Output Trace &bull; <span id="diagStatusBadge" class="status-pill status-active">SUCCESS</span>
+                </div>
+                <div style="font-size:12px; color:var(--ai-text-muted);">
+                    Latency: <strong id="diagLatencyVal">-</strong> ms &bull; Tokens: <strong id="diagTokensVal">-</strong> &bull; Method: <code id="diagMethodVal">ESTIMATED</code>
+                </div>
+            </div>
+
+            <!-- DOM Evidence Excerpt -->
+            <div style="margin-bottom:14px;">
+                <label style="font-size:12px; font-weight:700; color:var(--ai-text-muted); text-transform:uppercase;">Source DOM Text Excerpt (Real Web Evidence)</label>
+                <div id="diagEvidenceBox" class="diag-evidence-box">Loading evidence...</div>
+            </div>
+
+            <!-- Structured Findings -->
+            <div>
+                <label style="font-size:12px; font-weight:700; color:var(--ai-text-muted); text-transform:uppercase;">Validated Structured Diagnostic Findings</label>
+                <pre id="diagStructuredJson" class="diag-evidence-box" style="background:#1E293B; max-height:260px;"></pre>
+            </div>
+        </div>
+
+        <!-- Historical Diagnostcs for Selected Company -->
+        <div id="diagHistoryContainer" style="display:none; margin-top:28px;">
+            <div style="font-size:14px; font-weight:700; color:var(--ai-text-main); margin-bottom:10px;">
+                Prior Invocations &amp; Diagnostics for this Company
+            </div>
+            <table class="ai-table" style="width:100%; font-size:12.5px;">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Task</th>
+                        <th>Provider &amp; Model</th>
+                        <th>Status</th>
+                        <th>Latency</th>
+                        <th>Tokens</th>
+                        <th>Verdict</th>
+                    </tr>
+                </thead>
+                <tbody id="diagHistoryTableBody">
+                    <tr><td colspan="7" style="text-align:center; color:var(--ai-text-muted);">No prior invocations recorded.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW 4: CONNECTION & FAILOVER TESTING CENTER -->
+<div id="viewTestingSection" style="display:none;" role="region" aria-labelledby="tab-testing">
+    <div class="control-center-panel">
+        <div class="panel-header-row">
+            <div>
+                <div class="panel-title"><i class="fas fa-vial" style="color:var(--ai-navy);"></i> Connection, Model &amp; Failover Testing Center</div>
+                <div class="panel-subtitle">Execute verified bounded probes to validate credentials, model inference, and automatic failover fail-safes.</div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px; margin-bottom:24px;">
+            <!-- Test Card 1: Primary Connection Ping -->
+            <div class="control-center-panel" style="margin-bottom:0;">
+                <div style="font-size:14px; font-weight:700; color:var(--ai-text-main); margin-bottom:6px;">1. Primary Provider Ping</div>
+                <div style="font-size:12px; color:var(--ai-text-muted); margin-bottom:12px;">Validates endpoint reachability and API key authentication for active primary.</div>
+                <button type="button" class="btn-ai btn-ai-outline" style="width:100%;" onclick="runPrimaryPingTest()" id="btnPrimaryPing">
+                    <i class="fas fa-network-wired" style="margin-right:6px;"></i>Ping Primary Connection
+                </button>
+                <div id="primaryPingResult" style="margin-top:10px; font-size:12px; display:none;"></div>
+            </div>
+
+            <!-- Test Card 2: Routing & Failover Simulation -->
+            <div class="control-center-panel" style="margin-bottom:0;">
+                <div style="font-size:14px; font-weight:700; color:var(--ai-text-main); margin-bottom:6px;">2. Routing &amp; Failover Test</div>
+                <div style="font-size:12px; color:var(--ai-text-muted); margin-bottom:12px;">Simulates transient rate limit failure on primary and verifies failover to secondary.</div>
+                <button type="button" class="btn-ai btn-ai-outline" style="width:100%;" onclick="runRoutingFailoverTest()" id="btnRoutingTest">
+                    <i class="fas fa-random" style="margin-right:6px;"></i>Simulate Failover
+                </button>
+                <div id="routingTestResult" style="margin-top:10px; font-size:12px; display:none;"></div>
+            </div>
+
+            <!-- Test Card 3: Batch Test All Providers -->
+            <div class="control-center-panel" style="margin-bottom:0;">
+                <div style="font-size:14px; font-weight:700; color:var(--ai-text-main); margin-bottom:6px;">3. Test All Configured Providers</div>
+                <div style="font-size:12px; color:var(--ai-text-muted); margin-bottom:12px;">Sequential bounded health checks across all registered provider cards.</div>
+                <button type="button" class="btn-ai btn-ai-primary" style="width:100%;" onclick="runBatchTestAll()" id="btnBatchTestAll">
+                    <i class="fas fa-clipboard-check" style="margin-right:6px;"></i>Run All Checks
+                </button>
+            </div>
+        </div>
+
+        <!-- Failover Simulation Trace Output -->
+        <div id="failoverTraceContainer" style="display:none; background:var(--ai-surface-subtle); border:1px solid var(--ai-border); border-radius:8px; padding:18px; margin-top:16px;">
+            <div style="font-size:14px; font-weight:700; color:var(--ai-text-main); margin-bottom:12px;">
+                Routing &amp; Failover Step-by-Step Trace
+            </div>
+            <div id="failoverTraceSteps"></div>
+        </div>
+
+        <!-- Batch Results Matrix -->
+        <div id="batchTestResultsMatrix" style="display:none; margin-top:20px;">
+            <div style="font-size:14px; font-weight:700; color:var(--ai-text-main); margin-bottom:10px;">
+                Provider Test Matrix Results
+            </div>
+            <table class="ai-table" style="width:100%; font-size:13px;">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Effective Model</th>
+                        <th>Status</th>
+                        <th>Latency</th>
+                        <th>Outcome Message</th>
+                    </tr>
+                </thead>
+                <tbody id="batchTestTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW 5: AUDIT TRAIL TAB -->
+<div id="viewAuditSection" style="display:none;" role="region" aria-labelledby="tab-audit">
+    <div class="control-center-panel">
+        <div class="panel-header-row">
+            <div>
+                <div class="panel-title"><i class="fas fa-history" style="color:var(--ai-navy);"></i> Immutable AI Configuration &amp; Invocation Audit Trail</div>
+                <div class="panel-subtitle">Tamper-evident logs of all credential adjustments, model catalog updates, live tests, and diagnostic invocations.</div>
+            </div>
+        </div>
+
+        <table class="ai-table" style="width:100%; font-size:13px;">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Provider / Model</th>
+                    <th>Status</th>
+                    <th>Performed By</th>
+                    <th>IP Address</th>
+                    <th>Message &amp; Latency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_audits %}
+                <tr>
+                    <td style="white-space:nowrap;">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td><span class="badge" style="background:var(--ai-surface-subtle); border:1px solid var(--ai-border);">{{ log.action }}</span></td>
+                    <td><strong>{{ log.provider|default:"-" }}</strong><br><small style="color:var(--ai-text-muted);">{{ log.model_name|default:"-" }}</small></td>
+                    <td>
+                        {% if log.status == 'SUCCESS' %}
+                            <span class="status-pill status-active">SUCCESS</span>
+                        {% elif log.status == 'BLOCKED' %}
+                            <span class="status-pill status-warning">BLOCKED</span>
+                        {% else %}
+                            <span class="status-pill status-error">{{ log.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.performed_by.username|default:"SYSTEM" }}</td>
+                    <td><code>{{ log.ip_address|default:"127.0.0.1" }}</code></td>
+                    <td>
+                        {{ log.message }}
+                        {% if log.latency_ms %}<span style="color:var(--ai-text-muted); font-size:11px;">({{ log.latency_ms }} ms)</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--ai-text-muted);">No audit events recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 <!-- Add Custom Provider Modal (CUSTOM ENDPOINTS ONLY - no cloud presets) -->
 <div class="modal-backdrop-ai" id="addProviderModal" role="dialog" aria-modal="true" aria-labelledby="addProviderModalTitle">
     <div class="modal-card-ai" id="addProviderCard">
@@ -1660,27 +2336,389 @@
 
     // Tab Switcher (AI Providers vs Usage & Limits)
     function switchMainTab(tab) {
-        const tabProviders = document.getElementById('tab-providers');
-        const tabUsage = document.getElementById('tab-usage');
-        const viewProviders = document.getElementById('viewProvidersSection');
-        const viewUsage = document.getElementById('viewUsageSection');
+        const tabs = ['providers', 'catalog', 'diagnostics', 'testing', 'usage', 'audit'];
+        tabs.forEach(t => {
+            const tabBtn = document.getElementById('tab-' + t);
+            const viewSec = document.getElementById('view' + t.charAt(0).toUpperCase() + t.slice(1) + 'Section');
+            if (tabBtn) {
+                if (t === tab) {
+                    tabBtn.classList.add('is-active');
+                    tabBtn.setAttribute('aria-selected', 'true');
+                } else {
+                    tabBtn.classList.remove('is-active');
+                    tabBtn.setAttribute('aria-selected', 'false');
+                }
+            }
+            if (viewSec) {
+                viewSec.style.display = (t === tab) ? 'block' : 'none';
+            }
+        });
 
-        if (tab === 'providers') {
-            tabProviders.classList.add('is-active');
-            tabProviders.setAttribute('aria-selected', 'true');
-            tabUsage.classList.remove('is-active');
-            tabUsage.setAttribute('aria-selected', 'false');
-            viewProviders.style.display = 'block';
-            viewUsage.style.display = 'none';
-        } else {
-            tabUsage.classList.add('is-active');
-            tabUsage.setAttribute('aria-selected', 'true');
-            tabProviders.classList.remove('is-active');
-            tabProviders.setAttribute('aria-selected', 'false');
-            viewProviders.style.display = 'none';
-            viewUsage.style.display = 'block';
+        // Auto-load catalog or usage data when switched
+        if (tab === 'catalog') {
+            loadDynamicModelCatalog();
+        } else if (tab === 'usage') {
+            loadLiveTelemetryData();
         }
     }
+
+    // =========================================================================
+    // Dynamic Model Catalog Client
+    // =========================================================================
+    let cachedCatalogModels = [];
+
+    async function loadDynamicModelCatalog(forceRefresh = false) {
+        const tbody = document.getElementById('modelCatalogTableBody');
+        const btn = document.getElementById('btnRefreshCatalog');
+        if (btn) btn.disabled = true;
+
+        try {
+            const res = await fetch('/admin-portal/ai-config/models/catalog/?provider=all');
+            const data = await res.json();
+            if (data.success && data.catalog) {
+                cachedCatalogModels = data.catalog;
+                renderModelCatalogTable(cachedCatalogModels);
+                if (forceRefresh) showToast("Dynamic model catalog refreshed successfully.", "success");
+            } else {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--ai-danger);">Failed to load model catalog.</td></tr>';
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--ai-danger);">Error fetching catalog: ' + e.message + '</td></tr>';
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function renderModelCatalogTable(models) {
+        const tbody = document.getElementById('modelCatalogTableBody');
+        if (!models || models.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--ai-text-muted); padding:20px;">No models match the filter.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = models.map(m => `
+            <tr>
+                <td><strong>${m.provider_display}</strong></td>
+                <td><code>${m.model_id}</code></td>
+                <td>${m.display_name}</td>
+                <td><span class="badge" style="background:var(--ai-surface-subtle);">${m.context_window}</span></td>
+                <td>
+                    ${m.is_free ? '<span class="status-pill status-active">FREE TIER</span>' : '<span class="status-pill status-warning">PAID TIER</span>'}
+                </td>
+                <td>$${m.input_price_per_1m.toFixed(4)}</td>
+                <td>$${m.output_price_per_1m.toFixed(4)}</td>
+                <td>
+                    ${m.is_selected ? '<span style="color:var(--ai-success); font-weight:700;"><i class="fas fa-check-circle"></i> Active</span>' : '<span style="color:var(--ai-text-muted);">Available</span>'}
+                </td>
+                <td>
+                    <button type="button" class="btn-ai btn-ai-outline" style="padding:4px 8px; font-size:11.5px;" onclick="selectModelFromCatalog('${m.provider}', '${m.model_id}')">
+                        Select
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterModelCatalogUI() {
+        const query = (document.getElementById('catalogSearchInput').value || '').toLowerCase().trim();
+        const provFilter = document.getElementById('catalogProviderFilter').value;
+        const tierFilter = document.getElementById('catalogPricingFilter').value;
+
+        const filtered = cachedCatalogModels.filter(m => {
+            const matchesQuery = !query || m.model_id.toLowerCase().includes(query) || m.display_name.toLowerCase().includes(query);
+            const matchesProv = (provFilter === 'all') || (m.provider === provFilter);
+            const matchesTier = (tierFilter === 'all') || (tierFilter === 'free' && m.is_free) || (tierFilter === 'paid' && !m.is_free);
+            return matchesQuery && matchesProv && matchesTier;
+        });
+
+        renderModelCatalogTable(filtered);
+    }
+
+    function selectModelFromCatalog(provider, modelId) {
+        selectProvider(provider);
+        switchMainTab('providers');
+        const modelSelect = document.getElementById('cfgSelectedModel');
+        if (modelSelect) {
+            modelSelect.value = modelId;
+            markUnsaved();
+            showToast(`Selected model '${modelId}' for provider '${provider}'. Save configuration to apply.`, "info");
+        }
+    }
+
+    // =========================================================================
+    // Company AI Diagnostics Client
+    // =========================================================================
+    let currentSelectedCompany = null;
+    let companySearchTimeout = null;
+
+    function onDiagCompanySearchInput(val) {
+        clearTimeout(companySearchTimeout);
+        const dropdown = document.getElementById('diagCompanyDropdown');
+        if (!val || val.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        companySearchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/admin-portal/ai-config/company/search/?q=${encodeURIComponent(val)}`);
+                const data = await res.json();
+                if (data.success && data.companies && data.companies.length > 0) {
+                    dropdown.innerHTML = data.companies.map(c => `
+                        <div class="company-dropdown-item" onclick="onSelectCompanyForDiag('${c.id}', '${escape(c.name)}', '${escape(c.website_url)}', '${escape(c.industry)}')">
+                            <strong>${c.name}</strong> <span style="color:var(--ai-text-muted); font-size:11px;">(${c.id})</span><br>
+                            <span style="color:var(--ai-navy); font-size:11px;">${c.website_url}</span>
+                        </div>
+                    `).join('');
+                    dropdown.style.display = 'block';
+                } else {
+                    dropdown.innerHTML = '<div style="padding:10px; color:var(--ai-text-muted); font-size:12px;">No matching companies found.</div>';
+                    dropdown.style.display = 'block';
+                }
+            } catch (e) {
+                dropdown.style.display = 'none';
+            }
+        }, 250);
+    }
+
+    function onSelectCompanyForDiag(id, name, url, industry) {
+        currentSelectedCompany = {
+            id: id,
+            name: unescape(name),
+            url: unescape(url),
+            industry: unescape(industry)
+        };
+
+        document.getElementById('diagCompanyDropdown').style.display = 'none';
+        document.getElementById('diagCompanySearch').value = currentSelectedCompany.name;
+        document.getElementById('diagTargetName').textContent = currentSelectedCompany.name;
+        document.getElementById('diagTargetId').textContent = currentSelectedCompany.id;
+        document.getElementById('diagTargetIndustry').textContent = currentSelectedCompany.industry;
+        const link = document.getElementById('diagTargetUrlLink');
+        link.textContent = currentSelectedCompany.url;
+        link.href = currentSelectedCompany.url;
+
+        document.getElementById('diagSelectedCompanyCard').style.display = 'flex';
+        document.getElementById('diagResultsContainer').style.display = 'none';
+
+        loadCompanyDiagnosticHistory(id);
+    }
+
+    async function loadCompanyDiagnosticHistory(companyId) {
+        const histContainer = document.getElementById('diagHistoryContainer');
+        const histTbody = document.getElementById('diagHistoryTableBody');
+
+        try {
+            const res = await fetch(`/admin-portal/ai-config/company/${companyId}/history/`);
+            const data = await res.json();
+            if (data.success && data.history && data.history.length > 0) {
+                histTbody.innerHTML = data.history.map(h => `
+                    <tr>
+                        <td>${h.timestamp.replace('T', ' ').substring(0, 19)}</td>
+                        <td><code>${h.task}</code></td>
+                        <td>${h.provider} / ${h.model}</td>
+                        <td><span class="status-pill status-${h.status === 'SUCCESS' ? 'active' : 'warning'}">${h.status}</span></td>
+                        <td>${h.latency_ms} ms</td>
+                        <td>${h.total_tokens}</td>
+                        <td><span class="badge" style="background:var(--ai-surface-subtle);">${h.validation_result || 'PASSED'}</span></td>
+                    </tr>
+                `).join('');
+                histContainer.style.display = 'block';
+            } else {
+                histContainer.style.display = 'none';
+            }
+        } catch (e) {
+            histContainer.style.display = 'none';
+        }
+    }
+
+    async function executeCompanyDiagnostic() {
+        if (!currentSelectedCompany) {
+            showToast("Please select a target company first.", "warning");
+            return;
+        }
+
+        const task = document.getElementById('diagTaskSelect').value;
+        const btn = document.getElementById('btnExecuteDiagnostic');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running Diagnostic...';
+
+        try {
+            const res = await fetch('/admin-portal/ai-config/company/diagnostic/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    company_id: currentSelectedCompany.id,
+                    task: task
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('diagStatusBadge').textContent = data.status;
+                document.getElementById('diagStatusBadge').className = 'status-pill status-active';
+                document.getElementById('diagLatencyVal').textContent = data.duration_ms;
+                document.getElementById('diagTokensVal').textContent = data.tokens.total;
+                document.getElementById('diagMethodVal').textContent = data.tokens.method;
+                document.getElementById('diagEvidenceBox').textContent = data.evidence_excerpt || "No raw text excerpt returned.";
+                document.getElementById('diagStructuredJson').textContent = JSON.stringify(data.diagnostic_result, null, 2);
+
+                document.getElementById('diagResultsContainer').style.display = 'block';
+                showToast(`Diagnostic for ${currentSelectedCompany.name} completed successfully.`, "success");
+                loadCompanyDiagnosticHistory(currentSelectedCompany.id);
+            } else {
+                showToast(data.message || data.error || "Diagnostic failed.", "danger");
+            }
+        } catch (e) {
+            showToast("Error running diagnostic: " + e.message, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play" style="margin-right:6px;"></i>Run Live Diagnostic';
+        }
+    }
+
+    // =========================================================================
+    // Failover & Routing Simulation Client
+    // =========================================================================
+    async function runPrimaryPingTest() {
+        const btn = document.getElementById('btnPrimaryPing');
+        const resBox = document.getElementById('primaryPingResult');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing Primary...';
+        resBox.style.display = 'none';
+
+        try {
+            // Find current primary provider
+            const primProv = "{{ settings.primary_provider|default:'gemini' }}";
+            const res = await fetch(`/admin-portal/ai-config/provider/${primProv}/test/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            resBox.style.display = 'block';
+            if (data.success) {
+                resBox.innerHTML = `<span style="color:var(--ai-success); font-weight:700;"><i class="fas fa-check-circle"></i> Connected (${data.latency_ms || 0} ms)</span> &bull; ${data.message || 'Authentication verified.'}`;
+            } else {
+                resBox.innerHTML = `<span style="color:var(--ai-danger); font-weight:700;"><i class="fas fa-times-circle"></i> Failed:</span> ${data.message || data.error}`;
+            }
+        } catch (e) {
+            resBox.style.display = 'block';
+            resBox.innerHTML = `<span style="color:var(--ai-danger);">Error: ${e.message}</span>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-network-wired" style="margin-right:6px;"></i>Ping Primary Connection';
+        }
+    }
+
+    async function runRoutingFailoverTest() {
+        const btn = document.getElementById('btnRoutingTest');
+        const traceContainer = document.getElementById('failoverTraceContainer');
+        const traceSteps = document.getElementById('failoverTraceSteps');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Simulating Failover...';
+        traceContainer.style.display = 'none';
+
+        try {
+            const res = await fetch('/admin-portal/ai-config/test-routing/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            traceContainer.style.display = 'block';
+
+            if (data.trace && data.trace.length > 0) {
+                traceSteps.innerHTML = data.trace.map(s => `
+                    <div class="trace-step-item ${s.status === 'SUCCESS' ? 'is-success' : (s.status === 'BLOCKED' ? 'is-blocked' : '')}">
+                        <div style="font-size:13px; font-weight:700; color:var(--ai-text-main);">
+                            Step ${s.step}: ${s.phase} &bull; <span class="badge" style="background:var(--ai-surface);">${s.status || 'OK'}</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--ai-text-muted); margin-top:3px;">
+                            Provider: <strong>${s.provider || '-'}</strong> | Model: <code>${s.model || '-'}</code>
+                        </div>
+                        <div style="font-size:12px; color:var(--ai-text-main); margin-top:2px;">
+                            ${s.message || s.reason || 'Phase executed.'}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            showToast("Routing and failover simulation completed.", "info");
+        } catch (e) {
+            showToast("Error testing failover: " + e.message, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-random" style="margin-right:6px;"></i>Simulate Failover';
+        }
+    }
+
+    async function runBatchTestAll() {
+        const btn = document.getElementById('btnBatchTestAll');
+        const matrix = document.getElementById('batchTestResultsMatrix');
+        const tbody = document.getElementById('batchTestTableBody');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running All Tests...';
+        matrix.style.display = 'none';
+
+        try {
+            const res = await fetch('/admin-portal/ai-config/test-all/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            matrix.style.display = 'block';
+
+            if (data.results && data.results.length > 0) {
+                tbody.innerHTML = data.results.map(r => `
+                    <tr>
+                        <td><strong>${r.display_name}</strong> (<code>${r.provider}</code>)</td>
+                        <td><code>${r.effective_model || '-'}</code></td>
+                        <td>
+                            ${r.success ? '<span class="status-pill status-active">VERIFIED</span>' : (r.status === 'UNCONFIGURED' ? '<span class="status-pill status-warning">UNCONFIGURED</span>' : '<span class="status-pill status-error">' + r.status + '</span>')}
+                        </td>
+                        <td>${r.latency_ms || 0} ms</td>
+                        <td>${r.message || '-'}</td>
+                    </tr>
+                `).join('');
+            }
+            showToast("Batch provider testing complete.", "success");
+        } catch (e) {
+            showToast("Error running batch test: " + e.message, "danger");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-clipboard-check" style="margin-right:6px;"></i>Run All Checks';
+        }
+    }
+
+    async function loadLiveTelemetryData() {
+        try {
+            const res = await fetch('/admin-portal/ai-config/usage/summary/?days=30');
+            const data = await res.json();
+            if (data.success && data.summary) {
+                const s = data.summary;
+                const cachedEl = document.getElementById('usageTotalCached');
+                if (cachedEl && s.total_calls > 0) {
+                    cachedEl.textContent = s.total_calls + " calls";
+                }
+            }
+        } catch (e) {
+            // silent catch
+        }
+    }
+
 
     document.addEventListener("DOMContentLoaded", () => {
         // Check saved dark mode preference
@@ -1709,7 +2747,14 @@
 
     // Row Click with Unsaved Changes Guard
     function handleRowClick(provId) {
-        if (provId === currentSelectedProviderId) return;
+        const drawer = document.getElementById('configDrawer');
+        const grid = document.getElementById('aiWorkspaceGrid');
+        const isClosed = !drawer || !drawer.classList.contains('is-open') || (grid && grid.classList.contains('drawer-collapsed'));
+
+        if (provId === currentSelectedProviderId && !isClosed) {
+            return;
+        }
+
         if (hasUnsavedChanges) {
             const currentP = PROVIDERS_MAP[currentSelectedProviderId];
             const proceed = confirm(`You have unsaved changes for ${currentP ? currentP.displayName : 'the current provider'}. Discard changes and switch?`);
@@ -1725,6 +2770,15 @@
 
         currentSelectedProviderId = provId;
         hasUnsavedChanges = false;
+
+        // Auto-expand drawer if collapsed
+        toggleDrawerCollapse(false);
+        if (!force && window.innerWidth < 1200) {
+            const drawer = document.getElementById('configDrawer');
+            if (drawer) {
+                drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
 
         // 1. Highlight selected row & toggle Editing/Configure buttons
         document.querySelectorAll(".provider-row").forEach(row => {
@@ -1817,6 +2871,67 @@
         removeKeyBtn.style.display = p.hasApiKey ? "inline-block" : "none";
     }
 
+    function toggleDrawerCollapse(forceCollapse) {
+        const grid = document.getElementById('aiWorkspaceGrid');
+        const drawer = document.getElementById('configDrawer');
+        const backdrop = document.getElementById('drawerBackdrop');
+        if (!grid || !drawer) return;
+
+        let shouldClose;
+        if (typeof forceCollapse === 'boolean') {
+            shouldClose = forceCollapse;
+        } else {
+            shouldClose = drawer.classList.contains('is-open') || !grid.classList.contains('drawer-collapsed');
+        }
+
+        if (shouldClose) {
+            drawer.classList.remove('is-open');
+            if (backdrop) backdrop.classList.remove('is-open');
+            grid.classList.add('drawer-collapsed');
+            document.querySelectorAll(".provider-row").forEach(row => {
+                row.classList.remove("is-active-editing");
+                const btn = row.querySelector("button[id^='btn-action-']");
+                if (btn) {
+                    btn.className = "btn-row-configure";
+                    btn.textContent = "Configure";
+                }
+            });
+        } else {
+            drawer.classList.add('is-open');
+            if (backdrop && !grid.classList.contains('is-docked')) {
+                backdrop.classList.add('is-open');
+            }
+            grid.classList.remove('drawer-collapsed');
+        }
+    }
+
+    function toggleDockMode() {
+        const grid = document.getElementById('aiWorkspaceGrid');
+        const backdrop = document.getElementById('drawerBackdrop');
+        const dockBtnText = document.getElementById('dockBtnText');
+        if (!grid) return;
+
+        grid.classList.toggle('is-docked');
+        const isDocked = grid.classList.contains('is-docked');
+        if (dockBtnText) {
+            dockBtnText.textContent = isDocked ? 'Float' : 'Dock View';
+        }
+        if (isDocked && backdrop) {
+            backdrop.classList.remove('is-open');
+        } else if (!isDocked && backdrop && document.getElementById('configDrawer') && document.getElementById('configDrawer').classList.contains('is-open')) {
+            backdrop.classList.add('is-open');
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const drawer = document.getElementById('configDrawer');
+            if (drawer && drawer.classList.contains('is-open')) {
+                toggleDrawerCollapse(true);
+            }
+        }
+    });
+
     function updateRoleRadioUI(roleValue) {
         document.querySelectorAll("input[name='providerRole']").forEach(radio => {
             radio.checked = (radio.value === roleValue);
@@ -1824,6 +2939,20 @@
         document.getElementById("roleCardPrimary").classList.toggle("is-selected", roleValue === 'primary');
         document.getElementById("roleCardFailover").classList.toggle("is-selected", roleValue === 'failover');
         document.getElementById("roleCardNotUsed").classList.toggle("is-selected", roleValue === 'not_used');
+
+        const descEl = document.getElementById("roleActiveDesc");
+        if (descEl) {
+            if (roleValue === 'primary') {
+                descEl.textContent = "Primary: Always called first for company page classification and intelligence extraction.";
+                descEl.style.borderLeftColor = "#2563EB";
+            } else if (roleValue === 'failover') {
+                descEl.textContent = "Failover: Automatically takes over if Primary fails, rate-limits, or exhausts quota.";
+                descEl.style.borderLeftColor = "var(--ai-warning)";
+            } else {
+                descEl.textContent = "Inactive: Excluded from automated crawler routing. Available for manual tests.";
+                descEl.style.borderLeftColor = "var(--ai-border-strong)";
+            }
+        }
     }
 
     function onRoleChange(newRole) {

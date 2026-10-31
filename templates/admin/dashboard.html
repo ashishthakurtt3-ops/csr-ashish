@@ -66,7 +66,7 @@
 {% endif %}
 
 <!-- 3. TOP KPI CARDS WITH VISUAL HIERARCHY -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px;">
+<div class="dashboard-kpi-grid">
     <!-- 1. Companies Monitored -->
     <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
         <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(15, 118, 110, 0.1); color: var(--primary-brand); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
@@ -133,7 +133,7 @@
 </div>
 
 <!-- 4. ANALYTICS & STATISTICAL BREAKDOWNS (2 COLUMNS) -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px;">
+<div class="dashboard-split-grid">
     <!-- LEFT: CSR & Sector Intelligence -->
     <div class="admin-card" style="margin-bottom: 0; padding: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
@@ -203,7 +203,7 @@
 </div>
 
 <!-- 5. TOP HIRING COMPANIES & RECENT OPPORTUNITIES (2 COLUMNS) -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px;">
+<div class="dashboard-split-grid">
     <!-- Top Hiring Companies with Direct Link to Company Jobs -->
     <div class="admin-card" style="margin-bottom: 0; padding: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
@@ -282,7 +282,7 @@
         </div>
     </div>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="dashboard-split-grid" style="margin-bottom:0;">
         <div>
             <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-primary);">Jobs by Verification Status</h4>
             <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -368,4 +368,143 @@
         </table>
     </div>
 </div>
+
+<!-- 7. AUTHORITATIVE SNAPSHOT & AUDIT RUN GOVERNANCE -->
+<div class="admin-card" style="margin-bottom: 32px;" id="snapshot-audit-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                <span>🛡️ Precomputed Snapshot &amp; Audit Governance</span>
+                {% if snapshot_is_stale %}
+                <span class="badge-status badge-pending" style="font-size: 11px;">⚠️ Stale (&gt;24h)</span>
+                {% else %}
+                <span class="badge-status badge-active" style="font-size: 11px;">✓ Active Snapshot #{{ audit_run_id }}</span>
+                {% endif %}
+            </h3>
+            <div style="font-size: 12.5px; color: var(--text-secondary);">
+                Authoritative platform statistics precomputed at audit time. Data as of: <strong>{{ data_as_of|default:"Live" }}</strong>
+            </div>
+        </div>
+        <div>
+            <button id="btn-run-audit-now" class="btn-admin btn-admin-primary" onclick="triggerAuditNow()" style="cursor: pointer;">
+                <span id="audit-btn-text">⚡ Run Audit Now</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Audit History Table -->
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Status</th>
+                    <th>Triggered By</th>
+                    <th>Started At</th>
+                    <th>Finished At</th>
+                    <th>Jobs Tracked</th>
+                    <th>Validation / Notes</th>
+                </tr>
+            </thead>
+            <tbody id="audit-history-tbody">
+                {% for r in audit_history %}
+                <tr {% if r.is_current %}style="background: rgba(15, 118, 110, 0.05); font-weight: 600;"{% endif %}>
+                    <td style="font-family: var(--font-mono); font-size: 12px;">
+                        #{{ r.id }} {% if r.is_current %}<span style="color: var(--primary-brand); font-size: 11px;">(CURRENT)</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if r.status == 'COMPLETE' %}
+                        <span class="badge-status badge-active">COMPLETE</span>
+                        {% elif r.status == 'RUNNING' %}
+                        <span class="badge-status" style="background: #E0F2FE; color: #0284C7;">RUNNING</span>
+                        {% elif r.status == 'SKIPPED_SUSPECT' %}
+                        <span class="badge-status badge-pending">SKIPPED_SUSPECT</span>
+                        {% else %}
+                        <span class="badge-status" style="background: #FEE2E2; color: #DC2626;">FAILED</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 12px;">{{ r.triggered_by }}</td>
+                    <td style="font-size: 12px; font-family: var(--font-mono);">{{ r.started_at|date:"Y-m-d H:i" }}</td>
+                    <td style="font-size: 12px; font-family: var(--font-mono);">{{ r.finished_at|date:"Y-m-d H:i"|default:"--" }}</td>
+                    <td style="font-size: 13px;">{{ r.job_count|default:0 }}</td>
+                    <td style="font-size: 12px; max-width: 320px;">
+                        {% if r.validation_report.warnings %}
+                            <span style="color: #B45309;">⚠️ {{ r.validation_report.warnings.0 }}</span>
+                        {% elif r.validation_report.errors %}
+                            <span style="color: #DC2626;">❌ {{ r.validation_report.errors.0 }}</span>
+                        {% elif r.notes %}
+                            {{ r.notes|truncatechars:50 }}
+                        {% else %}
+                            <span style="color: var(--success);">✓ All validation checks passed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                        No audit runs recorded yet. Click "Run Audit Now" to build the initial snapshot.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Last Reconciliation Table (if available) -->
+    {% if current_audit_run.validation_report.reconciliation %}
+    <div style="margin-top: 20px; padding: 14px 18px; background: rgba(15, 118, 110, 0.03); border: 1px solid rgba(15, 118, 110, 0.15); border-radius: var(--radius-md);">
+        <div style="font-size: 13px; font-weight: 700; color: var(--primary-brand); margin-bottom: 8px;">
+            Authoritative Reconciliation Status (Accuracy Guard)
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); margin-left: 8px;">
+                Reconciled at: {{ current_audit_run.validation_report.reconciliation.reconciled_at|slice:":16" }}
+            </span>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            {% for item in current_audit_run.validation_report.reconciliation.results|slice:":6" %}
+            <div style="background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; font-size: 12px;">
+                <span style="color: var(--text-secondary);">{{ item.label }}:</span>
+                <strong style="color: var(--text-primary); margin: 0 4px;">{{ item.snapshot }}</strong>
+                {% if item.match %}
+                <span style="color: var(--success); font-weight: 700;">✓ MATCH</span>
+                {% else %}
+                <span style="color: #DC2626; font-weight: 700;">✗ DIFF: {{ item.diff }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function triggerAuditNow() {
+    const btn = document.getElementById('btn-run-audit-now');
+    const btnText = document.getElementById('audit-btn-text');
+    if (!btn || btn.disabled) return;
+
+    btn.disabled = true;
+    btnText.textContent = "⏳ Running audit & snapshots...";
+
+    fetch("{% url 'admin_portal:run_audit_now' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "notes=Triggered+from+Admin+Dashboard"
+    })
+    .then(r => r.json())
+    .then(data => {
+        btnText.textContent = "✓ Complete! Reloading...";
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    })
+    .catch(err => {
+        btnText.textContent = "Error triggering audit";
+        btn.disabled = false;
+        alert("Failed to start audit: " + err);
+    });
+}
+</script>
 {% endblock %}

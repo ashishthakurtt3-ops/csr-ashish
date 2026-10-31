@@ -1,0 +1,748 @@
+<USER_REQUEST>
+# MASTER IMPLEMENTATION PROMPT: HIGH-ACCURACY AI-ASSISTED CSR JOB INTELLIGENCE CRAWLER
+## Phase 1: First 50 Companies Only — Evidence-Based Extraction, Verification and Review
+
+### 1. Your role and objective
+
+Act as a senior AI systems architect, Django engineer, web-crawling specialist, data-quality engineer, database engineer, QA engineer and technical auditor.
+
+I have an existing production-oriented Django + MySQL project named **CSR Job Intelligence / ImpactBridge**.
+
+The platform is intended to collect accurate information from Indian companies, including:
+
+1. Genuine, currently available job vacancies.
+2. Official career portals and applicant tracking system (ATS) links.
+3. Actual Corporate Social Responsibility (CSR) projects and initiatives.
+4. CSR reports, sustainability disclosures and annual reports.
+5. Procurement opportunities, CSR tenders, grants and requests for proposals, where genuinely available.
+6. Relevant source URLs, dates, locations, financial years, amounts and supporting evidence.
+
+My highest priority is **accuracy, not maximum record count**.
+
+I want to improve the existing system so that it intelligently discovers relevant pages, accurately extracts information, independently validates the results and prevents fabricated, outdated, duplicated or incorrectly attributed data from being published.
+
+Do not rebuild the project from scratch. First inspect the actual codebase and then improve the existing implementation with the smallest appropriate changes.
+
+---
+
+## 2. Strict scope: only the first 50 companies
+
+The initial pilot must process exactly these 50 company records:
+
+`COMP_TOP200_001` through `COMP_TOP200_050`, inclusive.
+
+That means:
+
+- Batch size: exactly 50 company IDs.
+- Use the existing `Company` records and their current `website_url` values in MySQL.
+- Include `COMP_TOP200_001` through `COMP_TOP200_050`.
+- Exclude `COMP_0` (Razorpay) from this initial batch.
+- Exclude `COMP_TOP200_051` through `COMP_TOP200_200`.
+- Do not crawl all 201 records.
+- Do not automatically start another batch after finishing this one.
+
+Before starting, verify that all 50 intended IDs exist and map to exactly one company each. If any are missing or duplicated, report the issue rather than substituting another company.
+
+Implement configurable company selection so I can later select batches of 50 or provide specific company IDs without rewriting the crawler.
+
+Suggested future batches:
+
+- Batch 1: `COMP_TOP200_001`–`COMP_TOP200_050`
+- Batch 2: `COMP_TOP200_051`–`COMP_TOP200_100`
+- Batch 3: `COMP_TOP200_101`–`COMP_TOP200_150`
+- Batch 4: `COMP_TOP200_151`–`COMP_TOP200_200`
+
+These future batches are configuration examples only. Do not execute them now.
+
+Every execution must require an explicit batch name or explicit company-ID selection. Never default to crawling the complete database.
+
+---
+
+## 3. Protect the existing application and production data
+
+This assignment allows targeted source-code improvements and a controlled pilot. It does not authorize uncontrolled production data changes.
+
+### Before modifying code
+
+1. Inspect the current Git state, working-tree modifications and recent commit.
+2. Preserve all pre-existing user changes. Never discard, overwrite or revert unrelated work.
+3. Inspect the existing crawler, parsers, verification functions, models, APIs, management commands, tests and configuration.
+4. Identify the exact entry points used for crawling and database persistence.
+5. Read the existing homepage update audit and backup paths where available.
+
+### Important restrictions
+
+Do not:
+
+- Re-update or replace the company homepage URLs.
+- Change company names, IDs, tickers or unrelated company fields.
+- Delete, activate, deactivate, expire, reject, quarantine or rewrite existing job records.
+- Modify existing CSR projects, job records or opportunity records during the pilot.
+- Change frontend visibility filters, APIs, subscriptions, wallet logic, billing, authentication or unrelated business logic.
+- Run database migrations or modify the database schema in this phase.
+- Install or upgrade dependencies without reporting a specific necessity and obtaining approval.
+- Change Git branches, commit, push, reset, rebase or discard user changes.
+- Bypass CAPTCHA, authentication, access controls or anti-bot restrictions.
+- Use AI-generated examples or test fixtures as genuine company data.
+
+**The initial pilot must be read-only against production MySQL.** It may read the 50 company records, but extracted candidates must be written to separate audit artifacts, not to the live jobs or CSR tables.
+
+If the existing implementation cannot support this safely, build a non-persistent pilot execution path instead of modifying production records.
+
+---
+
+# PART A — INSPECT AND IMPROVE THE EXISTING SYSTEM
+
+## 4. Audit the actual implementation first
+
+Inspect, at minimum, the relevant existing components:
+
+- `modules/admin_panel/models/company.py`
+- `modules/admin_panel/models/job.py`
+- `modules/admin_panel/models/csr.py`
+- `modules/admin_panel/verification.py`
+- `modules/crawler_engine/crawler.py`
+- `modules/crawler_engine/discovery_helpers.py`
+- `modules/crawler_engine/parsers/`
+- `config/ats_domains.json`
+- `config/keywords.json`
+- Relevant management commands, source-evidence models, crawl-history models, tests and database persistence functions.
+
+Verify actual file paths before using them. These paths are starting points, not an instruction to assume the implementation is complete or correct.
+
+Document how the current code identifies company websites, discovers pages, invokes AI if at all, extracts records, assigns statuses, prevents duplicates and persists data.
+
+Identify precise defects and gaps before editing.
+
+Do not simply add another AI layer on top of an existing defective pipeline.
+
+## 5. Preserve existing homepage URLs as the starting points
+
+The project recently updated 193 company homepage URL values from the manually checked Yahoo Finance audit, leaving eight records unchanged because no accepted Yahoo Finance URL was collected.
+
+For this task:
+
+- Read the current `Company.website_url` from MySQL.
+- Use the stored URL as the initial seed for each selected company.
+- Do not repeat the Yahoo Finance/Wikidata reconciliation.
+- Do not change homepage URLs or the eight previously skipped records.
+- Do not assume that the presence of a homepage means its careers or CSR pages are known.
+- Do not treat Yahoo Finance as a source for job or CSR content.
+
+The current homepage is the starting point for discovering corporate information. Every subsequently discovered page must have its own evidence and relevance checks.
+
+---
+
+# PART B — BUILD A SMART, HIGH-PRECISION DISCOVERY PIPELINE
+
+## 6. Discover pages systematically
+
+Improve the existing discovery engine so that it uses deterministic methods first and AI-assisted interpretation where useful.
+
+Inspect and use, where available:
+
+1. The company homepage.
+2. Internal HTML links.
+3. Navigation menus and footer links.
+4. `sitemap.xml` and relevant sitemap indexes.
+5. Public `robots.txt` rules and crawl restrictions.
+6. Canonical URLs and page metadata.
+7. Relevant structured data embedded in HTML.
+8. Linked PDF reports and annual reports.
+9. Official careers portals and ATS pages explicitly linked from company websites.
+10. Additional pages discovered through verified, relevant link chains.
+
+Search for meaningful page types, including Careers, Jobs, Openings, Vacancies, CSR, Sustainability, ESG, Social Impact, Annual Reports, Projects, Procurement, Tenders, Grants and RFPs.
+
+Use configurable classification rules rather than relying only on fixed URL keywords. Relevant information can appear at unexpected paths, and a page with a matching keyword may still be irrelevant.
+
+### External website rules
+
+Do not crawl every external link indiscriminately.
+
+An external career site or ATS should be accepted as associated with a company only when there is sufficient evidence, such as an explicit link from the company's official website or a documented, independently verified association.
+
+Keep the distinction between:
+
+- Official company-owned pages.
+- Official linked ATS pages.
+- Official external documents.
+- Unrelated job aggregators.
+- Search results and third-party commentary.
+- Unknown or suspicious pages.
+
+Do not use an unknown external URL merely because AI predicts it is relevant.
+
+### Bounded crawling
+
+Add configurable limits for:
+
+- Maximum pages per company.
+- Maximum crawl depth.
+- Maximum pages per domain.
+- Maximum ATS pagination.
+- Request timeouts.
+- Retries and backoff.
+- Per-domain request rate.
+- Maximum document size.
+- Total run time or request budget.
+
+Use reasonable conservative defaults for the first batch. Reuse existing politeness controls where they already work.
+
+A failed, blocked or incomplete crawl must be marked `BLOCKED`, `FAILED` or `PARTIAL`, as appropriate. It must never be misreported as evidence that the company has no jobs or CSR projects.
+
+---
+
+# PART C — USE AI FOR IDENTIFICATION, NOT INVENTION
+
+## 7. AI-assisted page classification
+
+Integrate AI with the existing pipeline only after inspecting the current AI configuration and verifying that the integration is actually needed.
+
+The AI may classify discovered pages into categories such as:
+
+- `COMPANY_HOMEPAGE`
+- `CAREERS_LANDING`
+- `JOB_LISTING_PAGE`
+- `JOB_DETAIL_PAGE`
+- `CSR_LANDING`
+- `CSR_PROJECT_PAGE`
+- `SUSTAINABILITY_REPORT`
+- `ANNUAL_REPORT`
+- `PROCUREMENT_OPPORTUNITY`
+- `GENERAL_COMPANY_INFORMATION`
+- `IRRELEVANT`
+- `UNKNOWN`
+
+Supply the AI with the actual URL, page title, relevant page text and discovered link context.
+
+Require structured output that follows a defined schema and includes the evidence supporting the classification.
+
+AI must be allowed to return `UNKNOWN` or `NEEDS_REVIEW`. It must not be forced to classify every page as a useful source.
+
+A numeric confidence score, if supported, must be used only as a review-prioritization signal. It is not proof of accuracy or permission to publish.
+
+### AI configuration and cost control
+
+- Reuse existing approved AI integrations if available.
+- Honor existing zero-cost settings and provider restrictions.
+- Never expose or print API keys.
+- Never silently enable a paid API or change the configured AI provider.
+- If no permitted AI configuration is available, use deterministic discovery and parsing and mark AI classification as unavailable.
+- Do not fabricate an AI response when a provider call fails.
+- Validate and sanitize all model outputs before using them.
+
+If AI integration is not currently connected to the crawler, implement it only where useful and compatible with the current architecture. Do not claim AI is working merely because configuration fields exist.
+
+---
+
+# PART D — EXTRACT JOBS WITH STRICT FACTUAL VALIDATION
+
+## 8. Job discovery and extraction
+
+Prioritize extraction methods in this order, where applicable:
+
+1. Structured `JobPosting` data that corresponds to readable page content.
+2. Official ATS APIs, feeds or structured responses that the company actually exposes.
+3. Existing specialized parsers for supported ATS systems.
+4. Semantic HTML and DOM extraction.
+5. PDF or document extraction where job details are actually published in a document.
+6. AI-assisted extraction from actual source content when deterministic methods cannot reliably identify the fields.
+
+Do not force all websites into the same parser. Reuse the project's existing specialized parsers.
+
+### Job fields
+
+Extract only fields supported by the source, as applicable:
+
+- Company ID.
+- Job title.
+- Actual job description.
+- Responsibilities and requirements.
+- Location.
+- Employment type.
+- Experience level.
+- Salary or compensation.
+- Posting date.
+- Application deadline.
+- Requisition or job ID.
+- Direct application URL.
+- Original source URL.
+- Evidence excerpts.
+- Date discovered and last checked.
+
+If a field is missing, return `null` or the project's appropriate unknown value. Never fabricate salary, experience, location, dates or responsibilities.
+
+### Job acceptance rules
+
+A candidate must be rejected or sent for review if it is:
+
+- A general career page rather than an actual vacancy.
+- A navigation element, category heading, search button or irrelevant content.
+- A duplicate of the same posting.
+- An unrelated job belonging to another company.
+- A generic search results URL that cannot identify a specific posting.
+- A job with no traceable source evidence.
+- An expired or closed vacancy presented as currently open.
+- A fabricated record created by an AI response.
+
+Check application links and the content of the corresponding listing. An HTTP 200 response alone does not prove that the job is available.
+
+Where a URL returns a 404, 429, 403, CAPTCHA page or temporary error, distinguish that outcome from a confirmed vacancy closure. Retry responsibly and preserve uncertainty.
+
+Never assign an active or verified production status during the pilot.
+
+---
+
+# PART E — EXTRACT CSR DATA WITH STRICT FACTUAL VALIDATION
+
+## 9. Distinguish actual CSR projects from other corporate information
+
+The system must distinguish clearly between:
+
+1. A specific CSR project.
+2. A company's broad CSR policy or commitment.
+3. A sustainability target.
+4. Historical CSR expenditure.
+5. An annual report or CSR disclosure.
+6. An active request for proposals or funding opportunity.
+7. An unrelated community or marketing activity.
+
+Do not treat all sustainability-related content as a CSR project.
+
+### CSR extraction fields
+
+Extract fields only where they are supported:
+
+- Company ID.
+- Project name.
+- Project description.
+- CSR sector or category.
+- Geographic location and state.
+- Financial year.
+- Reported budget, amount sanctioned or expenditure, with its exact meaning.
+- Implementation partner, NGO or agency.
+- Project status or duration, where explicitly stated.
+- Beneficiary information, where documented.
+- Official source URL.
+- Report title and PDF page reference, where applicable.
+- Evidence excerpts.
+- Date discovered and last checked.
+
+Keep separate fields or labels for financial years, currency, approved budgets, actual spending and other amounts. Do not mix them.
+
+### CSR acceptance rules
+
+Require evidence that the project is actually attributed to the relevant company.
+
+A company policy, general education initiative, donation announcement or sustainability slogan is not automatically proof of a specific CSR project.
+
+Do not infer a project budget, district, beneficiary, ongoing status or implementation partner.
+
+For procurement opportunities, verify that an actual tender, RFP, grant or application opportunity exists. A historical expenditure announcement does not constitute an open opportunity.
+
+If the report establishes that a company conducted a project but does not establish whether it remains ongoing, preserve the documented historical information without falsely marking it as currently active.
+
+---
+
+# PART F — EVIDENCE-FIRST VERIFICATION
+
+## 10. Introduce field-level provenance
+
+Every candidate record must have traceable evidence.
+
+For every material field, preserve as much of the following as practical:
+
+- Source URL.
+- Canonical URL.
+- Company ID.
+- Retrieved timestamp.
+- HTTP result or document retrieval result.
+- Page title.
+- Relevant text excerpt.
+- PDF page number, if applicable.
+- Extraction method.
+- Parser or AI model/version, if used.
+- Verification checks and results.
+- Duplicate-match result.
+- Freshness result.
+- Reason for acceptance, rejection or review.
+
+If the existing project contains evidence or page-snapshot models, inspect whether these can support the pilot without changing the schema.
+
+For this first pilot, store the evidence in the pilot report files. Do not require a production database migration just to test the approach.
+
+Do not save only the AI-generated answer. Preserve the actual source context that supports the answer.
+
+A record with no evidence for a material claim cannot be considered verified.
+
+## 11. Apply deterministic verification independently of AI
+
+Develop or strengthen explicit validation rules for:
+
+### Company attribution
+- The record relates to the correct company.
+- The source belongs to the correct legal entity, subsidiary or verified official ATS.
+- Similar company names and ticker mismatches are detected.
+
+### URL integrity
+- HTTP and HTTPS URLs are syntactically valid.
+- Redirect chains are recorded.
+- Unapproved external destinations are rejected or reviewed.
+- Localhost, private IP addresses and unsafe redirects are blocked to prevent server-side request forgery.
+- URL normalization is used for comparison and deduplication without destroying meaningful paths or query parameters.
+
+### Content integrity
+- Required fields contain meaningful source-supported values.
+- Navigation labels are not misidentified as records.
+- Dates and amounts are consistent with source text.
+- Historical and current information are clearly distinguished.
+- Duplicate and near-duplicate records are identified.
+
+### Publication safety
+- A page classification score alone cannot approve a record.
+- A successful HTTP request alone cannot verify its content.
+- A valid JSON response from an LLM cannot establish factual correctness.
+- Missing data cannot be guessed.
+- Conflicting evidence requires review.
+- An access failure does not automatically mean a vacancy is expired.
+
+Produce explicit, auditable pass/fail/unknown results for these checks.
+
+---
+
+# PART G — ACCURACY, DUPLICATES AND FRESHNESS
+
+## 12. Duplicate handling
+
+Inspect the existing deduplication logic, including the current content hashes, canonical URLs, job identifiers and company associations.
+
+Use several stable signals, where available:
+
+- Company ID.
+- Official job or requisition ID.
+- Canonical source URL.
+- Normalized title and location.
+- Source-specific identifiers.
+- Content fingerprint.
+
+Do not merge two records merely because they have similar titles. Companies can have multiple genuinely different vacancies with similar titles.
+
+Identify duplicates in the report only. Do not delete or merge existing database records.
+
+## 13. Freshness checks
+
+For job candidates, determine whether the source currently presents the position as available and whether the direct application destination remains valid.
+
+For CSR projects, preserve the source's financial year and documented time period.
+
+Use repeat attempts and controlled backoff when failures appear temporary.
+
+During the first pilot, do not change production statuses of existing records.
+
+---
+
+# PART H — BUILD A REPEATABLE BATCH SYSTEM
+
+## 14. Configurable company selection
+
+Implement a clear way to select companies for crawling without editing crawler source code each time.
+
+Use an existing configuration mechanism if suitable. Otherwise, introduce a lightweight batch configuration and a Django management command.
+
+A suggested command structure is:
+
+`python manage.py crawl_company_batch --batch batch_001_050 --dry-run`
+
+Adapt the command name and arguments to the existing project conventions.
+
+Support, as appropriate:
+
+- A named batch from a configuration file.
+- Explicit company IDs.
+- A dry-run/pilot mode.
+- A configurable page/request limit.
+- A resume option for interrupted pilot runs.
+- A clear summary of selected, completed, failed and skipped company IDs.
+
+The command must validate its selection before making network requests.
+
+For this pilot, the configured batch must resolve to exactly the 50 company IDs from `COMP_TOP200_001` through `COMP_TOP200_050`.
+
+Never silently expand the selection to all database records.
+
+Never automatically move from Batch 1 to Batch 2.
+
+Future company batches must be explicitly selected by the user.
+
+---
+
+# PART I — REQUIRED FIRST-50 PILOT EXECUTION
+
+## 15. Run the pilot and create reviewable results
+
+After implementing and testing the required code changes, run the pilot against only the first 50 companies.
+
+Use the current homepage URL stored in each selected Company record.
+
+Respect crawling limits and website access restrictions. Do not bypass protections.
+
+Do not write new jobs, CSR projects, opportunities, verification statuses or crawl-derived company fields into production MySQL.
+
+Save pilot outputs only under a uniquely named directory similar to:
+
+`reports/accuracy_pilot_batch_001_050/`
+
+Create the following artifacts.
+
+### A. `pilot_summary.md`
+
+Include:
+
+- Batch name and exact company IDs.
+- Start/end timestamps.
+- Number of companies selected, completed, partially completed and failed.
+- Number of homepages fetched successfully.
+- Number of pages inspected and documents processed.
+- Number of career pages and ATS portals discovered.
+- Number of candidate jobs extracted.
+- Number of candidate CSR projects extracted.
+- Number of potential opportunities extracted.
+- Number of rejected candidates and reasons.
+- Number of duplicate candidates.
+- Number of candidates sent for manual review.
+- AI provider/model status without disclosing secrets.
+- Limitations, failed companies and blocked websites.
+- Confirmation that production data was not modified.
+
+Do not claim accuracy or completeness from record counts alone.
+
+### B. `company_crawl_results.csv`
+
+One row per selected company, including:
+
+- Company ID and name.
+- Starting homepage URL.
+- Final homepage URL after redirects.
+- Homepage reachability status.
+- Page count.
+- Relevant pages discovered.
+- ATS discovery result.
+- CSR discovery result.
+- Crawl status.
+- Any error or access limitation.
+
+### C. `discovered_sources.csv`
+
+One row per discovered relevant source, including:
+
+- Company ID.
+- Source URL.
+- Page title.
+- Source type.
+- Origin domain.
+- Link trail or reason the source is considered associated with the company.
+- Extraction method.
+- Retrieval result.
+- Evidence summary.
+- Review status.
+
+### D. `job_candidates.csv`
+
+One row per extracted candidate job, including:
+
+- Candidate ID.
+- Company ID and name.
+- Title.
+- Location.
+- Employment type.
+- Experience.
+- Salary, if supported.
+- Posting date, if supported.
+- Apply URL.
+- Original source URL.
+- Supporting evidence for material fields.
+- Freshness result.
+- Duplicate result.
+- Validation results.
+- Final candidate classification.
+- Reason for any rejection or review.
+
+### E. `csr_candidates.csv`
+
+One row per extracted CSR candidate, including:
+
+- Candidate ID.
+- Company ID and name.
+- Project name.
+- Description.
+- CSR category.
+- Location and state.
+- Financial year.
+- Amount and its reported meaning.
+- Implementation partner, if supported.
+- Source URL.
+- Report title and PDF page number, if applicable.
+- Supporting evidence.
+- Duplicate result.
+- Validation results.
+- Final candidate classification.
+- Reason for any rejection or review.
+
+### F. `opportunity_candidates.csv`
+
+One row per extracted procurement or funding opportunity, if any exist. Include the source URL, actual opportunity type, company attribution, deadline, eligibility information and supporting evidence where available.
+
+If no candidates are found, produce the file with its headers and state that no candidates were discovered during this bounded pilot. Do not invent records to fill the file.
+
+### G. `rejected_and_review_candidates.csv`
+
+Include candidate records rejected or sent for review, with explicit reasons such as:
+
+- Irrelevant page.
+- Weak company attribution.
+- Insufficient evidence.
+- Invalid application URL.
+- Duplicate candidate.
+- Uncertain project classification.
+- Historical rather than current vacancy.
+- Conflicting evidence.
+- Access blocked.
+- Parsing failure.
+
+Preserve enough information to investigate why the candidate was not accepted.
+
+### H. `pilot_accuracy_review.md`
+
+Summarize measurable quality checks and provide representative examples of:
+
+- Correctly extracted candidates.
+- False positives.
+- Missing or unextractable information.
+- Duplicates.
+- Company-attribution concerns.
+- Stale or closed jobs.
+- CSR policies incorrectly resembling projects.
+- Sources the crawler could not access.
+
+Clearly distinguish automated checks from manual verification. Do not claim manually verified accuracy unless an actual human has reviewed the records.
+
+---
+
+# PART J — TESTING THE IMPROVEMENTS
+
+## 16. Build regression and safety tests
+
+Add tests for the new discovery, extraction, validation and batch-selection behavior using local fixtures or mocked responses rather than uncontrolled production crawls.
+
+Test at least:
+
+1. Correct discovery of a relevant career link.
+2. Correct rejection of a navigation link.
+3. Discovery of an explicitly linked official ATS.
+4. Correct handling of an unrelated external link.
+5. Extraction from valid structured job data.
+6. Handling of incomplete job details.
+7. Handling of a CSR report PDF and missing fields.
+8. Distinguishing a CSR policy from a specific project.
+9. Duplicate detection without merging distinct vacancies.
+10. Redirect and URL-normalization behavior.
+11. Timeout, 403, 404, 429 and parsing failure handling.
+12. No fabricated values when evidence is missing.
+13. Correctly rejecting a company-ID/ticker mismatch.
+14. Exactly 50 companies in Batch 1.
+15. No execution against companies outside the selected batch.
+16. No writes to production job, CSR, opportunity or status tables in pilot mode.
+
+Use safe test settings and mock any external network operations as appropriate.
+
+Do not run tests that modify production data. If an existing test requires an unsafe environment, report it instead of running it.
+
+---
+
+# PART K — MEASURE THE RESULTS HONESTLY
+
+## 17. Use accuracy metrics that matter
+
+Do not judge the system by how many records it extracts.
+
+Measure, where the required reference labels can be collected:
+
+- **Precision:** the proportion of extracted candidates that are genuinely relevant and correctly attributed.
+- **Recall:** the proportion of known eligible records that the crawler finds.
+- Duplicate rate.
+- Invalid application-link rate.
+- Incorrect company-attribution rate.
+- Percentage of records with traceable evidence.
+- Percentage of records with unknown mandatory fields.
+- CSR policy-versus-project classification errors.
+- Stale-job detection errors.
+- Crawl success and partial coverage rates.
+
+For this initial run, some metrics may remain unavailable because a complete manually verified reference set does not yet exist. Report those metrics as `NOT MEASURED`, not zero or 100%.
+
+If a manual reference set is needed, produce a review worksheet so the operator can classify candidates as correct, incorrect or uncertain.
+
+Do not invent precision, recall, confidence or completeness figures.
+
+---
+
+# PART L — FINAL SAFETY CHECKS
+
+## 18. Acceptance criteria
+
+The implementation is complete only when all of the following conditions hold:
+
+- The existing crawler has been inspected before changes were made.
+- The necessary improvements are implemented in the appropriate existing modules.
+- AI is used only where it adds real value and respects the configured provider/cost restrictions.
+- Missing or unsupported facts remain unknown rather than guessed.
+- Every candidate is associated with source evidence.
+- Company identity and source-origin checks are enforced.
+- Job, CSR-project and procurement-opportunity classifications remain separate.
+- Failed and blocked pages do not automatically create false negatives.
+- Duplicate detection does not destroy legitimate records.
+- Batch selection is configurable.
+- Batch 1 contains exactly the 50 specified company IDs.
+- The pilot does not publish or write extracted records to production MySQL.
+- The eight previously skipped homepage records are untouched.
+- Existing homepage URLs are unchanged.
+- Existing unrelated user changes are preserved.
+- All safe tests are run and their actual outcomes are reported.
+- All pilot artifacts are created in the designated report directory.
+- No future batches are run automatically.
+
+## 19. Required final report
+
+When finished, provide a concise summary containing:
+
+1. The code files changed and why.
+2. The tests executed and actual outcomes.
+3. The exact 50 companies processed.
+4. Number of successful, partial and failed company crawls.
+5. Numbers of job, CSR and opportunity candidates.
+6. Counts rejected or sent to manual review.
+7. Main accuracy problems found.
+8. The paths of all generated CSV, JSON and Markdown reports.
+9. Confirmation of whether production MySQL was modified; the expected answer is **no**.
+10. Any incomplete or blocked tests.
+11. The command to rerun Batch 1.
+12. The precise command or configuration method to select Batch 2 later, without running it now.
+
+Do not say that the crawler is accurate simply because the command completed. Accuracy must be evaluated against actual evidence and, where appropriate, manually reviewed candidates.
+
+**Begin by inspecting the current implementation. Then make the smallest justified changes, test them safely, run only Batch 1, and deliver the evidence-backed pilot report. Do not ask me to explain existing code that you can inspect directly.**
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-29T17:50:40+05:30.
+
+The user's current state is as follows:
+Active Document: d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\reports\project_audit\00_MASTER_INDEX.md (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\reports\stage1a_shortcut\manual_url_review_all_companies.md (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\inspect_yahoo_csv.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\check_pairs.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\verify_db_checksum.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scripts\classify_stage1a_part2.py (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>

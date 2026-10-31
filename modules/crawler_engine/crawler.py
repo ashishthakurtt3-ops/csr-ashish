@@ -23,6 +23,8 @@ from .access_detector import fetch_live_page, DEFAULT_HEADERS
 from .link_verifier import build_highlight_url, verify_url_live
 from .semantic_matcher import score_link_semantics, probe_subdomains_and_paths, mine_sitemap_for_links
 from .normalizers import clean_text, normalize_canonical_url, build_job_fingerprint
+from .discovery_helpers import is_real_deep_url, is_same_registrable_domain_or_ats, verify_careers_url_content
+from .location_normalizer import normalize_job_location
 from .strategies.pipeline import StrategyPipeline
 
 # Blacklist of navigation/footer garbage and action buttons that must NEVER be saved as a Job title
@@ -108,9 +110,9 @@ def discover_company_official_links(domain_url: str) -> dict:
     # Layer 1: Multi-Subdomain & Path Probing Matrix
     try:
         probed = probe_subdomains_and_paths(domain_url)
-        if probed.get("careers_url"):
+        if probed.get("careers_url") and is_real_deep_url(probed["careers_url"], domain_url) and is_same_registrable_domain_or_ats(probed["careers_url"], domain_url):
             careers_candidates.append((0.95, probed["careers_url"]))
-        if probed.get("csr_url"):
+        if probed.get("csr_url") and is_real_deep_url(probed["csr_url"], domain_url) and is_same_registrable_domain_or_ats(probed["csr_url"], domain_url):
             csr_candidates.append((0.95, probed["csr_url"]))
     except Exception as e:
         logger.debug("Subdomain probing error: %s", e)
@@ -118,9 +120,9 @@ def discover_company_official_links(domain_url: str) -> dict:
     # Layer 2: XML Sitemap Mining (/sitemap.xml)
     try:
         sitemap_links = mine_sitemap_for_links(domain_url)
-        if sitemap_links.get("careers_url"):
+        if sitemap_links.get("careers_url") and is_real_deep_url(sitemap_links["careers_url"], domain_url) and is_same_registrable_domain_or_ats(sitemap_links["careers_url"], domain_url):
             careers_candidates.append((0.90, sitemap_links["careers_url"]))
-        if sitemap_links.get("csr_url"):
+        if sitemap_links.get("csr_url") and is_real_deep_url(sitemap_links["csr_url"], domain_url) and is_same_registrable_domain_or_ats(sitemap_links["csr_url"], domain_url):
             csr_candidates.append((0.90, sitemap_links["csr_url"]))
     except Exception as e:
         logger.debug("Sitemap mining error: %s", e)
@@ -142,21 +144,24 @@ def discover_company_official_links(domain_url: str) -> dict:
 
             probe_text = f"{text} {urlparse(full_url).path}"
 
-            career_score = score_link_semantics(probe_text, "careers")
-            if any(ats in full_url.lower() for ats in ATS_DOMAINS):
-                career_score += 0.35
-            if any(k in text.lower() for k in ["career", "careers", "jobs", "work with us", "join us", "openings"]):
-                career_score += 0.25
+            has_career_kw = any(k in text.lower() or k in urlparse(full_url).path.lower()
+                                for k in ["career", "careers", "jobs", "job", "work with us", "join us", "openings", "vacancies", "recruitment", "hiring"])
+            has_ats = any(ats in full_url.lower() for ats in ATS_DOMAINS)
+            if has_career_kw or has_ats:
+                career_score = score_link_semantics(probe_text, "careers")
+                if has_ats:
+                    career_score += 0.35
+                if has_career_kw:
+                    career_score += 0.25
+                if career_score >= 0.50 and is_real_deep_url(full_url, domain_url) and is_same_registrable_domain_or_ats(full_url, domain_url):
+                    careers_candidates.append((career_score, full_url))
 
-            if career_score >= 0.40:
-                careers_candidates.append((career_score, full_url))
-
-            csr_score = score_link_semantics(probe_text, "csr")
-            if any(k in text.lower() for k in ["csr", "sustainability", "social responsibility", "foundation", "esg", "brsr"]):
-                csr_score += 0.30
-
-            if csr_score >= 0.40:
-                csr_candidates.append((csr_score, full_url))
+            has_csr_kw = any(k in text.lower() or k in urlparse(full_url).path.lower()
+                             for k in ["csr", "sustainability", "social responsibility", "foundation", "esg", "brsr", "sustainable development"])
+            if has_csr_kw:
+                csr_score = score_link_semantics(probe_text, "csr") + 0.30
+                if csr_score >= 0.50 and is_real_deep_url(full_url, domain_url) and is_same_registrable_domain_or_ats(full_url, domain_url):
+                    csr_candidates.append((csr_score, full_url))
 
     careers_candidates.sort(key=lambda x: x[0], reverse=True)
     csr_candidates.sort(key=lambda x: x[0], reverse=True)
@@ -1036,6 +1041,57 @@ def extract_genuine_jobs_live(careers_url: str, hop: int = 1) -> dict:
 # CSR MULTI-PAGE & STATUTORY PARAGRAPH EXTRACTOR (Step 5)
 # ==============================================================================
 
+INDIAN_STATES_LIST = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+    'Delhi', 'Jammu & Kashmir', 'Jammu and Kashmir', 'Ladakh', 'Puducherry', 'Chandigarh'
+]
+
+MAJOR_INDIAN_CITIES_LIST = [
+    'Mumbai', 'Bengaluru', 'Bangalore', 'Delhi', 'New Delhi', 'Hyderabad',
+    'Chennai', 'Kolkata', 'Pune', 'Ahmedabad', 'Gurugram', 'Gurgaon', 'Noida',
+    'Jaipur', 'Lucknow', 'Kanpur', 'Nagpur', 'Indore', 'Thane', 'Bhopal',
+    'Visakhapatnam', 'Patna', 'Vadodara', 'Ghaziabad', 'Ludhiana', 'Agra',
+    'Nashik', 'Faridabad', 'Meerut', 'Rajkot', 'Varanasi', 'Srinagar',
+    'Aurangabad', 'Dhanbad', 'Amritsar', 'Navi Mumbai', 'Prayagraj', 'Allahabad',
+    'Ranchi', 'Howrah', 'Coimbatore', 'Jabalpur', 'Gwalior', 'Vijayawada',
+    'Jodhpur', 'Madurai', 'Raipur', 'Kota', 'Guwahati', 'Chandigarh', 'Mysore',
+    'Mysuru', 'Tiruchirappalli', 'Salem', 'Kochi', 'Cochin', 'Bhubaneswar',
+    'Dehradun', 'Jamnagar', 'Udaipur', 'Mangalore', 'Mangaluru', 'Shimla'
+]
+
+def extract_csr_locations(text: str) -> Tuple[Optional[str], Optional[str]]:
+    """Extracts geographic location and state from text content."""
+    if not text:
+        return None, None
+    text_lower = text.lower()
+    if any(k in text_lower for k in ['pan-india', 'pan india', 'across india', 'nationwide', 'all india']):
+        return 'Pan-India', 'Pan-India'
+    
+    found_states = []
+    for st in INDIAN_STATES_LIST:
+        if re.search(r'\b' + re.escape(st) + r'\b', text, re.IGNORECASE):
+            found_states.append(st)
+            
+    found_cities = []
+    for ci in MAJOR_INDIAN_CITIES_LIST:
+        if re.search(r'\b' + re.escape(ci) + r'\b', text, re.IGNORECASE):
+            found_cities.append(ci)
+            
+    if found_cities and found_states:
+        ci_str = " / ".join(found_cities[:3])
+        st_str = " / ".join(found_states[:2])
+        return f"{ci_str}, {st_str}", found_states[0]
+    elif found_cities:
+        return " / ".join(found_cities[:3]), None
+    elif found_states:
+        return " / ".join(found_states[:3]), found_states[0]
+    return None, None
+
+
 def _extract_csr_content_from_page(html: str, page_url: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], int]:
     """Extracts CSR projects and PDF reports from a single page's HTML."""
     clean_body = trafilatura.extract(
@@ -1077,10 +1133,14 @@ def _extract_csr_content_from_page(html: str, page_url: str) -> Tuple[List[Dict[
         first_clause = re.split(r'[.।:;–—-]', paragraph)[0].strip()
         title = first_clause[:90] if len(first_clause) >= 12 else f"{matched_theme or 'Corporate CSR'} Initiative"
 
+        loc_val, state_val = extract_csr_locations(paragraph)
+
         csr_projects.append({
             "title": title,
             "focus_area": matched_theme or "Schedule VII Statutory CSR",
             "summary": paragraph,
+            "geographic_location": loc_val,
+            "state": state_val,
             "budget_allocated": budget_str,
             "source_url": build_highlight_url(page_url, paragraph),
             "verification_status": "PUBLISHED"
@@ -1187,14 +1247,42 @@ def sync_single_company_live(company) -> dict:
     sync_timestamp = timezone.now()
     old_hash = company.content_hash or ""
 
-    # 1. Discover Careers & CSR URLs if missing or outdated
+    # 1. Discover Careers & CSR URLs if missing or outdated (Stage 1 deep-link validation)
     target_domain = company.website_url or company.official_domain or ""
-    if (not company.careers_url or not company.csr_url) and target_domain:
+    has_real_careers = is_real_deep_url(company.careers_url, company.website_url)
+    has_real_csr = is_real_deep_url(company.csr_url, company.website_url)
+
+    if (not has_real_careers or not has_real_csr) and target_domain:
         discovered = discover_company_official_links(target_domain)
-        if discovered.get("careers_url") and not company.careers_url:
-            company.careers_url = discovered["careers_url"]
-        if discovered.get("csr_url") and not company.csr_url:
-            company.csr_portal_url = discovered["csr_url"]
+        updated_discovery_fields = []
+
+        if discovered.get("careers_url") and not has_real_careers:
+            cand = discovered["careers_url"]
+            if is_real_deep_url(cand, company.website_url) and is_same_registrable_domain_or_ats(cand, company.website_url):
+                company.careers_url = cand
+                updated_discovery_fields.append("careers_url")
+                try:
+                    res = fetch_live_page(cand)
+                    if res.get("ok") and res.get("html"):
+                        _, conf, _ = verify_careers_url_content(res["html"], cand)
+                        company.careers_url_confidence = conf
+                        company.careers_url_verified_at = timezone.now()
+                        updated_discovery_fields.extend(["careers_url_confidence", "careers_url_verified_at"])
+                except Exception as exc:
+                    logger.warning("Error verifying careers URL content %s for %s (%s): %s", cand, company.company_id, company.company_name, exc)
+
+        if discovered.get("csr_url") and not has_real_csr:
+            cand = discovered["csr_url"]
+            if is_real_deep_url(cand, company.website_url) and is_same_registrable_domain_or_ats(cand, company.website_url):
+                company.csr_portal_url = cand
+                updated_discovery_fields.append("csr_portal_url")
+
+        if updated_discovery_fields:
+            try:
+                company.save(update_fields=updated_discovery_fields)
+                logger.info("Updated discovered deep URLs for %s (%s): fields=%s", company.company_id, company.company_name, updated_discovery_fields)
+            except Exception as exc:
+                logger.warning("Failed saving discovered URLs for company %s (%s): %s", company.company_id, company.company_name, exc)
 
     jobs_added, jobs_updated, jobs_removed = 0, 0, 0
     csr_added, csr_updated, csr_removed = 0, 0, 0
@@ -1211,8 +1299,8 @@ def sync_single_company_live(company) -> dict:
             company.crawl_status = "ERROR"
             try:
                 company.save(update_fields=['last_sync_error', 'crawl_status'])
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Failed updating crawl_status for %s: %s", company.company_id, exc)
             extracted_jobs_list = []
             strategy_name = "ERROR"
             direct_pct = 0.0
@@ -1279,21 +1367,14 @@ def sync_single_company_live(company) -> dict:
                     if ext_id:
                         live_ext_ids.add(ext_id)
 
-                    # Clean location & city
+                    # Clean and structure location, city, state, country
                     raw_loc = (j.get("location") or "").strip()
-                    if not raw_loc or raw_loc.lower() in ("refer official posting", "not available on the company website", "n/a", "none"):
-                        loc = company.headquarters or "India"
-                    else:
-                        loc = raw_loc
-
-                    detected_city = j.get("city")
-                    if not detected_city:
-                        for c_name in COMMON_INDIAN_LOCATIONS:
-                            if c_name != "india" and c_name in loc.lower():
-                                detected_city = c_name.title()
-                                break
-                    if not detected_city:
-                        detected_city = company.headquarters or "India"
+                    loc_info = normalize_job_location(raw_loc, default_hq=company.headquarters)
+                    loc = loc_info['location']
+                    detected_city = loc_info['city'] or company.headquarters or "India"
+                    detected_state = loc_info['state']
+                    detected_country = loc_info['country']
+                    detected_mode = "Remote" if loc_info['is_remote'] else (j.get("work_mode") or "On-site")
 
                     # Deterministic, non-listing fingerprint
                     fp = build_job_fingerprint(
@@ -1310,9 +1391,11 @@ def sync_single_company_live(company) -> dict:
                         "job_title": j["title"],
                         "location": loc,
                         "city": detected_city,
+                        "state": detected_state,
+                        "country": detected_country,
                         "department": j.get("department") or "Corporate",
                         "employment_type": j.get("employment_type") or "Full-time",
-                        "work_mode": j.get("work_mode") or "On-site",
+                        "work_mode": detected_mode,
                         "job_description": j.get("job_description") or j.get("verbatim_quote") or j["title"],
                         "verification_status": "SOURCE_CONFIRMED",
                         "status": "ACTIVE",
@@ -1321,6 +1404,7 @@ def sync_single_company_live(company) -> dict:
                         "owner_status": "OWNED",
                         "application_url": app_url,
                         "canonical_url": canon_url,
+                        "canonical_url_hash": hashlib.sha256(canon_url.encode('utf-8')).hexdigest() if quality == "DIRECT" and canon_url else None,
                         "external_job_id": ext_id,
                         "link_quality": quality,
                         "link_check_note": note,
@@ -1471,11 +1555,23 @@ def sync_single_company_live(company) -> dict:
                     b_match = CSR_BUDGET_REGEX.search(raw_b)
                     clean_budget = b_match.group(0).strip() if b_match else (raw_b if raw_b else "Statutory CSR Allocation")
 
+                    loc_val = c.get("geographic_location")
+                    state_val = c.get("state")
+                    if not loc_val:
+                        loc_val, state_val = extract_csr_locations(f"{c['title']} {c['summary']}")
+                    if not loc_val and getattr(company, 'headquarters', None):
+                        loc_val, state_val = extract_csr_locations(company.headquarters)
+                        if not loc_val:
+                            loc_val = company.headquarters.split(',')[0].strip()
+
                     defaults = {
                         "company": company,
                         "project_name": c["title"],
                         "category": c["focus_area"],
                         "description": c["summary"],
+                        "geographic_location": loc_val,
+                        "state": state_val,
+                        "raw_location": loc_val,
                         "budget": clean_budget,
                         "verification_status": "SOURCE_CONFIRMED",
                         "link_status": "LINK_OK",
@@ -1699,23 +1795,98 @@ def process_company(company) -> dict:
     return sync_single_company_live(company)
 
 
-def start_background_crawl(company_ids=None):
-    """Background crawl compatibility runner."""
+def start_background_crawl(company_ids=None, batch_label="Batch 1"):
+    """Background crawl compatibility runner supporting selectable 50-company batches."""
     from django.conf import settings
     if not getattr(settings, 'ALLOW_GLOBAL_SYNC', False):
         logger.warning("start_background_crawl REFUSED: ALLOW_GLOBAL_SYNC is False. Background crawling is disabled.")
         return False
 
-    from concurrent.futures import ThreadPoolExecutor
-    qs = Company.objects.all()
+    from .state import CRAWL_TASK_STATE, log_event
+    if CRAWL_TASK_STATE.get("is_running"):
+        logger.warning("start_background_crawl: Crawl already running.")
+        return False
+
+    qs = Company.objects.all().order_by('company_id')
     if company_ids:
         qs = qs.filter(company_id__in=company_ids)
 
+    target_companies = list(qs)
+    total_targets = len(target_companies)
+    if total_targets == 0:
+        logger.warning("start_background_crawl: No companies found to crawl.")
+        return False
+
+    CRAWL_TASK_STATE["is_running"] = True
+    CRAWL_TASK_STATE["start_time"] = timezone.now().isoformat()
+    CRAWL_TASK_STATE["events"] = []
+    CRAWL_TASK_STATE["stats"] = {
+        "companies_requested": total_targets,
+        "companies_crawled": 0,
+        "fetch_failures": 0,
+        "blocked": 0,
+        "dns_failures": 0,
+        "jobs_discovered": 0,
+        "new_jobs": 0,
+        "updated_jobs": 0,
+        "expired_jobs": 0,
+        "csr_pages_found": 0,
+        "csr_pdfs": 0,
+        "csr_projects": 0,
+        "csr_opportunities": 0,
+        "contacts_found": 0
+    }
+    log_event("INIT", "START", f"Initiating {batch_label} ({total_targets} companies)...")
+
+    def _crawl_worker(company):
+        close_old_connections()
+        try:
+            res = sync_single_company_live(company)
+            crawled = CRAWL_TASK_STATE["stats"]["companies_crawled"] + 1
+            CRAWL_TASK_STATE["stats"]["companies_crawled"] = crawled
+
+            jobs_count = res.get("jobs_discovered", 0)
+            csr_count = len(res.get("csr_projects", []))
+            log_event(
+                "SCRAPE", "VERIFIED",
+                f"({crawled}/{total_targets}) {company.company_name}: Discovered {jobs_count} jobs, {csr_count} CSR projects synchronized.",
+                company_id=company.company_id,
+                company_name=company.company_name
+            )
+            return res
+        except Exception as exc:
+            logger.error("Crawl worker error for %s: %s", company.company_name, exc, exc_info=True)
+            crawled = CRAWL_TASK_STATE["stats"]["companies_crawled"] + 1
+            CRAWL_TASK_STATE["stats"]["companies_crawled"] = crawled
+            log_event(
+                "SCRAPE", "ERROR",
+                f"({crawled}/{total_targets}) {company.company_name}: Extraction encountered warning ({str(exc)[:60]}).",
+                company_id=company.company_id,
+                company_name=company.company_name
+            )
+            return None
+        finally:
+            close_old_connections()
+
     def _run():
         close_old_connections()
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            executor.map(sync_single_company_live, list(qs))
-        close_old_connections()
+        try:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                list(executor.map(_crawl_worker, target_companies))
+
+            log_event("SYSTEM", "SAVED", f"{batch_label} completed ({total_targets}/{total_targets} companies). Rebuilding snapshots...")
+
+            # Rebuild snapshots so dashboard stats & audit dates update immediately
+            try:
+                from modules.admin_panel.snapshot_service import build_snapshots
+                build_snapshots(triggered_by='BATCH_CRAWL', ignore_suspect=True)
+                log_event("SYSTEM", "DONE", f"✅ Snapshots rebuilt! Dashboard refreshed with today's live verification timestamp.")
+            except Exception as snap_err:
+                logger.error("Failed to rebuild snapshots after batch crawl: %s", snap_err)
+        finally:
+            CRAWL_TASK_STATE["is_running"] = False
+            close_old_connections()
 
     import threading
     t = threading.Thread(target=_run, daemon=True)

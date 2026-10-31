@@ -1,0 +1,76 @@
+<USER_REQUEST>
+# MASTER TASK: REMOVE DATA VISIBILITY FILTERS, CLEAN FAKE DATA, AND DISPLAY ALL REMAINING DATABASE RECORDS
+
+**Project:** CSR Job Intelligence Production Ready  
+**Tech stack:** Existing Django + MySQL backend, frontend templates, JavaScript, APIs and crawler pipeline.
+
+## 1. MAIN OBJECTIVE
+
+Fix the existing project so that:
+
+1. Every remaining legitimate or not-yet-disproven record stored in the database is displayed in its appropriate frontend section.
+2. Remove unnecessary verification, classification, quality-status and legacy-status conditions that prevent existing records from reaching the frontend.
+3. Identify and remove confirmed fake, synthetic, placeholder and AI-hallucinated records that were not genuinely extracted from their claimed sources.
+4. Preserve genuine company jobs, CSR projects and CSR opportunities.
+5. Ensure the database, backend responses and frontend counts are reconciled and discrepancies are explained.
+
+Do not build a new application. Work on the existing project and fix the actual causes.
+
+## 2. BACKUP AND BASELINE
+
+Before changing anything:
+
+- Inspect the current Git status and preserve existing user modifications.
+- Create a database backup and verify that it can be read.
+- Record the current Git commit and create a clear change summary.
+- Record exact database row counts and primary-key inventories for jobs, CSR projects and CSR opportunities.
+- Record how many rows the backend returns and how many the frontend renders.
+- Preserve the current configuration, models, migrations, business logic and unrelated features.
+
+The previous report mentioned 5,549 jobs in the database and 1,492 jobs reaching the public frontend, leaving a reported gap of 4,057 jobs. These figures are historical and must be recalculated from the current database.
+
+Never run destructive cleanup without a recoverable backup.
+
+## 3. FIND EVERY FILTER THAT HIDES DATABASE RECORDS
+
+Inspect the complete database-to-frontend pipeline.
+
+Trace:
+
+MySQL → Django models 
+<truncated 10381 bytes>
+verified records preserved.
+6. Database, API and frontend counts before and after.
+7. Automated test results and manual verification results.
+8. Any remaining hidden records and the proven reason for each discrepancy.
+9. Backup location and confirmation that the backup is readable.
+10. Git status and a summary of all modifications.
+
+Do not claim success without evidence.
+
+## FINAL ACCEPTANCE CRITERIA
+
+The task is complete only when:
+
+- Unnecessary visibility filters no longer hide remaining database records.
+- Every remaining record in the jobs, CSR projects and CSR opportunities datasets can be accessed through the frontend.
+- Confirmed fabricated records have been removed safely from the active dataset.
+- Unverified records have not been mistakenly deleted.
+- The database, backend and frontend counts are reconciled.
+- Relevant tests pass or outstanding failures are clearly documented.
+
+Implement the required changes in the existing project, validate them, and provide the evidence-based final report. Do not fabricate records, counts, tests or verification results.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-29T16:06:52+05:30.
+
+The user's current state is as follows:
+Active Document: d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\reports\stage1a_shortcut\manual_url_review_all_companies.csv (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\check_pairs.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\verify_db_checksum.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scripts\classify_stage1a_part2.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\modules\admin_panel\management\commands\stage1a_verify_homepages.py (LANGUAGE_UNSPECIFIED)
+- d:\D DOWNLOADS\CSR_Job_Intelligence_Production_Ready (1)\scratch\extract_stats.py (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>

@@ -9,6 +9,7 @@ def paginate_queryset(
     page: Optional[Any] = None,
     page_size: Optional[Any] = 12,
     fallback_limit: int = 200,
+    total_count: Optional[int] = None,
 ) -> Dict[str, Any] | List[Dict[str, Any]]:
     """
     Unified pagination engine compliant with ImpactBridge API Contract:
@@ -34,10 +35,26 @@ def paginate_queryset(
         page_size = 12
 
     if page is None:
-        items = [serialize_func(obj) for obj in queryset[:fallback_limit]]
+        try:
+            capped_limit = min(100, max(1, int(fallback_limit or 24)))
+        except (ValueError, TypeError):
+            capped_limit = 24
+        items = [serialize_func(obj) for obj in queryset[:capped_limit]]
         return items
 
-    total = queryset.count()
+    if total_count is not None:
+        total = total_count
+    else:
+        import hashlib
+        from django.core.cache import cache
+        query_sql_key = f"qs_cnt_{hashlib.md5(str(queryset.query).encode('utf-8')).hexdigest()}"
+        cached_count = cache.get(query_sql_key)
+        if cached_count is not None:
+            total = cached_count
+        else:
+            total = queryset.count()
+            cache.set(query_sql_key, total, 60)
+
     total_pages = max(1, math.ceil(total / page_size)) if total > 0 else 1
     offset = (page - 1) * page_size
     slice_qs = queryset[offset:offset + page_size]

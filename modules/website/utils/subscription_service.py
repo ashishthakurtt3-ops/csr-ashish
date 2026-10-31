@@ -59,11 +59,12 @@ STATE_CODES: Dict[str, str] = {
 }
 
 PLAN_ALIASES: Dict[str, str] = {
-    'free': 'starter',
-    'community_free': 'starter',
-    'ultra': 'enterprise',
-    'api': 'foundation',
-    'institutional': 'foundation',
+    'starter': 'free',
+    'community_free': 'free',
+    'enterprise': 'ultra',
+    'foundation': 'ultra',
+    'api': 'ultra',
+    'institutional': 'ultra',
 }
 
 
@@ -244,8 +245,8 @@ def get_all_active_plans() -> List[Dict[str, Any]]:
             return [_plan_model_to_dict(p) for p in qs]
     except Exception:
         pass
-    starter = get_plan('starter')
-    return [starter] if starter else []
+    fallback = get_plan('free') or get_plan('starter')
+    return [fallback] if fallback else []
 
 
 def base_price_paise(plan: Dict[str, Any], cycle: str) -> int:
@@ -465,6 +466,9 @@ def get_wallet_data(user: User) -> Dict[str, Any]:
 
 def topup_wallet(user: User, amount_paise: int, payment_method: str = 'WALLET_TOPUP',
                  description: Optional[str] = None, request_id: Optional[str] = None) -> Dict[str, Any]:
+    from django.conf import settings
+    if not getattr(settings, 'ALLOW_PROTOTYPE_PAYMENTS', False):
+        raise SubscriptionError('Prototype wallet top-up is disabled in production mode. A live payment gateway must be configured.', 403, 'prototype_payments_disabled')
     if amount_paise <= 0:
         raise SubscriptionError('Top-up amount must be greater than zero.', 400, 'invalid_amount')
 
@@ -1064,7 +1068,7 @@ def current(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> 
     row = _load(resolved_tenant, user_obj)
     sub = serialize(row)
     quota = quota_snapshot(row)
-    plan = get_plan(sub.get('plan_id')) or get_plan('starter')
+    plan = get_plan(sub.get('plan_id')) or get_plan('free')
     events = list(
         SubscriptionEvent.objects.filter(tenant_id=resolved_tenant).order_by('-event_id')[:5].values(
             'event_id', 'event_type', 'from_plan', 'to_plan',
@@ -1305,6 +1309,9 @@ def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: 
                     status='SUCCESS',
                 )
             else:
+                from django.conf import settings
+                if not getattr(settings, 'ALLOW_PROTOTYPE_PAYMENTS', False):
+                    raise SubscriptionError('Direct prototype payment methods are disabled in production mode. A live payment gateway must be configured.', 403, 'prototype_payments_disabled')
                 # Other prototype payment methods (UPI, Card, NetBanking, etc.)
                 pay_id = f"PAY_{uuid.uuid4().hex[:12].upper()}"
                 payment = Payment.objects.create(
@@ -1703,14 +1710,14 @@ def process_subscription_renewals(force: bool = False, force_run: bool = False, 
 
         # Check if auto_renew is OFF
         if not sub.auto_renew:
-            starter_plan = Plan.objects.filter(code='starter').first()
+            free_plan = Plan.objects.filter(code='free', is_active=True).first() or Plan.objects.filter(code='starter').first()
             sub.status = _STATUS_EXPIRED
-            sub.plan_record = starter_plan
-            sub.plan_id = 'starter'
+            sub.plan_record = free_plan
+            sub.plan_id = free_plan.code if free_plan else 'free'
             sub.save(update_fields=['status', 'plan_record', 'plan_id', 'updated_at'])
             SubscriptionEvent.objects.create(
                 subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
-                event_type='EXPIRED', from_plan=pid, to_plan='starter',
+                event_type='EXPIRED', from_plan=pid, to_plan='free',
                 amount_paise=0, notes='Auto-renewal was off; subscription expired at period end.',
                 actor='RenewalEngine', created_at=now_dt.isoformat(),
             )
@@ -1838,14 +1845,14 @@ def process_subscription_renewals(force: bool = False, force_run: bool = False, 
                 )
 
                 if sub.renewal_failure_count >= 3:
-                    # Grace period expired: downgrade to starter
-                    starter_plan = Plan.objects.filter(code='starter').first()
+                    # Grace period expired: downgrade to free tier
+                    free_plan = Plan.objects.filter(code='free', is_active=True).first() or Plan.objects.filter(code='starter').first()
                     sub.status = _STATUS_EXPIRED
-                    sub.plan_record = starter_plan
-                    sub.plan_id = 'starter'
+                    sub.plan_record = free_plan
+                    sub.plan_id = free_plan.code if free_plan else 'free'
                     SubscriptionEvent.objects.create(
                         subscription_id=sub.subscription_id, tenant_id=sub.tenant_id,
-                        event_type='EXPIRED', from_plan=pid, to_plan='starter',
+                        event_type='EXPIRED', from_plan=pid, to_plan='free',
                         amount_paise=0, notes="Expired after 3 failed renewal attempts.",
                         actor='RenewalEngine', created_at=now_dt.isoformat(),
                     )

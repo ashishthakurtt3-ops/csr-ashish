@@ -427,78 +427,33 @@ def is_defective_job_record(title: str, app_url: str = '', source_url: str = '')
 _DEFECTIVE_CACHE = {'ids': None, 'time': 0, 'count': -1}
 
 def get_defective_job_ids(force_refresh=False):
-    """Retrieve defective job row IDs with an intelligent in-memory cache to keep queries instant."""
-    import time
-    now = time.time()
+    """Retrieve defective job row IDs using precomputed indexed database flag."""
     from modules.admin_panel.models import Job
-    active_count = Job.objects.filter(status='ACTIVE').count()
-    if not force_refresh and _DEFECTIVE_CACHE['ids'] is not None:
-        if (now - _DEFECTIVE_CACHE['time']) < 60 and _DEFECTIVE_CACHE.get('count') == active_count:
-            return _DEFECTIVE_CACHE['ids']
-
-    active_rows = Job.objects.filter(
-        status='ACTIVE'
-    ).exclude(
-        verification_status__in=['LEGACY_UNVERIFIED', 'REJECTED', 'QUARANTINED', 'NEEDS_REVIEW']
-    ).values('job_row_id', 'job_title', 'application_url', 'source_url')
-
-    bad_ids = {
-        row['job_row_id']
-        for row in active_rows
-        if is_defective_job_record(row['job_title'], row['application_url'], row['source_url'])
-    }
-    _DEFECTIVE_CACHE['ids'] = bad_ids
-    _DEFECTIVE_CACHE['time'] = now
-    _DEFECTIVE_CACHE['count'] = active_count
-    return bad_ids
+    return set(Job.objects.filter(is_defective=True).values_list('job_row_id', flat=True))
 
 
 def apply_job_safety_filters(qs):
-    """Strict Data Integrity: Filters out any unverified legacy seed records (REQ-*), quarantined/rejected data,
-    blogs, e-commerce stores, overseas territories, exam results, and UI navigation boilerplate defect titles.
-    Optimized for high-throughput single-digit millisecond query execution."""
+    """Data Integrity: Filters out confirmed defective records if any, while preserving all genuine active, expired, and unverified records."""
     if getattr(qs, '_safety_filters_applied', False):
         return qs
 
-    qs = qs.exclude(job_id__startswith='REQ')
-    qs = qs.exclude(verification_status__in=['LEGACY_UNVERIFIED', 'REJECTED', 'QUARANTINED', 'NEEDS_REVIEW'])
-    qs = qs.exclude(status__in=['NEEDS_REVIEW', 'INACTIVE', 'REMOVED', 'EXPIRED'])
-
-    bad_ids = get_defective_job_ids()
-    if bad_ids:
-        qs = qs.exclude(job_row_id__in=bad_ids)
+    qs = qs.filter(is_defective=False)
+    qs = qs.exclude(verification_status__in=['REJECTED', 'QUARANTINED'])
 
     qs._safety_filters_applied = True
     return qs
 
 
-
 def public_jobs(qs=None):
-    """Jobs that may appear on the website. Returns ALL active, directly crawled, verified job postings passing strict data integrity guards."""
+    """Jobs that may appear on the website. Returns ALL genuine job postings (active, expired, unverified)."""
     if qs is None:
         from modules.admin_panel.models import Job
         qs = Job.objects.all()
     base_qs = qs.filter(
-        status='ACTIVE',
+        is_defective=False,
     ).exclude(
-        verification_status__in=['REJECTED', 'QUARANTINED', 'LEGACY_UNVERIFIED', 'NEEDS_REVIEW']
-    ).exclude(
-        status='NEEDS_REVIEW'
-    ).exclude(job_id__startswith='REQ')
-
-    # Step 0 Exact-Match Standard c): Freshness Window
-    # If freshness enforcement is active, records not reconciled within RECONCILE_MAX_AGE_HOURS are hidden.
-    try:
-        from django.conf import settings
-        from django.utils import timezone
-        from datetime import timedelta
-        enforce_freshness = getattr(settings, 'ENFORCE_RECONCILE_FRESHNESS', False)
-        if enforce_freshness:
-            max_age_hours = getattr(settings, 'RECONCILE_MAX_AGE_HOURS', 72)
-            cutoff = timezone.now() - timedelta(hours=max_age_hours)
-            base_qs = base_qs.filter(last_reconciled_at__gte=cutoff)
-    except Exception:
-        pass
+        verification_status__in=['REJECTED', 'QUARANTINED']
+    )
 
     return apply_job_safety_filters(base_qs)
 
@@ -508,39 +463,23 @@ def public_records(qs):
     if qs is None:
         return qs
     qs = qs.exclude(
-        verification_status__in=['REJECTED', 'QUARANTINED', 'LEGACY_UNVERIFIED', 'NEEDS_REVIEW']
+        verification_status__in=['REJECTED', 'QUARANTINED']
     )
-    # Exclude INVALID_SYNTHETIC, REMOVED, EXPIRED, and NEEDS_REVIEW only if model has a 'status' field (e.g. CSROpportunity, CSRProject, Job)
-    try:
-        model_fields = {f.name for f in qs.model._meta.get_fields()}
-        if 'status' in model_fields:
-            qs = qs.exclude(status__in=['INVALID_SYNTHETIC', 'REMOVED', 'EXPIRED', 'NEEDS_REVIEW'])
-    except Exception:
-        pass
     return qs
 
 
 def public_job_q(prefix='jobs__'):
     """Q object for annotate(filter=...) over a reverse relation."""
     return Q(**{
-        f'{prefix}status': 'ACTIVE',
+        f'{prefix}is_defective': False,
     }) & ~Q(**{
-        f'{prefix}verification_status__in': ['REJECTED', 'QUARANTINED', 'LEGACY_UNVERIFIED', 'NEEDS_REVIEW']
-    }) & ~Q(**{
-        f'{prefix}status': 'NEEDS_REVIEW',
-    }) & ~Q(**{
-        f'{prefix}job_id__startswith': 'REQ',
-    }) & ~Q(**{
-        f'{prefix}application_url__icontains': '/blog/',
-    }) & ~Q(**{
-        f'{prefix}application_url__icontains': 'shop.',
+        f'{prefix}verification_status__in': ['REJECTED', 'QUARANTINED']
     })
 
 
 def public_record_q(prefix):
     return (
-        ~Q(**{f'{prefix}verification_status__in': ['REJECTED', 'QUARANTINED', 'LEGACY_UNVERIFIED', 'NEEDS_REVIEW']})
-        & ~Q(**{f'{prefix}status__in': ['INVALID_SYNTHETIC', 'REMOVED', 'EXPIRED', 'NEEDS_REVIEW']})
+        ~Q(**{f'{prefix}verification_status__in': ['REJECTED', 'QUARANTINED']})
     )
 
 

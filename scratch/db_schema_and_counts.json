@@ -1,0 +1,6148 @@
+{
+  "admin_panel_auditrun": {
+    "row_count": 6,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "started_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "finished_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(30)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "triggered_by",
+        "type": "varchar(120)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_current",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "job_count",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "defect_rules_version",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "validation_report",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_company": {
+    "row_count": 201,
+    "columns": [
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_name",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "legal_name",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "isin",
+        "type": "varchar(30)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "nse_symbol",
+        "type": "varchar(30)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "bse_scrip_code",
+        "type": "varchar(30)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "listed_on_nse",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "listed_on_bse",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "listing_status",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "website_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "sector",
+        "type": "varchar(150)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "headquarters",
+        "type": "varchar(200)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "cin",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_crawled",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "crawl_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "data_confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "careers_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_portal_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_quality",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_verified_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_locator",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_method",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "parser_version",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "redirect_chain",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "retrieved_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_snapshot",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "annual_report_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_platform",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "brsr_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contact_page_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "esg_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "foundation_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "investor_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_page_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "official_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "sustainability_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_access",
+        "type": "varchar(20)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_access",
+        "type": "varchar(20)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contacts_access",
+        "type": "varchar(20)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "data_access_note",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "data_access_checked_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_live_synced_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_sync_error",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "sync_status",
+        "type": "varchar(30)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_token",
+        "type": "varchar(150)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_strategy",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_strategy_success_rate",
+        "type": "double",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "website_url_history",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'[]\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "website_url_locked",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "website_url_review_notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "website_url_status",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "website_url_verified_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "careers_url_confidence",
+        "type": "double",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "careers_url_verified_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_companymetrics": {
+    "row_count": 1206,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "active_jobs_count",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_projects_count",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "open_opps_count",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contacts_count",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "coverage_score",
+        "type": "double",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "audit_run_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "crawl_status",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "direct_jobs_count",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "direct_link_percentage",
+        "type": "double",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "explanation",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_found",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_verified",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_contact": {
+    "row_count": 41,
+    "columns": [
+      {
+        "field": "contact_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "name",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "designation",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "department",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "email",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "phone",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_verified_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_status",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_verified_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fingerprint",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_locator",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_method",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "parser_version",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "redirect_chain",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "retrieved_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_snapshot",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_csropportunity": {
+    "row_count": 1160,
+    "columns": [
+      {
+        "field": "opp_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "title",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "opportunity_type",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "category",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "submission_deadline",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "portal_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "requirements",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_status",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_verified_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fingerprint",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_locator",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_method",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "parser_version",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "redirect_chain",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "retrieved_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_snapshot",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_live_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_metadata",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      }
+    ]
+  },
+  "admin_panel_csrproject": {
+    "row_count": 1591,
+    "columns": [
+      {
+        "field": "csr_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "project_name",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "category",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "geographic_location",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "state",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "budget",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "discovered_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_verified_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_status",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_verified_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fingerprint",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_locator",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_method",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "parser_version",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "redirect_chain",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "retrieved_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_snapshot",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_live_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_metadata",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "removed_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "field_source",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "last_reconciled_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "mismatch_diff",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "mismatch_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_budget_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_category",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_location",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_project_name",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_document": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "document_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "title",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "document_type",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "file",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "file_size",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "file_format",
+        "type": "varchar(20)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(30)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "uploaded_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verified_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "uploaded_by_id",
+        "type": "bigint",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_job": {
+    "row_count": 5549,
+    "columns": [
+      {
+        "field": "job_row_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "job_id",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "job_title",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "department",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "function",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "location",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "state",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "country",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "work_mode",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "employment_type",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "experience",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "education",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "skills",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "salary",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "job_description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "posted_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "closing_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "application_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_checked_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_status",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_verified_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "data_provenance",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fingerprint",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_locator",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_method",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "parser_version",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "redirect_chain",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "retrieved_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_snapshot",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "application_deadline",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_platform",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "benefits",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "business_unit",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "city",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "detail_fetched",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "detail_fetched_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "external_job_id",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "job_family",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "preferred_qualifications",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "qualifications",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "requirements",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "responsibilities",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "salary_currency",
+        "type": "varchar(10)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "salary_max",
+        "type": "decimal(14,2)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "salary_min",
+        "type": "decimal(14,2)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "shift",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "team",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "travel_required",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "work_authorization",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "behavioural_skills",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "day_in_the_life",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "detail_fetch_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "employer_info",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "pay_band",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "role_purpose",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "structured_details",
+        "type": "json",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "technical_skills",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_tenant",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "owner_status",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_check_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_live_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_metadata",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "link_check_note",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_quality",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "removed_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "field_source",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "last_reconciled_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "mismatch_diff",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "_utf8mb4\\'{}\\'",
+        "extra": "DEFAULT_GENERATED"
+      },
+      {
+        "field": "mismatch_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_department",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_employment_type",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_location",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "raw_title",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "about_role",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "currency",
+        "type": "varchar(10)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description_html",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description_raw",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "details_missing_fields",
+        "type": "json",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "details_scraped_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "details_status",
+        "type": "varchar(20)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "preferred_skills",
+        "type": "json",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "qualifications_education",
+        "type": "json",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "qualifications_experience",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "required_skills",
+        "type": "json",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "responsibilities_list",
+        "type": "json",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "salary_text",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "seniority_level",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url_hash",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "defect_rules_version",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_defective",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_jobsummarysnapshot": {
+    "row_count": 6,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "payload",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "audit_run_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_ngocollaboration": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "collab_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "ngo_name",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "project_id",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "relationship_type",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "location",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "discovered_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fingerprint",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canonical_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_locator",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_text",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_method",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "http_status",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_seen_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "parser_version",
+        "type": "varchar(50)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "redirect_chain",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "retrieved_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_domain",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_snapshot",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_opportunityscore": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "active_csr",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "focus_match",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "recent_activity",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ngo_activity",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "opportunity_page",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contact_availability",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "geographic_match",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "score",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "evidence_status",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "rationale",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "scored_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_prospect": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "prospect_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "stage",
+        "type": "varchar(60)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "assigned_to",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "target_proposal",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "follow_up_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "match_score",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_servicecatalog": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "service_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "name",
+        "type": "varchar(150)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "category",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "price_inr",
+        "type": "decimal(10,2)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_active",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_statssnapshot": {
+    "row_count": 6,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "payload",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "audit_run_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_user": {
+    "row_count": 2,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "password",
+        "type": "varchar(128)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_login",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_superuser",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "username",
+        "type": "varchar(150)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "first_name",
+        "type": "varchar(150)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_name",
+        "type": "varchar(150)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "email",
+        "type": "varchar(254)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_staff",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_active",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "date_joined",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "role",
+        "type": "varchar(32)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "phone",
+        "type": "varchar(30)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "organization_name",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "designation",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_verified",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_user_groups": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "group_id",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "admin_panel_user_user_permissions": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "permission_id",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "ai_configuration_audit_log": {
+    "row_count": 19,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "action",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "provider",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "model_name",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "message",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "details",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ip_address",
+        "type": "varchar(45)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "timestamp",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "performed_by_id",
+        "type": "bigint",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "ai_provider_config": {
+    "row_count": 10,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "provider",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "display_name",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_enabled",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "encrypted_api_key",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "api_key_masked",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "base_url",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "selected_model",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "custom_model",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "available_models",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(30)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_tested_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_test_result",
+        "type": "varchar(60)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_test_message",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_test_latency_ms",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "allow_paid_calls",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "version",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "ai_system_settings": {
+    "row_count": 1,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "primary_provider",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "primary_model",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fallback_enabled",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fallback_provider",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "fallback_model",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "free_tier_only",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "request_timeout",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "max_retries",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "max_api_calls_per_run",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_by_id",
+        "type": "bigint",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "version",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "audit_trail": {
+    "row_count": 8391,
+    "columns": [
+      {
+        "field": "audit_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "record_type",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "record_id",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "action",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "previous_value",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "new_value",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_role",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "timestamp",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "auth_group": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "name",
+        "type": "varchar(150)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "auth_group_permissions": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "group_id",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "permission_id",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "auth_permission": {
+    "row_count": 152,
+    "columns": [
+      {
+        "field": "id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "name",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_type_id",
+        "type": "int",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "codename",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "company_completeness_register": {
+    "row_count": 201,
+    "columns": [
+      {
+        "field": "register_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "company_id_str",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_name",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "official_website",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "corporate_profile_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "official_url_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "careers_source_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_platform",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_discovery_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_validated",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_published",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_source_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_projects_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_projects_published",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_projects_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_financials_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "annual_reports_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "brsr_esg_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "foundation_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "opportunities_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "opportunities_published",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "opportunities_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contacts_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contacts_published",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contacts_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_attempt_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_successful_fetch_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_urls_discovered",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "failed_requests_error",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "next_retry_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "overall_coverage_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "company_crawl_summary": {
+    "row_count": 139,
+    "columns": [
+      {
+        "field": "summary_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "crawl_started_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "crawl_finished_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "career_url_found",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_platform",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "ats_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_detail_fetched",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_extracted",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_validated",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_published",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_updated",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_expired",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "jobs_rejected",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_pages_found",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_pdfs_found",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_projects_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "csr_opportunities_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contacts_discovered",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "crawl_status",
+        "type": "varchar(50)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "error_log",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "direct_percentage",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "extraction_strategy",
+        "type": "varchar(100)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "company_source_registry": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "source_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "original_url",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "final_url",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "source_type",
+        "type": "varchar(60)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "detailed_classification",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "discovery_method",
+        "type": "varchar(60)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "referring_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "link_text",
+        "type": "varchar(500)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "verification_status",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_primary",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "supporting_evidence",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contradictory_evidence",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "classification_json",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_verified_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "previous_url",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "review_notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "superseded_by_id",
+        "type": "int",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "django_admin_log": {
+    "row_count": 0,
+    "columns": [
+      {
+        "field": "id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "action_time",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "object_id",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "object_repr",
+        "type": "varchar(200)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "action_flag",
+        "type": "smallint unsigned",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "change_message",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_type_id",
+        "type": "int",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "django_content_type": {
+    "row_count": 38,
+    "columns": [
+      {
+        "field": "id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "app_label",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "model",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "django_migrations": {
+    "row_count": 43,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "app",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "name",
+        "type": "varchar(255)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "applied",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "django_session": {
+    "row_count": 122,
+    "columns": [
+      {
+        "field": "session_key",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "session_data",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "expire_date",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "invoices": {
+    "row_count": 7,
+    "columns": [
+      {
+        "field": "invoice_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "invoice_no",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "subscription_id",
+        "type": "varchar(48)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "tenant_id",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "issued_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "taxable_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "cgst_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "sgst_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "igst_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "total_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "currency",
+        "type": "varchar(8)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "gstin",
+        "type": "varchar(20)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "place_of_supply",
+        "type": "varchar(8)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(24)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "line_items",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "billing_cycle",
+        "type": "varchar(16)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "period_end",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "period_start",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "plan_id",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "payment_id",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "pages": {
+    "row_count": 513,
+    "columns": [
+      {
+        "field": "page_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "url",
+        "type": "longtext",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "title",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "page_type",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "content_hash",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_modified",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_crawled",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "relevant_snippet",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "confidence",
+        "type": "double",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "company_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "payments": {
+    "row_count": 19,
+    "columns": [
+      {
+        "field": "payment_id",
+        "type": "varchar(64)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "plan_code",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "amount_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "currency",
+        "type": "varchar(8)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "payment_method",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "payment_status",
+        "type": "varchar(24)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "payment_type",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "transaction_reference",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "idempotency_key",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_prototype",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "failure_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "metadata",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "completed_at",
+        "type": "datetime(6)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "subscription_id",
+        "type": "varchar(48)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "promo_codes": {
+    "row_count": 6,
+    "columns": [
+      {
+        "field": "code",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "percent_off",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "max_redemptions",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "times_redeemed",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "valid_from",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "valid_until",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "applicable_plans",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "active",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "subscription_events": {
+    "row_count": 27,
+    "columns": [
+      {
+        "field": "event_id",
+        "type": "int",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "subscription_id",
+        "type": "varchar(48)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "tenant_id",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "event_type",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "from_plan",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "to_plan",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "amount_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "actor",
+        "type": "varchar(80)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "subscription_plan_entitlements": {
+    "row_count": 38,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "feature_key",
+        "type": "varchar(64)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "display_name",
+        "type": "varchar(120)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "feature_type",
+        "type": "varchar(20)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "boolean_value",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "numeric_value",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "text_value",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_unlimited",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "plan_id",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "subscription_plans": {
+    "row_count": 4,
+    "columns": [
+      {
+        "field": "code",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "name",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "slug",
+        "type": "varchar(100)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "badge",
+        "type": "varchar(60)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "cta_text",
+        "type": "varchar(60)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "billing_note",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "monthly_price_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "yearly_price_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "currency",
+        "type": "varchar(8)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_active",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_visible",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_popular",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_contact_sales",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "display_order",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "trial_days",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "allow_upgrade",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "allow_downgrade",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "allow_cancel",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "auto_renew_default",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "features",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "highlight_features",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "limits",
+        "type": "json",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "additional_info",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "button_order",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "button_text",
+        "type": "varchar(60)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "button_visible",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "card_description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "discount_percent",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_recommended",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "notes",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "renewal_price_paise",
+        "type": "bigint",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "savings_text",
+        "type": "varchar(120)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "terms",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "wallet_deduction_paise",
+        "type": "bigint",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "subscriptions": {
+    "row_count": 2,
+    "columns": [
+      {
+        "field": "subscription_id",
+        "type": "varchar(48)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "tenant_id",
+        "type": "varchar(64)",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "plan_id",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(24)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "billing_cycle",
+        "type": "varchar(16)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "organization_name",
+        "type": "varchar(255)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "contact_email",
+        "type": "varchar(190)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "activated_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "current_period_start",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "current_period_end",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "cancel_at_period_end",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "canceled_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "cancel_reason",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "promo_code",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "promo_percent",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "base_amount_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "discount_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "taxable_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "cgst_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "sgst_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "igst_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "total_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "currency",
+        "type": "varchar(8)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "payment_method",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "transaction_id",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "gstin",
+        "type": "varchar(20)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "place_of_supply",
+        "type": "varchar(8)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "supply_type",
+        "type": "varchar(20)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "seats",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "daily_match_quota",
+        "type": "int",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "api_key_hash",
+        "type": "varchar(128)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "api_key_prefix",
+        "type": "varchar(24)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "api_key_last4",
+        "type": "varchar(8)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "request_id",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "auto_renew",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "last_renewal_attempt",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "pending_downgrade_cycle",
+        "type": "varchar(16)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "pending_downgrade_date",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "pending_downgrade_plan",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "renewal_failure_count",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "plan_fk",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "usage_counters": {
+    "row_count": 6,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "tenant_id",
+        "type": "varchar(64)",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "metric",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "period_date",
+        "type": "varchar(10)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "used",
+        "type": "int",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "wallet_transactions": {
+    "row_count": 13,
+    "columns": [
+      {
+        "field": "transaction_id",
+        "type": "varchar(64)",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "transaction_type",
+        "type": "varchar(40)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "credit_or_debit",
+        "type": "varchar(8)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "amount_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "balance_before_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "balance_after_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "reference_type",
+        "type": "varchar(40)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "reference_id",
+        "type": "varchar(64)",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "description",
+        "type": "longtext",
+        "null": "YES",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "status",
+        "type": "varchar(24)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "wallet_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "MUL",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  },
+  "wallets": {
+    "row_count": 2,
+    "columns": [
+      {
+        "field": "id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "PRI",
+        "default": "None",
+        "extra": "auto_increment"
+      },
+      {
+        "field": "balance_paise",
+        "type": "bigint",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "currency",
+        "type": "varchar(8)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "is_active",
+        "type": "tinyint(1)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "created_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "updated_at",
+        "type": "datetime(6)",
+        "null": "NO",
+        "key": "",
+        "default": "None",
+        "extra": ""
+      },
+      {
+        "field": "user_id",
+        "type": "bigint",
+        "null": "NO",
+        "key": "UNI",
+        "default": "None",
+        "extra": ""
+      }
+    ]
+  }
+}

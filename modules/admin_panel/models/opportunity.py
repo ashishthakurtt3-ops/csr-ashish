@@ -55,6 +55,10 @@ class CSRProject(VerifiableModel):
 
     class Meta:
         ordering = ['-confidence', '-csr_id']
+        indexes = [
+            models.Index(fields=['status', 'verification_status', 'confidence'], name='idx_csr_stat_ver_conf'),
+            models.Index(fields=['company', 'status'], name='idx_csr_cmp_stat'),
+        ]
 
     @property
     def title(self):

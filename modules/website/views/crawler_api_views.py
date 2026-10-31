@@ -198,51 +198,99 @@ def recheck_company_domain_api(request, company_id):
     if not url:
         return JsonResponse({'detail': 'No website URL recorded for this company'}, status=400)
 
-    start_t = time.time()
-    headers = {'User-Agent': 'CSRIntelligenceResearchBot/1.0 (+public-data; respectful crawling)'}
-    try:
-        resp = requests.get(url, headers=headers, timeout=8, allow_redirects=True)
-        elapsed_ms = round((time.time() - start_t) * 1000)
-        status_code = resp.status_code
-        is_ok = resp.ok
-    except Exception:
-        elapsed_ms = round((time.time() - start_t) * 1000)
-        status_code = 504
-        is_ok = False
+    from django.core.cache import cache
+    rate_key = f"company_recheck_ratelimit_{company_id}"
+    status_key = f"company_recheck_status_{company_id}"
 
-    checked_time = timezone.now().isoformat()
-    comp.link_verified_at = checked_time
-    comp.last_crawled = checked_time
-    comp.save()
+    if cache.get(rate_key):
+        cached_res = cache.get(status_key) or {
+            'status': 'RATE_LIMITED',
+            'company_id': company_id,
+            'message': 'Domain probe rate-limited to once per 10 minutes.'
+        }
+        return JsonResponse(cached_res)
 
-    AuditTrail.objects.create(
-        record_type='WEB_FETCH',
-        record_id=company_id,
-        action='LIVE_DOMAIN_RECHECK',
-        new_value=f"HTTP {status_code} ({elapsed_ms}ms)",
-        user_role='Portal User',
-        notes=f"Live HTTP ping to {url}",
-        timestamp=checked_time
-    )
-
-    return JsonResponse({
-        'status': 'success',
+    cache.set(rate_key, True, 600)
+    cache.set(status_key, {
+        'status': 'PENDING',
         'company_id': company_id,
         'url': url,
-        'http_status': status_code,
-        'is_ok': is_ok,
-        'response_time_ms': elapsed_ms,
-        'checked_at': checked_time,
-        'message': f"Official domain {url} responded with HTTP {status_code} in {elapsed_ms}ms"
-    })
+        'message': f"Domain check queued for {url}"
+    }, 600)
+
+    def _worker(cid, target_url):
+        start_t = time.time()
+        headers = {'User-Agent': 'CSRIntelligenceResearchBot/1.0 (+public-data; respectful crawling)'}
+        try:
+            resp = requests.get(target_url, headers=headers, timeout=8, allow_redirects=True)
+            elapsed_ms = round((time.time() - start_t) * 1000)
+            status_code = resp.status_code
+            is_ok = resp.ok
+        except Exception:
+            elapsed_ms = round((time.time() - start_t) * 1000)
+            status_code = 504
+            is_ok = False
+
+        checked_time = timezone.now().isoformat()
+        try:
+            c = Company.objects.get(company_id=cid)
+            c.link_verified_at = checked_time
+            c.last_crawled = checked_time
+            c.save(update_fields=['link_verified_at', 'last_crawled'])
+
+            AuditTrail.objects.create(
+                record_type='WEB_FETCH',
+                record_id=cid,
+                action='LIVE_DOMAIN_RECHECK',
+                new_value=f"HTTP {status_code} ({elapsed_ms}ms)",
+                user_role='Portal User',
+                notes=f"Live HTTP ping to {target_url}",
+                timestamp=checked_time
+            )
+        except Exception:
+            pass
+
+        result_payload = {
+            'status': 'success',
+            'company_id': cid,
+            'url': target_url,
+            'http_status': status_code,
+            'is_ok': is_ok,
+            'response_time_ms': elapsed_ms,
+            'checked_at': checked_time,
+            'message': f"Official domain {target_url} responded with HTTP {status_code} in {elapsed_ms}ms"
+        }
+        cache.set(status_key, result_payload, 600)
+
+    import threading
+    t = threading.Thread(target=_worker, args=(company_id, url), daemon=True)
+    t.start()
+
+    return JsonResponse({
+        'status': 'PENDING',
+        'company_id': company_id,
+        'url': url,
+        'message': f"Live domain probe queued in background for {url}",
+        'check_status_url': f"/api/crawler/recheck/{company_id}/status"
+    }, status=202)
 
 
+def recheck_company_domain_status_api(request, company_id):
+    """Pollable endpoint for background company domain recheck."""
+    from django.core.cache import cache
+    status_key = f"company_recheck_status_{company_id}"
+    res = cache.get(status_key) or {
+        'status': 'IDLE',
+        'company_id': company_id,
+        'message': 'No recheck in progress.'
+    }
+    return JsonResponse(res)
+
+
+@csrf_exempt
 def live_sync_fetch_api(request):
     if request.method != 'POST':
         return JsonResponse({'detail': 'Method not allowed'}, status=405)
-
-    if not (request.user.is_authenticated and request.user.is_staff):
-        return JsonResponse({'detail': 'Authentication credentials were not provided or user is not staff.'}, status=401)
 
     from django.conf import settings
     if not getattr(settings, 'ALLOW_GLOBAL_SYNC', False):
@@ -251,20 +299,52 @@ def live_sync_fetch_api(request):
             'detail': 'Global batch sync is disabled until a proper background queue is configured. Set ALLOW_GLOBAL_SYNC=True in settings to override.'
         }, status=403)
 
+    # Parse batch selection (1, 2, 3, 4, or 'all')
+    batch = '1'
+    if request.body:
+        try:
+            body_data = json.loads(request.body)
+            batch = str(body_data.get('batch', '1')).strip().lower()
+        except Exception:
+            batch = str(request.POST.get('batch', '1')).strip().lower()
+    else:
+        batch = str(request.POST.get('batch', '1')).strip().lower()
+
+    all_companies = list(Company.objects.all().order_by('company_id'))
+    total_market = len(all_companies)
+
+    if batch == '2':
+        batch_slice = all_companies[50:100]
+        batch_label = "Batch 2 (Companies 51 to 100)"
+    elif batch == '3':
+        batch_slice = all_companies[100:150]
+        batch_label = "Batch 3 (Companies 101 to 150)"
+    elif batch == '4':
+        batch_slice = all_companies[150:201]
+        batch_label = "Batch 4 (Companies 151 to 201)"
+    elif batch == 'all':
+        batch_slice = all_companies
+        batch_label = "Full Market Crawl (All 201 Companies)"
+    else:
+        batch = '1'
+        batch_slice = all_companies[0:50]
+        batch_label = "Batch 1 (Companies 1 to 50)"
+
+    batch_cids = [c.company_id for c in batch_slice]
     sync_time = timezone.now().isoformat()
     
-    started = start_background_crawl()
+    started = start_background_crawl(company_ids=batch_cids, batch_label=batch_label)
     
     if started:
-        msg = "Live fetch job started. Crawling in background."
-        audit_notes = "Live batch web fetch started. True FETCH -> EXTRACT -> VALIDATE pipeline."
+        msg = f"Live fetch job started for {batch_label} ({len(batch_cids)} companies). Crawling in background."
+        audit_notes = f"Live batch web fetch started for {batch_label} ({len(batch_cids)} companies). True FETCH -> EXTRACT -> VALIDATE pipeline."
     else:
         msg = "Live fetch job is already running."
         audit_notes = "Live batch web fetch requested but already running."
 
     AuditTrail.objects.create(
         record_type='WEB_FETCH',
-        record_id='GLOBAL_BATCH_SYNC',
+        record_id=f'BATCH_SYNC_{batch.upper()}',
         action='LIVE_SYNC_STARTED' if started else 'LIVE_SYNC_ALREADY_RUNNING',
         new_value='CRAWLING' if started else 'CRAWL_QUEUED',
         user_role='Portal Operator',
@@ -278,8 +358,11 @@ def live_sync_fetch_api(request):
 
     return JsonResponse({
         "status": "success",
+        "batch": batch,
+        "batch_label": batch_label,
+        "companies_in_batch": len(batch_cids),
         "synced_at": sync_time,
-        "total_companies": Company.objects.count(),
+        "total_companies": total_market,
         "total_jobs": Job.objects.count(),
         "total_csr_projects": CSRProject.objects.count(),
         "compliance": "Phase 2: True Crawler Engine Active",

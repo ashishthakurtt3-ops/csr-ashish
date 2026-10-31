@@ -1,0 +1,2622 @@
+[
+  {
+    "pattern": "django-admin/",
+    "callback": "django.contrib.admin.sites.AdminSite.index",
+    "name": "index"
+  },
+  {
+    "pattern": "django-admin/login/",
+    "callback": "django.contrib.admin.sites.AdminSite.login",
+    "name": "login"
+  },
+  {
+    "pattern": "django-admin/logout/",
+    "callback": "django.contrib.admin.sites.AdminSite.logout",
+    "name": "logout"
+  },
+  {
+    "pattern": "django-admin/password_change/",
+    "callback": "django.contrib.admin.sites.AdminSite.password_change",
+    "name": "password_change"
+  },
+  {
+    "pattern": "django-admin/password_change/done/",
+    "callback": "django.contrib.admin.sites.AdminSite.password_change_done",
+    "name": "password_change_done"
+  },
+  {
+    "pattern": "django-admin/autocomplete/",
+    "callback": "django.contrib.admin.sites.AdminSite.autocomplete_view",
+    "name": "autocomplete"
+  },
+  {
+    "pattern": "django-admin/jsi18n/",
+    "callback": "django.contrib.admin.sites.AdminSite.i18n_javascript",
+    "name": "jsi18n"
+  },
+  {
+    "pattern": "django-admin/r/<path:content_type_id>/<path:object_id>/",
+    "callback": "django.contrib.contenttypes.views.shortcut",
+    "name": "view_on_site"
+  },
+  {
+    "pattern": "django-admin/auth/group/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "auth_group_changelist"
+  },
+  {
+    "pattern": "django-admin/auth/group/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "auth_group_add"
+  },
+  {
+    "pattern": "django-admin/auth/group/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "auth_group_history"
+  },
+  {
+    "pattern": "django-admin/auth/group/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "auth_group_delete"
+  },
+  {
+    "pattern": "django-admin/auth/group/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "auth_group_change"
+  },
+  {
+    "pattern": "django-admin/auth/group/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/<id>/password/",
+    "callback": "django.contrib.auth.admin.UserAdmin.user_change_password",
+    "name": "auth_user_password_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_user_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/add/",
+    "callback": "django.contrib.auth.admin.UserAdmin.add_view",
+    "name": "admin_panel_user_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_user_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_user_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_user_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/user/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/company/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_company_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/company/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_company_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/company/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_company_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/company/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_company_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/company/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_company_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/company/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/job/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_job_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/job/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_job_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/job/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_job_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/job/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_job_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/job/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_job_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/job/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/opportunityscore/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_opportunityscore_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/opportunityscore/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_opportunityscore_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/opportunityscore/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_opportunityscore_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/opportunityscore/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_opportunityscore_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/opportunityscore/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_opportunityscore_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/opportunityscore/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/csrproject/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_csrproject_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csrproject/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_csrproject_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csrproject/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_csrproject_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csrproject/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_csrproject_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csrproject/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_csrproject_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csrproject/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/csropportunity/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_csropportunity_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csropportunity/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_csropportunity_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csropportunity/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_csropportunity_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csropportunity/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_csropportunity_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csropportunity/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_csropportunity_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/csropportunity/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/contact/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_contact_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/contact/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_contact_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/contact/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_contact_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/contact/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_contact_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/contact/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_contact_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/contact/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/ngocollaboration/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_ngocollaboration_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/ngocollaboration/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_ngocollaboration_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/ngocollaboration/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_ngocollaboration_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/ngocollaboration/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_ngocollaboration_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/ngocollaboration/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_ngocollaboration_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/ngocollaboration/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/prospect/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_prospect_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/prospect/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_prospect_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/prospect/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_prospect_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/prospect/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_prospect_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/prospect/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_prospect_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/prospect/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/document/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_document_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/document/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_document_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/document/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_document_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/document/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_document_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/document/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_document_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/document/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/subscription/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_subscription_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/subscription/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_subscription_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/subscription/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_subscription_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/subscription/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_subscription_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/subscription/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_subscription_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/subscription/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/promocode/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_promocode_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/promocode/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_promocode_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/promocode/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_promocode_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/promocode/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_promocode_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/promocode/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_promocode_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/promocode/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/invoice/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_invoice_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/invoice/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_invoice_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/invoice/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_invoice_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/invoice/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_invoice_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/invoice/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_invoice_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/invoice/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/plan/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_plan_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/plan/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_plan_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/plan/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_plan_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/plan/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_plan_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/plan/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_plan_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/plan/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/planentitlement/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_planentitlement_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/planentitlement/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_planentitlement_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/planentitlement/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_planentitlement_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/planentitlement/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_planentitlement_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/planentitlement/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_planentitlement_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/planentitlement/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallet/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_wallet_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallet/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_wallet_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallet/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_wallet_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallet/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_wallet_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallet/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_wallet_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallet/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallettransaction/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_wallettransaction_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallettransaction/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_wallettransaction_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallettransaction/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_wallettransaction_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallettransaction/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_wallettransaction_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallettransaction/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_wallettransaction_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/wallettransaction/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/payment/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_payment_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/payment/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_payment_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/payment/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_payment_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/payment/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_payment_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/payment/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_payment_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/payment/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/audittrail/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_audittrail_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/audittrail/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_audittrail_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/audittrail/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_audittrail_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/audittrail/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_audittrail_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/audittrail/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_audittrail_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/audittrail/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/admin_panel/servicecatalog/",
+    "callback": "django.contrib.admin.options.ModelAdmin.changelist_view",
+    "name": "admin_panel_servicecatalog_changelist"
+  },
+  {
+    "pattern": "django-admin/admin_panel/servicecatalog/add/",
+    "callback": "django.contrib.admin.options.ModelAdmin.add_view",
+    "name": "admin_panel_servicecatalog_add"
+  },
+  {
+    "pattern": "django-admin/admin_panel/servicecatalog/<path:object_id>/history/",
+    "callback": "django.contrib.admin.options.ModelAdmin.history_view",
+    "name": "admin_panel_servicecatalog_history"
+  },
+  {
+    "pattern": "django-admin/admin_panel/servicecatalog/<path:object_id>/delete/",
+    "callback": "django.contrib.admin.options.ModelAdmin.delete_view",
+    "name": "admin_panel_servicecatalog_delete"
+  },
+  {
+    "pattern": "django-admin/admin_panel/servicecatalog/<path:object_id>/change/",
+    "callback": "django.contrib.admin.options.ModelAdmin.change_view",
+    "name": "admin_panel_servicecatalog_change"
+  },
+  {
+    "pattern": "django-admin/admin_panel/servicecatalog/<path:object_id>/",
+    "callback": "django.views.generic.base.View.as_view.<locals>.view",
+    "name": ""
+  },
+  {
+    "pattern": "django-admin/^(?P<app_label>auth|admin_panel)/$",
+    "callback": "django.contrib.admin.sites.AdminSite.app_index",
+    "name": "app_list"
+  },
+  {
+    "pattern": "django-admin/(?P<url>.*)$",
+    "callback": "django.contrib.admin.sites.AdminSite.catch_all_view",
+    "name": ""
+  },
+  {
+    "pattern": "admin-portal/",
+    "callback": "modules.admin_panel.views.dashboard.admin_dashboard_view",
+    "name": "dashboard"
+  },
+  {
+    "pattern": "admin-portal/audit/run-now/",
+    "callback": "modules.admin_panel.views.dashboard.run_audit_now_view",
+    "name": "run_audit_now"
+  },
+  {
+    "pattern": "admin-portal/audit/status/",
+    "callback": "modules.admin_panel.views.dashboard.audit_status_api",
+    "name": "audit_status"
+  },
+  {
+    "pattern": "admin-portal/auth/login/",
+    "callback": "modules.admin_panel.views.auth.admin_login_view",
+    "name": "login"
+  },
+  {
+    "pattern": "admin-portal/auth/logout/",
+    "callback": "modules.admin_panel.views.auth.admin_logout_view",
+    "name": "logout"
+  },
+  {
+    "pattern": "admin-portal/auth/profile/",
+    "callback": "modules.admin_panel.views.auth.admin_profile_view",
+    "name": "profile"
+  },
+  {
+    "pattern": "admin-portal/users/",
+    "callback": "modules.admin_panel.views.user_views.user_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/users/create/",
+    "callback": "modules.admin_panel.views.user_views.user_create_view",
+    "name": "create"
+  },
+  {
+    "pattern": "admin-portal/users/<int:user_id>/edit/",
+    "callback": "modules.admin_panel.views.user_views.user_edit_view",
+    "name": "edit"
+  },
+  {
+    "pattern": "admin-portal/users/<int:user_id>/toggle-status/",
+    "callback": "modules.admin_panel.views.user_views.user_toggle_status_view",
+    "name": "toggle_status"
+  },
+  {
+    "pattern": "admin-portal/companies/",
+    "callback": "modules.admin_panel.views.company_views.company_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/",
+    "callback": "modules.admin_panel.views.company_views.company_detail_view",
+    "name": "detail"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/intelligence/",
+    "callback": "modules.admin_panel.views.company_views.company_detail_view",
+    "name": "intelligence"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/edit/",
+    "callback": "modules.admin_panel.views.company_views.company_edit_view",
+    "name": "edit"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/fetch-live/",
+    "callback": "modules.website.views.company_api_views.company_fetch_live_api",
+    "name": "fetch_live"
+  },
+  {
+    "pattern": "admin-portal/jobs/",
+    "callback": "modules.admin_panel.views.job_views.job_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/jobs/link-quality/",
+    "callback": "modules.admin_panel.views.job_views.job_link_quality_dashboard_view",
+    "name": "link_quality"
+  },
+  {
+    "pattern": "admin-portal/jobs/find/",
+    "callback": "modules.admin_panel.views.job_views.job_find_view",
+    "name": "find"
+  },
+  {
+    "pattern": "admin-portal/jobs/companies/",
+    "callback": "modules.admin_panel.views.job_views.job_company_directory_view",
+    "name": "companies"
+  },
+  {
+    "pattern": "admin-portal/jobs/company/<str:company_id>/",
+    "callback": "modules.admin_panel.views.job_views.job_company_detail_view",
+    "name": "company_jobs"
+  },
+  {
+    "pattern": "admin-portal/jobs/companies/<str:company_id>/",
+    "callback": "modules.admin_panel.views.job_views.job_company_detail_view",
+    "name": ""
+  },
+  {
+    "pattern": "admin-portal/jobs/recrawl/<str:company_id>/",
+    "callback": "modules.admin_panel.views.job_views.recrawl_company_admin_view",
+    "name": "recrawl_company"
+  },
+  {
+    "pattern": "admin-portal/jobs/<int:job_row_id>/",
+    "callback": "modules.admin_panel.views.job_views.job_detail_view",
+    "name": "detail"
+  },
+  {
+    "pattern": "admin-portal/jobs/<int:job_row_id>/edit/",
+    "callback": "modules.admin_panel.views.job_views.job_edit_view",
+    "name": "edit"
+  },
+  {
+    "pattern": "admin-portal/jobs/<int:job_row_id>/rescrawl/",
+    "callback": "modules.admin_panel.views.job_views.rescrawl_job_admin_view",
+    "name": "rescrawl_job"
+  },
+  {
+    "pattern": "admin-portal/opportunities/",
+    "callback": "modules.admin_panel.views.opportunity_views.opportunity_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/opportunities/opportunities/",
+    "callback": "modules.admin_panel.views.opportunity_views.opportunity_list_view",
+    "name": "list_alt"
+  },
+  {
+    "pattern": "admin-portal/opportunities/projects/",
+    "callback": "modules.admin_panel.views.opportunity_views.project_list_view",
+    "name": "projects"
+  },
+  {
+    "pattern": "admin-portal/documents/",
+    "callback": "modules.admin_panel.views.document_views.document_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/documents/upload/",
+    "callback": "modules.admin_panel.views.document_views.document_upload_view",
+    "name": "upload"
+  },
+  {
+    "pattern": "admin-portal/documents/<int:document_id>/action/",
+    "callback": "modules.admin_panel.views.document_views.document_action_view",
+    "name": "action"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/",
+    "callback": "modules.admin_panel.views.subscription_views.subscription_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/<str:sub_id>/manage/",
+    "callback": "modules.admin_panel.views.subscription_views.subscription_detail_manage_view",
+    "name": "manage"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/renewals/run/",
+    "callback": "modules.admin_panel.views.subscription_views.admin_trigger_renewals_view",
+    "name": "run_renewals"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_list_view",
+    "name": "plans_list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/create/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_create_edit_view",
+    "name": "plan_create"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/edit/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_create_edit_view",
+    "name": "plan_edit"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/duplicate/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_duplicate_view",
+    "name": "plan_duplicate"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/toggle/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_toggle_status_view",
+    "name": "plan_toggle"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/delete/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_delete_view",
+    "name": "plan_delete"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/payments/",
+    "callback": "modules.admin_panel.views.subscription_views.payment_list_view",
+    "name": "payments_list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/payments/<str:payment_id>/",
+    "callback": "modules.admin_panel.views.subscription_views.payment_detail_view",
+    "name": "payment_detail"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/payments/<str:payment_id>/refund/",
+    "callback": "modules.admin_panel.views.subscription_views.admin_payment_refund_view",
+    "name": "payment_refund"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/wallets/",
+    "callback": "modules.admin_panel.views.subscription_views.wallet_list_view",
+    "name": "wallets_list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/wallets/<int:user_id>/adjust/",
+    "callback": "modules.admin_panel.views.subscription_views.admin_wallet_adjust_view",
+    "name": "wallet_adjust"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/invoices/",
+    "callback": "modules.admin_panel.views.subscription_views.invoice_list_view",
+    "name": "invoices"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/invoices/<int:invoice_id>/",
+    "callback": "modules.admin_panel.views.subscription_views.invoice_detail_view",
+    "name": "invoice_detail"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/promos/",
+    "callback": "modules.admin_panel.views.subscription_views.promo_code_list_view",
+    "name": "promos"
+  },
+  {
+    "pattern": "admin-portal/verification/queue/",
+    "callback": "modules.admin_panel.views.verification_views.verification_queue_view",
+    "name": "queue"
+  },
+  {
+    "pattern": "admin-portal/verification/queue/<int:record_id>/action/",
+    "callback": "modules.admin_panel.views.verification_views.verification_action_view",
+    "name": "action"
+  },
+  {
+    "pattern": "admin-portal/verification/audit-trail/",
+    "callback": "modules.admin_panel.views.verification_views.audit_trail_view",
+    "name": "audit_trail"
+  },
+  {
+    "pattern": "admin-portal/verification/crawler-status/",
+    "callback": "modules.admin_panel.views.verification_views.crawler_telemetry_view",
+    "name": "crawler_status"
+  },
+  {
+    "pattern": "admin-portal/ai-config/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_index_view",
+    "name": "index"
+  },
+  {
+    "pattern": "admin-portal/ai-config/settings/save/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_save_settings_api",
+    "name": "save_settings"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/create/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_create_provider_api",
+    "name": "create_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/save/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_save_provider_api",
+    "name": "save_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/test/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_test_provider_api",
+    "name": "test_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/refresh-models/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_refresh_models_api",
+    "name": "refresh_models"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/delete/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_delete_provider_api",
+    "name": "delete_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/audit-logs/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_audit_logs_api",
+    "name": "audit_logs"
+  },
+  {
+    "pattern": "admin-portal/downloads/",
+    "callback": "modules.admin_panel.data_exchange.download_hub_view",
+    "name": "download_hub"
+  },
+  {
+    "pattern": "admin-portal/downloads/all-archive/",
+    "callback": "modules.admin_panel.data_exchange.download_all_archive_view",
+    "name": "download_all_archive"
+  },
+  {
+    "pattern": "admin-portal/exchange/export/<str:entity>/",
+    "callback": "modules.admin_panel.data_exchange.export_entity_view",
+    "name": "data_export"
+  },
+  {
+    "pattern": "admin-portal/exchange/import/<str:entity>/",
+    "callback": "modules.admin_panel.data_exchange.import_entity_view",
+    "name": "data_import"
+  },
+  {
+    "pattern": "admin-portal/exchange/template/<str:entity>/",
+    "callback": "modules.admin_panel.data_exchange.sample_template_view",
+    "name": "data_template"
+  },
+  {
+    "pattern": "admin-portal/exchange/quick-sync/<str:entity>/",
+    "callback": "modules.admin_panel.data_exchange.quick_sync_entity_view",
+    "name": "quick_sync"
+  },
+  {
+    "pattern": "admin-portal/exchange/sync-all-master/",
+    "callback": "modules.admin_panel.data_exchange.sync_all_master_backup_view",
+    "name": "sync_all_master"
+  },
+  {
+    "pattern": "admin-portal/login/",
+    "callback": "modules.admin_panel.views.auth.admin_login_view",
+    "name": "login"
+  },
+  {
+    "pattern": "admin-portal/logout/",
+    "callback": "modules.admin_panel.views.auth.admin_logout_view",
+    "name": "logout"
+  },
+  {
+    "pattern": "admin-portal/users/",
+    "callback": "modules.admin_panel.views.user_views.user_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/users/create/",
+    "callback": "modules.admin_panel.views.user_views.user_create_view",
+    "name": "create"
+  },
+  {
+    "pattern": "admin-portal/users/<int:user_id>/edit/",
+    "callback": "modules.admin_panel.views.user_views.user_edit_view",
+    "name": "edit"
+  },
+  {
+    "pattern": "admin-portal/users/<int:user_id>/toggle-status/",
+    "callback": "modules.admin_panel.views.user_views.user_toggle_status_view",
+    "name": "toggle_status"
+  },
+  {
+    "pattern": "admin-portal/companies/",
+    "callback": "modules.admin_panel.views.company_views.company_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/",
+    "callback": "modules.admin_panel.views.company_views.company_detail_view",
+    "name": "detail"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/intelligence/",
+    "callback": "modules.admin_panel.views.company_views.company_detail_view",
+    "name": "intelligence"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/edit/",
+    "callback": "modules.admin_panel.views.company_views.company_edit_view",
+    "name": "edit"
+  },
+  {
+    "pattern": "admin-portal/companies/<str:company_id>/fetch-live/",
+    "callback": "modules.website.views.company_api_views.company_fetch_live_api",
+    "name": "fetch_live"
+  },
+  {
+    "pattern": "admin-portal/jobs/",
+    "callback": "modules.admin_panel.views.job_views.job_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/jobs/link-quality/",
+    "callback": "modules.admin_panel.views.job_views.job_link_quality_dashboard_view",
+    "name": "link_quality"
+  },
+  {
+    "pattern": "admin-portal/jobs/find/",
+    "callback": "modules.admin_panel.views.job_views.job_find_view",
+    "name": "find"
+  },
+  {
+    "pattern": "admin-portal/jobs/companies/",
+    "callback": "modules.admin_panel.views.job_views.job_company_directory_view",
+    "name": "companies"
+  },
+  {
+    "pattern": "admin-portal/jobs/company/<str:company_id>/",
+    "callback": "modules.admin_panel.views.job_views.job_company_detail_view",
+    "name": "company_jobs"
+  },
+  {
+    "pattern": "admin-portal/jobs/companies/<str:company_id>/",
+    "callback": "modules.admin_panel.views.job_views.job_company_detail_view",
+    "name": ""
+  },
+  {
+    "pattern": "admin-portal/jobs/recrawl/<str:company_id>/",
+    "callback": "modules.admin_panel.views.job_views.recrawl_company_admin_view",
+    "name": "recrawl_company"
+  },
+  {
+    "pattern": "admin-portal/jobs/<int:job_row_id>/",
+    "callback": "modules.admin_panel.views.job_views.job_detail_view",
+    "name": "detail"
+  },
+  {
+    "pattern": "admin-portal/jobs/<int:job_row_id>/edit/",
+    "callback": "modules.admin_panel.views.job_views.job_edit_view",
+    "name": "edit"
+  },
+  {
+    "pattern": "admin-portal/jobs/<int:job_row_id>/rescrawl/",
+    "callback": "modules.admin_panel.views.job_views.rescrawl_job_admin_view",
+    "name": "rescrawl_job"
+  },
+  {
+    "pattern": "admin-portal/opportunities/",
+    "callback": "modules.admin_panel.views.opportunity_views.opportunity_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/opportunities/opportunities/",
+    "callback": "modules.admin_panel.views.opportunity_views.opportunity_list_view",
+    "name": "list_alt"
+  },
+  {
+    "pattern": "admin-portal/opportunities/projects/",
+    "callback": "modules.admin_panel.views.opportunity_views.project_list_view",
+    "name": "projects"
+  },
+  {
+    "pattern": "admin-portal/documents/",
+    "callback": "modules.admin_panel.views.document_views.document_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/documents/upload/",
+    "callback": "modules.admin_panel.views.document_views.document_upload_view",
+    "name": "upload"
+  },
+  {
+    "pattern": "admin-portal/documents/<int:document_id>/action/",
+    "callback": "modules.admin_panel.views.document_views.document_action_view",
+    "name": "action"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/",
+    "callback": "modules.admin_panel.views.subscription_views.subscription_list_view",
+    "name": "list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/<str:sub_id>/manage/",
+    "callback": "modules.admin_panel.views.subscription_views.subscription_detail_manage_view",
+    "name": "manage"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/renewals/run/",
+    "callback": "modules.admin_panel.views.subscription_views.admin_trigger_renewals_view",
+    "name": "run_renewals"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_list_view",
+    "name": "plans_list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/create/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_create_edit_view",
+    "name": "plan_create"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/edit/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_create_edit_view",
+    "name": "plan_edit"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/duplicate/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_duplicate_view",
+    "name": "plan_duplicate"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/toggle/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_toggle_status_view",
+    "name": "plan_toggle"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/plans/<str:code>/delete/",
+    "callback": "modules.admin_panel.views.subscription_views.plan_delete_view",
+    "name": "plan_delete"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/payments/",
+    "callback": "modules.admin_panel.views.subscription_views.payment_list_view",
+    "name": "payments_list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/payments/<str:payment_id>/",
+    "callback": "modules.admin_panel.views.subscription_views.payment_detail_view",
+    "name": "payment_detail"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/payments/<str:payment_id>/refund/",
+    "callback": "modules.admin_panel.views.subscription_views.admin_payment_refund_view",
+    "name": "payment_refund"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/wallets/",
+    "callback": "modules.admin_panel.views.subscription_views.wallet_list_view",
+    "name": "wallets_list"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/wallets/<int:user_id>/adjust/",
+    "callback": "modules.admin_panel.views.subscription_views.admin_wallet_adjust_view",
+    "name": "wallet_adjust"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/invoices/",
+    "callback": "modules.admin_panel.views.subscription_views.invoice_list_view",
+    "name": "invoices"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/invoices/<int:invoice_id>/",
+    "callback": "modules.admin_panel.views.subscription_views.invoice_detail_view",
+    "name": "invoice_detail"
+  },
+  {
+    "pattern": "admin-portal/subscriptions/promos/",
+    "callback": "modules.admin_panel.views.subscription_views.promo_code_list_view",
+    "name": "promos"
+  },
+  {
+    "pattern": "admin-portal/verification/queue/",
+    "callback": "modules.admin_panel.views.verification_views.verification_queue_view",
+    "name": "queue"
+  },
+  {
+    "pattern": "admin-portal/verification/queue/<int:record_id>/action/",
+    "callback": "modules.admin_panel.views.verification_views.verification_action_view",
+    "name": "action"
+  },
+  {
+    "pattern": "admin-portal/verification/audit-trail/",
+    "callback": "modules.admin_panel.views.verification_views.audit_trail_view",
+    "name": "audit_trail"
+  },
+  {
+    "pattern": "admin-portal/verification/crawler-status/",
+    "callback": "modules.admin_panel.views.verification_views.crawler_telemetry_view",
+    "name": "crawler_status"
+  },
+  {
+    "pattern": "admin-portal/ai-config/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_index_view",
+    "name": "index"
+  },
+  {
+    "pattern": "admin-portal/ai-config/settings/save/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_save_settings_api",
+    "name": "save_settings"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/create/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_create_provider_api",
+    "name": "create_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/save/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_save_provider_api",
+    "name": "save_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/test/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_test_provider_api",
+    "name": "test_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/refresh-models/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_refresh_models_api",
+    "name": "refresh_models"
+  },
+  {
+    "pattern": "admin-portal/ai-config/provider/<str:provider>/delete/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_delete_provider_api",
+    "name": "delete_provider"
+  },
+  {
+    "pattern": "admin-portal/ai-config/audit-logs/",
+    "callback": "modules.admin_panel.views.ai_config_views.ai_config_audit_logs_api",
+    "name": "audit_logs"
+  },
+  {
+    "pattern": "",
+    "callback": "modules.website.views.home_views.index_view",
+    "name": "home"
+  },
+  {
+    "pattern": "health",
+    "callback": "modules.website.views.home_views.health_view",
+    "name": "health"
+  },
+  {
+    "pattern": "health/",
+    "callback": "modules.website.views.home_views.health_view",
+    "name": "health_slash"
+  },
+  {
+    "pattern": "stats",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "stats"
+  },
+  {
+    "pattern": "stats/",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "stats_slash"
+  },
+  {
+    "pattern": "api/stats",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "api_stats"
+  },
+  {
+    "pattern": "api/stats/",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "api_stats_slash"
+  },
+  {
+    "pattern": "api/coverage",
+    "callback": "modules.website.views.home_views.coverage_report_api",
+    "name": "api_coverage"
+  },
+  {
+    "pattern": "api/coverage/",
+    "callback": "modules.website.views.home_views.coverage_report_api",
+    "name": "api_coverage_slash"
+  },
+  {
+    "pattern": "search",
+    "callback": "modules.website.views.home_views.search_view",
+    "name": "search"
+  },
+  {
+    "pattern": "search/",
+    "callback": "modules.website.views.home_views.search_view",
+    "name": "search_slash"
+  },
+  {
+    "pattern": "companies/lookup",
+    "callback": "modules.website.views.company_api_views.companies_lookup_api",
+    "name": "companies_lookup"
+  },
+  {
+    "pattern": "companies/lookup/",
+    "callback": "modules.website.views.company_api_views.companies_lookup_api",
+    "name": "companies_lookup_slash"
+  },
+  {
+    "pattern": "companies",
+    "callback": "modules.website.views.company_api_views.companies_list_api",
+    "name": "companies_list"
+  },
+  {
+    "pattern": "companies/",
+    "callback": "modules.website.views.company_api_views.companies_list_api",
+    "name": "companies_list_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>",
+    "callback": "modules.website.views.company_api_views.company_detail_api",
+    "name": "company_detail"
+  },
+  {
+    "pattern": "companies/<str:company_id>/",
+    "callback": "modules.website.views.company_api_views.company_detail_api",
+    "name": "company_detail_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/fetch-live",
+    "callback": "modules.website.views.company_api_views.company_fetch_live_api",
+    "name": "company_fetch_live"
+  },
+  {
+    "pattern": "companies/<str:company_id>/fetch-live/",
+    "callback": "modules.website.views.company_api_views.company_fetch_live_api",
+    "name": "company_fetch_live_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/dossier",
+    "callback": "modules.website.views.company_api_views.company_dossier_api",
+    "name": "company_dossier"
+  },
+  {
+    "pattern": "companies/<str:company_id>/dossier/",
+    "callback": "modules.website.views.company_api_views.company_dossier_api",
+    "name": "company_dossier_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/csr",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_csr"
+  },
+  {
+    "pattern": "companies/<str:company_id>/csr/",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_csr_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/projects",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_projects"
+  },
+  {
+    "pattern": "companies/<str:company_id>/projects/",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_projects_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/jobs",
+    "callback": "modules.website.views.company_api_views.company_jobs_api",
+    "name": "company_jobs"
+  },
+  {
+    "pattern": "companies/<str:company_id>/jobs/",
+    "callback": "modules.website.views.company_api_views.company_jobs_api",
+    "name": "company_jobs_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/partners",
+    "callback": "modules.website.views.company_api_views.company_partners_api",
+    "name": "company_partners"
+  },
+  {
+    "pattern": "companies/<str:company_id>/partners/",
+    "callback": "modules.website.views.company_api_views.company_partners_api",
+    "name": "company_partners_slash"
+  },
+  {
+    "pattern": "companies/<str:company_id>/contacts",
+    "callback": "modules.website.views.company_api_views.company_contacts_api",
+    "name": "company_contacts"
+  },
+  {
+    "pattern": "companies/<str:company_id>/contacts/",
+    "callback": "modules.website.views.company_api_views.company_contacts_api",
+    "name": "company_contacts_slash"
+  },
+  {
+    "pattern": "recommendations",
+    "callback": "modules.website.views.company_api_views.recommendations_api",
+    "name": "recommendations"
+  },
+  {
+    "pattern": "recommendations/",
+    "callback": "modules.website.views.company_api_views.recommendations_api",
+    "name": "recommendations_slash"
+  },
+  {
+    "pattern": "jobs",
+    "callback": "modules.website.views.job_api_views.jobs_list_api",
+    "name": "jobs_list"
+  },
+  {
+    "pattern": "jobs/",
+    "callback": "modules.website.views.job_api_views.jobs_list_api",
+    "name": "jobs_list_slash"
+  },
+  {
+    "pattern": "jobs/summary",
+    "callback": "modules.website.views.job_api_views.jobs_summary_api",
+    "name": "jobs_summary"
+  },
+  {
+    "pattern": "jobs/summary/",
+    "callback": "modules.website.views.job_api_views.jobs_summary_api",
+    "name": "jobs_summary_slash"
+  },
+  {
+    "pattern": "jobs/filters",
+    "callback": "modules.website.views.job_api_views.jobs_filters_api",
+    "name": "jobs_filters"
+  },
+  {
+    "pattern": "jobs/filters/",
+    "callback": "modules.website.views.job_api_views.jobs_filters_api",
+    "name": "jobs_filters_slash"
+  },
+  {
+    "pattern": "jobs/<str:job_id>/refresh-status",
+    "callback": "modules.website.views.job_api_views.job_refresh_status_api",
+    "name": "job_refresh_status"
+  },
+  {
+    "pattern": "jobs/<str:job_id>/refresh-status/",
+    "callback": "modules.website.views.job_api_views.job_refresh_status_api",
+    "name": "job_refresh_status_slash"
+  },
+  {
+    "pattern": "jobs/<str:job_id>",
+    "callback": "modules.website.views.job_api_views.job_detail_api",
+    "name": "job_detail_api"
+  },
+  {
+    "pattern": "jobs/<str:job_id>/",
+    "callback": "modules.website.views.job_api_views.job_detail_api",
+    "name": "job_detail_api_slash"
+  },
+  {
+    "pattern": "csr",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_root"
+  },
+  {
+    "pattern": "csr/",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_root_slash"
+  },
+  {
+    "pattern": "csr/projects",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_projects"
+  },
+  {
+    "pattern": "csr/projects/",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_projects_slash"
+  },
+  {
+    "pattern": "csr/filters",
+    "callback": "modules.website.views.opportunity_api_views.csr_filters_api",
+    "name": "csr_filters"
+  },
+  {
+    "pattern": "csr/filters/",
+    "callback": "modules.website.views.opportunity_api_views.csr_filters_api",
+    "name": "csr_filters_slash"
+  },
+  {
+    "pattern": "csr/projects/<int:csr_id>",
+    "callback": "modules.website.views.opportunity_api_views.csr_project_detail_api",
+    "name": "csr_project_detail"
+  },
+  {
+    "pattern": "csr/projects/<int:csr_id>/",
+    "callback": "modules.website.views.opportunity_api_views.csr_project_detail_api",
+    "name": "csr_project_detail_slash"
+  },
+  {
+    "pattern": "csr/opportunities",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "csr_opportunities"
+  },
+  {
+    "pattern": "csr/opportunities/",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "csr_opportunities_slash"
+  },
+  {
+    "pattern": "opportunities",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "opportunities"
+  },
+  {
+    "pattern": "opportunities/",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "opportunities_slash"
+  },
+  {
+    "pattern": "api/crawler/logs",
+    "callback": "modules.website.views.crawler_api_views.crawler_logs_api",
+    "name": "crawler_logs"
+  },
+  {
+    "pattern": "api/crawler/logs/",
+    "callback": "modules.website.views.crawler_api_views.crawler_logs_api",
+    "name": "crawler_logs_slash"
+  },
+  {
+    "pattern": "api/crawler/logs/<str:company_id>",
+    "callback": "modules.website.views.crawler_api_views.company_crawler_log_api",
+    "name": "company_crawler_log"
+  },
+  {
+    "pattern": "api/crawler/logs/<str:company_id>/",
+    "callback": "modules.website.views.crawler_api_views.company_crawler_log_api",
+    "name": "company_crawler_log_slash"
+  },
+  {
+    "pattern": "api/crawler/recheck/<str:company_id>/status",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_status_api",
+    "name": "recheck_company_domain_status"
+  },
+  {
+    "pattern": "api/crawler/recheck/<str:company_id>/status/",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_status_api",
+    "name": "recheck_company_domain_status_slash"
+  },
+  {
+    "pattern": "api/crawler/recheck/<str:company_id>",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_api",
+    "name": "recheck_company_domain"
+  },
+  {
+    "pattern": "api/crawler/recheck/<str:company_id>/",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_api",
+    "name": "recheck_company_domain_slash"
+  },
+  {
+    "pattern": "api/fetch/live-sync",
+    "callback": "modules.website.views.crawler_api_views.live_sync_fetch_api",
+    "name": "live_sync_fetch"
+  },
+  {
+    "pattern": "api/fetch/live-sync/",
+    "callback": "modules.website.views.crawler_api_views.live_sync_fetch_api",
+    "name": "live_sync_fetch_slash"
+  },
+  {
+    "pattern": "api/crawler/live-stream",
+    "callback": "modules.website.views.crawler_api_views.live_crawler_stream_api",
+    "name": "live_crawler_stream"
+  },
+  {
+    "pattern": "api/crawler/live-stream/",
+    "callback": "modules.website.views.crawler_api_views.live_crawler_stream_api",
+    "name": "live_crawler_stream_slash"
+  },
+  {
+    "pattern": "admin/crawler-status",
+    "callback": "modules.website.views.crawler_api_views.admin_crawler_status_api",
+    "name": "legacy_admin_crawler_status"
+  },
+  {
+    "pattern": "admin/crawler-status/",
+    "callback": "modules.website.views.crawler_api_views.admin_crawler_status_api",
+    "name": "legacy_admin_crawler_status_slash"
+  },
+  {
+    "pattern": "admin/verification-queue",
+    "callback": "modules.website.views.crawler_api_views.admin_verification_queue_api",
+    "name": "legacy_admin_verification_queue"
+  },
+  {
+    "pattern": "admin/verification-queue/",
+    "callback": "modules.website.views.crawler_api_views.admin_verification_queue_api",
+    "name": "legacy_admin_verification_queue_slash"
+  },
+  {
+    "pattern": "admin/verify",
+    "callback": "modules.website.views.crawler_api_views.admin_verify_api",
+    "name": "legacy_admin_verify"
+  },
+  {
+    "pattern": "admin/verify/",
+    "callback": "modules.website.views.crawler_api_views.admin_verify_api",
+    "name": "legacy_admin_verify_slash"
+  },
+  {
+    "pattern": "admin/audit-trail",
+    "callback": "modules.website.views.crawler_api_views.admin_audit_trail_api",
+    "name": "legacy_admin_audit_trail"
+  },
+  {
+    "pattern": "admin/audit-trail/",
+    "callback": "modules.website.views.crawler_api_views.admin_audit_trail_api",
+    "name": "legacy_admin_audit_trail_slash"
+  },
+  {
+    "pattern": "api/subscription/plans",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_plans",
+    "name": "subscription_plans"
+  },
+  {
+    "pattern": "api/subscription/plans/",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_plans",
+    "name": "subscription_plans_slash"
+  },
+  {
+    "pattern": "api/subscription/promos",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_promos",
+    "name": "subscription_promos"
+  },
+  {
+    "pattern": "api/subscription/promos/",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_promos",
+    "name": "subscription_promos_slash"
+  },
+  {
+    "pattern": "api/subscription/current",
+    "callback": "modules.website.views.subscription_api_views.get_current_subscription",
+    "name": "subscription_current"
+  },
+  {
+    "pattern": "api/subscription/current/",
+    "callback": "modules.website.views.subscription_api_views.get_current_subscription",
+    "name": "subscription_current_slash"
+  },
+  {
+    "pattern": "api/subscription/quote",
+    "callback": "modules.website.views.subscription_api_views.quote_subscription",
+    "name": "subscription_quote"
+  },
+  {
+    "pattern": "api/subscription/quote/",
+    "callback": "modules.website.views.subscription_api_views.quote_subscription",
+    "name": "subscription_quote_slash"
+  },
+  {
+    "pattern": "api/subscription/validate-promo",
+    "callback": "modules.website.views.subscription_api_views.validate_subscription_promo",
+    "name": "subscription_validate_promo"
+  },
+  {
+    "pattern": "api/subscription/validate-promo/",
+    "callback": "modules.website.views.subscription_api_views.validate_subscription_promo",
+    "name": "subscription_validate_promo_slash"
+  },
+  {
+    "pattern": "api/subscription/checkout",
+    "callback": "modules.website.views.subscription_api_views.checkout_subscription",
+    "name": "subscription_checkout"
+  },
+  {
+    "pattern": "api/subscription/checkout/",
+    "callback": "modules.website.views.subscription_api_views.checkout_subscription",
+    "name": "subscription_checkout_slash"
+  },
+  {
+    "pattern": "api/subscription/upgrade",
+    "callback": "modules.website.views.subscription_api_views.subscription_upgrade",
+    "name": "subscription_upgrade"
+  },
+  {
+    "pattern": "api/subscription/upgrade/",
+    "callback": "modules.website.views.subscription_api_views.subscription_upgrade",
+    "name": "subscription_upgrade_slash"
+  },
+  {
+    "pattern": "api/subscription/change-plan",
+    "callback": "modules.website.views.subscription_api_views.subscription_change_plan",
+    "name": "subscription_change_plan"
+  },
+  {
+    "pattern": "api/subscription/change-plan/",
+    "callback": "modules.website.views.subscription_api_views.subscription_change_plan",
+    "name": "subscription_change_plan_slash"
+  },
+  {
+    "pattern": "api/subscription/downgrade",
+    "callback": "modules.website.views.subscription_api_views.subscription_downgrade",
+    "name": "subscription_downgrade"
+  },
+  {
+    "pattern": "api/subscription/downgrade/",
+    "callback": "modules.website.views.subscription_api_views.subscription_downgrade",
+    "name": "subscription_downgrade_slash"
+  },
+  {
+    "pattern": "api/subscription/auto-renew",
+    "callback": "modules.website.views.subscription_api_views.subscription_toggle_auto_renew",
+    "name": "subscription_toggle_auto_renew"
+  },
+  {
+    "pattern": "api/subscription/auto-renew/",
+    "callback": "modules.website.views.subscription_api_views.subscription_toggle_auto_renew",
+    "name": "subscription_toggle_auto_renew_slash"
+  },
+  {
+    "pattern": "api/subscription/cancel",
+    "callback": "modules.website.views.subscription_api_views.cancel_subscription",
+    "name": "subscription_cancel"
+  },
+  {
+    "pattern": "api/subscription/cancel/",
+    "callback": "modules.website.views.subscription_api_views.cancel_subscription",
+    "name": "subscription_cancel_slash"
+  },
+  {
+    "pattern": "api/subscription/resume",
+    "callback": "modules.website.views.subscription_api_views.resume_subscription",
+    "name": "subscription_resume"
+  },
+  {
+    "pattern": "api/subscription/resume/",
+    "callback": "modules.website.views.subscription_api_views.resume_subscription",
+    "name": "subscription_resume_slash"
+  },
+  {
+    "pattern": "api/wallet/topup",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "wallet_topup"
+  },
+  {
+    "pattern": "api/wallet/topup/",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "wallet_topup_slash"
+  },
+  {
+    "pattern": "api/wallet/balance",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "wallet_balance"
+  },
+  {
+    "pattern": "api/wallet/balance/",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "wallet_balance_slash"
+  },
+  {
+    "pattern": "api/wallet/transactions",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "wallet_transactions"
+  },
+  {
+    "pattern": "api/wallet/transactions/",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "wallet_transactions_slash"
+  },
+  {
+    "pattern": "api/subscription/wallet/balance",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "sub_wallet_balance"
+  },
+  {
+    "pattern": "api/subscription/wallet/balance/",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "sub_wallet_balance_slash"
+  },
+  {
+    "pattern": "api/subscription/wallet/topup",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "sub_wallet_topup"
+  },
+  {
+    "pattern": "api/subscription/wallet/topup/",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "sub_wallet_topup_slash"
+  },
+  {
+    "pattern": "api/subscription/wallet/transactions",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "sub_wallet_transactions"
+  },
+  {
+    "pattern": "api/subscription/wallet/transactions/",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "sub_wallet_transactions_slash"
+  },
+  {
+    "pattern": "api/subscription/history",
+    "callback": "modules.website.views.subscription_api_views.subscription_history",
+    "name": "subscription_history"
+  },
+  {
+    "pattern": "api/subscription/history/",
+    "callback": "modules.website.views.subscription_api_views.subscription_history",
+    "name": "subscription_history_slash"
+  },
+  {
+    "pattern": "api/subscription/invoices",
+    "callback": "modules.website.views.subscription_api_views.subscription_invoices",
+    "name": "subscription_invoices"
+  },
+  {
+    "pattern": "api/subscription/invoices/",
+    "callback": "modules.website.views.subscription_api_views.subscription_invoices",
+    "name": "subscription_invoices_slash"
+  },
+  {
+    "pattern": "api/subscription/usage",
+    "callback": "modules.website.views.subscription_api_views.subscription_usage",
+    "name": "subscription_usage"
+  },
+  {
+    "pattern": "api/subscription/usage/",
+    "callback": "modules.website.views.subscription_api_views.subscription_usage",
+    "name": "subscription_usage_slash"
+  },
+  {
+    "pattern": "api/subscription/api-key/rotate",
+    "callback": "modules.website.views.subscription_api_views.rotate_subscription_api_key",
+    "name": "subscription_rotate_key"
+  },
+  {
+    "pattern": "api/subscription/api-key/rotate/",
+    "callback": "modules.website.views.subscription_api_views.rotate_subscription_api_key",
+    "name": "subscription_rotate_key_slash"
+  },
+  {
+    "pattern": "api/admin/renewals/run",
+    "callback": "modules.website.views.subscription_api_views.admin_run_renewals_now",
+    "name": "admin_run_renewals"
+  },
+  {
+    "pattern": "api/admin/renewals/run/",
+    "callback": "modules.website.views.subscription_api_views.admin_run_renewals_now",
+    "name": "admin_run_renewals_slash"
+  },
+  {
+    "pattern": "api/admin/payments/<str:payment_id>/refund",
+    "callback": "modules.website.views.subscription_api_views.admin_refund_payment",
+    "name": "admin_refund_payment"
+  },
+  {
+    "pattern": "api/admin/payments/<str:payment_id>/refund/",
+    "callback": "modules.website.views.subscription_api_views.admin_refund_payment",
+    "name": "admin_refund_payment_slash"
+  },
+  {
+    "pattern": "login/",
+    "callback": "modules.website.views.auth_views.user_login_view",
+    "name": "user_login"
+  },
+  {
+    "pattern": "register/",
+    "callback": "modules.website.views.auth_views.user_register_view",
+    "name": "user_register"
+  },
+  {
+    "pattern": "logout/",
+    "callback": "modules.website.views.auth_views.user_logout_view",
+    "name": "user_logout"
+  },
+  {
+    "pattern": "profile/",
+    "callback": "modules.website.views.auth_views.user_profile_view",
+    "name": "user_profile"
+  },
+  {
+    "pattern": "documents/upload/",
+    "callback": "modules.website.views.document_views.public_document_upload_view",
+    "name": "public_document_upload"
+  },
+  {
+    "pattern": "api/",
+    "callback": "modules.website.views.home_views.index_view",
+    "name": "home"
+  },
+  {
+    "pattern": "api/health",
+    "callback": "modules.website.views.home_views.health_view",
+    "name": "health"
+  },
+  {
+    "pattern": "api/health/",
+    "callback": "modules.website.views.home_views.health_view",
+    "name": "health_slash"
+  },
+  {
+    "pattern": "api/stats",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "stats"
+  },
+  {
+    "pattern": "api/stats/",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "stats_slash"
+  },
+  {
+    "pattern": "api/api/stats",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "api_stats"
+  },
+  {
+    "pattern": "api/api/stats/",
+    "callback": "modules.website.views.home_views.stats_view",
+    "name": "api_stats_slash"
+  },
+  {
+    "pattern": "api/api/coverage",
+    "callback": "modules.website.views.home_views.coverage_report_api",
+    "name": "api_coverage"
+  },
+  {
+    "pattern": "api/api/coverage/",
+    "callback": "modules.website.views.home_views.coverage_report_api",
+    "name": "api_coverage_slash"
+  },
+  {
+    "pattern": "api/search",
+    "callback": "modules.website.views.home_views.search_view",
+    "name": "search"
+  },
+  {
+    "pattern": "api/search/",
+    "callback": "modules.website.views.home_views.search_view",
+    "name": "search_slash"
+  },
+  {
+    "pattern": "api/companies/lookup",
+    "callback": "modules.website.views.company_api_views.companies_lookup_api",
+    "name": "companies_lookup"
+  },
+  {
+    "pattern": "api/companies/lookup/",
+    "callback": "modules.website.views.company_api_views.companies_lookup_api",
+    "name": "companies_lookup_slash"
+  },
+  {
+    "pattern": "api/companies",
+    "callback": "modules.website.views.company_api_views.companies_list_api",
+    "name": "companies_list"
+  },
+  {
+    "pattern": "api/companies/",
+    "callback": "modules.website.views.company_api_views.companies_list_api",
+    "name": "companies_list_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>",
+    "callback": "modules.website.views.company_api_views.company_detail_api",
+    "name": "company_detail"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/",
+    "callback": "modules.website.views.company_api_views.company_detail_api",
+    "name": "company_detail_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/fetch-live",
+    "callback": "modules.website.views.company_api_views.company_fetch_live_api",
+    "name": "company_fetch_live"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/fetch-live/",
+    "callback": "modules.website.views.company_api_views.company_fetch_live_api",
+    "name": "company_fetch_live_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/dossier",
+    "callback": "modules.website.views.company_api_views.company_dossier_api",
+    "name": "company_dossier"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/dossier/",
+    "callback": "modules.website.views.company_api_views.company_dossier_api",
+    "name": "company_dossier_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/csr",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_csr"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/csr/",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_csr_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/projects",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_projects"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/projects/",
+    "callback": "modules.website.views.company_api_views.company_csr_api",
+    "name": "company_projects_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/jobs",
+    "callback": "modules.website.views.company_api_views.company_jobs_api",
+    "name": "company_jobs"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/jobs/",
+    "callback": "modules.website.views.company_api_views.company_jobs_api",
+    "name": "company_jobs_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/partners",
+    "callback": "modules.website.views.company_api_views.company_partners_api",
+    "name": "company_partners"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/partners/",
+    "callback": "modules.website.views.company_api_views.company_partners_api",
+    "name": "company_partners_slash"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/contacts",
+    "callback": "modules.website.views.company_api_views.company_contacts_api",
+    "name": "company_contacts"
+  },
+  {
+    "pattern": "api/companies/<str:company_id>/contacts/",
+    "callback": "modules.website.views.company_api_views.company_contacts_api",
+    "name": "company_contacts_slash"
+  },
+  {
+    "pattern": "api/recommendations",
+    "callback": "modules.website.views.company_api_views.recommendations_api",
+    "name": "recommendations"
+  },
+  {
+    "pattern": "api/recommendations/",
+    "callback": "modules.website.views.company_api_views.recommendations_api",
+    "name": "recommendations_slash"
+  },
+  {
+    "pattern": "api/jobs",
+    "callback": "modules.website.views.job_api_views.jobs_list_api",
+    "name": "jobs_list"
+  },
+  {
+    "pattern": "api/jobs/",
+    "callback": "modules.website.views.job_api_views.jobs_list_api",
+    "name": "jobs_list_slash"
+  },
+  {
+    "pattern": "api/jobs/summary",
+    "callback": "modules.website.views.job_api_views.jobs_summary_api",
+    "name": "jobs_summary"
+  },
+  {
+    "pattern": "api/jobs/summary/",
+    "callback": "modules.website.views.job_api_views.jobs_summary_api",
+    "name": "jobs_summary_slash"
+  },
+  {
+    "pattern": "api/jobs/filters",
+    "callback": "modules.website.views.job_api_views.jobs_filters_api",
+    "name": "jobs_filters"
+  },
+  {
+    "pattern": "api/jobs/filters/",
+    "callback": "modules.website.views.job_api_views.jobs_filters_api",
+    "name": "jobs_filters_slash"
+  },
+  {
+    "pattern": "api/jobs/<str:job_id>/refresh-status",
+    "callback": "modules.website.views.job_api_views.job_refresh_status_api",
+    "name": "job_refresh_status"
+  },
+  {
+    "pattern": "api/jobs/<str:job_id>/refresh-status/",
+    "callback": "modules.website.views.job_api_views.job_refresh_status_api",
+    "name": "job_refresh_status_slash"
+  },
+  {
+    "pattern": "api/jobs/<str:job_id>",
+    "callback": "modules.website.views.job_api_views.job_detail_api",
+    "name": "job_detail_api"
+  },
+  {
+    "pattern": "api/jobs/<str:job_id>/",
+    "callback": "modules.website.views.job_api_views.job_detail_api",
+    "name": "job_detail_api_slash"
+  },
+  {
+    "pattern": "api/csr",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_root"
+  },
+  {
+    "pattern": "api/csr/",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_root_slash"
+  },
+  {
+    "pattern": "api/csr/projects",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_projects"
+  },
+  {
+    "pattern": "api/csr/projects/",
+    "callback": "modules.website.views.opportunity_api_views.csr_projects_api",
+    "name": "csr_projects_slash"
+  },
+  {
+    "pattern": "api/csr/filters",
+    "callback": "modules.website.views.opportunity_api_views.csr_filters_api",
+    "name": "csr_filters"
+  },
+  {
+    "pattern": "api/csr/filters/",
+    "callback": "modules.website.views.opportunity_api_views.csr_filters_api",
+    "name": "csr_filters_slash"
+  },
+  {
+    "pattern": "api/csr/projects/<int:csr_id>",
+    "callback": "modules.website.views.opportunity_api_views.csr_project_detail_api",
+    "name": "csr_project_detail"
+  },
+  {
+    "pattern": "api/csr/projects/<int:csr_id>/",
+    "callback": "modules.website.views.opportunity_api_views.csr_project_detail_api",
+    "name": "csr_project_detail_slash"
+  },
+  {
+    "pattern": "api/csr/opportunities",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "csr_opportunities"
+  },
+  {
+    "pattern": "api/csr/opportunities/",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "csr_opportunities_slash"
+  },
+  {
+    "pattern": "api/opportunities",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "opportunities"
+  },
+  {
+    "pattern": "api/opportunities/",
+    "callback": "modules.website.views.opportunity_api_views.csr_opportunities_api",
+    "name": "opportunities_slash"
+  },
+  {
+    "pattern": "api/api/crawler/logs",
+    "callback": "modules.website.views.crawler_api_views.crawler_logs_api",
+    "name": "crawler_logs"
+  },
+  {
+    "pattern": "api/api/crawler/logs/",
+    "callback": "modules.website.views.crawler_api_views.crawler_logs_api",
+    "name": "crawler_logs_slash"
+  },
+  {
+    "pattern": "api/api/crawler/logs/<str:company_id>",
+    "callback": "modules.website.views.crawler_api_views.company_crawler_log_api",
+    "name": "company_crawler_log"
+  },
+  {
+    "pattern": "api/api/crawler/logs/<str:company_id>/",
+    "callback": "modules.website.views.crawler_api_views.company_crawler_log_api",
+    "name": "company_crawler_log_slash"
+  },
+  {
+    "pattern": "api/api/crawler/recheck/<str:company_id>/status",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_status_api",
+    "name": "recheck_company_domain_status"
+  },
+  {
+    "pattern": "api/api/crawler/recheck/<str:company_id>/status/",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_status_api",
+    "name": "recheck_company_domain_status_slash"
+  },
+  {
+    "pattern": "api/api/crawler/recheck/<str:company_id>",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_api",
+    "name": "recheck_company_domain"
+  },
+  {
+    "pattern": "api/api/crawler/recheck/<str:company_id>/",
+    "callback": "modules.website.views.crawler_api_views.recheck_company_domain_api",
+    "name": "recheck_company_domain_slash"
+  },
+  {
+    "pattern": "api/api/fetch/live-sync",
+    "callback": "modules.website.views.crawler_api_views.live_sync_fetch_api",
+    "name": "live_sync_fetch"
+  },
+  {
+    "pattern": "api/api/fetch/live-sync/",
+    "callback": "modules.website.views.crawler_api_views.live_sync_fetch_api",
+    "name": "live_sync_fetch_slash"
+  },
+  {
+    "pattern": "api/api/crawler/live-stream",
+    "callback": "modules.website.views.crawler_api_views.live_crawler_stream_api",
+    "name": "live_crawler_stream"
+  },
+  {
+    "pattern": "api/api/crawler/live-stream/",
+    "callback": "modules.website.views.crawler_api_views.live_crawler_stream_api",
+    "name": "live_crawler_stream_slash"
+  },
+  {
+    "pattern": "api/admin/crawler-status",
+    "callback": "modules.website.views.crawler_api_views.admin_crawler_status_api",
+    "name": "legacy_admin_crawler_status"
+  },
+  {
+    "pattern": "api/admin/crawler-status/",
+    "callback": "modules.website.views.crawler_api_views.admin_crawler_status_api",
+    "name": "legacy_admin_crawler_status_slash"
+  },
+  {
+    "pattern": "api/admin/verification-queue",
+    "callback": "modules.website.views.crawler_api_views.admin_verification_queue_api",
+    "name": "legacy_admin_verification_queue"
+  },
+  {
+    "pattern": "api/admin/verification-queue/",
+    "callback": "modules.website.views.crawler_api_views.admin_verification_queue_api",
+    "name": "legacy_admin_verification_queue_slash"
+  },
+  {
+    "pattern": "api/admin/verify",
+    "callback": "modules.website.views.crawler_api_views.admin_verify_api",
+    "name": "legacy_admin_verify"
+  },
+  {
+    "pattern": "api/admin/verify/",
+    "callback": "modules.website.views.crawler_api_views.admin_verify_api",
+    "name": "legacy_admin_verify_slash"
+  },
+  {
+    "pattern": "api/admin/audit-trail",
+    "callback": "modules.website.views.crawler_api_views.admin_audit_trail_api",
+    "name": "legacy_admin_audit_trail"
+  },
+  {
+    "pattern": "api/admin/audit-trail/",
+    "callback": "modules.website.views.crawler_api_views.admin_audit_trail_api",
+    "name": "legacy_admin_audit_trail_slash"
+  },
+  {
+    "pattern": "api/api/subscription/plans",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_plans",
+    "name": "subscription_plans"
+  },
+  {
+    "pattern": "api/api/subscription/plans/",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_plans",
+    "name": "subscription_plans_slash"
+  },
+  {
+    "pattern": "api/api/subscription/promos",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_promos",
+    "name": "subscription_promos"
+  },
+  {
+    "pattern": "api/api/subscription/promos/",
+    "callback": "modules.website.views.subscription_api_views.get_subscription_promos",
+    "name": "subscription_promos_slash"
+  },
+  {
+    "pattern": "api/api/subscription/current",
+    "callback": "modules.website.views.subscription_api_views.get_current_subscription",
+    "name": "subscription_current"
+  },
+  {
+    "pattern": "api/api/subscription/current/",
+    "callback": "modules.website.views.subscription_api_views.get_current_subscription",
+    "name": "subscription_current_slash"
+  },
+  {
+    "pattern": "api/api/subscription/quote",
+    "callback": "modules.website.views.subscription_api_views.quote_subscription",
+    "name": "subscription_quote"
+  },
+  {
+    "pattern": "api/api/subscription/quote/",
+    "callback": "modules.website.views.subscription_api_views.quote_subscription",
+    "name": "subscription_quote_slash"
+  },
+  {
+    "pattern": "api/api/subscription/validate-promo",
+    "callback": "modules.website.views.subscription_api_views.validate_subscription_promo",
+    "name": "subscription_validate_promo"
+  },
+  {
+    "pattern": "api/api/subscription/validate-promo/",
+    "callback": "modules.website.views.subscription_api_views.validate_subscription_promo",
+    "name": "subscription_validate_promo_slash"
+  },
+  {
+    "pattern": "api/api/subscription/checkout",
+    "callback": "modules.website.views.subscription_api_views.checkout_subscription",
+    "name": "subscription_checkout"
+  },
+  {
+    "pattern": "api/api/subscription/checkout/",
+    "callback": "modules.website.views.subscription_api_views.checkout_subscription",
+    "name": "subscription_checkout_slash"
+  },
+  {
+    "pattern": "api/api/subscription/upgrade",
+    "callback": "modules.website.views.subscription_api_views.subscription_upgrade",
+    "name": "subscription_upgrade"
+  },
+  {
+    "pattern": "api/api/subscription/upgrade/",
+    "callback": "modules.website.views.subscription_api_views.subscription_upgrade",
+    "name": "subscription_upgrade_slash"
+  },
+  {
+    "pattern": "api/api/subscription/change-plan",
+    "callback": "modules.website.views.subscription_api_views.subscription_change_plan",
+    "name": "subscription_change_plan"
+  },
+  {
+    "pattern": "api/api/subscription/change-plan/",
+    "callback": "modules.website.views.subscription_api_views.subscription_change_plan",
+    "name": "subscription_change_plan_slash"
+  },
+  {
+    "pattern": "api/api/subscription/downgrade",
+    "callback": "modules.website.views.subscription_api_views.subscription_downgrade",
+    "name": "subscription_downgrade"
+  },
+  {
+    "pattern": "api/api/subscription/downgrade/",
+    "callback": "modules.website.views.subscription_api_views.subscription_downgrade",
+    "name": "subscription_downgrade_slash"
+  },
+  {
+    "pattern": "api/api/subscription/auto-renew",
+    "callback": "modules.website.views.subscription_api_views.subscription_toggle_auto_renew",
+    "name": "subscription_toggle_auto_renew"
+  },
+  {
+    "pattern": "api/api/subscription/auto-renew/",
+    "callback": "modules.website.views.subscription_api_views.subscription_toggle_auto_renew",
+    "name": "subscription_toggle_auto_renew_slash"
+  },
+  {
+    "pattern": "api/api/subscription/cancel",
+    "callback": "modules.website.views.subscription_api_views.cancel_subscription",
+    "name": "subscription_cancel"
+  },
+  {
+    "pattern": "api/api/subscription/cancel/",
+    "callback": "modules.website.views.subscription_api_views.cancel_subscription",
+    "name": "subscription_cancel_slash"
+  },
+  {
+    "pattern": "api/api/subscription/resume",
+    "callback": "modules.website.views.subscription_api_views.resume_subscription",
+    "name": "subscription_resume"
+  },
+  {
+    "pattern": "api/api/subscription/resume/",
+    "callback": "modules.website.views.subscription_api_views.resume_subscription",
+    "name": "subscription_resume_slash"
+  },
+  {
+    "pattern": "api/api/wallet/topup",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "wallet_topup"
+  },
+  {
+    "pattern": "api/api/wallet/topup/",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "wallet_topup_slash"
+  },
+  {
+    "pattern": "api/api/wallet/balance",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "wallet_balance"
+  },
+  {
+    "pattern": "api/api/wallet/balance/",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "wallet_balance_slash"
+  },
+  {
+    "pattern": "api/api/wallet/transactions",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "wallet_transactions"
+  },
+  {
+    "pattern": "api/api/wallet/transactions/",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "wallet_transactions_slash"
+  },
+  {
+    "pattern": "api/api/subscription/wallet/balance",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "sub_wallet_balance"
+  },
+  {
+    "pattern": "api/api/subscription/wallet/balance/",
+    "callback": "modules.website.views.subscription_api_views.wallet_balance",
+    "name": "sub_wallet_balance_slash"
+  },
+  {
+    "pattern": "api/api/subscription/wallet/topup",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "sub_wallet_topup"
+  },
+  {
+    "pattern": "api/api/subscription/wallet/topup/",
+    "callback": "modules.website.views.subscription_api_views.wallet_topup",
+    "name": "sub_wallet_topup_slash"
+  },
+  {
+    "pattern": "api/api/subscription/wallet/transactions",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "sub_wallet_transactions"
+  },
+  {
+    "pattern": "api/api/subscription/wallet/transactions/",
+    "callback": "modules.website.views.subscription_api_views.wallet_transactions",
+    "name": "sub_wallet_transactions_slash"
+  },
+  {
+    "pattern": "api/api/subscription/history",
+    "callback": "modules.website.views.subscription_api_views.subscription_history",
+    "name": "subscription_history"
+  },
+  {
+    "pattern": "api/api/subscription/history/",
+    "callback": "modules.website.views.subscription_api_views.subscription_history",
+    "name": "subscription_history_slash"
+  },
+  {
+    "pattern": "api/api/subscription/invoices",
+    "callback": "modules.website.views.subscription_api_views.subscription_invoices",
+    "name": "subscription_invoices"
+  },
+  {
+    "pattern": "api/api/subscription/invoices/",
+    "callback": "modules.website.views.subscription_api_views.subscription_invoices",
+    "name": "subscription_invoices_slash"
+  },
+  {
+    "pattern": "api/api/subscription/usage",
+    "callback": "modules.website.views.subscription_api_views.subscription_usage",
+    "name": "subscription_usage"
+  },
+  {
+    "pattern": "api/api/subscription/usage/",
+    "callback": "modules.website.views.subscription_api_views.subscription_usage",
+    "name": "subscription_usage_slash"
+  },
+  {
+    "pattern": "api/api/subscription/api-key/rotate",
+    "callback": "modules.website.views.subscription_api_views.rotate_subscription_api_key",
+    "name": "subscription_rotate_key"
+  },
+  {
+    "pattern": "api/api/subscription/api-key/rotate/",
+    "callback": "modules.website.views.subscription_api_views.rotate_subscription_api_key",
+    "name": "subscription_rotate_key_slash"
+  },
+  {
+    "pattern": "api/api/admin/renewals/run",
+    "callback": "modules.website.views.subscription_api_views.admin_run_renewals_now",
+    "name": "admin_run_renewals"
+  },
+  {
+    "pattern": "api/api/admin/renewals/run/",
+    "callback": "modules.website.views.subscription_api_views.admin_run_renewals_now",
+    "name": "admin_run_renewals_slash"
+  },
+  {
+    "pattern": "api/api/admin/payments/<str:payment_id>/refund",
+    "callback": "modules.website.views.subscription_api_views.admin_refund_payment",
+    "name": "admin_refund_payment"
+  },
+  {
+    "pattern": "api/api/admin/payments/<str:payment_id>/refund/",
+    "callback": "modules.website.views.subscription_api_views.admin_refund_payment",
+    "name": "admin_refund_payment_slash"
+  },
+  {
+    "pattern": "api/login/",
+    "callback": "modules.website.views.auth_views.user_login_view",
+    "name": "user_login"
+  },
+  {
+    "pattern": "api/register/",
+    "callback": "modules.website.views.auth_views.user_register_view",
+    "name": "user_register"
+  },
+  {
+    "pattern": "api/logout/",
+    "callback": "modules.website.views.auth_views.user_logout_view",
+    "name": "user_logout"
+  },
+  {
+    "pattern": "api/profile/",
+    "callback": "modules.website.views.auth_views.user_profile_view",
+    "name": "user_profile"
+  },
+  {
+    "pattern": "api/documents/upload/",
+    "callback": "modules.website.views.document_views.public_document_upload_view",
+    "name": "public_document_upload"
+  },
+  {
+    "pattern": "ngo/matches",
+    "callback": "modules.website.views.matching_api_views.match_ngo_api",
+    "name": "ngo_matches"
+  },
+  {
+    "pattern": "ngo/matches/",
+    "callback": "modules.website.views.matching_api_views.match_ngo_api",
+    "name": "ngo_matches_slash"
+  },
+  {
+    "pattern": "prospects",
+    "callback": "modules.website.views.prospect_api_views.prospects_api",
+    "name": "prospects"
+  },
+  {
+    "pattern": "prospects/",
+    "callback": "modules.website.views.prospect_api_views.prospects_api",
+    "name": "prospects_slash"
+  },
+  {
+    "pattern": "prospects/<str:company_id>",
+    "callback": "modules.website.views.prospect_api_views.prospects_api",
+    "name": "prospect_detail"
+  },
+  {
+    "pattern": "prospects/<str:company_id>/",
+    "callback": "modules.website.views.prospect_api_views.prospects_api",
+    "name": "prospect_detail_slash"
+  },
+  {
+    "pattern": "^static/(?P<path>.*)$",
+    "callback": "django.contrib.staticfiles.views.serve",
+    "name": ""
+  },
+  {
+    "pattern": "^media/(?P<path>.*)$",
+    "callback": "django.views.static.serve",
+    "name": ""
+  }
+]

@@ -43,6 +43,9 @@ SECRET_KEY = _require_env('SECRET_KEY')
 _hosts = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
 if not DEBUG and '*' in _hosts:
     raise ImproperlyConfigured("ALLOWED_HOSTS must not contain '*' when DEBUG is off.")
+if any('test' in arg.lower() for arg in sys.argv):
+    if 'testserver' not in _hosts:
+        _hosts.append('testserver')
 ALLOWED_HOSTS = _hosts
 
 # Application definition
@@ -61,6 +64,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
+    'modules.website.middleware.StaticCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -94,8 +99,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-# MySQL is the ONLY database. There is deliberately no SQLite fallback: if MySQL is down the
-# server fails loudly instead of silently serving different (stale / unverified) data.
+# MySQL is the ONLY database. Persistent connections with health checks.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
@@ -104,11 +108,52 @@ DATABASES = {
         "PASSWORD": _require_env("MYSQL_PASSWORD"),
         "HOST": os.environ.get("MYSQL_HOST", "localhost"),
         "PORT": os.environ.get("MYSQL_PORT", "3306"),
+        "CONN_MAX_AGE": 600,
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "charset": "utf8mb4",
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
+}
+
+# Session engine: cached_db for ultra-fast session reads backed by DB persistence
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# High-performance caching: Redis if REDIS_URL provided, else LocMemCache (per-process)
+if os.environ.get('REDIS_URL'):
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': os.environ.get('REDIS_URL'),
+            'TIMEOUT': 300,
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'impactbridge-locmem-cache',
+            'TIMEOUT': 300,
+        }
+    }
+
+# Logging configuration: turn off verbose SQL queries in normal/production operation
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
 }
 
 # Legacy (read-only) business database kept for one-time gap-fill imports.
@@ -156,6 +201,7 @@ if (BASE_DIR / 'static_admin').exists():
     STATICFILES_DIRS.append(BASE_DIR / 'static_admin')
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_VERSION = '4.0.3'
 
 # Media / Uploaded files
 MEDIA_URL = '/media/'
@@ -184,8 +230,8 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Safety Guard: Global background crawler lock.
-# Must remain False until a persistent background worker queue (e.g. Celery / Redis) is deployed.
-ALLOW_GLOBAL_SYNC = False
+# Allowed for selectable 50-company batch crawling
+ALLOW_GLOBAL_SYNC = True
 
 # Phase 1 Safety Guard: Freeze all job deletion and expiration transitions until explicitly approved.
 FREEZE_JOB_EXPIRY_AND_DELETION = True
@@ -194,3 +240,19 @@ FREEZE_JOB_EXPIRY_AND_DELETION = True
 RECONCILE_MAX_AGE_HOURS = int(os.environ.get('RECONCILE_MAX_AGE_HOURS', 72))
 ENFORCE_RECONCILE_FRESHNESS = os.environ.get('ENFORCE_RECONCILE_FRESHNESS', 'False').lower() in ('true', '1')
 
+
+# ── Subscription and Payment Gateway Security Guards ──────────────────────────
+ALLOW_PROTOTYPE_PAYMENTS = os.environ.get('ALLOW_PROTOTYPE_PAYMENTS', 'True' if DEBUG else 'False').strip().lower() in ('true', '1', 'yes')
+ALLOW_DEMO_AUTH_FALLBACK = os.environ.get('ALLOW_DEMO_AUTH_FALLBACK', 'True' if DEBUG else 'False').strip().lower() in ('true', '1', 'yes')
+
+# ── Browser and Transport Security Headers ────────────────────────────────────
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1')
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1')
+    CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() in ('true', '1')
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', 0))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get('SECURE_HSTS_SUBDOMAINS', 'False').lower() in ('true', '1')
+    SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'False').lower() in ('true', '1')

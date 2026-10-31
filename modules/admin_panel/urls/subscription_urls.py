@@ -28,6 +28,7 @@ urlpatterns = [
 
     # Plans Catalog
     path('plans/', plan_list_view, name='plans_list'),
+    path('plans/catalog/', plan_list_view, name='plans'),
     path('plans/create/', plan_create_edit_view, name='plan_create'),
     path('plans/<str:code>/edit/', plan_create_edit_view, name='plan_edit'),
     path('plans/<str:code>/duplicate/', plan_duplicate_view, name='plan_duplicate'),

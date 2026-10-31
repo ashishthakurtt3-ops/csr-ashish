@@ -25,6 +25,12 @@ urlpatterns = [
     path('', include('modules.website.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+from django.urls import re_path
+from django.contrib.staticfiles.views import serve as static_serve
+from django.views.static import serve as media_serve
+
+# Static & media file serving for local runs (including DEBUG=False)
+urlpatterns += [
+    re_path(r'^static/(?P<path>.*)$', static_serve, {'insecure': True}),
+    re_path(r'^media/(?P<path>.*)$', media_serve, {'document_root': settings.MEDIA_ROOT}),
+]

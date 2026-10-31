@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImpactBridge™ — India Corporate Social Responsibility &amp; Enterprise Job Intelligence</title>
     <meta name="description" content="Next-generation enterprise intelligence platform tracking verified statutory Section 135 CSR allocations, active grant RFPs, and authentic corporate career openings across India's Top 200 NSE listed corporations.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Preload key self-hosted fonts to avoid render-blocking and layout shifts -->
+    <link rel="preload" href="{% static 'fonts/plus-jakarta-sans-700.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'fonts/inter-400.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'fonts/inter-600.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ STATIC_VERSION }}">
 </head>
 <body>
     <div class="app-bg-glows" aria-hidden="true"></div>
@@ -90,6 +91,15 @@
                         <span class="user-tier-name" id="header-tier-label">Institutional Access</span>
                         <button class="user-tier-btn" id="header-tier-btn" onclick="event.stopPropagation(); switchTab('pricing');">Plans ⚡</button>
                     </div>
+
+                    <!-- User Profile & Billing Link -->
+                    <a href="/profile/" class="nav-action-btn" id="header-profile-btn" title="View Account, Quotas &amp; Invoices" style="text-decoration:none; gap:6px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span style="font-size:12px; font-weight:600;">Account</span>
+                    </a>
 
                     <div class="header-v-divider"></div>
 
@@ -301,6 +311,13 @@
                     </svg>
                     <span>Export CSV Datasets</span>
                 </button>
+                <a href="/profile/" class="drawer-nav-btn" title="View Account, Quotas &amp; Invoices">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>My Account &amp; Billing</span>
+                </a>
                 <a href="/admin-portal/" class="drawer-nav-btn drawer-btn-admin" title="Open ImpactBridge Management Console">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -356,7 +373,7 @@
                             <span class="status-metric-badge badge-cyan">Registry</span>
                         </div>
                         <div class="status-metric-val">
-                            <span id="status-companies-val"><span id="kpi-companies">{{ total_companies|default:"200" }}</span> verified / 200 total</span>
+                            <span id="status-companies-val"><span id="kpi-companies">{{ verified_companies|default:total_companies|default:"201" }}</span> verified / {{ total_companies|default:"201" }} total</span>
                         </div>
                         <div class="status-metric-sub">Canonical Corporate Registry</div>
                     </div>
@@ -400,7 +417,7 @@
                             <span class="status-metric-badge badge-blue">Audit Matrix</span>
                         </div>
                         <div class="status-metric-val" id="status-last-fetch-val">
-                            {{ verified_companies|default:"0" }} / {{ total_companies|default:"200" }} Verified
+                            {{ verified_companies|default:total_companies|default:"201" }} / {{ total_companies|default:"201" }} Verified
                         </div>
                         <div class="status-metric-sub" id="status-last-fetch-sub">Zero Simulated Stubs</div>
                     </div>
@@ -416,6 +433,8 @@
                         <div class="status-metric-sub">Telemetry Active</div>
                     </div>
                 </div>
+
+
         </section>
 
         <!-- ============================================================= -->
@@ -645,7 +664,7 @@
                         </select>
 
                         <select id="job-location-filter" class="select-filter">
-                            <option value="all">All Locations (Pan-India)</option>
+                            <option value="all">All Locations (Global &amp; India)</option>
                         </select>
 
                         <select id="job-mode-filter" class="select-filter">
@@ -780,7 +799,7 @@
                         <div>
                             <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Location</label>
                             <select id="find-job-location-filter" class="select-filter" style="width:100%;" onchange="executeFindJobsSearch()">
-                                <option value="all">All Locations (Pan-India)</option>
+                                <option value="all">All Locations (Global &amp; India)</option>
                             </select>
                         </div>
                         <div>
@@ -975,6 +994,8 @@
                     <div id="comp-jobs-pagination" class="pagination-bar-wrapper"></div>
                 </div>
             </div>
+
+
         </section>
 
 
@@ -1035,19 +1056,7 @@
                 </div>
                 <div class="filter-group">
                     <select id="csr-state-filter" class="select-filter" onchange="filterCsrProjects()">
-                        <option value="all">All States / UTs</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Karnataka">Karnataka</option>
-                        <option value="Delhi">Delhi NCR</option>
-                        <option value="Tamil Nadu">Tamil Nadu</option>
-                        <option value="Telangana">Telangana</option>
-                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="Madhya Pradesh">Madhya Pradesh</option>
-                        <option value="Odisha">Odisha</option>
-                        <option value="West Bengal">West Bengal</option>
-                        <option value="Pan-India">Pan-India</option>
+                        <option value="all">All Locations / States</option>
                     </select>
                     <button class="btn-secondary" onclick="resetCsrFilters()">Reset Filters</button>
                 </div>
@@ -1246,6 +1255,8 @@
             <div id="matching-results-container" style="margin-top:24px;">
                 <!-- Populated dynamically by app.js -->
             </div>
+
+
         </section>
 
         <!-- ============================================================= -->
@@ -1405,6 +1416,8 @@
                     </tbody>
                 </table>
             </div>
+
+
         </section>
 
 
@@ -1473,6 +1486,8 @@
                     <div class="kanban-col-body" id="col-Partnered"></div>
                 </div>
             </div>
+
+
         </section>
 
         <!-- ============================================================= -->
@@ -1481,11 +1496,11 @@
         <section class="tab-content" id="tab-pricing" style="display:none;">
             <div class="pricing-hero">
                 <div class="pricing-pill-tag">
-                    Institutional Tier Management
+                    Plan and Pricing
                 </div>
-                <h2 class="pricing-headline">Transparent Access for Non-Profits &amp; Institutions</h2>
+                <h2 class="pricing-headline">All CSR &amp; Job Intelligence, <em>One honest price</em></h2>
                 <p class="pricing-subtext">
-                    Authoritative intelligence tracking verified corporate donation budgets, Section 135 projects, and active career openings directly from corporate ATS portals.
+                    5× more verified corporate &amp; CSR intelligence than a typical stack — for less than 1/20th the cost.
                 </p>
 
                 <!-- Billing Cycle Selector -->
@@ -1503,7 +1518,7 @@
             </div>
 
             <!-- Dedicated Enterprise Demo Wallet Section (Enter Any Number As Real Money For Testing) -->
-            <div class="portal-wallet-section-card" id="portal-wallet-section-card" style="background:linear-gradient(135deg, rgba(16,185,129,0.14), rgba(15,23,42,0.92)); border:1.5px solid rgba(16,185,129,0.38); border-radius:var(--radius-lg); padding:22px 24px; margin-bottom:24px; box-shadow:0 8px 32px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);">
+            <div class="portal-wallet-section-card" id="portal-wallet-section-card" style="background:#FFFFFF; border:1.5px solid var(--border-color); border-radius:24px; padding:28px 32px; margin-bottom:28px; box-shadow:var(--shadow-card);">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
                     <div>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
@@ -1515,10 +1530,10 @@
                             Enter any number as money to simulate your funds for demo testing. The amount is immediately credited into your active wallet and counted as real currency to test plan purchases, upgrades, and billing workflows.
                         </p>
                     </div>
-                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:12px; padding:12px 22px; text-align:right; min-width:190px;">
-                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary-brand); font-weight:700;">Available Wallet Balance</div>
-                        <div class="mono" id="pricing-wallet-balance-val" style="font-size:26px; font-weight:900; color:var(--accent-emerald); margin-top:2px;">₹0.00</div>
-                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="pricing-wallet-status-note">Ready for immediate checkout</div>
+                    <div style="background:#FAFBFF; border:1.5px solid var(--border-color); border-radius:18px; padding:14px 24px; text-align:right; min-width:200px;">
+                        <div style="font-size:11.5px; text-transform:uppercase; letter-spacing:0.8px; color:var(--primary-brand); font-weight:700;">Available Wallet Balance</div>
+                        <div class="mono" id="pricing-wallet-balance-val" style="font-size:28px; font-weight:900; color:var(--text-primary); margin-top:3px;">₹0.00</div>
+                        <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;" id="pricing-wallet-status-note">Ready for immediate checkout</div>
                     </div>
                 </div>
 
@@ -1527,11 +1542,11 @@
                     <div style="position:relative; display:flex; align-items:center; flex:1; min-width:240px; max-width:320px;">
                         <span style="position:absolute; left:14px; font-weight:800; color:var(--primary-brand); font-size:16px; pointer-events:none;">₹</span>
                         <input type="number" id="inline-wallet-amount-input" min="1" step="any" placeholder="Enter number as money (e.g. 5000)"
-                               style="width:100%; box-sizing:border-box; padding:10px 14px 10px 32px; background:var(--bg-input); border:1.5px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:14.5px; font-family:'JetBrains Mono',monospace; outline:none;"
+                               style="width:100%; box-sizing:border-box; padding:10px 16px 10px 32px; background:var(--bg-input); border:1.5px solid var(--border-color); border-radius:var(--radius-pill); color:var(--text-primary); font-size:14px; font-family:'JetBrains Mono',monospace; outline:none;"
                                onkeydown="if(event.key==='Enter') executeInlineWalletRecharge();">
                     </div>
                     <button type="button" class="btn-primary" id="btn-inline-recharge" onclick="executeInlineWalletRecharge()"
-                            style="padding:10px 22px; font-size:13.5px; font-weight:700; background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:var(--shadow-sm);">
+                            style="padding:10px 24px; font-size:13.5px; font-weight:700;">
                         💰 Add to Wallet
                     </button>
 
@@ -1562,8 +1577,11 @@
                 </div>
             </div>
 
+            <!-- User Quotas & Progress Widget -->
+            <div id="user-quota-widget"></div>
+
             <!-- Active User Subscription Status Banner -->
-            <div class="active-subscription-card" id="active-subscription-card" style="background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-lg); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:28px;">
+            <div class="active-subscription-card" id="active-subscription-card" style="background:#FFFFFF; border:1.5px solid var(--border-color); border-radius:20px; padding:22px 28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:28px; box-shadow:var(--shadow-card);">
                 <div class="active-sub-left">
                     <div style="font-size:11px; font-weight:800; color:var(--accent-cyan); letter-spacing:0.04em;">ACTIVE TIER: <strong id="active-plan-badge-name">COMMUNITY STARTER (FREE)</strong></div>
                     <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin:4px 0;" id="active-plan-org-title">Institutional Non-Profit Access &bull; Active Tier</div>
@@ -1589,6 +1607,9 @@
                     <div>Loading verified institutional tiers from database...</div>
                 </div>
             </div>
+
+            <!-- Dynamic Three-Tier Feature Comparison Matrix -->
+            <div id="pricing-comparison-container"></div>
         </section>
 
     </main>
@@ -1713,36 +1734,83 @@
             <div class="modal-body" style="padding:22px; display:flex; flex-direction:column; gap:16px;">
                 <div>
                     <div style="font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">
-                        Execute verification probes across India's Top 200 corporate domains?
+                        Execute verification probes across India's Top Corporate Domains
                     </div>
                     <p style="font-size:13px; color:var(--text-secondary); line-height:1.55; margin:0;">
-                        This will issue live HTTP socket probes against apex corporate portals, re-verify statutory grant application forms, and synchronize career ATS links across all 200 enterprises.
+                        Select a 50-company batch to crawl. Slicing into 50 companies keeps each run fast (~1.5 min), avoids corporate WAF rate-limiting, and immediately updates verified audit records.
                     </p>
                 </div>
 
-                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:14px; font-size:12.5px; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
+                <!-- Batch Selection Grid -->
+                <div style="display:flex; flex-direction:column; gap:8px;">
                     <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
+                        Select Crawl Target Batch (50 Companies Each):
+                    </div>
+                    <div class="batch-selector-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <label class="batch-card" id="batch-card-1" style="display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:8px; border:2px solid var(--accent-cyan); background:rgba(6,182,212,0.08); cursor:pointer; transition:all 0.2s ease;">
+                            <input type="radio" name="crawl_batch_select" value="1" checked onchange="onBatchSelectChange(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                            <div>
+                                <div style="font-weight:700; font-size:13px; color:var(--text-primary);">Batch 1: Top 1 – 50</div>
+                                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Reliance, HDFC Bank, TCS, Infosys, L&amp;T, etc.</div>
+                                <span class="badge badge-emerald" style="font-size:10px; margin-top:5px; display:inline-block;">50 Companies</span>
+                            </div>
+                        </label>
+
+                        <label class="batch-card" id="batch-card-2" style="display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-subtle); cursor:pointer; transition:all 0.2s ease;">
+                            <input type="radio" name="crawl_batch_select" value="2" onchange="onBatchSelectChange(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                            <div>
+                                <div style="font-weight:700; font-size:13px; color:var(--text-primary);">Batch 2: Companies 51 – 100</div>
+                                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Hitachi Energy, HPCL, Tech &amp; Infra Enterprises</div>
+                                <span class="badge badge-blue" style="font-size:10px; margin-top:5px; display:inline-block;">50 Companies</span>
+                            </div>
+                        </label>
+
+                        <label class="batch-card" id="batch-card-3" style="display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-subtle); cursor:pointer; transition:all 0.2s ease;">
+                            <input type="radio" name="crawl_batch_select" value="3" onchange="onBatchSelectChange(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                            <div>
+                                <div style="font-weight:700; font-size:13px; color:var(--text-primary);">Batch 3: Companies 101 – 150</div>
+                                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">ICICI Lombard, TVS Motor, Mid-Tier Corporates</div>
+                                <span class="badge badge-purple" style="font-size:10px; margin-top:5px; display:inline-block;">50 Companies</span>
+                            </div>
+                        </label>
+
+                        <label class="batch-card" id="batch-card-4" style="display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-subtle); cursor:pointer; transition:all 0.2s ease;">
+                            <input type="radio" name="crawl_batch_select" value="4" onchange="onBatchSelectChange(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                            <div>
+                                <div style="font-weight:700; font-size:13px; color:var(--text-primary);">Batch 4: Companies 151 – 201</div>
+                                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Bharat Forge, Aarti Pharma, Manufacturing</div>
+                                <span class="badge badge-amber" style="font-size:10px; margin-top:5px; display:inline-block;">51 Companies</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div style="margin-top:2px; padding:8px 12px; background:var(--bg-surface-subtle); border-radius:6px; border:1px dashed var(--border-color);">
+                        <label style="display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); cursor:pointer; width:100%;">
+                            <input type="radio" name="crawl_batch_select" value="all" onchange="onBatchSelectChange(this)" style="accent-color:var(--accent-cyan);">
+                            <span><strong>Full Market Crawl:</strong> All 201 Companies (Long run ~6–8 mins)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:12px 14px; font-size:12px; color:var(--text-secondary); display:flex; flex-direction:column; gap:6px;">
+                    <div style="font-size:11px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
                         Execution Pipeline:
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>Target Corporate Registry:</strong> Real-time HTTP verification of corporate &amp; CSR portals</span>
+                        <span><strong>Career ATS Verification:</strong> Scrapes active requisitions, titles, departments, and specific cities</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>Grants &amp; CSR Budgets:</strong> Update active grant deadlines and published Section 135 disclosures</span>
+                        <span><strong>Section 135 CSR:</strong> Extracts statutory projects, allocations, and district/state locations</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>Enterprise Jobs:</strong> Synchronize latest openings across official ATS career endpoints</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="color:var(--accent-emerald); font-weight:700;">✓</span>
-                        <span><strong>Audit Trail:</strong> Commit timestamped audit event to MySQL database</span>
+                        <span><strong>Audit Trail &amp; Freshness:</strong> Commits crawl timestamp to MySQL and refreshes dashboard</span>
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:6px;">
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:4px;">
                     <button class="btn-secondary" onclick="closeModal('modal-live-fetch-confirm')" style="padding:8px 18px; font-size:13px; font-weight:600;">
                         Cancel
                     </button>
@@ -2010,6 +2078,6 @@
     </nav>
 
     <!-- Core Scripts -->
-    <script src="{% static 'js/app.js' %}?v=3.6.0"></script>
+    <script src="{% static 'js/app.js' %}?v={{ STATIC_VERSION }}"></script>
 </body>
 </html>

@@ -1,5 +1,7 @@
 from django.urls import path, include
-from modules.admin_panel.views.dashboard import admin_dashboard_view
+from modules.admin_panel.views.dashboard import (
+    admin_dashboard_view, run_audit_now_view, audit_status_api
+)
 from modules.admin_panel.views.auth import admin_login_view, admin_logout_view
 from modules.admin_panel.data_exchange import (
     export_entity_view, import_entity_view, sample_template_view,
@@ -11,6 +13,8 @@ app_name = 'admin_portal'
 
 urlpatterns = [
     path('', admin_dashboard_view, name='dashboard'),
+    path('audit/run-now/', run_audit_now_view, name='run_audit_now'),
+    path('audit/status/', audit_status_api, name='audit_status'),
     path('auth/', include('modules.admin_panel.urls.auth_urls')),
     path('users/', include('modules.admin_panel.urls.user_urls')),
     path('companies/', include('modules.admin_panel.urls.company_urls')),

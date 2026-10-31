@@ -1,0 +1,102 @@
+{
+  "endpoints": [
+    {
+      "endpoint": "/stats",
+      "cold_ms": 25154.27,
+      "warm_ms": 2.37,
+      "queries": 0,
+      "size_kb": 0.9,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/companies?page=1&page_size=12",
+      "cold_ms": 133.75,
+      "warm_ms": 36.73,
+      "queries": 3,
+      "size_kb": 28.62,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/companies?limit=5000",
+      "cold_ms": 85.96,
+      "warm_ms": 121.82,
+      "queries": 2,
+      "size_kb": 239.93,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/jobs?page=1&page_size=12",
+      "cold_ms": 341.4,
+      "warm_ms": 1007.27,
+      "queries": 2,
+      "size_kb": 40.2,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/jobs",
+      "cold_ms": 219.48,
+      "warm_ms": 210.52,
+      "queries": 1,
+      "size_kb": 318.68,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/jobs/6524",
+      "cold_ms": 131.34,
+      "warm_ms": 115.6,
+      "queries": 4,
+      "size_kb": 22.69,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/csr/projects",
+      "cold_ms": 163.67,
+      "warm_ms": 166.42,
+      "queries": 1,
+      "size_kb": 267.27,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/csr/projects?page=1&page_size=12",
+      "cold_ms": 71.77,
+      "warm_ms": 76.42,
+      "queries": 2,
+      "size_kb": 32.12,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/ngo/matches",
+      "cold_ms": 711.24,
+      "warm_ms": 587.16,
+      "queries": 2,
+      "size_kb": 27.74,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/",
+      "cold_ms": 273.7,
+      "warm_ms": 69.98,
+      "queries": 6,
+      "size_kb": 144.17,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/admin-portal/",
+      "cold_ms": 1080.26,
+      "warm_ms": 114.72,
+      "queries": 9,
+      "size_kb": 97.5,
+      "status_code": 200
+    },
+    {
+      "endpoint": "/admin-portal/jobs/",
+      "cold_ms": 387.54,
+      "warm_ms": 173.2,
+      "queries": 4,
+      "size_kb": 101.95,
+      "status_code": 200
+    }
+  ],
+  "spa_requests_count": 3,
+  "spa_time_ms": 156.31
+}

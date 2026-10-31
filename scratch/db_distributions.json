@@ -1,0 +1,904 @@
+{
+  "company_listing_status": [
+    {
+      "listing_status": "ACTIVE",
+      "cnt": 201
+    }
+  ],
+  "company_crawl_status": [
+    {
+      "crawl_status": "SUSPECT_DROP",
+      "cnt": 18
+    },
+    {
+      "crawl_status": "CRAWLED",
+      "cnt": 32
+    },
+    {
+      "crawl_status": "BLOCKED",
+      "cnt": 2
+    },
+    {
+      "crawl_status": "PENDING",
+      "cnt": 144
+    },
+    {
+      "crawl_status": "FAILED",
+      "cnt": 5
+    }
+  ],
+  "company_data_confidence": [
+    {
+      "data_confidence": 0.0,
+      "cnt": 201
+    }
+  ],
+  "company_ats_platform": [
+    {
+      "ats_platform": null,
+      "cnt": 196
+    },
+    {
+      "ats_platform": "ORACLE_TALEO",
+      "cnt": 2
+    },
+    {
+      "ats_platform": "GREENHOUSE",
+      "cnt": 1
+    },
+    {
+      "ats_platform": "SUCCESSFACTORS",
+      "cnt": 1
+    },
+    {
+      "ats_platform": "LEVER",
+      "cnt": 1
+    }
+  ],
+  "company_careers_url_confidence": [
+    {
+      "careers_url_confidence": 0.0,
+      "cnt": 201
+    }
+  ],
+  "company_has_careers_url": [
+    {
+      "has_careers": 1,
+      "cnt": 201
+    }
+  ],
+  "company_has_csr_url": [
+    {
+      "has_csr": 1,
+      "cnt": 201
+    }
+  ],
+  "company_id_prefixes": [
+    {
+      "pfx": "COMP_0",
+      "cnt": 1
+    },
+    {
+      "pfx": "COMP_TOP200_",
+      "cnt": 200
+    }
+  ],
+  "company_jobs_access": [
+    {
+      "jobs_access": "PUBLIC",
+      "cnt": 48
+    },
+    {
+      "jobs_access": "NOT_PUBLISHED",
+      "cnt": 153
+    }
+  ],
+  "company_csr_access": [
+    {
+      "csr_access": "PUBLIC",
+      "cnt": 144
+    },
+    {
+      "csr_access": "NOT_PUBLISHED",
+      "cnt": 55
+    },
+    {
+      "csr_access": "LOGIN_REQUIRED",
+      "cnt": 2
+    }
+  ],
+  "company_contacts_access": [
+    {
+      "contacts_access": "PUBLIC",
+      "cnt": 201
+    }
+  ],
+  "company_sync_status": [
+    {
+      "sync_status": "LIVE_VERIFIED",
+      "cnt": 201
+    }
+  ],
+  "company_website_url_status": [
+    {
+      "website_url_status": "UNKNOWN",
+      "cnt": 201
+    }
+  ],
+  "job_status": [
+    {
+      "status": "ACTIVE",
+      "cnt": 1514
+    },
+    {
+      "status": "EXPIRED",
+      "cnt": 317
+    },
+    {
+      "status": "INACTIVE",
+      "cnt": 3123
+    },
+    {
+      "status": "NEEDS_REVIEW",
+      "cnt": 2
+    },
+    {
+      "status": "QUARANTINED",
+      "cnt": 452
+    },
+    {
+      "status": "REMOVED",
+      "cnt": 141
+    }
+  ],
+  "job_verification_status": [
+    {
+      "verification_status": "PUBLISHED",
+      "cnt": 131
+    },
+    {
+      "verification_status": "SOURCE_CONFIRMED",
+      "cnt": 1526
+    },
+    {
+      "verification_status": "STALE",
+      "cnt": 317
+    },
+    {
+      "verification_status": "QUARANTINED",
+      "cnt": 460
+    },
+    {
+      "verification_status": "REJECTED",
+      "cnt": 3115
+    }
+  ],
+  "job_link_status": [
+    {
+      "link_status": "LINK_OK",
+      "cnt": 4604
+    },
+    {
+      "link_status": "VERIFIED_HTTP_200",
+      "cnt": 422
+    },
+    {
+      "link_status": "LINK_FALLBACK",
+      "cnt": 375
+    },
+    {
+      "link_status": "PUBLISHED",
+      "cnt": 148
+    }
+  ],
+  "job_confidence": [
+    {
+      "confidence": 0.0,
+      "cnt": 5330
+    },
+    {
+      "confidence": 0.98,
+      "cnt": 219
+    }
+  ],
+  "job_is_defective": [
+    {
+      "is_defective": 0,
+      "cnt": 4600
+    },
+    {
+      "is_defective": 1,
+      "cnt": 949
+    }
+  ],
+  "job_detail_fetch_status": [
+    {
+      "detail_fetch_status": "NOT_FETCHED",
+      "cnt": 3854
+    },
+    {
+      "detail_fetch_status": "FETCHED",
+      "cnt": 183
+    },
+    {
+      "detail_fetch_status": "PARSED_FROM_SOURCE",
+      "cnt": 1512
+    }
+  ],
+  "job_details_status": [
+    {
+      "details_status": "MISSING",
+      "cnt": 5267
+    },
+    {
+      "details_status": "PARTIAL",
+      "cnt": 258
+    },
+    {
+      "details_status": "COMPLETE",
+      "cnt": 24
+    }
+  ],
+  "job_field_source": [
+    {
+      "field_source": "{\"raw_title\": \"raw_metadata.title\", \"raw_location\": \"location\", \"raw_department\": \"department\", \"raw_employment_type\": \"employment_type\"}",
+      "cnt": 3642
+    },
+    {
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\", \"raw_employment_type\": \"employment_type\"}",
+      "cnt": 1253
+    },
+    {
+      "field_source": "{\"raw_title\": \"raw_metadata.title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}",
+      "cnt": 240
+    },
+    {
+      "field_source": "{\"raw_title\": \"raw_metadata.title\", \"raw_location\": \"location\"}",
+      "cnt": 169
+    },
+    {
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\"}",
+      "cnt": 132
+    },
+    {
+      "field_source": "{\"raw_title\": \"raw_metadata.name\", \"raw_location\": \"raw_metadata.location\", \"raw_department\": \"department\", \"raw_employment_type\": \"raw_metadata.typeOfEmployment.label\"}",
+      "cnt": 100
+    },
+    {
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}",
+      "cnt": 12
+    },
+    {
+      "field_source": "{}",
+      "cnt": 1
+    }
+  ],
+  "job_work_mode": [
+    {
+      "work_mode": "On-site",
+      "cnt": 4998
+    },
+    {
+      "work_mode": null,
+      "cnt": 522
+    },
+    {
+      "work_mode": "",
+      "cnt": 25
+    },
+    {
+      "work_mode": "onsite",
+      "cnt": 4
+    }
+  ],
+  "job_employment_type": [
+    {
+      "employment_type": "Full-time",
+      "cnt": 4988
+    },
+    {
+      "employment_type": null,
+      "cnt": 547
+    },
+    {
+      "employment_type": "Intern",
+      "cnt": 8
+    },
+    {
+      "employment_type": "Full-time Employment",
+      "cnt": 3
+    },
+    {
+      "employment_type": "Part-time",
+      "cnt": 2
+    },
+    {
+      "employment_type": "On-roll",
+      "cnt": 1
+    }
+  ],
+  "job_ats_platform": [
+    {
+      "ats_platform": null,
+      "cnt": 5343
+    },
+    {
+      "ats_platform": "SuccessFactors",
+      "cnt": 177
+    },
+    {
+      "ats_platform": "Oracle_Cloud",
+      "cnt": 25
+    },
+    {
+      "ats_platform": "Lever",
+      "cnt": 4
+    }
+  ],
+  "job_null_rates": [
+    {
+      "total_jobs": 5549,
+      "empty_location": "0",
+      "empty_description": "112",
+      "empty_responsibilities": "5359",
+      "empty_qualifications": "5419",
+      "empty_application_url": "0",
+      "empty_department": "301",
+      "empty_salary": "5549",
+      "empty_canonical_hash": "0"
+    }
+  ],
+  "csrproject_status": [
+    {
+      "status": "ACTIVE",
+      "cnt": 1591
+    }
+  ],
+  "csrproject_field_source": [
+    {
+      "field_source": "{\"raw_category\": \"category\", \"raw_budget_text\": \"budget\", \"raw_project_name\": \"project_name\"}",
+      "cnt": 1589
+    },
+    {
+      "field_source": "{}",
+      "cnt": 2
+    }
+  ],
+  "csrproject_category": [
+    {
+      "category": "Education & Skill Development",
+      "cnt": 586
+    },
+    {
+      "category": "Environment & Sustainability",
+      "cnt": 487
+    },
+    {
+      "category": "Healthcare & Nutrition",
+      "cnt": 270
+    },
+    {
+      "category": "Schedule VII Statutory CSR",
+      "cnt": 169
+    },
+    {
+      "category": "Rural Development & Livelihood",
+      "cnt": 52
+    },
+    {
+      "category": "Statutory CSR & Sustainability Report",
+      "cnt": 27
+    }
+  ],
+  "csrproject_confidence": [
+    {
+      "confidence": 0.0,
+      "cnt": 1591
+    }
+  ],
+  "csrproject_link_status": [
+    {
+      "link_status": "LINK_OK",
+      "cnt": 1151
+    },
+    {
+      "link_status": null,
+      "cnt": 440
+    }
+  ],
+  "csropp_status": [
+    {
+      "status": "INVALID_SYNTHETIC",
+      "cnt": 1160
+    }
+  ],
+  "csropp_category": [
+    {
+      "category": "Education & Skill Development",
+      "cnt": 418
+    },
+    {
+      "category": "Environment & Sustainability",
+      "cnt": 328
+    },
+    {
+      "category": "Healthcare & Nutrition",
+      "cnt": 211
+    },
+    {
+      "category": "Schedule VII Statutory CSR",
+      "cnt": 136
+    },
+    {
+      "category": "Rural Development & Livelihood",
+      "cnt": 40
+    },
+    {
+      "category": "Statutory CSR",
+      "cnt": 27
+    }
+  ],
+  "csropp_opportunity_type": [
+    {
+      "opportunity_type": "CSR Project Partnership",
+      "cnt": 1133
+    },
+    {
+      "opportunity_type": "CSR Grant / Program",
+      "cnt": 27
+    }
+  ],
+  "csropp_confidence": [
+    {
+      "confidence": 1.0,
+      "cnt": 1160
+    }
+  ],
+  "csropp_link_status": [
+    {
+      "link_status": "LINK_OK",
+      "cnt": 1160
+    }
+  ],
+  "pages_page_type": [
+    {
+      "page_type": "CSR",
+      "cnt": 352
+    },
+    {
+      "page_type": "CSR_PDF",
+      "cnt": 87
+    },
+    {
+      "page_type": "CAREERS",
+      "cnt": 74
+    }
+  ],
+  "pages_status": [
+    {
+      "status": "200",
+      "cnt": 506
+    },
+    {
+      "status": "403",
+      "cnt": 3
+    },
+    {
+      "status": "401",
+      "cnt": 2
+    },
+    {
+      "status": "404",
+      "cnt": 1
+    },
+    {
+      "status": "202",
+      "cnt": 1
+    }
+  ],
+  "completeness_status": [
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "VERIFIED",
+      "careers_source_status": "VERIFIED",
+      "ats_discovery_status": "DISCOVERED",
+      "cnt": 10
+    },
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "VERIFIED",
+      "careers_source_status": "VERIFIED",
+      "ats_discovery_status": "NOT_DETECTED",
+      "cnt": 118
+    },
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "VERIFIED",
+      "careers_source_status": "NO_RECORDS_CONFIRMED",
+      "ats_discovery_status": "NOT_DETECTED",
+      "cnt": 11
+    },
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "BLOCKED",
+      "careers_source_status": "VERIFIED",
+      "ats_discovery_status": "NOT_DETECTED",
+      "cnt": 2
+    },
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "VERIFIED",
+      "careers_source_status": "PENDING_VERIFICATION",
+      "ats_discovery_status": "NOT_DETECTED",
+      "cnt": 54
+    },
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "VERIFIED",
+      "careers_source_status": "NO_RECORDS_CONFIRMED",
+      "ats_discovery_status": "DISCOVERED",
+      "cnt": 1
+    },
+    {
+      "corporate_profile_status": "CIN_UNKNOWN_UNVERIFIED",
+      "official_url_status": "FAILED",
+      "careers_source_status": "CRAWL_FAILED",
+      "ats_discovery_status": "NOT_DETECTED",
+      "cnt": 5
+    }
+  ],
+  "ai_providers": [
+    {
+      "provider": "gemini",
+      "display_name": "Google Gemini",
+      "is_enabled": 1,
+      "selected_model": "gemini-3.1-flash-lite",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "openrouter",
+      "display_name": "OpenRouter",
+      "is_enabled": 0,
+      "selected_model": "openrouter/free",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "grok",
+      "display_name": "xAI Grok",
+      "is_enabled": 0,
+      "selected_model": "grok-2-latest",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "groq",
+      "display_name": "Groq Cloud (Fast Llama)",
+      "is_enabled": 0,
+      "selected_model": "llama-3.3-70b-versatile",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "ollama",
+      "display_name": "Ollama (Local Self-Hosted)",
+      "is_enabled": 0,
+      "selected_model": "llama3.2",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "openai",
+      "display_name": "OpenAI (ChatGPT)",
+      "is_enabled": 0,
+      "selected_model": "gpt-4o-mini",
+      "allow_paid_calls": 1
+    },
+    {
+      "provider": "anthropic",
+      "display_name": "Anthropic Claude",
+      "is_enabled": 0,
+      "selected_model": "claude-3-5-haiku-latest",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "mistral",
+      "display_name": "Mistral AI",
+      "is_enabled": 0,
+      "selected_model": "mistral-small-latest",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "deepseek",
+      "display_name": "DeepSeek AI",
+      "is_enabled": 0,
+      "selected_model": "deepseek-chat",
+      "allow_paid_calls": 0
+    },
+    {
+      "provider": "custom",
+      "display_name": "Custom OpenAI Gateway",
+      "is_enabled": 0,
+      "selected_model": "custom-model",
+      "allow_paid_calls": 0
+    }
+  ],
+  "subscription_plans": [
+    {
+      "code": "enterprise",
+      "name": "Corporate Enterprise",
+      "monthly_price_paise": 1999900,
+      "yearly_price_paise": 18999000
+    },
+    {
+      "code": "foundation",
+      "name": "Foundation Master",
+      "monthly_price_paise": 4999900,
+      "yearly_price_paise": 47999000
+    },
+    {
+      "code": "pro",
+      "name": "Impact Pro",
+      "monthly_price_paise": 499900,
+      "yearly_price_paise": 4799000
+    },
+    {
+      "code": "starter",
+      "name": "Community Starter",
+      "monthly_price_paise": 0,
+      "yearly_price_paise": 0
+    }
+  ],
+  "samples_company": [
+    {
+      "company_id": "COMP_0",
+      "company_name": "Razorpay",
+      "sector": null,
+      "listing_status": "ACTIVE",
+      "website_url": "https://razorpay.com/",
+      "careers_url": "https://razorpay.com/careers/",
+      "ats_platform": "GREENHOUSE",
+      "careers_url_confidence": 0.0,
+      "jobs_access": "PUBLIC",
+      "csr_access": "PUBLIC"
+    },
+    {
+      "company_id": "COMP_TOP200_001",
+      "company_name": "Reliance Industries Limited",
+      "sector": "Oil & Gas / Diversified",
+      "listing_status": "ACTIVE",
+      "website_url": "https://www.ril.com/",
+      "careers_url": "https://www.ril.com/",
+      "ats_platform": null,
+      "careers_url_confidence": 0.0,
+      "jobs_access": "NOT_PUBLISHED",
+      "csr_access": "PUBLIC"
+    },
+    {
+      "company_id": "COMP_TOP200_002",
+      "company_name": "HDFC Bank Limited",
+      "sector": "Banking & Financial Services",
+      "listing_status": "ACTIVE",
+      "website_url": "https://www.hdfc.bank.in/",
+      "careers_url": "https://www.hdfc.bank.in/careers",
+      "ats_platform": null,
+      "careers_url_confidence": 0.0,
+      "jobs_access": "NOT_PUBLISHED",
+      "csr_access": "PUBLIC"
+    },
+    {
+      "company_id": "COMP_TOP200_003",
+      "company_name": "ICICI Bank Limited",
+      "sector": "Banking & Financial Services",
+      "listing_status": "ACTIVE",
+      "website_url": "https://www.icicibank.com/",
+      "careers_url": "https://www.icicicareers.com/CareerApplicant/Career/Home",
+      "ats_platform": null,
+      "careers_url_confidence": 0.0,
+      "jobs_access": "NOT_PUBLISHED",
+      "csr_access": "PUBLIC"
+    },
+    {
+      "company_id": "COMP_TOP200_004",
+      "company_name": "State Bank of India",
+      "sector": "Public Sector Banking",
+      "listing_status": "ACTIVE",
+      "website_url": "https://sbi.co.in/",
+      "careers_url": "https://sbi.co.in/redirect/",
+      "ats_platform": null,
+      "careers_url_confidence": 0.0,
+      "jobs_access": "NOT_PUBLISHED",
+      "csr_access": "NOT_PUBLISHED"
+    }
+  ],
+  "samples_job": [
+    {
+      "job_row_id": 4928,
+      "job_id": "JOB_4c53c533",
+      "company_id": "COMP_0",
+      "job_title": "Engineering Manager",
+      "department": "Backend",
+      "location": "Bengaluru, Karnataka, India",
+      "employment_type": null,
+      "work_mode": null,
+      "status": "EXPIRED",
+      "verification_status": "STALE",
+      "is_defective": 0,
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}"
+    },
+    {
+      "job_row_id": 4929,
+      "job_id": "JOB_c10eaa25",
+      "company_id": "COMP_0",
+      "job_title": "Forward Deployed Engineer",
+      "department": "Solutions",
+      "location": "Bengaluru, Karnataka, India",
+      "employment_type": null,
+      "work_mode": null,
+      "status": "EXPIRED",
+      "verification_status": "STALE",
+      "is_defective": 0,
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}"
+    },
+    {
+      "job_row_id": 4932,
+      "job_id": "JOB_96f2fe45",
+      "company_id": "COMP_0",
+      "job_title": "Manager, AEO",
+      "department": "Marketing",
+      "location": "Bengaluru, Karnataka, India",
+      "employment_type": null,
+      "work_mode": null,
+      "status": "EXPIRED",
+      "verification_status": "STALE",
+      "is_defective": 0,
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}"
+    },
+    {
+      "job_row_id": 4933,
+      "job_id": "JOB_01c21f15",
+      "company_id": "COMP_0",
+      "job_title": "Manager, Affordability",
+      "department": "Affordability",
+      "location": "Bengaluru, Karnataka, India",
+      "employment_type": null,
+      "work_mode": null,
+      "status": "EXPIRED",
+      "verification_status": "STALE",
+      "is_defective": 0,
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}"
+    },
+    {
+      "job_row_id": 4935,
+      "job_id": "JOB_0a1b0132",
+      "company_id": "COMP_0",
+      "job_title": "Manager, Banking Solutions",
+      "department": "Banking Solutions",
+      "location": "Mumbai, Maharashtra, India",
+      "employment_type": null,
+      "work_mode": null,
+      "status": "EXPIRED",
+      "verification_status": "STALE",
+      "is_defective": 0,
+      "field_source": "{\"raw_title\": \"job_title\", \"raw_location\": \"location\", \"raw_department\": \"department\"}"
+    }
+  ],
+  "samples_csrproject": [
+    {
+      "csr_id": 1265,
+      "company_id": "COMP_TOP200_160",
+      "project_name": "Education & Skill Development Initiative",
+      "category": "Education & Skill Development",
+      "geographic_location": "Bengaluru / Hyderabad",
+      "state": null,
+      "status": "ACTIVE",
+      "field_source": "{\"raw_category\": \"category\", \"raw_budget_text\": \"budget\", \"raw_project_name\": \"project_name\"}",
+      "source_url": "https://www.3i-infotech.com/#:~:text=-%20NuRe%20Campus%20Recognized%20as%20a%20Representative"
+    },
+    {
+      "csr_id": 1266,
+      "company_id": "COMP_TOP200_156",
+      "project_name": "List of CSR projects approved by 360 ONE WAM Ltd",
+      "category": "Schedule VII Statutory CSR",
+      "geographic_location": "Pan-India",
+      "state": "Pan-India",
+      "status": "ACTIVE",
+      "field_source": "{\"raw_category\": \"category\", \"raw_budget_text\": \"budget\", \"raw_project_name\": \"project_name\"}",
+      "source_url": "https://www.360.one/compliance/corporate-social-responsibility#:~:text=List%20of%20CSR%20projects%20approved%20by%20360"
+    },
+    {
+      "csr_id": 1267,
+      "company_id": "COMP_TOP200_154",
+      "project_name": "Sustainable Development takes a top precedence at 20 Microns",
+      "category": "Environment & Sustainability",
+      "geographic_location": "Vadodara, Gujarat",
+      "state": "Gujarat",
+      "status": "ACTIVE",
+      "field_source": "{\"raw_category\": \"category\", \"raw_budget_text\": \"budget\", \"raw_project_name\": \"project_name\"}",
+      "source_url": "https://www.20microns.com/sustainable-development#:~:text=Sustainable%20Development%20takes%20a%20top%20precedence%20at"
+    },
+    {
+      "csr_id": 1268,
+      "company_id": "COMP_TOP200_154",
+      "project_name": "Woven intricately in the operational and decision",
+      "category": "Education & Skill Development",
+      "geographic_location": "Vadodara, Gujarat",
+      "state": "Gujarat",
+      "status": "ACTIVE",
+      "field_source": "{\"raw_category\": \"category\", \"raw_budget_text\": \"budget\", \"raw_project_name\": \"project_name\"}",
+      "source_url": "https://www.20microns.com/sustainable-development#:~:text=Woven%20intricately%20in%20the%20operational%20and%20decision-making"
+    },
+    {
+      "csr_id": 1269,
+      "company_id": "COMP_TOP200_154",
+      "project_name": "At 20 Microns, we take numerous initiatives that contribute towards comprehensive developm",
+      "category": "Environment & Sustainability",
+      "geographic_location": "Vadodara, Gujarat",
+      "state": "Gujarat",
+      "status": "ACTIVE",
+      "field_source": "{\"raw_category\": \"category\", \"raw_budget_text\": \"budget\", \"raw_project_name\": \"project_name\"}",
+      "source_url": "https://www.20microns.com/sustainable-development#:~:text=At%2020%20Microns%2C%20we%20take%20numerous%20initiatives"
+    }
+  ],
+  "samples_csropportunity": [
+    {
+      "opp_id": 142,
+      "company_id": "COMP_TOP200_133",
+      "title": "CSR Initiative: Becoming one of the most admired corporate citizens in India is a journey which we have em",
+      "opportunity_type": "CSR Project Partnership",
+      "category": "Environment & Sustainability",
+      "status": "INVALID_SYNTHETIC",
+      "portal_url": "https://www.jubilantfoodworks.com/csr/corporate-citizenship#:~:text=Becoming%20one%20of%20the%20most%20admired%20corporate"
+    },
+    {
+      "opp_id": 143,
+      "company_id": "COMP_TOP200_133",
+      "title": "CSR Initiative: We believe in pursuing responsible stewardship and continuously pushing the envelope to be",
+      "opportunity_type": "CSR Project Partnership",
+      "category": "Education & Skill Development",
+      "status": "INVALID_SYNTHETIC",
+      "portal_url": "https://www.jubilantfoodworks.com/csr/corporate-citizenship#:~:text=We%20believe%20in%20pursuing%20responsible%20stewardship%20and"
+    },
+    {
+      "opp_id": 144,
+      "company_id": "COMP_TOP200_133",
+      "title": "CSR Initiative: Jubilant FoodWorks is committed to pursuing responsible growth and we recognize our respon",
+      "opportunity_type": "CSR Project Partnership",
+      "category": "Environment & Sustainability",
+      "status": "INVALID_SYNTHETIC",
+      "portal_url": "https://www.jubilantfoodworks.com/csr/corporate-citizenship#:~:text=Jubilant%20FoodWorks%20is%20committed%20to%20pursuing%20responsible"
+    },
+    {
+      "opp_id": 145,
+      "company_id": "COMP_TOP200_133",
+      "title": "CSR Initiative: Becoming one of the most admired corporate citizens in India is a journey which we have em",
+      "opportunity_type": "CSR Project Partnership",
+      "category": "Environment & Sustainability",
+      "status": "INVALID_SYNTHETIC",
+      "portal_url": "https://www.jubilantfoodworks.com/corporate-citizenship#:~:text=Becoming%20one%20of%20the%20most%20admired%20corporate"
+    },
+    {
+      "opp_id": 146,
+      "company_id": "COMP_TOP200_133",
+      "title": "CSR Initiative: We believe in pursuing responsible stewardship and continuously pushing the envelope to be",
+      "opportunity_type": "CSR Project Partnership",
+      "category": "Education & Skill Development",
+      "status": "INVALID_SYNTHETIC",
+      "portal_url": "https://www.jubilantfoodworks.com/corporate-citizenship#:~:text=We%20believe%20in%20pursuing%20responsible%20stewardship%20and"
+    }
+  ],
+  "samples_user": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "adm***@***",
+      "is_staff": 1,
+      "is_active": 1,
+      "role": "ADMIN"
+    },
+    {
+      "id": 2,
+      "username": "ngo_manager",
+      "email": "man***@***",
+      "is_staff": 0,
+      "is_active": 1,
+      "role": "NGO_MANAGER"
+    }
+  ]
+}

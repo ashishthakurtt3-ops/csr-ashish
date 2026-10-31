@@ -1,7 +1,9 @@
 from django.http import JsonResponse
+from django.core.cache import cache
 from django.db.models import Q, Count
 from modules.admin_panel.models import Job, Company
 from modules.website.utils.pagination import paginate_queryset
+from modules.website.utils.entitlement_service import EntitlementService, EntitlementError
 
 from modules.admin_panel.verification import (
     PUBLIC_VERIFICATION_STATUSES, public_jobs, public_job_q, NOT_AVAILABLE_TEXT, LOGIN_REQUIRED_TEXT, LINK_OK,
@@ -232,13 +234,11 @@ def _clean_field_val(val):
     return s
 
 
-def serialize_job_item(j: Job):
+def serialize_job_item(j: Job, is_detail: bool = True):
     c = j.company
     from modules.crawler_engine.normalizers import normalize_application_url
     from modules.admin_panel.verification import format_relative_time
-    app_url = None
-    if j.status == 'ACTIVE' and (j.link_status in (LINK_OK, 'PUBLISHED', 'LINK_OK', 'SOURCE_CONFIRMED', 'VERIFIED_HTTP_200') or j.application_url):
-        app_url = normalize_application_url(j.application_url) or j.application_url
+    app_url = normalize_application_url(j.application_url) or j.application_url or None
 
     cname = c.company_name
     sym = c.nse_symbol
@@ -246,8 +246,6 @@ def serialize_job_item(j: Job):
     website_url = c.website_url if (c.website_url or '').startswith('http') else None
 
     # Step 0 Exact-Match Standard a): Verbatim fields only.
-    # UI and API display the raw values only. Normalized versions exist for filtering/search only.
-    # Missing field = hidden (None), never a default (e.g. no defaulting to 'India', 'Full-time', 'On-site').
     raw_title = _clean_field_val(getattr(j, 'raw_title', None) or j.job_title)
 
     raw_loc = _clean_field_val(getattr(j, 'raw_location', None) or j.location)
@@ -257,6 +255,26 @@ def serialize_job_item(j: Job):
     city_val = _clean_field_val(j.city)
     if city_val and any(bad in city_val.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
         city_val = None
+
+    state_val = _clean_field_val(j.state)
+    if state_val and any(bad in state_val.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
+        state_val = None
+
+    # Synthesize rich location: ensure scraped cities/states are prominently displayed
+    loc_display = raw_loc
+    if city_val:
+        if not raw_loc or raw_loc.strip().lower() in ('india', 'in'):
+            if state_val and state_val.lower() not in city_val.lower():
+                loc_display = f"{city_val}, {state_val}"
+            else:
+                loc_display = city_val
+        elif city_val.lower() not in raw_loc.lower():
+            loc_display = f"{city_val}, {raw_loc}"
+    elif state_val and (not raw_loc or raw_loc.strip().lower() in ('india', 'in')):
+        loc_display = state_val
+
+    if not loc_display:
+        loc_display = raw_loc or city_val or state_val or "India"
 
     raw_dept = _clean_field_val(getattr(j, 'raw_department', None) or j.department)
     if raw_dept and any(bad in raw_dept.lower() for bad in ["refer official", "not available", "none", "n/a", "null"]):
@@ -275,15 +293,29 @@ def serialize_job_item(j: Job):
     # Verification timestamp and provenance
     verified_dt = getattr(j, 'last_reconciled_at', None) or j.link_verified_at or j.retrieved_at
     rel_time = format_relative_time(verified_dt)
-    verified_badge_text = f"As listed on the official site - verified {rel_time}"
+    if j.status in ('EXPIRED', 'STALE'):
+        verified_badge_text = "Expired - Listing archived on official site"
+    elif j.status == 'UNVERIFIED' or j.verification_status == 'UNVERIFIED':
+        verified_badge_text = "Unverified - Sourced from company career portal"
+    else:
+        verified_badge_text = f"As listed on the official site - verified {rel_time}"
 
-    # Step 0 Exact-Match Standard e): Unverifiable companies check
     is_company_unverifiable = bool(
         (c.jobs_access in ('LOGIN_REQUIRED', 'NOT_PUBLISHED')) or 
         (c.verification_status not in ('VERIFIED', 'SOURCE_CONFIRMED'))
     )
 
-    return {
+    # Short summary calculation for list & card views
+    raw_summary_source = (
+        getattr(j, 'summary', None) or
+        getattr(j, 'about_role', None) or
+        getattr(j, 'role_purpose', None) or
+        getattr(j, 'job_description', None)
+    )
+    clean_summary_text = _clean_field_val(raw_summary_source)
+    short_summary = (clean_summary_text[:250] + '...') if (clean_summary_text and len(clean_summary_text) > 250) else clean_summary_text
+
+    item = {
         'job_row_id': j.job_row_id,
         'company_id': j.company_id,
         'company_name': cname,
@@ -302,9 +334,8 @@ def serialize_job_item(j: Job):
         'normalized_category': norm_cat,
         'team': _clean_field_val(j.team),
         'business_unit': _clean_field_val(j.business_unit),
-        'function': _clean_field_val(j.function),
-        'location': raw_loc,
-        'raw_location': raw_loc,
+        'location': loc_display,
+        'raw_location': loc_display,
         'city': city_val,
         'state': _clean_field_val(j.state),
         'country': _clean_field_val(j.country),
@@ -319,18 +350,7 @@ def serialize_job_item(j: Job):
         'salary_max': str(j.salary_max) if j.salary_max else None,
         'salary_currency': _clean_field_val(j.salary_currency),
         'pay_band': _clean_field_val(getattr(j, 'pay_band', None)),
-        'job_description': _clean_field_val(j.job_description),
-        'role_purpose': _clean_field_val(getattr(j, 'role_purpose', None)),
-        'responsibilities': _clean_field_val(j.responsibilities),
-        'day_in_the_life': _clean_field_val(getattr(j, 'day_in_the_life', None)),
-        'requirements': _clean_field_val(j.requirements),
-        'qualifications': _clean_field_val(j.qualifications),
-        'preferred_qualifications': _clean_field_val(j.preferred_qualifications),
-        'technical_skills': _clean_field_val(getattr(j, 'technical_skills', None)),
-        'behavioural_skills': _clean_field_val(getattr(j, 'behavioural_skills', None)),
-        'benefits': _clean_field_val(j.benefits),
-        'employer_info': _clean_field_val(getattr(j, 'employer_info', None)),
-        'structured_details': getattr(j, 'structured_details', None) or {},
+        'summary': short_summary,
         'detail_fetched': bool(getattr(j, 'detail_fetched', False)),
         'detail_fetch_status': getattr(j, 'detail_fetch_status', None) or ('FETCHED' if getattr(j, 'detail_fetched', False) else 'NOT_FETCHED'),
         'detail_fetched_at': getattr(j, 'detail_fetched_at', None),
@@ -347,7 +367,7 @@ def serialize_job_item(j: Job):
         'canonical_url': j.canonical_url or (j.application_url.split('#')[0] if j.application_url else None),
         'link_quality': getattr(j, 'link_quality', 'UNVERIFIED') or 'UNVERIFIED',
         'link_check_note': getattr(j, 'link_check_note', None),
-        'apply_button_label': 'Apply Directly' if getattr(j, 'link_quality', None) == 'DIRECT' else 'Find this role on the company careers page',
+        'apply_button_label': 'Archived Opening' if j.status in ('EXPIRED', 'STALE') else ('Apply Directly' if getattr(j, 'link_quality', None) == 'DIRECT' else 'Find this role on the company careers page'),
         'apply_button_url': (j.canonical_url or app_url) if getattr(j, 'link_quality', None) == 'DIRECT' else app_url,
         'link_verified': bool(app_url),
         'not_available_text': NOT_AVAILABLE_TEXT,
@@ -364,33 +384,47 @@ def serialize_job_item(j: Job):
         'link_verified_at': (j.link_verified_at.isoformat() if hasattr(j.link_verified_at, 'isoformat') else str(j.link_verified_at)) if j.link_verified_at else None,
         'data_provenance': j.data_provenance,
         'fingerprint': j.fingerprint,
-        'evidence_text': j.evidence_text,
-        'field_source': getattr(j, 'field_source', None) or {},
         'verified_badge_text': verified_badge_text,
         'verified_relative_time': rel_time,
         'is_company_unverifiable': is_company_unverifiable,
         'last_reconciled_at': (j.last_reconciled_at.isoformat() if hasattr(j.last_reconciled_at, 'isoformat') else str(j.last_reconciled_at)) if getattr(j, 'last_reconciled_at', None) else None,
         'mismatch_reason': getattr(j, 'mismatch_reason', None),
-        'mismatch_diff': getattr(j, 'mismatch_diff', None),
-
-        # Phase 2 & 5 Rich Job Details
-        'description_raw': _clean_field_val(getattr(j, 'description_raw', None)) or _clean_field_val(j.job_description),
-        'description_html': getattr(j, 'description_html', None),
-        'about_role': _clean_field_val(getattr(j, 'about_role', None)) or _clean_field_val(getattr(j, 'role_purpose', None)),
-        'summary': j.summary,
-        'responsibilities_list': getattr(j, 'responsibilities_list', None) or [],
-        'qualifications_education': getattr(j, 'qualifications_education', None) or [],
-        'qualifications_experience': _clean_field_val(getattr(j, 'qualifications_experience', None)) or _clean_field_val(j.experience),
-        'required_skills': getattr(j, 'required_skills', None) or [],
-        'preferred_skills': getattr(j, 'preferred_skills', None) or [],
-        'salary_text': _clean_field_val(getattr(j, 'salary_text', None)) or _clean_field_val(j.salary),
-        'currency': _clean_field_val(getattr(j, 'currency', None)) or _clean_field_val(j.salary_currency),
         'seniority_level': _clean_field_val(getattr(j, 'seniority_level', None)),
         'details_status': getattr(j, 'details_status', 'MISSING') or 'MISSING',
-        'details_missing_fields': getattr(j, 'details_missing_fields', None) or [],
-        'details_scraped_at': (j.details_scraped_at.isoformat() if hasattr(j.details_scraped_at, 'isoformat') else str(j.details_scraped_at)) if getattr(j, 'details_scraped_at', None) else None,
-        'external_job_id': getattr(j, 'external_job_id', None),
+        'salary_text': _clean_field_val(getattr(j, 'salary_text', None)) or _clean_field_val(j.salary),
+        'currency': _clean_field_val(getattr(j, 'currency', None)) or _clean_field_val(j.salary_currency),
     }
+
+    if is_detail:
+        item.update({
+            'job_description': _clean_field_val(j.job_description),
+            'role_purpose': _clean_field_val(getattr(j, 'role_purpose', None)),
+            'responsibilities': _clean_field_val(j.responsibilities),
+            'day_in_the_life': _clean_field_val(getattr(j, 'day_in_the_life', None)),
+            'requirements': _clean_field_val(j.requirements),
+            'qualifications': _clean_field_val(j.qualifications),
+            'preferred_qualifications': _clean_field_val(j.preferred_qualifications),
+            'technical_skills': _clean_field_val(getattr(j, 'technical_skills', None)),
+            'behavioural_skills': _clean_field_val(getattr(j, 'behavioural_skills', None)),
+            'benefits': _clean_field_val(j.benefits),
+            'employer_info': _clean_field_val(getattr(j, 'employer_info', None)),
+            'structured_details': getattr(j, 'structured_details', None) or {},
+            'evidence_text': j.evidence_text,
+            'field_source': getattr(j, 'field_source', None) or {},
+            'mismatch_diff': getattr(j, 'mismatch_diff', None),
+            'description_raw': _clean_field_val(getattr(j, 'description_raw', None)) or _clean_field_val(j.job_description),
+            'description_html': getattr(j, 'description_html', None),
+            'about_role': _clean_field_val(getattr(j, 'about_role', None)) or _clean_field_val(getattr(j, 'role_purpose', None)),
+            'responsibilities_list': getattr(j, 'responsibilities_list', None) or [],
+            'qualifications_education': getattr(j, 'qualifications_education', None) or [],
+            'qualifications_experience': _clean_field_val(getattr(j, 'qualifications_experience', None)) or _clean_field_val(j.experience),
+            'required_skills': getattr(j, 'required_skills', None) or [],
+            'preferred_skills': getattr(j, 'preferred_skills', None) or [],
+            'details_missing_fields': getattr(j, 'details_missing_fields', None) or [],
+            'details_scraped_at': (j.details_scraped_at.isoformat() if hasattr(j.details_scraped_at, 'isoformat') else str(j.details_scraped_at)) if getattr(j, 'details_scraped_at', None) else None,
+        })
+
+    return item
 
 
 
@@ -398,6 +432,23 @@ def jobs_list_api(request):
     if request.META.get('HTTP_ACCEPT', '').find('text/html') != -1 and request.GET.get('format') != 'json':
         from modules.website.views.home_views import index_view
         return index_view(request)
+
+    page = request.GET.get('page')
+    page_size = request.GET.get('page_size', 12)
+    sort = request.GET.get('sort', 'recent')
+
+    is_unfiltered = not any([
+        request.GET.get('q'), request.GET.get('company_id'), request.GET.get('company'),
+        request.GET.get('location'), request.GET.get('state'), request.GET.get('department'),
+        request.GET.get('work_mode'), request.GET.get('status'), request.GET.get('impact_only'),
+        request.GET.get('category'), request.GET.get('experience'), request.GET.get('format'),
+        request.GET.get('export')
+    ])
+    if is_unfiltered and str(page) in ('1', 'None', '') and str(page_size) in ('12', '24') and sort == 'recent':
+        from django.http import HttpResponse
+        cached_json = cache.get(f"jobs_list_json_p{page}_ps{page_size}")
+        if cached_json:
+            return HttpResponse(cached_json, content_type='application/json')
 
     q = request.GET.get('q', '').strip()
     company_id = request.GET.get('company_id', '').strip()
@@ -410,14 +461,19 @@ def jobs_list_api(request):
     impact_only = request.GET.get('impact_only', '').lower() in ('true', '1')
     category = request.GET.get('category', '').strip()
     experience = request.GET.get('experience', '').strip()
-    sort = request.GET.get('sort', 'recent')
-    page = request.GET.get('page')
-    page_size = request.GET.get('page_size', 12)
     limit = int(request.GET.get('limit', 2000))
 
     # Authoritative eligible jobs: strictly ACTIVE and verified/published with official source evidence
     qs = public_jobs(Job.objects.select_related('company'))
     qs = apply_job_safety_filters(qs)
+    qs = qs.defer(
+        'description_raw', 'description_html', 'job_description',
+        'responsibilities', 'responsibilities_list', 'requirements',
+        'qualifications', 'preferred_qualifications', 'qualifications_education',
+        'qualifications_experience', 'required_skills', 'preferred_skills',
+        'benefits', 'employer_info', 'structured_details',
+        'evidence_text', 'field_source'
+    )
 
     if q:
         qs = qs.filter(
@@ -439,17 +495,50 @@ def jobs_list_api(request):
             Q(company__nse_symbol__iexact=company)
         )
     if location and location != 'all':
-        qs = qs.filter(location__icontains=location)
+        qs = qs.filter(
+            Q(location__icontains=location) |
+            Q(city__icontains=location) |
+            Q(state__icontains=location) |
+            Q(country__icontains=location)
+        )
     if state and state != 'all':
-        qs = qs.filter(state__icontains=state)
+        qs = qs.filter(Q(state__icontains=state) | Q(location__icontains=state))
     if department and department != 'all':
         qs = qs.filter(department__icontains=department)
     if work_mode and work_mode != 'all':
         qs = qs.filter(work_mode=work_mode)
     if status and status != 'all':
-        qs = qs.filter(status=status)
+        s_up = status.upper()
+        if s_up == 'ACTIVE':
+            qs = qs.filter(status='ACTIVE')
+        elif s_up in ('EXPIRED', 'STALE'):
+            qs = qs.filter(Q(status__in=['EXPIRED', 'STALE']) | Q(verification_status='STALE'))
+        elif s_up == 'UNVERIFIED':
+            qs = qs.filter(Q(status='UNVERIFIED') | Q(verification_status='UNVERIFIED'))
+        else:
+            qs = qs.filter(status=status)
     if impact_only:
         qs = qs.filter(IMPACT_ROLE_FILTER)
+
+    # ── Entitlement: advanced filter gate ────────────────────────────
+    _advanced_filter_params = [experience, category, department]
+    if any(p and p.lower() != 'all' for p in _advanced_filter_params):
+        try:
+            from modules.admin_panel.models import User as _User
+            if getattr(request, 'user', None) and request.user.is_authenticated:
+                _ent_user = request.user
+            else:
+                _ent_user = _User.objects.filter(is_active=True).order_by('id').first()
+            if _ent_user:
+                _svc = EntitlementService(_ent_user)
+                _svc.check_advanced_filters()
+        except EntitlementError as _af_err:
+            return JsonResponse({
+                'error': _af_err.message,
+                'feature': _af_err.feature,
+                'upgrade_to': _af_err.upgrade_to,
+                'code': 'entitlement_exceeded',
+            }, status=403)
 
     if experience and experience != 'all':
         exp_l = experience.lower()
@@ -499,10 +588,34 @@ def jobs_list_api(request):
     if request.GET.get('format') == 'csv' or request.GET.get('export') == 'csv':
         import io, csv
         from django.http import HttpResponse
+        # Calculate capped rows for export
+        _req_limit = int(request.GET.get('limit', 2000))
+        _export_count = min(qs.count(), _req_limit)
+        # ── Entitlement: export quota check ──────────────────────────
+        from modules.admin_panel.models import User as _User
+        if getattr(request, 'user', None) and request.user.is_authenticated:
+            _export_user = request.user
+        else:
+            _export_user = _User.objects.filter(is_active=True).order_by('id').first()
+        if _export_user:
+            _export_svc = EntitlementService(_export_user)
+            try:
+                _export_svc.check_export_quota(count=_export_count)
+            except EntitlementError as _ex_err:
+                return JsonResponse({
+                    'error': _ex_err.message,
+                    'feature': _ex_err.feature,
+                    'limit': _ex_err.limit,
+                    'current': _ex_err.current,
+                    'upgrade_to': _ex_err.upgrade_to,
+                    'code': 'entitlement_exceeded',
+                }, status=403)
+        # ── End entitlement check ────────────────────────────────────
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(['Job Row ID', 'Job ID', 'Company ID', 'Company Name', 'NSE Symbol', 'Sector', 'Job Title', 'Department', 'Location', 'Work Mode', 'Employment Type', 'Experience', 'ATS Platform', 'Application URL', 'Source URL', 'Status'])
-        for j in qs:
+        _rows_written = 0
+        for j in qs[:_export_count]:
             item = serialize_job_item(j)
             writer.writerow([
                 item['job_row_id'], item['job_id'], item['company_id'], item['company_name'],
@@ -510,68 +623,55 @@ def jobs_list_api(request):
                 item['location'], item['work_mode'], item['employment_type'], item['experience'],
                 item['ats_platform'], item['application_url'], item['source_url'], item['status']
             ])
+            _rows_written += 1
+        # ── Entitlement: record export usage ─────────────────────────
+        if _export_user and _rows_written > 0:
+            _export_svc.record_export_usage(count=_rows_written)
+        # ── End record usage ─────────────────────────────────────────
         resp = HttpResponse(output.getvalue(), content_type='text/csv')
         resp['Content-Disposition'] = 'attachment; filename="impactbridge_verified_jobs.csv"'
         return resp
 
+    has_filter = bool(
+        q or company_id or company or location or state or department or
+        work_mode or status or impact_only or
+        (category and category.lower() != 'all') or
+        (experience and experience.lower() != 'all')
+    )
+    cache_key = None
+    if not has_filter and str(page) in ('1', 'None', '') and str(page_size) in ('12', '24') and sort == 'recent':
+        cache_key = f"jobs_list_p{page}_ps{page_size}"
+        cached_res = cache.get(cache_key)
+        if cached_res is not None:
+            return JsonResponse(cached_res, safe=False)
+
+    total_count = None
+    if not has_filter:
+        from modules.admin_panel.snapshot_service import get_current_stats_snapshot
+        stats_data, _, _, _ = get_current_stats_snapshot()
+        total_count = stats_data.get('jobs_tracked')
+
     data = paginate_queryset(
         queryset=qs,
-        serialize_func=serialize_job_item,
+        serialize_func=lambda j: serialize_job_item(j, is_detail=False),
         page=page,
         page_size=page_size,
-        fallback_limit=limit
+        fallback_limit=limit,
+        total_count=total_count
     )
-    return JsonResponse(data, safe=False)
+    resp = JsonResponse(data, safe=False)
+    if is_unfiltered and str(page) in ('1', 'None', '') and str(page_size) in ('12', '24') and sort == 'recent':
+        cache.set(f"jobs_list_json_p{page}_ps{page_size}", resp.content.decode('utf-8'), 60)
+    return resp
 
 
 def jobs_summary_api(request):
-    """Job intelligence dashboard facets — strictly authoritative live verified records."""
-    base_qs = public_jobs(Job.objects.all())
-    base_qs = apply_job_safety_filters(base_qs)
-
-    total_roles = base_qs.count()
-    active_roles = total_roles
-    impact_roles = base_qs.filter(IMPACT_ROLE_FILTER).count()
-    remote_roles = base_qs.filter(work_mode='Remote').count()
-    hybrid_roles = base_qs.filter(work_mode='Hybrid').count()
-    onsite_roles = base_qs.filter(work_mode='On-site').count()
-    companies_hiring = base_qs.values('company_id').distinct().count()
-    live_verified_links = total_roles
-
-    by_dept = list(
-        base_qs.values('department')
-        .annotate(roles=Count('job_row_id'))
-        .order_by('-roles')[:15]
-    )
-    by_loc = list(
-        base_qs.values('location')
-        .annotate(roles=Count('job_row_id'))
-        .order_by('-roles')[:15]
-    )
-    by_comp = list(
-        base_qs.values('company__company_name', 'company__nse_symbol')
-        .annotate(roles=Count('job_row_id'))
-        .order_by('-roles')[:20]
-    )
-    by_comp_formatted = [
-        {'company_name': r['company__company_name'], 'nse_symbol': r['company__nse_symbol'], 'roles': r['roles']}
-        for r in by_comp
-    ]
-
-    summary = {
-        'total_roles': total_roles,
-        'active_roles': active_roles,
-        'impact_roles': impact_roles,
-        'remote_roles': remote_roles,
-        'hybrid_roles': hybrid_roles,
-        'onsite_roles': onsite_roles,
-        'companies_hiring': companies_hiring,
-        'live_verified_links': live_verified_links,
-        'by_department': by_dept,
-        'by_location': by_loc,
-        'by_company': by_comp_formatted,
-    }
-    return JsonResponse(summary)
+    """Job intelligence dashboard facets — served via precomputed authoritative snapshot."""
+    from modules.admin_panel.snapshot_service import get_current_job_summary_snapshot
+    if request.GET.get('refresh'):
+        cache.delete('jobs_summary_snapshot_cache')
+    data, is_stale, audit_run_id, data_as_of = get_current_job_summary_snapshot()
+    return JsonResponse(data)
 
 
 def job_detail_api(request, job_id):
@@ -579,6 +679,13 @@ def job_detail_api(request, job_id):
     If details have not been fetched from the official portal yet, perform live on-demand extraction
     via UniversalJobDetailExtractor and persist the enriched fields.
     """
+    force_refresh = request.GET.get('refresh', '').lower() in ('1', 'true', 'yes')
+    cache_key = f"job_detail_data_{job_id}"
+    if not force_refresh:
+        cached_job = cache.get(cache_key)
+        if cached_job is not None:
+            return JsonResponse(cached_job)
+
     try:
         job = None
         if str(job_id).isdigit():
@@ -589,50 +696,69 @@ def job_detail_api(request, job_id):
         if not job or not public_jobs(Job.objects.filter(pk=job.pk)).exists():
             return JsonResponse({'error': 'Job opening not found or unverified'}, status=404)
 
-        # On-demand live extraction only on explicit user refresh request to prevent blocking the UI
-        force_refresh = request.GET.get('refresh', '').lower() in ('1', 'true', 'yes')
+        # On-demand live extraction queued off the request path with 10-min rate limiting
+        refresh_status = "IDLE"
         if force_refresh and job.application_url and job.application_url.startswith('http'):
-            try:
-                from modules.crawler_engine.parsers.detail_extractor import UniversalJobDetailExtractor
-                from django.utils import timezone
-                extracted = UniversalJobDetailExtractor.extract_from_url(job.application_url)
-                
-                status = extracted.get('detail_fetch_status', 'EXTRACTION_FAILED')
-                updated_fields = ['detail_fetch_status', 'detail_fetched', 'detail_fetched_at']
-                job.detail_fetch_status = status
-                job.detail_fetched = (status == 'FETCHED')
-                job.detail_fetched_at = timezone.now().isoformat()
+            rate_key = f"job_refresh_ratelimit_{job.job_row_id}"
+            status_key = f"job_refresh_status_{job.job_row_id}"
 
-                if job.detail_fetched:
-                    # Update enriched fields if extracted from official site
-                    for field_name in [
-                        'job_description', 'description_raw', 'description_html', 'about_role',
-                        'responsibilities', 'responsibilities_list', 'qualifications', 'requirements',
-                        'preferred_qualifications', 'role_purpose', 'day_in_the_life',
-                        'education', 'qualifications_education', 'experience', 'qualifications_experience',
-                        'skills', 'required_skills', 'preferred_skills', 'technical_skills', 'behavioural_skills',
-                        'benefits', 'employer_info', 'pay_band', 'salary', 'salary_text', 'salary_currency', 'currency',
-                        'work_mode', 'employment_type', 'seniority_level', 'location', 'city', 'state', 'country',
-                        'travel_required', 'shift', 'work_authorization', 'details_status', 'details_missing_fields'
-                    ]:
-                        val = extracted.get(field_name)
-                        if val is not None and hasattr(job, field_name):
-                            setattr(job, field_name, val)
-                            updated_fields.append(field_name)
-                    
-                    if extracted.get('structured_details'):
-                        job.structured_details = extracted.get('structured_details')
-                        updated_fields.append('structured_details')
-                    job.details_scraped_at = timezone.now()
-                    updated_fields.append('details_scraped_at')
+            if cache.get(rate_key):
+                refresh_status = cache.get(status_key) or "RATE_LIMITED"
+            else:
+                cache.set(rate_key, True, 600)
+                cache.set(status_key, "PENDING", 600)
+                refresh_status = "PENDING"
 
-                job.save(update_fields=list(set(updated_fields)))
-            except Exception as extract_err:
-                # Log but continue so response still returns existing data
-                import logging
-                logging.getLogger(__name__).warning("On-demand job extraction failed for %s: %s", job.job_row_id, extract_err)
+                def _background_extract(job_pk, app_url):
+                    try:
+                        from modules.crawler_engine.parsers.detail_extractor import UniversalJobDetailExtractor
+                        from django.utils import timezone
+                        extracted = UniversalJobDetailExtractor.extract_from_url(app_url)
+                        j = Job.objects.filter(pk=job_pk).first()
+                        if not j:
+                            cache.set(status_key, "FAILED", 600)
+                            return
+                        status = extracted.get('detail_fetch_status', 'EXTRACTION_FAILED')
+                        updated_fields = ['detail_fetch_status', 'detail_fetched', 'detail_fetched_at']
+                        j.detail_fetch_status = status
+                        j.detail_fetched = (status == 'FETCHED')
+                        j.detail_fetched_at = timezone.now().isoformat()
 
-        data = serialize_job_item(job)
+                        if j.detail_fetched:
+                            for field_name in [
+                                'job_description', 'description_raw', 'description_html', 'about_role',
+                                'responsibilities', 'responsibilities_list', 'qualifications', 'requirements',
+                                'preferred_qualifications', 'role_purpose', 'day_in_the_life',
+                                'education', 'qualifications_education', 'experience', 'qualifications_experience',
+                                'skills', 'required_skills', 'preferred_skills', 'technical_skills', 'behavioural_skills',
+                                'benefits', 'employer_info', 'pay_band', 'salary', 'salary_text', 'salary_currency', 'currency',
+                                'work_mode', 'employment_type', 'seniority_level', 'location', 'city', 'state', 'country',
+                                'travel_required', 'shift', 'work_authorization', 'details_status', 'details_missing_fields'
+                            ]:
+                                val = extracted.get(field_name)
+                                if val is not None and hasattr(j, field_name):
+                                    setattr(j, field_name, val)
+                                    updated_fields.append(field_name)
+
+                            if extracted.get('structured_details'):
+                                j.structured_details = extracted.get('structured_details')
+                                updated_fields.append('structured_details')
+                            j.details_scraped_at = timezone.now()
+                            updated_fields.append('details_scraped_at')
+
+                        j.save(update_fields=list(set(updated_fields)))
+                        cache.set(status_key, "COMPLETE" if j.detail_fetched else "FAILED", 600)
+                    except Exception as extract_err:
+                        import logging
+                        logging.getLogger(__name__).warning("Background job extraction failed for %s: %s", job_pk, extract_err)
+                        cache.set(status_key, "FAILED", 600)
+
+                import threading
+                t = threading.Thread(target=_background_extract, args=(job.pk, job.application_url), daemon=True)
+                t.start()
+
+        data = serialize_job_item(job, is_detail=True)
+        data['refresh_status'] = refresh_status
         related_qs = public_jobs(Job.objects.select_related('company').filter(
             company_id=job.company_id)).exclude(job_row_id=job.job_row_id).exclude(verification_status='LEGACY_UNVERIFIED')
 
@@ -647,9 +773,120 @@ def job_detail_api(request, job_id):
             other_related = list(related_qs.exclude(job_row_id__in=existing_ids)[:more_needed])
             related_jobs_list.extend(other_related)
 
-        data['related_jobs'] = [serialize_job_item(j) for j in related_jobs_list]
+        data['related_jobs'] = [serialize_job_item(j, is_detail=False) for j in related_jobs_list]
+        if not force_refresh:
+            cache.set(cache_key, data, 60)
         return JsonResponse(data)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def job_refresh_status_api(request, job_id):
+    """Returns background enrichment and scraping status for a job opening."""
+    job = None
+    if str(job_id).isdigit():
+        job = Job.objects.filter(Q(job_row_id=int(job_id)) | Q(job_id=str(job_id))).first()
+    else:
+        job = Job.objects.filter(job_id=str(job_id)).first()
+
+    if not job:
+        return JsonResponse({'error': 'Job not found'}, status=404)
+
+    status_key = f"job_refresh_status_{job.job_row_id}"
+    st = cache.get(status_key) or ("COMPLETE" if job.detail_fetched else "IDLE")
+    return JsonResponse({
+        'job_row_id': job.job_row_id,
+        'job_id': job.job_id,
+        'status': st,
+        'refresh_status': st,
+        'detail_fetched': job.detail_fetched,
+        'detail_fetched_at': job.detail_fetched_at,
+        'details_status': getattr(job, 'details_status', 'MISSING')
+    })
+
+
+def jobs_filters_api(request):
+    """
+    Returns distinct locations, cities, states, countries, departments, and hiring companies
+    extracted across all verified jobs for dynamic filter dropdown population.
+    """
+    cache_key = "job_filter_options_cache"
+    if not request.GET.get('refresh'):
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return JsonResponse(cached)
+
+    base_qs = public_jobs(Job.objects.all())
+
+    # Locations
+    raw_locs = (
+        base_qs.exclude(location__isnull=True)
+        .exclude(location='')
+        .values('location')
+        .annotate(cnt=Count('job_row_id'))
+        .order_by('-cnt')
+    )
+    locations = [r['location'] for r in raw_locs if r['location']]
+
+    # Cities
+    raw_cities = (
+        base_qs.exclude(city__isnull=True)
+        .exclude(city='')
+        .values('city')
+        .annotate(cnt=Count('job_row_id'))
+        .order_by('-cnt')
+    )
+    cities = [r['city'] for r in raw_cities if r['city']]
+
+    # States
+    raw_states = (
+        base_qs.exclude(state__isnull=True)
+        .exclude(state='')
+        .values('state')
+        .annotate(cnt=Count('job_row_id'))
+        .order_by('-cnt')
+    )
+    states = [r['state'] for r in raw_states if r['state']]
+
+    # Countries
+    raw_countries = (
+        base_qs.exclude(country__isnull=True)
+        .exclude(country='')
+        .values('country')
+        .annotate(cnt=Count('job_row_id'))
+        .order_by('-cnt')
+    )
+    countries = [r['country'] for r in raw_countries if r['country']]
+
+    # Departments
+    raw_depts = (
+        base_qs.exclude(department__isnull=True)
+        .exclude(department='')
+        .values('department')
+        .annotate(cnt=Count('job_row_id'))
+        .order_by('-cnt')
+    )
+    departments = [r['department'] for r in raw_depts if r['department']]
+
+    # Companies
+    companies = list(
+        Company.objects.filter(jobs__in=base_qs)
+        .distinct()
+        .values('company_id', 'company_name', 'nse_symbol')
+        .order_by('company_name')
+    )
+
+    data = {
+        'locations': locations,
+        'cities': cities,
+        'states': states,
+        'countries': countries,
+        'departments': departments,
+        'companies': companies,
+    }
+    cache.set(cache_key, data, 120)
+    return JsonResponse(data)
+
+
 

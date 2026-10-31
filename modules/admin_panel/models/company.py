@@ -20,6 +20,8 @@ class Company(VerifiableModel):
     # Discovered official page URLs — never guessed
     official_domain = models.CharField(max_length=255, blank=True, null=True)
     careers_url = models.TextField(blank=True, null=True)
+    careers_url_confidence = models.FloatField(default=0.0, blank=True, null=True)
+    careers_url_verified_at = models.DateTimeField(blank=True, null=True)
     jobs_page_url = models.TextField(blank=True, null=True)
     csr_portal_url = models.TextField(blank=True, null=True)
     sustainability_url = models.TextField(blank=True, null=True)
