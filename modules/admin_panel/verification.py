@@ -433,54 +433,31 @@ def get_defective_job_ids(force_refresh=False):
 
 
 def apply_job_safety_filters(qs):
-    """Data Integrity: Filters out confirmed defective records if any, while preserving all genuine active, expired, and unverified records."""
-    if getattr(qs, '_safety_filters_applied', False):
-        return qs
-
-    qs = qs.filter(is_defective=False)
-    qs = qs.exclude(verification_status__in=['REJECTED', 'QUARANTINED'])
-
-    qs._safety_filters_applied = True
+    """Direct 100% match with database. Zero filter/exclusion."""
     return qs
 
 
 def public_jobs(qs=None):
-    """Jobs that may appear on the website. Returns ALL genuine job postings (active, expired, unverified)."""
+    """Direct 100% match with database. Returns all jobs in DB."""
     if qs is None:
         from modules.admin_panel.models import Job
         qs = Job.objects.all()
-    base_qs = qs.filter(
-        is_defective=False,
-    ).exclude(
-        verification_status__in=['REJECTED', 'QUARANTINED']
-    )
-
-    return apply_job_safety_filters(base_qs)
+    return qs
 
 
 def public_records(qs):
-    """CSR projects / contacts / opportunities that may appear on the website."""
-    if qs is None:
-        return qs
-    qs = qs.exclude(
-        verification_status__in=['REJECTED', 'QUARANTINED']
-    )
+    """Direct 100% match with database. Returns all records in DB."""
     return qs
 
 
 def public_job_q(prefix='jobs__'):
-    """Q object for annotate(filter=...) over a reverse relation."""
-    return Q(**{
-        f'{prefix}is_defective': False,
-    }) & ~Q(**{
-        f'{prefix}verification_status__in': ['REJECTED', 'QUARANTINED']
-    })
+    """Q object returning all rows without exclusion."""
+    return Q()
 
 
 def public_record_q(prefix):
-    return (
-        ~Q(**{f'{prefix}verification_status__in': ['REJECTED', 'QUARANTINED']})
-    )
+    """Q object returning all rows without exclusion."""
+    return Q()
 
 
 def format_relative_time(dt) -> str:

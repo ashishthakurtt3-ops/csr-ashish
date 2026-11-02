@@ -126,8 +126,8 @@ class Command(BaseCommand):
                 'button_text': 'Upgrade to Pro',
                 'billing_note': 'Billed monthly or annually (+18% GST)',
                 # Initial admin-configurable defaults — NOT hardcoded final prices
-                'monthly_price_paise': 149900,   # Rs 1,499 — change in Admin Panel
-                'yearly_price_paise': 1499000,   # Rs 14,990 — change in Admin Panel
+                'monthly_price_paise': 99900,   # Rs 999 — change in Admin Panel
+                'yearly_price_paise': 999000,   # Rs 9,990 — change in Admin Panel
                 'currency': 'INR',
                 'is_active': True,
                 'is_visible': True,
@@ -188,8 +188,8 @@ class Command(BaseCommand):
                 'button_text': 'Upgrade to Ultra',
                 'billing_note': 'Billed monthly or annually (+18% GST)',
                 # Initial admin-configurable defaults — NOT hardcoded final prices
-                'monthly_price_paise': 499900,   # Rs 4,999 — change in Admin Panel
-                'yearly_price_paise': 4999000,   # Rs 49,990 — change in Admin Panel
+                'monthly_price_paise': 199900,   # Rs 1,999 — change in Admin Panel
+                'yearly_price_paise': 1999000,   # Rs 19,990 — change in Admin Panel
                 'currency': 'INR',
                 'is_active': True,
                 'is_visible': True,

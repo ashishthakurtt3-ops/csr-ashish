@@ -208,8 +208,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Authentication URLs
-LOGIN_URL = '/admin-portal/login/'
-LOGIN_REDIRECT_URL = '/admin-portal/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Email System Configuration

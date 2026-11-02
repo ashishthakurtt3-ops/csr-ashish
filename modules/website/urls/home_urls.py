@@ -1,10 +1,12 @@
 from django.urls import path
 from modules.website.views.home_views import (
-    index_view, health_view, stats_view, search_view, coverage_report_api
+    index_view, pricing_view, health_view, stats_view, search_view, coverage_report_api
 )
 
 urlpatterns = [
     path('', index_view, name='home'),
+    path('pricing', pricing_view, name='pricing'),
+    path('pricing/', pricing_view, name='pricing_slash'),
     path('health', health_view, name='health'),
     path('health/', health_view, name='health_slash'),
     path('stats', stats_view, name='stats'),

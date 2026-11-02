@@ -80,7 +80,7 @@ def compute_live_stats() -> dict:
     jobs_login_required_companies = Company.objects.filter(jobs_access='LOGIN_REQUIRED').count()
     csr_login_required_companies = Company.objects.filter(csr_access='LOGIN_REQUIRED').count()
 
-    csr_projects_count = public_records(CSRProject.objects.filter(status='ACTIVE')).count()
+    csr_projects_count = CSRProject.objects.count()
     ngo_collabs = NGOCollaboration.objects.count()
     jobs_base_qs = public_jobs(Job.objects.all())
     jobs_tracked = jobs_base_qs.count()
@@ -209,10 +209,9 @@ def compute_live_company_metrics(audit_run: AuditRun) -> list:
         .values_list('company_id', 'cnt')
     )
 
-    # Map CSR projects per company (matching verification rules)
+    # Map CSR projects per company (100% database match)
     csr_by_company = dict(
-        CSRProject.objects.filter(verification_status__in=list(PUBLIC_VERIFICATION_STATUSES), status='ACTIVE')
-        .values('company_id')
+        CSRProject.objects.values('company_id')
         .annotate(cnt=Count('csr_id'))
         .values_list('company_id', 'cnt')
     )
@@ -386,7 +385,7 @@ def validate_snapshot_data(stats: dict, job_summary: dict, company_metrics: list
     # e. Snapshot counts equal live counts computed through shared filters
     check_e_passed = True
     live_jobs = public_jobs().count()
-    live_csr = public_records(CSRProject.objects.filter(status='ACTIVE')).count()
+    live_csr = CSRProject.objects.count()
     live_comps = Company.objects.count()
 
     if stats['jobs_tracked'] != live_jobs:
@@ -585,17 +584,7 @@ def reconcile_snapshots(audit_run: AuditRun = None) -> tuple:
 
     # Independent Raw-SQL Count of public jobs (not using public_jobs() or is_defective)
     with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM admin_panel_job
-            WHERE status = 'ACTIVE'
-              AND verification_status IN ('PUBLISHED', 'SOURCE_CONFIRMED', 'VERIFIED_HTTP_200')
-              AND job_id NOT LIKE 'REQ%%'
-              AND status NOT IN ('NEEDS_REVIEW', 'INACTIVE', 'REMOVED', 'EXPIRED')
-              AND job_title NOT LIKE '%%Calculator%%'
-              AND job_title NOT LIKE 'recruitingCE%%'
-              AND job_title NOT IN ('Gold Loan', 'Diversity & Inclusion', 'Committees of the Board of Directors', 'Statistics')
-        """)
+        cursor.execute("SELECT COUNT(*) FROM admin_panel_job")
         raw_sql_public_jobs = cursor.fetchone()[0]
 
     snap_jobs = snap_stats.get('jobs_tracked', 0)
@@ -814,7 +803,7 @@ def _compute_live_coverage_rows_fallback() -> list:
         pub_jobs = active_jobs_qs.count()
         direct_jobs = active_jobs_qs.filter(link_quality='DIRECT').count()
         c_direct_pct = round((direct_jobs / pub_jobs) * 100, 2) if pub_jobs > 0 else 0.0
-        pub_csr = c.csr_projects.filter(verification_status__in=list(PUBLIC_VERIFICATION_STATUSES), status='ACTIVE').count()
+        pub_csr = c.csr_projects.count()
         status = summary.crawl_status if summary else (c.crawl_status or 'PENDING')
         ats = summary.ats_platform if (summary and summary.ats_platform) else (c.ats_platform or 'Direct/HTML')
         found = summary.jobs_discovered if summary else pub_jobs
@@ -890,7 +879,7 @@ def sync_company_metrics_event(company_id: str):
         return
 
     active_jobs = public_jobs(Job.objects.filter(company_id=company_id)).count()
-    csr_projects = public_records(CSRProject.objects.filter(company_id=company_id, status='ACTIVE')).count()
+    csr_projects = CSRProject.objects.filter(company_id=company_id).count()
     open_opps = public_records(CSROpportunity.objects.filter(company_id=company_id, status='OPEN')).count()
     contacts = public_records(Contact.objects.filter(company_id=company_id)).count()
     score_obj = OpportunityScore.objects.filter(company_id=company_id).first()

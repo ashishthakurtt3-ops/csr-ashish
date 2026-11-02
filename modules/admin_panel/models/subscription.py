@@ -63,8 +63,16 @@ class Plan(models.Model):
         return round(self.monthly_price_paise / 100.0, 2)
 
     @property
+    def monthly_price_inr(self) -> float:
+        return self.price_monthly
+
+    @property
     def price_yearly(self) -> float:
         return round(self.yearly_price_paise / 100.0, 2)
+
+    @property
+    def yearly_price_inr(self) -> float:
+        return self.price_yearly
 
     @property
     def is_free(self) -> bool:

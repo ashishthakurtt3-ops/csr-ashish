@@ -7,7 +7,7 @@ echo      IMPACTBRIDGE WINDOWS TASK SCHEDULER INSTALLER
 echo =====================================================================
 echo.
 echo This script registers two background tasks in Windows Task Scheduler:
-echo   1. ImpactBridge_Daily_Database_Backup (Daily at 02:00 AM)
+echo   1. ImpactBridge_Daily_Database_Backup (Daily at 02:00 AM, 30 daily + 12 weekly retention)
 echo   2. ImpactBridge_Hourly_Subscription_Renewals (Every 1 hour)
 echo.
 
@@ -21,10 +21,19 @@ if not exist "%PY_CMD%" (
 )
 
 echo [1/2] Registering Daily Database Backup Task...
-schtasks /create /tn "ImpactBridge_Daily_Database_Backup" /tr "\"%PY_CMD%\" \"%PROJ_DIR%\manage.py\" backup_database --retention 14" /sc daily /st 02:00 /f
+powershell -NoProfile -Command ^
+  "$action = New-ScheduledTaskAction -Execute '%PY_CMD%' -Argument 'manage.py backup_database --daily-retention 30 --weekly-retention 12' -WorkingDirectory '%PROJ_DIR%';" ^
+  "$trigger = New-ScheduledTaskTrigger -Daily -At '02:00AM';" ^
+  "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable;" ^
+  "Register-ScheduledTask -TaskName 'ImpactBridge_Daily_Database_Backup' -Action $action -Trigger $trigger -Settings $settings -Force"
 
+echo.
 echo [2/2] Registering Hourly Subscription Renewals Task...
-schtasks /create /tn "ImpactBridge_Hourly_Subscription_Renewals" /tr "\"%PY_CMD%\" \"%PROJ_DIR%\manage.py\" process_subscription_renewals" /sc hourly /f
+powershell -NoProfile -Command ^
+  "$action = New-ScheduledTaskAction -Execute '%PY_CMD%' -Argument 'manage.py process_subscription_renewals' -WorkingDirectory '%PROJ_DIR%';" ^
+  "$trigger = New-ScheduledTaskTrigger -Daily -At '00:00AM' -RepetitionInterval (New-TimeSpan -Hours 1) -RepetitionDuration ([System.TimeSpan]::MaxValue);" ^
+  "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable;" ^
+  "Register-ScheduledTask -TaskName 'ImpactBridge_Hourly_Subscription_Renewals' -Action $action -Trigger $trigger -Settings $settings -Force"
 
 echo.
 echo =====================================================================
@@ -32,4 +41,3 @@ echo [SUCCESS] Windows scheduled tasks registered successfully!
 echo To review them, open taskschd.msc or run: schtasks /query /tn "ImpactBridge*"
 echo =====================================================================
 pause
-

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Free Account — ImpactBridge™</title>
+    <title>Create Free Account — ImpactBridge™ Customer Portal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,14 +58,6 @@
             color: #0F172A;
             letter-spacing: -0.02em;
         }
-        .auth-title em {
-            font-family: "Instrument Serif", Georgia, Cambria, serif !important;
-            font-style: italic !important;
-            font-weight: 400 !important;
-            background: linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-        }
         .auth-subtitle {
             font-size: 13.5px;
             color: #64748B;
@@ -75,10 +67,11 @@
         }
         .form-group {
             margin-bottom: 18px;
+            position: relative;
         }
         .form-label {
             display: block;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 700;
             color: #334155;
             margin-bottom: 6px;
@@ -103,11 +96,47 @@
             padding-right: 32px;
             cursor: pointer;
         }
+        .password-wrap {
+            position: relative;
+        }
+        .password-wrap input {
+            padding-right: 44px;
+        }
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748B;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-toggle-btn:hover {
+            color: #0F172A;
+        }
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: #0A6CFF;
             box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.18);
+        }
+        .free-badge-banner {
+            background: rgba(10, 108, 255, 0.06);
+            border: 1px dashed rgba(10, 108, 255, 0.35);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 12.5px;
+            color: #0A6CFF;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
         }
         .btn-submit {
             width: 100%;
@@ -152,19 +181,35 @@
             line-height: 1.6;
         }
         .auth-footer a {
-            color: #0F766E;
+            color: #0A6CFF;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.15s;
         }
         .auth-footer a:hover {
-            color: #115E59;
+            color: #0550c6;
             text-decoration: underline;
+        }
+        .auth-nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+            font-size: 12.5px;
+            color: #94A3B8;
+        }
+        .auth-nav-links a {
+            color: #64748B;
+            text-decoration: none;
+        }
+        .auth-nav-links a:hover {
+            color: #0F172A;
         }
         @media (max-width: 480px) {
             .auth-card {
                 padding: 28px 20px;
-                border-radius: 14px;
+                border-radius: 20px;
             }
             .auth-title {
                 font-size: 20px;
@@ -180,30 +225,49 @@
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <h1 class="auth-title">Join ImpactBridge™</h1>
-            <p class="auth-subtitle">Empowering NGOs, researchers &amp; job seekers with verified ESG intelligence</p>
+            <h1 class="auth-title">Create Your Account</h1>
+            <p class="auth-subtitle">Get instant access to India's premier CSR &amp; enterprise job intelligence platform</p>
+
+            <div class="free-badge-banner">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+                <span>Free Forever Tier automatically assigned upon registration</span>
+            </div>
 
             {% if messages %}
-            <div>
+            <div class="messages">
                 {% for message in messages %}
-                <div class="alert">{{ message }}</div>
+                <div class="alert">
+                    {{ message }}
+                </div>
                 {% endfor %}
             </div>
             {% endif %}
 
             <form method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url }}">
                 <div class="form-group">
                     <label class="form-label">Username</label>
                     {{ form.username }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Official Email</label>
+                    <label class="form-label">Official / Work Email</label>
                     {{ form.email }}
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    {{ form.password }}
+                    <div class="password-wrap">
+                        {{ form.password }}
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('id_password')" title="Toggle password visibility">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Organization Name (Optional)</label>
@@ -223,11 +287,24 @@
             </form>
 
             <div class="auth-footer">
-                Already registered? <a href="{% url 'website:user_login' %}">Sign in here</a>
-                <br><br>
-                <a href="/" style="color:#64748B; font-weight:normal;">&larr; Back to Public Portal</a>
+                Already registered? <a href="{% url 'website:user_login' %}{% if next_url %}?next={{ next_url }}{% endif %}">Sign In</a>
+                <div class="auth-nav-links">
+                    <a href="/">&larr; Back to Public Portal</a>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function togglePasswordVisibility(fieldId) {
+            const input = document.getElementById(fieldId) || document.querySelector('input[type="password"]');
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
+            }
+        }
+    </script>
 </body>
 </html>

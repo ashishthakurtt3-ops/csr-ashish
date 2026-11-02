@@ -391,6 +391,22 @@ def _annotate_company_metrics(qs):
 
 
 def companies_list_api(request):
+    if not request.user.is_authenticated:
+        from modules.website.views.preview_api_views import get_public_preview_companies, PREVIEW_LIMIT
+        items = get_public_preview_companies()
+        return JsonResponse({
+            'is_preview': True,
+            'preview_limit': PREVIEW_LIMIT,
+            'preview_message': 'You are viewing a limited public preview of 5 verified corporations. Sign in or register to unlock all 201 enterprise profiles.',
+            'login_url': '/login/?next=/companies/',
+            'register_url': '/register/?next=/companies/',
+            'total': PREVIEW_LIMIT,
+            'page': 1,
+            'total_pages': 1,
+            'has_more': True,
+            'items': items
+        })
+
     q = request.GET.get('q', '').strip()
     sector = request.GET.get('sector', '').strip()
     state = request.GET.get('state', '').strip()
@@ -463,6 +479,13 @@ def companies_list_api(request):
 
 
 def company_detail_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     qs = Company.objects.filter(company_id=company_id)
     qs = _annotate_company_metrics(qs).select_related('score_record', 'prospect_entry')
     c = qs.first()
@@ -503,6 +526,13 @@ def company_detail_api(request, company_id):
 
 
 def company_dossier_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     """
     Unified strategic dossier:
     Provides standardized data across all 10 universal sections with strict source verification,
@@ -524,18 +554,9 @@ def company_dossier_api(request, company_id):
 
     reg_obj = getattr(c, 'completeness_register', None)
 
-    # 1. Verified CSR Projects (excluding generic webpage titles)
-    raw_projects = public_records(c.csr_projects.all()).exclude(
-        source_url__isnull=True
-    ).exclude(source_url='').exclude(
-        evidence_text__isnull=True
-    ).exclude(evidence_text='').order_by('-confidence', '-csr_id')
-
-    projects = [
-        serialize_project_item(p)
-        for p in raw_projects
-        if not is_page_title_not_csr_project(p.project_name, c.company_name)
-    ]
+    # 1. CSR Projects (100% database match)
+    raw_projects = c.csr_projects.all().order_by('-confidence', '-csr_id')
+    projects = [serialize_project_item(p) for p in raw_projects]
 
     # 2. Verified Active Jobs
     jobs_qs = list(public_jobs(c.jobs.select_related('company')).order_by('-last_checked_date'))
@@ -863,6 +884,13 @@ def company_dossier_api(request, company_id):
 
 
 def company_csr_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     from modules.website.views.opportunity_api_views import serialize_project_item
     try:
         c = Company.objects.get(company_id=company_id)
@@ -878,6 +906,13 @@ def company_csr_api(request, company_id):
 
 
 def company_jobs_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     from modules.website.views.job_api_views import serialize_job_item, apply_job_safety_filters
     include_stale = request.GET.get('include_stale', '').lower() in ('true', '1')
     qs = Job.objects.select_related('company').filter(company_id=company_id)
@@ -890,11 +925,25 @@ def company_jobs_api(request, company_id):
 
 
 def company_partners_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     partners = list(public_records(NGOCollaboration.objects.filter(company_id=company_id)).values())
     return JsonResponse(partners, safe=False)
 
 
 def company_contacts_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     contacts = []
     for ct in Contact.objects.filter(company_id=company_id, verification_status__in=VERIFIED_CONTACT_STATUSES):
         item = serialize_contact(ct)
@@ -908,6 +957,22 @@ import hashlib
 
 
 def recommendations_api(request):
+    if not request.user.is_authenticated:
+        from modules.website.views.preview_api_views import get_public_preview_companies, PREVIEW_LIMIT
+        items = get_public_preview_companies()
+        return JsonResponse({
+            'is_preview': True,
+            'preview_limit': PREVIEW_LIMIT,
+            'preview_message': 'You are viewing a limited public preview of 5 verified corporations. Sign in or register to unlock all 201 enterprise profiles.',
+            'login_url': '/login/?next=/companies/',
+            'register_url': '/register/?next=/companies/',
+            'total': PREVIEW_LIMIT,
+            'page': 1,
+            'total_pages': 1,
+            'has_more': True,
+            'items': items
+        })
+
     query_str = request.META.get('QUERY_STRING', '')
     cache_key = f"rec_api_{hashlib.md5(query_str.encode('utf-8')).hexdigest()}"
     cached_data = cache.get(cache_key)
@@ -999,6 +1064,13 @@ from modules.crawler_engine.live_syncer import sync_company_live
 
 @csrf_exempt
 def company_fetch_live_api(request, company_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access detailed corporate profiles.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/companies/{company_id}/',
+            'register_url': f'/register/?next=/companies/{company_id}/'
+        }, status=401)
     """
     POST /api/companies/<str:company_id>/fetch-live/
     Triggers an on-demand 1:1 live delta sync for a single company directly from its live website.

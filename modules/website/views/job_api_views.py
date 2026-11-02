@@ -429,6 +429,22 @@ def serialize_job_item(j: Job, is_detail: bool = True):
 
 
 def jobs_list_api(request):
+    if not request.user.is_authenticated:
+        from modules.website.views.preview_api_views import get_public_preview_jobs, PREVIEW_LIMIT
+        items = get_public_preview_jobs()
+        return JsonResponse({
+            'is_preview': True,
+            'preview_limit': PREVIEW_LIMIT,
+            'preview_message': 'You are viewing a limited public preview of 5 active job openings. Sign in or register to search, filter, and save all 2,604 vacancies.',
+            'login_url': '/login/?next=/jobs/',
+            'register_url': '/register/?next=/jobs/',
+            'total': PREVIEW_LIMIT,
+            'page': 1,
+            'total_pages': 1,
+            'has_more': True,
+            'items': items
+        })
+
     if request.META.get('HTTP_ACCEPT', '').find('text/html') != -1 and request.GET.get('format') != 'json':
         from modules.website.views.home_views import index_view
         return index_view(request)
@@ -675,6 +691,13 @@ def jobs_summary_api(request):
 
 
 def job_detail_api(request, job_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to view complete job descriptions and application links.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/jobs/{job_id}/',
+            'register_url': f'/register/?next=/jobs/{job_id}/'
+        }, status=401)
     """Retrieve detailed information for a specific job along with related openings.
     If details have not been fetched from the official portal yet, perform live on-demand extraction
     via UniversalJobDetailExtractor and persist the enriched fields.
@@ -783,6 +806,13 @@ def job_detail_api(request, job_id):
 
 
 def job_refresh_status_api(request, job_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/jobs/{job_id}/',
+            'register_url': f'/register/?next=/jobs/{job_id}/'
+        }, status=401)
     """Returns background enrichment and scraping status for a job opening."""
     job = None
     if str(job_id).isdigit():

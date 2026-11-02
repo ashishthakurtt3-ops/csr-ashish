@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — ImpactBridge™ CSR Intelligence</title>
+    <title>Sign In — ImpactBridge™ Customer Portal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,14 +58,6 @@
             color: #0F172A;
             letter-spacing: -0.02em;
         }
-        .auth-title em {
-            font-family: "Instrument Serif", Georgia, Cambria, serif !important;
-            font-style: italic !important;
-            font-weight: 400 !important;
-            background: linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-        }
         .auth-subtitle {
             font-size: 13.5px;
             color: #64748B;
@@ -75,6 +67,7 @@
         }
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
         .form-label {
             display: block;
@@ -97,6 +90,29 @@
             font-family: inherit;
             box-sizing: border-box;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .password-wrap {
+            position: relative;
+        }
+        .password-wrap input {
+            padding-right: 44px;
+        }
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748B;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-toggle-btn:hover {
+            color: #0F172A;
         }
         .form-group input:focus {
             outline: none;
@@ -158,13 +174,13 @@
             line-height: 1.6;
         }
         .auth-footer a {
-            color: #0F766E;
+            color: #0A6CFF;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.15s;
         }
         .auth-footer a:hover {
-            color: #115E59;
+            color: #0550c6;
             text-decoration: underline;
         }
         .auth-nav-links {
@@ -186,7 +202,7 @@
         @media (max-width: 480px) {
             .auth-card {
                 padding: 28px 20px;
-                border-radius: 14px;
+                border-radius: 20px;
             }
             .auth-title {
                 font-size: 20px;
@@ -202,8 +218,8 @@
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <h1 class="auth-title">Welcome to ImpactBridge</h1>
-            <p class="auth-subtitle">Sign in to access saved prospects, matchmaker &amp; grant alerts</p>
+            <h1 class="auth-title">Sign In to ImpactBridge</h1>
+            <p class="auth-subtitle">Access complete corporate dossiers, active career openings &amp; verified CSR grants</p>
 
             {% if messages %}
             <div class="messages">
@@ -217,13 +233,22 @@
 
             <form method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url }}">
                 <div class="form-group">
                     <label class="form-label">Username or Email</label>
                     {{ form.username }}
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    {{ form.password }}
+                    <div class="password-wrap">
+                        {{ form.password }}
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('id_password')" title="Toggle password visibility">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-submit">
                     <span>Sign In</span>
@@ -235,14 +260,26 @@
             </form>
 
             <div class="auth-footer">
-                Don't have an account? <a href="{% url 'website:user_register' %}">Create free account</a>
+                New to ImpactBridge? <a href="{% url 'website:user_register' %}{% if next_url %}?next={{ next_url }}{% endif %}">Create free account</a>
                 <div class="auth-nav-links">
-                    <a href="/">&larr; Public Portal</a>
+                    <a href="/">&larr; Back to Public Portal</a>
                     <span>&bull;</span>
                     <a href="/admin-portal/login/">Enterprise Console &rarr;</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function togglePasswordVisibility(fieldId) {
+            const input = document.getElementById(fieldId) || document.querySelector('input[type="password"]');
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
+            }
+        }
+    </script>
 </body>
 </html>

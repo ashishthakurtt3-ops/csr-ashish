@@ -313,6 +313,13 @@ def serialize_project_item(p: CSRProject, is_detail: bool = False):
 
 
 def csr_project_detail_api(request, csr_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to view complete project records and CSR dossiers.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': f'/login/?next=/csr/projects/{csr_id}/',
+            'register_url': f'/register/?next=/csr/projects/{csr_id}/'
+        }, status=401)
     """Retrieve detailed information for a specific CSR project along with related initiatives and company CSR links."""
     try:
         project = public_records(CSRProject.objects.select_related('company')).filter(
@@ -395,6 +402,22 @@ def serialize_opportunity_item(o: CSROpportunity, is_detail: bool = False):
 
 
 def csr_projects_api(request):
+    if not request.user.is_authenticated:
+        from modules.website.views.preview_api_views import get_public_preview_csr, PREVIEW_LIMIT
+        items = get_public_preview_csr()
+        return JsonResponse({
+            'is_preview': True,
+            'preview_limit': PREVIEW_LIMIT,
+            'preview_message': 'You are viewing a limited public preview of 5 verified Section 135 CSR projects. Sign in or register to explore all 1,599 initiatives.',
+            'login_url': '/login/?next=/csr/projects/',
+            'register_url': '/register/?next=/csr/projects/',
+            'total': PREVIEW_LIMIT,
+            'page': 1,
+            'total_pages': 1,
+            'has_more': True,
+            'items': items
+        })
+
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
     company = request.GET.get('company', '').strip() or request.GET.get('company_id', '').strip()
@@ -406,12 +429,8 @@ def csr_projects_api(request):
 
     status = request.GET.get('status', '').strip()
 
-    # Unified verified rule: strictly PUBLIC_VERIFICATION_STATUSES with non-empty source_url and evidence_text
-    qs = public_records(CSRProject.objects.select_related('company')).exclude(
-        source_url__isnull=True
-    ).exclude(source_url='').exclude(
-        evidence_text__isnull=True
-    ).exclude(evidence_text='')
+    # Direct 100% match with database: return all CSR projects stored in DB
+    qs = CSRProject.objects.select_related('company').all()
 
     if q:
         qs = qs.filter(
@@ -540,6 +559,13 @@ def csr_projects_api(request):
 
 
 def csr_opportunities_api(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Please sign in or register for a free account to access corporate grant opportunities and RFPs.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': '/login/?next=/opportunities/',
+            'register_url': '/register/?next=/opportunities/'
+        }, status=401)
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
     company = request.GET.get('company', '').strip() or request.GET.get('company_id', '').strip()

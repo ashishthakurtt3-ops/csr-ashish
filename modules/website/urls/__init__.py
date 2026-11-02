@@ -15,6 +15,7 @@ urlpatterns = [
     path('', include('modules.website.urls.crawler_urls')),
     path('', include('modules.website.urls.subscription_urls')),
     path('', include('modules.website.urls.auth_urls')),
+    path('', include('modules.website.urls.preview_urls')),
 
     # Core Intelligence APIs (api/ prefix alias)
     path('api/', include('modules.website.urls.home_urls')),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('api/', include('modules.website.urls.crawler_urls')),
     path('api/', include('modules.website.urls.subscription_urls')),
     path('api/', include('modules.website.urls.auth_urls')),
+    path('api/', include('modules.website.urls.preview_urls')),
 
     # Matching & Prospects CRM
     path('ngo/matches', match_ngo_api, name='ngo_matches'),

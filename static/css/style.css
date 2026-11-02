@@ -115,10 +115,10 @@
 
   /* Sidebar Design Token (Deep Navy) */
   --sidebar-bg: #0B1020;
-  --sidebar-border: #E0E4EE;
-  --sidebar-text: #0B1020;
-  --sidebar-muted: #8A91A6;
-  --sidebar-hover: rgba(10, 108, 255, 0.06);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-text: #CBD5E1;
+  --sidebar-muted: #94A3B8;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
   --sidebar-active-bg: #EFF6FF;
   --sidebar-active-text: #0A6CFF;
   --sidebar-active-border: #0A6CFF;
@@ -2627,6 +2627,10 @@ a:hover {
   background: #ECFDF5;
   color: #059669;
   letter-spacing: 0.2px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
 }
 
 .pricing-grid {
@@ -3086,7 +3090,7 @@ a:hover {
 .nav-section-title {
   font-size: 10.5px;
   font-weight: 700;
-  color: #64748B;
+  color: #94A3B8;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 14px 12px 6px;
@@ -3096,31 +3100,40 @@ a:hover {
   align-items: center;
   gap: 12px;
   padding: 9px 12px;
-  color: var(--sidebar-text);
+  color: var(--sidebar-text, #CBD5E1);
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   transition: all var(--transition-fast);
 }
+.sidebar-link span {
+  color: inherit;
+}
 .sidebar-link svg {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
+  color: inherit;
 }
 .sidebar-link:hover {
-  background: var(--sidebar-hover);
+  background: var(--sidebar-hover, rgba(255, 255, 255, 0.08));
+  color: #FFFFFF;
+}
+.sidebar-link:hover span,
+.sidebar-link:hover svg {
   color: #FFFFFF;
 }
 .sidebar-link.active {
   background: var(--sidebar-active-bg);
-  color: var(--accent);
+  color: var(--sidebar-active-text, #0A6CFF);
   font-weight: 700;
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
+.sidebar-link.active span,
 .sidebar-link.active svg {
-  color: var(--accent);
+  color: var(--sidebar-active-text, #0A6CFF);
 }
 
 .sidebar-user {
@@ -4445,6 +4458,9 @@ body {
   font-size: 13.5px !important;
   font-weight: 500 !important;
   color: #0B1020 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
   transition: all var(--transition-fast) !important;
 }
 .cycle-btn.active {
@@ -4461,6 +4477,10 @@ body {
   padding: 2px 8px !important;
   border-radius: 999px !important;
   letter-spacing: 0.2px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  pointer-events: none !important;
 }
 
 @media (max-width: 1320px) and (min-width: 1024px) {
@@ -4500,4 +4520,231 @@ body {
   .nav-link-btn svg {
     display: none !important;
   }
+}
+
+
+/* ==========================================================================
+   Comprehensive Dark Mode Engine (Flawless Contrast & Deep Slate Navy Canvas)
+   ========================================================================== */
+[data-theme="dark"] body,
+body[data-theme="dark"] {
+  background-color: #070D16 !important;
+  background-image: radial-gradient(rgba(10, 108, 255, 0.18) 1.2px, transparent 1.2px) !important;
+  background-size: 26px 26px !important;
+  background-attachment: fixed !important;
+  color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .pricing-headline,
+[data-theme="dark"] .hero-title,
+[data-theme="dark"] .section-title {
+  color: #F8FAFC !important;
+}
+
+[data-theme="dark"] .pricing-subtext {
+  color: #94A3B8 !important;
+}
+
+/* DaanVeda Pill Billing Toggle in Dark Mode */
+[data-theme="dark"] .billing-toggle-pill {
+  background: #16243C !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] .cycle-btn {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .cycle-btn.active {
+  background: #0E1726 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Pricing Cards in Dark Mode */
+[data-theme="dark"] .pricing-card {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+[data-theme="dark"] .pricing-card:hover {
+  background: #132238 !important;
+  border-color: var(--primary-brand) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55) !important;
+}
+[data-theme="dark"] .pricing-card.featured {
+  border-color: rgba(10, 108, 255, 0.6) !important;
+  box-shadow: 0 4px 20px rgba(10, 108, 255, 0.25) !important;
+}
+[data-theme="dark"] .pricing-card .plan-name {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .pricing-card .plan-desc {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .pricing-card .amount {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .pricing-card .period {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .pricing-card .plan-features li span:not(.daanveda-check-badge) {
+  color: #E2E8F0 !important;
+}
+
+/* Demo Testing Wallet Card in Dark Mode */
+[data-theme="dark"] .portal-wallet-section-card {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+  color: #F1F5F9 !important;
+}
+[data-theme="dark"] .portal-wallet-section-card h3 {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .portal-wallet-section-card div[style*="background:#FAFBFF"],
+[data-theme="dark"] .portal-wallet-section-card div[style*="background: #FAFBFF"],
+[data-theme="dark"] .portal-wallet-section-card div[style*="background:var(--bg-surface-subtle)"] {
+  background: #131F33 !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] #pricing-wallet-balance-val {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] #inline-wallet-amount-input {
+  background: #0A1220 !important;
+  border-color: #1E2D42 !important;
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .btn-secondary {
+  background: #16243C !important;
+  border-color: #1E2D42 !important;
+  color: #E2E8F0 !important;
+}
+[data-theme="dark"] .btn-secondary:hover {
+  background: #1E2D42 !important;
+  border-color: #334155 !important;
+  color: #FFFFFF !important;
+}
+
+/* Active Subscription Card in Dark Mode */
+[data-theme="dark"] .active-subscription-card {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] #active-plan-org-title {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] #active-plan-features-summary {
+  color: #94A3B8 !important;
+}
+
+/* User Quota Widget in Dark Mode */
+[data-theme="dark"] #user-quota-widget > div {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] #user-quota-widget h4 {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] #user-quota-widget div[style*="background:#F1F3F7"],
+[data-theme="dark"] #user-quota-widget div[style*="background: #F1F3F7"],
+[data-theme="dark"] #user-quota-widget div[style*="background:var(--bg-surface-subtle)"] {
+  background: #16243C !important;
+}
+
+/* Plan Comparison Table in Dark Mode */
+[data-theme="dark"] #pricing-comparison-container div[style*="overflow-x:auto"],
+[data-theme="dark"] #pricing-comparison-container .table-container {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] #pricing-comparison-container table {
+  background: #0E1726 !important;
+  color: #F1F5F9 !important;
+}
+[data-theme="dark"] #pricing-comparison-container thead tr {
+  background: #131F33 !important;
+  border-bottom-color: #1E2D42 !important;
+}
+[data-theme="dark"] #pricing-comparison-container th {
+  color: #F8FAFC !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] #pricing-comparison-container td {
+  color: #E2E8F0 !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] #pricing-comparison-container tfoot tr {
+  background: #131F33 !important;
+  border-top-color: #1E2D42 !important;
+}
+
+/* General Customer Cards in Dark Mode */
+[data-theme="dark"] .company-card,
+[data-theme="dark"] .job-card,
+[data-theme="dark"] .rfp-card,
+[data-theme="dark"] .status-metric-card,
+[data-theme="dark"] .dossier-summary-card,
+[data-theme="dark"] .crm-pipeline-card,
+[data-theme="dark"] .card {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+  color: #F1F5F9 !important;
+}
+[data-theme="dark"] .company-card:hover,
+[data-theme="dark"] .job-card:hover,
+[data-theme="dark"] .rfp-card:hover {
+  background: #132238 !important;
+  border-color: var(--primary-brand) !important;
+}
+[data-theme="dark"] .company-card h4,
+[data-theme="dark"] .job-card h4,
+[data-theme="dark"] .rfp-card h4,
+[data-theme="dark"] .company-card h3,
+[data-theme="dark"] .job-card h3 {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .modal-panel,
+[data-theme="dark"] .modal-panel-large {
+  background: #0E1726 !important;
+  border-color: #1E2D42 !important;
+  color: #F1F5F9 !important;
+}
+[data-theme="dark"] .modal-header {
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] .modal-header h3 {
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .modal-footer {
+  border-color: #1E2D42 !important;
+  background: #131F33 !important;
+}
+[data-theme="dark"] .search-input-pill,
+[data-theme="dark"] input[type="text"].search-box,
+[data-theme="dark"] .filter-select-pill,
+[data-theme="dark"] select {
+  background: #0A1220 !important;
+  border-color: #1E2D42 !important;
+  color: #F8FAFC !important;
+}
+[data-theme="dark"] .app-header,
+[data-theme="dark"] .header-row,
+[data-theme="dark"] .header-tabs-row {
+  background: #0B1020 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme="dark"] .nav-link-btn {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .nav-link-btn:hover,
+[data-theme="dark"] .nav-link-btn.active {
+  color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme="dark"] .user-tier-pill {
+  background: #16243C !important;
+  border-color: #1E2D42 !important;
+}
+[data-theme="dark"] .wallet-balance-pill {
+  background: #16243C !important;
+  border-color: #1E2D42 !important;
 }

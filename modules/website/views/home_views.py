@@ -29,10 +29,29 @@ IMPACT_ROLE_FILTER = (
 )
 
 
-def index_view(request):
-    """Serve the primary ImpactBridge Dynamic Web Portal with server-rendered telemetry."""
+def index_view(request, default_tab='companies'):
+    """Serve the primary ImpactBridge Dynamic Web Portal with server-rendered telemetry and auth state."""
     from modules.admin_panel.snapshot_service import get_current_stats_snapshot
+    from modules.admin_panel.models import Subscription
+    from modules.website.utils.subscription_service import get_or_create_wallet
+
     data, is_stale, audit_run_id, data_as_of = get_current_stats_snapshot()
+
+    user_sub = None
+    user_wallet = None
+    wallet_balance_inr = "0.00"
+    plan_tier = "FREE"
+
+    if request.user.is_authenticated:
+        user_sub = Subscription.objects.filter(user=request.user, status='ACTIVE').order_by('-created_at').first()
+        if not user_sub:
+            user_sub = Subscription.objects.filter(tenant_id=f"user_{request.user.id}", status='ACTIVE').order_by('-created_at').first()
+        if user_sub:
+            plan_tier = user_sub.plan_id.upper()
+
+        user_wallet = get_or_create_wallet(request.user)
+        if user_wallet:
+            wallet_balance_inr = f"{user_wallet.balance_paise / 100:,.2f}"
 
     context = {
         'total_companies': data.get('total_companies', 0),
@@ -42,8 +61,19 @@ def index_view(request):
         'active_opportunities': data.get('active_opportunities', 0),
         'last_live_fetch': data.get('last_live_fetch', 'Recently'),
         'data_as_of': data_as_of,
+        'user_subscription': user_sub,
+        'user_wallet': user_wallet,
+        'wallet_balance_inr': wallet_balance_inr,
+        'plan_tier': plan_tier,
+        'default_tab': default_tab,
+        'is_preview_mode': not request.user.is_authenticated,
     }
     return render(request, 'website/index.html', context)
+
+
+def pricing_view(request):
+    """Direct route for subscription pricing tab."""
+    return index_view(request, default_tab='pricing')
 
 
 def _wants_json(request):

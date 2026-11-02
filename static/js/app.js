@@ -127,6 +127,11 @@ async function cachedFetch(url, options = {}) {
 
     const fetchPromise = fetch(url, options)
         .then(async (res) => {
+            if (res.status === 401) {
+                if (typeof openAuthGateModal === 'function' && window.IS_PREVIEW_MODE) {
+                    openAuthGateModal('preview_limit', 'Enterprise Intelligence');
+                }
+            }
             if (res.ok) {
                 try {
                     const cloned = res.clone();
@@ -182,6 +187,12 @@ async function initApp() {
             setJobViewMode('cards');
         }
     }, 200));
+
+    // Check if initial URL or server context requests a specific default tab (e.g. /pricing/)
+    if ((window.DEFAULT_TAB && window.DEFAULT_TAB !== 'companies') || window.location.pathname.startsWith('/pricing')) {
+        const targetTab = window.location.pathname.startsWith('/pricing') ? 'pricing' : window.DEFAULT_TAB;
+        switchTab(targetTab);
+    }
 
     // High performance initial load: immediately render visible Tab 1 (Donors) and stats
     // Run independent calls with Promise.all (Target: at most 3 requests, each < 300 ms warm)
@@ -2703,6 +2714,14 @@ async function openJobDetailsModal(jobId, forceRefresh = false) {
     try {
         const url = `${API_BASE}/jobs/${jobId}${forceRefresh ? '?refresh=1' : ''}`;
         const res = await fetch(url);
+        if (res.status === 401) {
+            if (modal) modal.style.display = 'none';
+            document.body.style.overflow = '';
+            if (typeof openAuthGateModal === 'function') {
+                openAuthGateModal('job', 'Job Specifications', `/jobs/${jobId}`);
+            }
+            return;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const job = await res.json();
 
@@ -3445,6 +3464,14 @@ async function openCsrDetailsModal(csrId) {
 
     try {
         const res = await fetch(`${API_BASE}/csr/projects/${csrId}`);
+        if (res.status === 401) {
+            if (modal) modal.style.display = 'none';
+            document.body.style.overflow = '';
+            if (typeof openAuthGateModal === 'function') {
+                openAuthGateModal('csr', 'Section 135 CSR Dossier', `/csr/projects/${csrId}`);
+            }
+            return;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const p = await res.json();
 
@@ -4391,6 +4418,14 @@ async function openCompanyDossier(companyId, initialTab = 'overview') {
 
     try {
         const res = await fetch(`${API_BASE}/companies/${companyId}/dossier`);
+        if (res.status === 401) {
+            if (modal) modal.style.display = 'none';
+            document.body.style.overflow = '';
+            if (typeof openAuthGateModal === 'function') {
+                openAuthGateModal('company', companyId, `/companies/${companyId}/dossier`);
+            }
+            return;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
@@ -5439,11 +5474,16 @@ function renderPricingGrid() {
     const currentNormTier = normalizeSubscriptionTier(currentSubscription.plan_id || currentSubscription.tier);
     const isYearly = activeBillingCycle === 'yearly';
 
+    const currentPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currentNormTier);
+    const currentOrder = currentPlanObj ? currentPlanObj.display_order : 1;
+
     let html = '';
     dbPlansCatalog.forEach(plan => {
         const planCode = plan.code.toLowerCase();
         const isCurrentActive = (currentNormTier === planCode);
-        const isFeatured = plan.is_popular;
+        // Only show RECOMMENDED badge/highlight if the plan is strictly HIGHER than the current tier
+        const isHigherTier = plan.display_order > currentOrder;
+        const isFeatured = plan.is_popular && isHigherTier;
 
         // Dynamic price calculation
         let displayPrice = 0;
@@ -5508,7 +5548,7 @@ function renderPricingGrid() {
 
         html += `
             <div class="pricing-card ${isFeatured ? 'featured' : ''}" id="card-plan-${planCode}" style="${isCurrentActive ? 'border: 2px solid var(--primary-brand);' : ''}">
-                ${isFeatured ? `<div class="featured-badge">${plan.badge || 'MOST POPULAR'}</div>` : (plan.badge ? `<div style="font-size:11px; font-weight:700; color:var(--primary-brand); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">${escapeHtml(plan.badge)}</div>` : '')}
+                ${isFeatured ? `<div class="featured-badge">${plan.badge || 'RECOMMENDED'}</div>` : ((plan.badge && !plan.is_popular) ? `<div style="font-size:11px; font-weight:700; color:var(--primary-brand); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">${escapeHtml(plan.badge)}</div>` : '')}
                 <div class="plan-header">
                     <h3 class="plan-name">${escapeHtml(plan.name)}</h3>
                     <p class="plan-desc">${escapeHtml(plan.description || '')}</p>
@@ -5688,8 +5728,8 @@ async function openSubscriptionModal(tier = 'pro') {
     const plan = dbPlansCatalog.find(p => p.code.toLowerCase() === normTier) || {
         code: normTier,
         name: normTier.toUpperCase(),
-        monthly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 499 : 999),
-        yearly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 4999 : 9999),
+        monthly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 999 : 1999),
+        yearly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 9990 : 19990),
         display_order: normTier === 'starter' ? 1 : (normTier === 'pro' ? 2 : 3),
         features: []
     };
@@ -7099,7 +7139,7 @@ async function renderUserQuotaWidget() {
         const exPct = exLimit > 0 ? Math.min(100, Math.round((exUsed / exLimit) * 100)) : 0;
 
         container.innerHTML = `
-            <div style="background:#FFFFFF; border:1.5px solid var(--border-color); border-radius:20px; padding:22px 28px; margin-bottom:32px; box-shadow:var(--shadow-card);">
+            <div style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:20px; padding:22px 28px; margin-bottom:32px; box-shadow:var(--shadow-card);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
                     <div>
                         <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">Account Quotas</span>
@@ -7117,7 +7157,7 @@ async function renderUserQuotaWidget() {
                             <span style="color:var(--text-secondary);">Saved Jobs &amp; CSR:</span>
                             <strong style="color:var(--text-primary);">${srUsed} / ${srLimit}</strong>
                         </div>
-                        <div style="height:6px; background:#F1F3F7; border-radius:3px; overflow:hidden;">
+                        <div style="height:6px; background:var(--bg-surface-subtle); border-radius:3px; overflow:hidden;">
                             <div style="width:${srPct}%; height:100%; background:var(--accent-cyan); border-radius:3px;"></div>
                         </div>
                     </div>
@@ -7126,7 +7166,7 @@ async function renderUserQuotaWidget() {
                             <span style="color:var(--text-secondary);">Saved Searches:</span>
                             <strong style="color:var(--text-primary);">${ssUsed} / ${ssLimit}</strong>
                         </div>
-                        <div style="height:6px; background:#F1F3F7; border-radius:3px; overflow:hidden;">
+                        <div style="height:6px; background:var(--bg-surface-subtle); border-radius:3px; overflow:hidden;">
                             <div style="width:${ssPct}%; height:100%; background:#818cf8; border-radius:3px;"></div>
                         </div>
                     </div>
@@ -7135,7 +7175,7 @@ async function renderUserQuotaWidget() {
                             <span style="color:var(--text-secondary);">Monthly Exports:</span>
                             <strong style="color:var(--text-primary);">${exUsed} / ${exLimit > 0 ? exLimit : '0 (Upgrade)'}</strong>
                         </div>
-                        <div style="height:6px; background:#F1F3F7; border-radius:3px; overflow:hidden;">
+                        <div style="height:6px; background:var(--bg-surface-subtle); border-radius:3px; overflow:hidden;">
                             <div style="width:${exPct}%; height:100%; background:#10b981; border-radius:3px;"></div>
                         </div>
                     </div>
@@ -7161,6 +7201,8 @@ async function renderPlanComparisonTable() {
         const plans = data.plans;
         const features = data.features;
         const currentNormTier = normalizeSubscriptionTier(currentSubscription.plan_id || currentSubscription.tier);
+        const currentPlanObj = plans.find(x => x.code.toLowerCase() === currentNormTier);
+        const currentOrder = currentPlanObj ? (currentPlanObj.display_order || (currentNormTier === 'free' ? 1 : (currentNormTier === 'pro' ? 2 : 3))) : 1;
 
         let tableHtml = `
             <div style="margin-top:64px; border-top:1px solid var(--border-color); padding-top:48px;">
@@ -7172,17 +7214,21 @@ async function renderPlanComparisonTable() {
                     </p>
                 </div>
 
-                <div style="overflow-x:auto; background:#FFFFFF; border:1px solid var(--border-color); border-radius:24px; box-shadow:var(--shadow-card);">
+                <div style="overflow-x:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:24px; box-shadow:var(--shadow-card);">
                     <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
                         <thead>
-                            <tr style="background:#FAFBFF; border-bottom:2px solid var(--border-color);">
+                            <tr style="background:var(--bg-surface-subtle); border-bottom:2px solid var(--border-color);">
                                 <th style="padding:22px 24px; font-weight:700; color:var(--text-primary); width:35%;">Feature &amp; Quota</th>
-                                ${plans.map(p => `
-                                    <th style="padding:22px 18px; text-align:center; width:21%; ${p.is_recommended ? 'background:rgba(10,108,255,0.035);' : ''}">
+                                ${plans.map(p => {
+                                    const pCode = p.code.toLowerCase();
+                                    const pOrder = pCode === 'free' || pCode === 'starter' ? 1 : (pCode === 'pro' ? 2 : 3);
+                                    const isHighlight = p.is_recommended && (pOrder > currentOrder);
+                                    return `
+                                    <th style="padding:22px 18px; text-align:center; width:21%; ${isHighlight ? 'background:rgba(10,108,255,0.035);' : ''}">
                                         <div style="font-size:17px; font-weight:800; color:var(--text-primary); letter-spacing:-0.3px;">${escapeHtml(p.name)}</div>
-                                        ${p.badge ? `<span style="display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; background:rgba(10,108,255,0.08); color:var(--primary-brand); margin-top:4px;">${escapeHtml(p.badge)}</span>` : ''}
+                                        ${(p.badge && (!p.is_recommended || pOrder > currentOrder)) ? `<span style="display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; background:rgba(10,108,255,0.08); color:var(--primary-brand); margin-top:4px;">${escapeHtml(p.badge)}</span>` : ''}
                                     </th>
-                                `).join('')}
+                                `;}).join('')}
                             </tr>
                         </thead>
                         <tbody>
@@ -7194,6 +7240,8 @@ async function renderPlanComparisonTable() {
                                             ${escapeHtml(f.display_name || f.feature_key)}
                                         </td>
                                         ${plans.map(p => {
+                                            const pCode = p.code.toLowerCase();
+                                            const pOrder = pCode === 'free' || pCode === 'starter' ? 1 : (pCode === 'pro' ? 2 : 3);
                                             const val = f.values[p.code];
                                             let cellContent = '—';
                                             if (val) {
@@ -7208,7 +7256,7 @@ async function renderPlanComparisonTable() {
                                                 }
                                             }
                                             return `
-                                                <td style="padding:14px 16px; text-align:center; ${p.is_recommended ? 'background:rgba(15,118,110,0.04);' : ''}">
+                                                <td style="padding:14px 16px; text-align:center; ${(p.is_recommended && pOrder > currentOrder) ? 'background:rgba(15,118,110,0.04);' : ''}">
                                                     ${cellContent}
                                                 </td>
                                             `;
@@ -7228,7 +7276,7 @@ async function renderPlanComparisonTable() {
 
                                     let btnLabel = `Upgrade to ${p.name}`;
                                     let btnDis = false;
-                                    let btnCls = p.is_recommended ? 'btn-primary' : 'btn-secondary';
+                                    let btnCls = (p.is_recommended && pOrder > currentOrder) ? 'btn-primary' : 'btn-secondary';
 
                                     if (isCurrent) {
                                         btnLabel = 'Current Plan';
@@ -7241,7 +7289,7 @@ async function renderPlanComparisonTable() {
                                     }
 
                                     return `
-                                        <td style="padding:16px; text-align:center; ${p.is_recommended ? 'background:rgba(15,118,110,0.08);' : ''}">
+                                        <td style="padding:16px; text-align:center; ${(p.is_recommended && pOrder > currentOrder) ? 'background:rgba(15,118,110,0.08);' : ''}">
                                             <button class="${btnCls}" style="padding:8px 16px; font-size:12px; width:90%;" ${btnDis ? 'disabled style="opacity:0.6; cursor:default;"' : ''} onclick="openSubscriptionModal('${p.code.toLowerCase()}')">
                                                 ${btnLabel}
                                             </button>
