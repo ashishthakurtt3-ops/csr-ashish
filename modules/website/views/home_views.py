@@ -41,13 +41,32 @@ def index_view(request, default_tab='companies'):
     user_wallet = None
     wallet_balance_inr = "0.00"
     plan_tier = "FREE"
+    plan_tier_label = "No Active Plan"
+    is_sub_active = False
+    sub_status = "NONE"
 
     if request.user.is_authenticated:
-        user_sub = Subscription.objects.filter(user=request.user, status='ACTIVE').order_by('-created_at').first()
+        # Query latest subscription regardless of status (read-only)
+        user_sub = Subscription.objects.filter(user=request.user).order_by('-created_at').first()
         if not user_sub:
-            user_sub = Subscription.objects.filter(tenant_id=f"user_{request.user.id}", status='ACTIVE').order_by('-created_at').first()
+            user_sub = Subscription.objects.filter(tenant_id=f"user_{request.user.id}").order_by('-created_at').first()
+
         if user_sub:
-            plan_tier = user_sub.plan_id.upper()
+            sub_status = (user_sub.status or 'INACTIVE').upper()
+            is_sub_active = sub_status in ('ACTIVE', 'TRIALING')
+            plan_tier = (user_sub.plan_id or 'free').upper()
+            if is_sub_active:
+                plan_tier_label = f"{plan_tier} Active"
+            elif sub_status == 'EXPIRED':
+                plan_tier_label = f"{plan_tier} Expired"
+            elif sub_status in ('CANCELED', 'CANCELLED'):
+                plan_tier_label = f"{plan_tier} Cancelled"
+            else:
+                plan_tier_label = f"{plan_tier} ({sub_status})"
+        else:
+            sub_status = "NONE"
+            plan_tier = "FREE"
+            plan_tier_label = "No Active Plan"
 
         user_wallet = get_or_create_wallet(request.user)
         if user_wallet:
@@ -65,6 +84,9 @@ def index_view(request, default_tab='companies'):
         'user_wallet': user_wallet,
         'wallet_balance_inr': wallet_balance_inr,
         'plan_tier': plan_tier,
+        'plan_tier_label': plan_tier_label,
+        'is_sub_active': is_sub_active,
+        'sub_status': sub_status,
         'default_tab': default_tab,
         'is_preview_mode': not request.user.is_authenticated,
     }

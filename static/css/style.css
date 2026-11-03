@@ -128,10 +128,10 @@
   --primary-brand-hover: #005CE0;
   --primary-brand-light: #EFF6FF;
   --brand-purple: #9E0DFF;
-  --brand-gradient: linear-gradient(93.75deg, #0A6CFF 0%, #9E0DFF 100%);
-  --brand-gradient-hover: linear-gradient(93.75deg, #005CE0 0%, #8800E6 100%);
-  --brand-gradient-subtle: linear-gradient(135deg, rgba(10, 108, 255, 0.07) 0%, rgba(158, 13, 255, 0.07) 100%);
-  --brand-gradient-border: linear-gradient(93.75deg, rgba(10, 108, 255, 0.4) 0%, rgba(158, 13, 255, 0.4) 100%);
+  --brand-gradient: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #005CE0 0%, #0046B3 100%);
+  --brand-gradient-subtle: linear-gradient(135deg, rgba(10, 108, 255, 0.08) 0%, rgba(0, 92, 224, 0.08) 100%);
+  --brand-gradient-border: linear-gradient(135deg, rgba(10, 108, 255, 0.4) 0%, rgba(0, 92, 224, 0.4) 100%);
 
   --accent: #0A6CFF;
   --accent-light: #EFF6FF;
@@ -288,21 +288,21 @@
   --border-color: #1E2D42;
   --border-subtle: #182538;
   --border-card: #1E2D42;
-  --border-card-hover: #14B8A6;
-  --border-focus: #14B8A6;
+  --border-card-hover: #0A6CFF;
+  --border-focus: #0A6CFF;
 
   --text-white: #F8FAFC;
   --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --text-link: #14B8A6;
-  --text-link-hover: #2DD4BF;
+  --text-link: #0A6CFF;
+  --text-link-hover: #388BFD;
 
   --sidebar-bg: #060B12;
   --sidebar-border: rgba(255, 255, 255, 0.06);
 
-  --primary-brand-light: rgba(15, 118, 110, 0.25);
-  --accent-light: rgba(20, 184, 166, 0.12);
+  --primary-brand-light: rgba(10, 108, 255, 0.15);
+  --accent-light: rgba(10, 108, 255, 0.08);
 
   --success-bg: rgba(22, 163, 74, 0.15);
   --success-border: rgba(22, 163, 74, 0.3);
@@ -411,7 +411,7 @@ a:hover {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle 900px at 50% -200px, rgba(15, 118, 110, 0.03), transparent 70%);
+  background: radial-gradient(circle 900px at 50% -200px, rgba(10, 108, 255, 0.03), transparent 70%);
 }
 
 /* ==========================================================================
@@ -465,7 +465,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 2px 8px rgba(10, 108, 255, 0.25);
   flex-shrink: 0;
 }
 .brand-icon-wrap svg {
@@ -525,7 +525,7 @@ a:hover {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+  box-shadow: 0 0 0 2px rgba(10, 108, 255, 0.2);
   display: inline-block;
 }
 .telemetry-text {
@@ -628,7 +628,7 @@ a:hover {
   border-color: #0B1F33;
 }
 .nav-action-btn.nav-btn-admin svg {
-  color: #14B8A6;
+  color: #0A6CFF;
 }
 .nav-action-btn.nav-btn-admin:hover {
   background: #112A45;
@@ -747,7 +747,7 @@ a:hover {
 }
 .nav-btn-plans-featured:hover {
   background: var(--brand-gradient-hover) !important;
-  box-shadow: 0 6px 18px rgba(158, 13, 255, 0.45) !important;
+  box-shadow: 0 6px 18px rgba(10, 108, 255, 0.35) !important;
   transform: translateY(-1px);
 }
 .nav-btn-plans-featured.active {
@@ -781,7 +781,7 @@ a:hover {
   background: var(--bg-surface);
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.15);
+  box-shadow: 0 2px 8px rgba(10, 108, 255, 0.15);
 }
 .hamburger-icon-bars {
   display: flex;
@@ -1256,7 +1256,7 @@ a:hover {
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 1px 2px rgba(10, 108, 255, 0.2);
 }
 .btn-hero-fetch-live:hover {
   background: var(--primary-brand-hover);
@@ -1741,7 +1741,7 @@ a:hover {
 .search-input:focus {
   outline: none;
   border-color: var(--primary-brand);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.15);
 }
 .search-clear-btn {
   position: absolute;
@@ -1778,7 +1778,7 @@ a:hover {
 .select-filter:focus {
   outline: none;
   border-color: var(--primary-brand);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.15);
 }
 .toggle-chip {
   display: inline-flex;
@@ -1849,7 +1849,7 @@ a:hover {
 }
 .btn-primary:hover {
   background: var(--brand-gradient-hover);
-  box-shadow: 0px 12px 28px -6px rgba(158, 13, 255, 0.45);
+  box-shadow: 0px 12px 28px -6px rgba(10, 108, 255, 0.35);
   transform: translateY(-1px);
 }
 
@@ -2430,7 +2430,7 @@ a:hover {
 .cause-chip.active {
   background: var(--primary-brand-light);
   border-color: var(--primary-brand);
-  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 0 0 2px rgba(10, 108, 255, 0.2);
 }
 .cause-chip .chip-icon svg {
   width: 18px;
@@ -2976,7 +2976,7 @@ a:hover {
   padding: 1px 6px;
   border-radius: 4px;
 }
-.term-badge-init { background: rgba(15, 118, 110, 0.25); color: #2DD4BF; }
+.term-badge-init { background: rgba(10, 108, 255, 0.25); color: #2DD4BF; }
 .term-badge-ok { background: rgba(22, 163, 74, 0.25); color: #4ADE80; }
 .term-badge-probe { background: rgba(2, 132, 199, 0.25); color: #38BDF8; }
 .term-badge-db { background: rgba(217, 119, 6, 0.25); color: #FBBF24; }
@@ -3037,10 +3037,13 @@ a:hover {
 /* ==========================================================================
    ADMIN CONSOLE DESIGN SYSTEM
    ========================================================================== */
-.admin-body {
-  display: flex;
-  min-height: 100vh;
-  background-color: var(--bg-canvas);
+.admin-body,
+body.admin-body {
+  display: flex !important;
+  min-height: 100vh !important;
+  background-color: var(--bg-canvas, #F8FAFC) !important;
+  background-image: none !important;
+  background: var(--bg-canvas, #F8FAFC) !important;
 }
 
 .admin-sidebar {
@@ -3161,24 +3164,29 @@ a:hover {
   flex-direction: column;
   min-height: 100vh;
   width: calc(100% - 260px);
-  background: var(--bg-body);
+  min-width: 0;
+  background-color: var(--bg-canvas, #F8FAFC) !important;
+  background-image: none !important;
+  background: var(--bg-canvas, #F8FAFC) !important;
+  overflow-x: hidden;
 }
 .admin-topbar {
   height: 64px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-surface, #FFFFFF) !important;
+  border-bottom: 1px solid var(--border-color, #E2E8F0) !important;
   display: flex;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 90;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  width: 100%;
 }
 .admin-topbar-inner {
   width: 100%;
-  max-width: var(--content-max-width, 1360px);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-x, clamp(20px, 2.5vw, 36px));
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  padding-inline: clamp(20px, 2vw, 32px) !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3197,11 +3205,12 @@ a:hover {
 }
 .admin-content {
   width: 100%;
-  max-width: var(--content-max-width, 1360px);
-  margin-inline: auto;
-  padding: 24px var(--content-padding-x, clamp(20px, 2.5vw, 36px)) 60px;
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  padding: 24px clamp(20px, 2vw, 32px) 60px !important;
   box-sizing: border-box;
   flex: 1;
+  min-width: 0;
 }
 
 .admin-card {
@@ -3374,7 +3383,7 @@ a:hover {
 .admin-card textarea:focus {
   outline: none;
   border-color: var(--primary-brand);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.15);
 }
 
 /* Subtle ESG Status Badges */
@@ -3386,7 +3395,7 @@ a:hover {
 .badge-cyan-subtle {
   background: var(--primary-brand-light);
   color: var(--primary-brand);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  border: 1px solid rgba(10, 108, 255, 0.2);
 }
 .badge-emerald-subtle {
   background: var(--success-bg);
@@ -3396,7 +3405,7 @@ a:hover {
 .badge-indigo {
   background: var(--primary-brand-light);
   color: var(--primary-brand);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  border: 1px solid rgba(10, 108, 255, 0.2);
 }
 .badge-purple-subtle {
   background: var(--ai-purple-bg);
@@ -3550,12 +3559,12 @@ a:hover {
   color: var(--primary-brand);
   font-weight: 600;
   font-size: 12px;
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  border: 1px solid rgba(10, 108, 255, 0.2);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 .nav-btn-wallet:hover {
-  background: rgba(15, 118, 110, 0.18);
+  background: rgba(10, 108, 255, 0.18);
 }
 .user-tier-name {
   font-size: 11px;
@@ -3742,7 +3751,7 @@ html.dark-mode {
   --border-color: #243B53;
   --border-subtle: #192D40;
   --border-card: #243B53;
-  --border-card-hover: #14B8A6;
+  --border-card-hover: #0A6CFF;
 
   --text-white: #FFFFFF;
   --text-primary: #F0F4F8;
@@ -3752,14 +3761,14 @@ html.dark-mode {
 
 html.dark-mode .brand-badge .brand-title { color: #FFFFFF; }
 html.dark-mode .nav-link-btn { color: #9FB3C8; }
-html.dark-mode .nav-link-btn.active { color: #14B8A6; background: rgba(20, 184, 166, 0.1); }
+html.dark-mode .nav-link-btn.active { color: #0A6CFF; background: rgba(10, 108, 255, 0.1); }
 html.dark-mode .data-value, html.dark-mode .kpi-val, html.dark-mode h1, html.dark-mode h2, html.dark-mode h3 { color: #FFFFFF; }
 html.dark-mode .company-card, html.dark-mode .job-card { background: #102A43; border-color: #243B53; }
-html.dark-mode .company-card:hover, html.dark-mode .job-card:hover { border-color: #14B8A6; }
+html.dark-mode .company-card:hover, html.dark-mode .job-card:hover { border-color: #0A6CFF; }
 html.dark-mode .header-nav { background: #102A43; border-bottom: 1px solid #243B53; }
 html.dark-mode .mobile-header-bar { background: #102A43; border-bottom: 1px solid #243B53; }
 html.dark-mode .hamburger-menu-btn { background: #081726; border-color: #243B53; color: #F0F4F8; }
-html.dark-mode .hamburger-menu-btn:hover { background: #163659; border-color: #14B8A6; color: #14B8A6; }
+html.dark-mode .hamburger-menu-btn:hover { background: #163659; border-color: #0A6CFF; color: #0A6CFF; }
 html.dark-mode .mobile-nav-drawer { background: #102A43; border-color: #243B53; }
 html.dark-mode .mobile-drawer-header { background: #102A43; border-color: #243B53; }
 html.dark-mode .drawer-sync-card { background: #081726; border-color: #243B53; }
@@ -4747,4 +4756,28 @@ body[data-theme="dark"] {
 [data-theme="dark"] .wallet-balance-pill {
   background: #16243C !important;
   border-color: #1E2D42 !important;
+}
+
+/* Admin Panel Button Overrides for Clean Executive UI */
+.admin-body .btn-primary {
+  background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(10, 108, 255, 0.25) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  border: none !important;
+  height: 40px !important;
+  padding: 0 18px !important;
+}
+.admin-body .btn-primary:hover {
+  background: linear-gradient(135deg, #005CE0 0%, #0046B3 100%) !important;
+  box-shadow: 0 4px 14px rgba(10, 108, 255, 0.35) !important;
+  transform: translateY(-1px);
+}
+.admin-body .btn-secondary {
+  border-radius: 8px !important;
+  height: 40px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
 }

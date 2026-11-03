@@ -13,6 +13,7 @@ urlpatterns = [
     # Custom Enterprise Administrative Panel (Core & Namespaces)
     path('admin-portal/', include('modules.admin_panel.urls')),
     path('admin-portal/users/', include('modules.admin_panel.urls.user_urls')),
+    path('admin-portal/admins/', include('modules.admin_panel.urls.admin_management_urls')),
     path('admin-portal/companies/', include('modules.admin_panel.urls.company_urls')),
     path('admin-portal/jobs/', include('modules.admin_panel.urls.job_urls')),
     path('admin-portal/opportunities/', include('modules.admin_panel.urls.opportunity_urls')),

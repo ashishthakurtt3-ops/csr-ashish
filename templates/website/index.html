@@ -6,6 +6,8 @@
         window.IS_PREVIEW_MODE = {{ is_preview_mode|yesno:"true,false" }};
         window.CURRENT_USER_NAME = "{{ user.username|default:'' }}";
         window.CURRENT_USER_TIER = "{{ plan_tier|default:'FREE' }}";
+        window.CURRENT_USER_SUB_STATUS = "{{ sub_status|default:'NONE' }}";
+        window.CURRENT_USER_SUB_ACTIVE = {{ is_sub_active|yesno:"true,false" }};
         window.DEFAULT_TAB = "{{ default_tab|default:'companies' }}";
     </script>
     <meta charset="UTF-8">
@@ -95,7 +97,7 @@
                     <!-- Subscription Tier Badge -->
                     <div class="user-tier-pill" id="header-user-tier-pill" onclick="switchTab('pricing')" title="Active Subscription Tier">
                         <span class="pulse-dot-cyan"></span>
-                        <span class="user-tier-name" id="header-tier-label">{{ plan_tier }} Active</span>
+                        <span class="user-tier-name" id="header-tier-label">{{ plan_tier_label|default:"No Active Plan" }}</span>
                         <button class="user-tier-btn" id="header-tier-btn" onclick="event.stopPropagation(); switchTab('pricing');">Plans ⚡</button>
                     </div>
 
@@ -1634,15 +1636,15 @@
             <!-- Active User Subscription Status Banner -->
             <div class="active-subscription-card" id="active-subscription-card" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:20px; padding:22px 28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:28px; box-shadow:var(--shadow-card);">
                 <div class="active-sub-left">
-                    <div style="font-size:11px; font-weight:800; color:var(--accent-cyan); letter-spacing:0.04em;">ACTIVE TIER: <strong id="active-plan-badge-name">COMMUNITY STARTER (FREE)</strong></div>
-                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin:4px 0;" id="active-plan-org-title">Institutional Non-Profit Access &bull; Active Tier</div>
+                    <div style="font-size:11px; font-weight:800; color:var(--accent-cyan); letter-spacing:0.04em;">TIER STATUS: <strong id="active-plan-badge-name">{% if is_sub_active %}{{ plan_tier }} (ACTIVE){% elif sub_status == 'EXPIRED' %}{{ plan_tier }} (EXPIRED){% elif sub_status == 'CANCELED' %}{{ plan_tier }} (CANCELLED){% else %}NO ACTIVE PLAN{% endif %}</strong></div>
+                    <div style="font-size:16px; font-weight:800; color:var(--text-primary); margin:4px 0;" id="active-plan-org-title">{% if is_sub_active %}{{ user_subscription.organization_name|default:'Institutional Non-Profit Access' }} &bull; {{ plan_tier }} Active{% elif sub_status == 'EXPIRED' %}{{ user_subscription.organization_name|default:'Account' }} &bull; Subscription Expired{% elif sub_status == 'CANCELED' %}{{ user_subscription.organization_name|default:'Account' }} &bull; Subscription Cancelled{% else %}No Subscription Active{% endif %}</div>
                     <div style="font-size:12.5px; color:var(--text-secondary);" id="active-plan-features-summary">
                         ✓ Canonical Listed Corporations &bull; ✓ Live Verified Job Listings &bull; ✓ Real-Time HTTP Verification Audits
                     </div>
                 </div>
                 <div class="active-sub-right" style="display:flex; gap:10px;">
                     <button class="btn-primary" onclick="openSubscriptionModal('pro')" id="active-plan-upgrade-cta">
-                        Upgrade to Impact Pro ⚡
+                        {% if is_sub_active %}Upgrade Plan ⚡{% elif sub_status == 'EXPIRED' %}Renew Plan ⚡{% else %}Select Plan ⚡{% endif %}
                     </button>
                     <button class="btn-secondary" onclick="openSubscriptionModal()" id="active-plan-manage-btn">
                         Manage Plan
@@ -1670,7 +1672,7 @@
         <div class="modal-panel modal-panel-large" style="max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header" style="flex-shrink:0;">
                 <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-                    <div class="company-avatar" id="modal-dossier-avatar" style="width:48px; height:48px; font-size:16px; font-weight:800; border-radius:12px; background:linear-gradient(135deg, #0B1F33, #0F766E); color:#ffffff; display:flex; align-items:center; justify-content:center;">ENT</div>
+                    <div class="company-avatar" id="modal-dossier-avatar" style="width:48px; height:48px; font-size:16px; font-weight:800; border-radius:12px; background:linear-gradient(135deg, #0B1F33, #0A6CFF); color:#ffffff; display:flex; align-items:center; justify-content:center;">ENT</div>
                     <div>
                         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                             <h3 id="modal-dossier-title" style="margin:0; font-size:19px; font-weight:800; color:var(--text-primary);">Corporate Intelligence Profile</h3>
@@ -1711,7 +1713,7 @@
         <div class="modal-panel modal-panel-large" style="max-width: 880px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header" style="flex-shrink:0;">
                 <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-                    <div class="company-avatar" id="modal-job-avatar" style="background:linear-gradient(135deg, #0B1F33, #0F766E); color:#ffffff; font-weight:800; border-radius:10px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:15px;">JOB</div>
+                    <div class="company-avatar" id="modal-job-avatar" style="background:linear-gradient(135deg, #0B1F33, #0A6CFF); color:#ffffff; font-weight:800; border-radius:10px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:15px;">JOB</div>
                     <div>
                         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                             <h3 id="modal-job-title" style="margin:0; font-size:18px; font-weight:800; color:var(--text-primary);">Role Title</h3>
@@ -1772,7 +1774,7 @@
         <div class="modal-panel" style="max-width:540px;">
             <div class="modal-header">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:34px; height:34px; border-radius:8px; background:var(--primary-brand-light); border:1px solid rgba(15,118,110,0.3); display:flex; align-items:center; justify-content:center; color:var(--primary-brand);">
+                    <div style="width:34px; height:34px; border-radius:8px; background:var(--primary-brand-light); border:1px solid rgba(10, 108, 255, 0.3); display:flex; align-items:center; justify-content:center; color:var(--primary-brand);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                     </div>
                     <div>
@@ -1843,6 +1845,39 @@
                     </div>
                 </div>
 
+                <!-- AI-Powered Extraction Section -->
+                <div id="parent-ai-extraction-section" style="background:linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(168,85,247,0.06) 100%); border:1px solid rgba(168,85,247,0.25); border-radius:10px; padding:13px 15px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:15px;">✨</span>
+                            <span style="font-size:11.5px; font-weight:800; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.04em;">AI-POWERED EXTRACTION</span>
+                        </div>
+                        <span id="ai-main-status-pill" class="badge" style="background:rgba(148,163,184,0.15); color:var(--text-secondary); border:1px solid rgba(148,163,184,0.3); font-size:10.5px; font-weight:700;">
+                            AI Disabled
+                        </span>
+                    </div>
+                    <p style="font-size:12px; color:var(--text-secondary); line-height:1.45; margin:0;">
+                        Enable AI to intelligently extract and structure job openings and Section 135 CSR project information from official company websites, careers portals, ATS platforms and CSR reports.
+                    </p>
+
+                    <div id="ai-status-card" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <div id="ai-status-title" style="font-size:12.5px; font-weight:700; color:var(--text-primary);">
+                                AI Extraction: <span id="ai-status-text-val" style="color:var(--text-secondary);">Disabled</span>
+                            </div>
+                            <div id="ai-status-desc" style="font-size:11px; color:var(--text-secondary);">
+                                Use configured AI providers to improve extraction of complex, unstructured and document-based information.
+                            </div>
+                            <div id="ai-active-badges" style="display:none; gap:6px; margin-top:5px; flex-wrap:wrap;">
+                                <!-- Badges populated dynamically when AI is enabled -->
+                            </div>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="openAiConfigModal()" style="flex:none; padding:6px 12px; font-size:11.5px; font-weight:700; white-space:nowrap; border-color:rgba(168,85,247,0.4); color:var(--primary-brand);">
+                            Configure AI Extraction
+                        </button>
+                    </div>
+                </div>
+
                 <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:12px 14px; font-size:12px; color:var(--text-secondary); display:flex; flex-direction:column; gap:6px;">
                     <div style="font-size:11px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
                         Execution Pipeline:
@@ -1869,6 +1904,169 @@
                         Confirm &amp; Execute Probe
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== AI EXTRACTION CONFIGURATION MODAL (SECONDARY OVERLAY) ===== -->
+    <div class="modal-backdrop" id="modal-ai-extraction-config" style="display:none; z-index:3100; background:rgba(0,0,0,0.65);">
+        <div class="modal-panel" style="max-width:580px; max-height:90vh; display:flex; flex-direction:column; border:1px solid rgba(168,85,247,0.3); box-shadow:0 20px 45px rgba(0,0,0,0.4);">
+            <!-- Modal Header -->
+            <div class="modal-header" style="border-bottom:1px solid var(--border-subtle); padding:16px 22px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, rgba(10,108,255,0.15), rgba(0,92,224,0.25)); border:1px solid rgba(10,108,255,0.4); display:flex; align-items:center; justify-content:center; color:#0A6CFF; font-size:18px;">
+                        ✨
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:16.5px; font-weight:800; color:var(--text-primary);">Configure AI-Powered Extraction</h3>
+                        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">Choose how AI should assist this verification and crawling operation</div>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeAiConfigModal()" title="Close Settings">✕</button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="modal-body" style="padding:20px 22px; overflow-y:auto; display:flex; flex-direction:column; gap:16px;">
+                <!-- SECTION A: Main Toggle -->
+                <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+                    <div>
+                        <label for="ai-toggle-enable" style="font-size:13.5px; font-weight:700; color:var(--text-primary); cursor:pointer; display:block;">
+                            Enable AI Extraction for this Crawl
+                        </label>
+                        <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.45; margin-top:2px;">
+                            When enabled, the crawling engine will use the configured AI provider to extract and structure information from relevant official company content. When disabled, standard deterministic extraction is used.
+                        </div>
+                    </div>
+                    <label class="switch" style="position:relative; display:inline-block; width:48px; height:26px; flex:none;">
+                        <input type="checkbox" id="ai-toggle-enable" onchange="onAiToggleChanged(this)" style="opacity:0; width:0; height:0;">
+                        <span id="ai-toggle-slider" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#94a3b8; transition:.3s; border-radius:26px;"></span>
+                    </label>
+                </div>
+
+                <div id="ai-config-controls-container" style="display:flex; flex-direction:column; gap:16px; opacity:0.45; pointer-events:none; transition:all 0.25s ease;">
+                    <!-- SECTION B: Extraction Scope -->
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
+                            Extraction Scope:
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr; gap:8px;">
+                            <label class="scope-card" id="scope-card-both" style="display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:8px; border:2px solid var(--accent-cyan); background:rgba(6,182,212,0.08); cursor:pointer;">
+                                <input type="radio" name="ai_extraction_scope" value="both" checked onchange="onAiScopeChanged(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <strong style="font-size:12.5px; color:var(--text-primary);">Both Jobs and CSR</strong>
+                                        <span class="badge badge-emerald" style="font-size:9.5px; padding:1px 6px;">Recommended</span>
+                                    </div>
+                                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                                        Intelligently extract active career requisitions AND statutory Section 135 social initiatives.
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="scope-card" id="scope-card-jobs" style="display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-subtle); cursor:pointer;">
+                                <input type="radio" name="ai_extraction_scope" value="jobs" onchange="onAiScopeChanged(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                                <div>
+                                    <strong style="font-size:12.5px; color:var(--text-primary);">Job Openings Only</strong>
+                                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                                        Parse unstructured careers text, titles, departments, work style, and candidate requirements.
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="scope-card" id="scope-card-csr" style="display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-subtle); cursor:pointer;">
+                                <input type="radio" name="ai_extraction_scope" value="csr" onchange="onAiScopeChanged(this)" style="margin-top:3px; accent-color:var(--accent-cyan);">
+                                <div>
+                                    <strong style="font-size:12.5px; color:var(--text-primary);">Section 135 CSR Projects Only</strong>
+                                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                                        Identify grassroots statutory projects, focus sectors, allocations, and district implementations.
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SECTION C: AI Provider Configuration -->
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
+                            AI Provider &amp; Model Selection:
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <select id="ai-provider-select" onchange="onAiProviderSelectChanged(this)" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-primary); font-size:12.5px; font-weight:600;">
+                                <option value="default" selected>Use Admin Configured Default</option>
+                            </select>
+
+                            <div id="ai-provider-info-box" style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; font-size:11.5px; display:flex; flex-direction:column; gap:6px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="color:var(--text-secondary);">Primary Provider:</span>
+                                    <strong id="ai-info-primary" style="color:var(--text-primary);">Google Gemini (gemini-3.1-flash-lite)</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="color:var(--text-secondary);">Fallback Provider:</span>
+                                    <span id="ai-info-fallback" style="color:var(--text-primary); font-weight:600;">xAI Grok (grok-2-latest)</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="color:var(--text-secondary);">Security &amp; API Keys:</span>
+                                    <span style="color:var(--accent-emerald); font-weight:600;">🔒 Server Encrypted (Zero Browser Exposure)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION D: Extraction Strategy -->
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em;">
+                            Extraction Strategy:
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <label class="strategy-card" id="strategy-card-hybrid" style="display:flex; align-items:flex-start; gap:8px; padding:10px; border-radius:8px; border:2px solid var(--accent-cyan); background:rgba(6,182,212,0.08); cursor:pointer;">
+                                <input type="radio" name="ai_extraction_strategy" value="hybrid" checked onchange="onAiStrategyChanged(this)" style="margin-top:2px; accent-color:var(--accent-cyan);">
+                                <div>
+                                    <div style="font-size:12px; font-weight:700; color:var(--text-primary);">Hybrid (Recommended)</div>
+                                    <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">Deterministic extraction first; AI handles unstructured layouts &amp; disambiguation.</div>
+                                </div>
+                            </label>
+
+                            <label class="strategy-card" id="strategy-card-assisted" style="display:flex; align-items:flex-start; gap:8px; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-subtle); cursor:pointer;">
+                                <input type="radio" name="ai_extraction_strategy" value="assisted" onchange="onAiStrategyChanged(this)" style="margin-top:2px; accent-color:var(--accent-cyan);">
+                                <div>
+                                    <div style="font-size:12px; font-weight:700; color:var(--text-primary);">AI-Assisted</div>
+                                    <div style="font-size:10.5px; color:var(--text-secondary); margin-top:2px;">Runs deterministic extraction and additionally executes AI extraction on all target pages.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SECTION E: Cost & Usage Controls -->
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; letter-spacing:0.04em; display:flex; justify-content:space-between;">
+                            <span>Cost &amp; Usage Controls:</span>
+                            <span style="color:var(--accent-emerald);">Zero-Cost Policy Enforced</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11.5px;">
+                            <div>
+                                <label style="color:var(--text-secondary); font-size:11px; display:block;">Max AI Requests / Company:</label>
+                                <input type="number" id="ai-ctrl-max-per-company" value="2" min="1" max="5" style="width:100%; padding:4px 8px; font-size:12px; border-radius:4px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-primary); margin-top:2px;">
+                            </div>
+                            <div>
+                                <label style="color:var(--text-secondary); font-size:11px; display:block;">Timeout per Request (sec):</label>
+                                <input type="number" id="ai-ctrl-timeout" value="15" min="5" max="60" style="width:100%; padding:4px 8px; font-size:12px; border-radius:4px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-primary); margin-top:2px;">
+                            </div>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary); line-height:1.4; border-top:1px dashed var(--border-color); padding-top:6px; margin-top:2px;">
+                            ℹ️ <em>AI extraction may consume API credits. Actual consumption depends on source content, model, token usage and extraction volume. Estimated Cost: <strong>Cost estimate unavailable (Free Tier / Zero-Cost active)</strong>.</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding:14px 22px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                <button type="button" class="btn-secondary" onclick="closeAiConfigModal()" style="padding:8px 18px; font-size:13px; font-weight:600;">
+                    Cancel
+                </button>
+                <button type="button" class="btn-primary" id="btn-save-ai-extraction-config" onclick="applyAiExtractionConfig()" style="padding:8px 22px; font-size:13px; font-weight:700; background:linear-gradient(93.75deg, #0A6CFF 0%, #005CE0 100%);">
+                    Enable AI for This Crawl
+                </button>
             </div>
         </div>
     </div>

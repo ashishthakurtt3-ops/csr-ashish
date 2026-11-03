@@ -17,6 +17,7 @@ urlpatterns = [
     path('audit/status/', audit_status_api, name='audit_status'),
     path('auth/', include('modules.admin_panel.urls.auth_urls')),
     path('users/', include('modules.admin_panel.urls.user_urls')),
+    path('admins/', include('modules.admin_panel.urls.admin_management_urls')),
     path('companies/', include('modules.admin_panel.urls.company_urls')),
     path('jobs/', include('modules.admin_panel.urls.job_urls')),
     path('opportunities/', include('modules.admin_panel.urls.opportunity_urls')),

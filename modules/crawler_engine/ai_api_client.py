@@ -62,6 +62,9 @@ class AIClient:
     def classify_page_content(self, company_name: str, url: str, page_data: Dict[str, Any]) -> Dict[str, Any]:
         raise NotImplementedError
 
+    def execute_structured_prompt(self, prompt: str) -> Tuple[Any, str]:
+        raise NotImplementedError
+
     def get_metrics(self) -> Dict[str, Any]:
         raise NotImplementedError
 
@@ -276,6 +279,12 @@ class BaseAIClient(AIClient):
         Must return a tuple: (parsed_json_data, actual_model_name).
         """
         raise NotImplementedError
+
+    def execute_structured_prompt(self, prompt: str) -> Tuple[Any, str]:
+        """
+        Executes a prompt requesting structured JSON and returns (parsed_json, actual_model_name).
+        """
+        return self._execute_provider_request(prompt)
 
     def _validate_stage1_schema(self, data: Any, links: List[Dict[str, Any]], actual_model: str) -> List[Dict[str, Any]]:
         """
@@ -1545,6 +1554,28 @@ class PrimaryFallbackAIClient(AIClient):
             self.metrics["fallback_invocations"] += 1
             return self.fallback.classify_page_content(company_name, url, page_data)
 
+    def execute_structured_prompt(self, prompt: str) -> Tuple[Any, str]:
+        """
+        Executes a prompt requesting structured JSON using primary client,
+        falling back to secondary client if primary fails.
+        """
+        try:
+            if hasattr(self.primary, 'execute_structured_prompt'):
+                return self.primary.execute_structured_prompt(prompt)
+            elif hasattr(self.primary, '_execute_provider_request'):
+                return self.primary._execute_provider_request(prompt)
+            raise AIClientError("Primary client has no structured execution method.")
+        except Exception as exc:
+            if not self.fallback_enabled:
+                raise
+            logger.warning("Primary AI client failed (%s); attempting fallback...", exc)
+            self.metrics["fallback_invocations"] += 1
+            if hasattr(self.fallback, 'execute_structured_prompt'):
+                return self.fallback.execute_structured_prompt(prompt)
+            elif hasattr(self.fallback, '_execute_provider_request'):
+                return self.fallback._execute_provider_request(prompt)
+            raise
+
     def get_metrics(self) -> Dict[str, Any]:
         p_metrics = self.primary.get_metrics() if hasattr(self.primary, "get_metrics") else {}
         f_metrics = self.fallback.get_metrics() if hasattr(self.fallback, "get_metrics") else {}
@@ -1565,6 +1596,51 @@ class MockAIClient(BaseAIClient):
         self.mock_model_name = mock_model_name
 
     def _execute_provider_request(self, prompt: str) -> Tuple[Any, str]:
+        self.metrics["api_calls_made"] += 1
+        self.metrics["models_used"][self.mock_model_name] = self.metrics["models_used"].get(self.mock_model_name, 0) + 1
+        p_lower = prompt.lower()
+        if "job" in p_lower and ("vacancy" in p_lower or "vacancies" in p_lower or "openings" in p_lower or "recruit" in p_lower):
+            quote = "Actively hiring for engineering and corporate initiatives across locations."
+            if "excerpt:" in p_lower:
+                part = prompt.split("Excerpt:", 1)[1][:200].strip()
+                if len(part) > 20:
+                    quote = part[:120]
+            return [
+                {
+                    "job_title": "Senior Solutions Engineer",
+                    "location": "Bengaluru, Karnataka, India",
+                    "department": "Engineering & Technology",
+                    "employment_type": "Full-time",
+                    "work_mode": "Hybrid",
+                    "job_description": "Designs scalable systems and supports client integrations across enterprise environments.",
+                    "verbatim_quote": quote,
+                    "application_url": "",
+                    "confidence": 0.92
+                }
+            ], self.mock_model_name
+        elif "csr" in p_lower or "section 135" in p_lower or "schedule vii" in p_lower:
+            quote = "Empowering rural education and clean sanitation across districts."
+            if '"""' in prompt:
+                try:
+                    part = prompt.split('"""')[1].strip()
+                    if len(part) > 20:
+                        quote = part[:120]
+                except Exception:
+                    pass
+            return {
+                "is_actual_project": True,
+                "project_title": "Rural Education & STEM Skilling Initiative",
+                "category": "Education & Skill Development",
+                "schedule_vii_item": "Item (ii) Promoting education, including special education",
+                "description": "Comprehensive school infrastructure enhancement and digital learning centers.",
+                "geographic_location": "Tumakuru, Karnataka",
+                "location_state": "Karnataka",
+                "location_district": "Tumakuru",
+                "budget": "INR 50,00,000",
+                "verbatim_quotation": quote,
+                "confidence": 0.94,
+                "rejection_reason": None
+            }, self.mock_model_name
         return {}, self.mock_model_name
 
     def classify_links_batch(self, company_name: str, domain: str, links: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

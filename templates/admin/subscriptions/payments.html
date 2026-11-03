@@ -32,7 +32,7 @@
         height: 3px;
         background: var(--border-color);
     }
-    .kpi-tile.kpi-vol::before { background: #0F766E; }
+    .kpi-tile.kpi-vol::before { background: #0A6CFF; }
     .kpi-tile.kpi-success::before { background: #10B981; }
     .kpi-tile.kpi-pending::before { background: #F59E0B; }
     .kpi-tile.kpi-refund::before { background: #8B5CF6; }
@@ -116,7 +116,7 @@
         font-weight: 700;
         text-transform: uppercase;
         background: #F0FDFA;
-        color: #0F766E;
+        color: #0A6CFF;
         border: 1px solid #99F6E4;
     }
     .plan-badge.badge-topup {
@@ -138,7 +138,7 @@
     .audit-readonly-banner {
         background: linear-gradient(90deg, #F8FAFC 0%, #F1F5F9 100%);
         border: 1px solid #CBD5E1;
-        border-left: 4px solid #0F766E;
+        border-left: 4px solid #0A6CFF;
         border-radius: 8px;
         padding: 10px 14px;
         margin-bottom: 18px;
@@ -197,7 +197,7 @@
 <!-- Financial Audit Read-Only Notice -->
 <div class="audit-readonly-banner">
     <div style="display:flex; align-items:center; gap:8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span>
             <strong style="color:var(--text-primary);">Strictly Read-Only Financial Ledger:</strong>
             All transactions, timing logs, and subscription plan assignments are immutably recorded for audit &amp; compliance.
@@ -215,7 +215,7 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             Gross Volume
         </div>
-        <div class="kpi-tile-val" style="color:#0F766E;">
+        <div class="kpi-tile-val" style="color:#0A6CFF;">
             {{ totals.total_vol_display }}
         </div>
         <div class="kpi-tile-sub">{{ totals.total_cnt }} total payments recorded</div>
@@ -369,7 +369,7 @@
                         {% endif %}
                         {% if p.is_prototype %}
                         <div style="margin-top:2px;">
-                            <span style="font-size:9.5px; font-weight:700; color:#0F766E; background:#CCFBF1; padding:1px 5px; border-radius:3px;">PROTOTYPE</span>
+                            <span style="font-size:9.5px; font-weight:700; color:#0A6CFF; background:#CCFBF1; padding:1px 5px; border-radius:3px;">PROTOTYPE</span>
                         </div>
                         {% endif %}
                     </td>

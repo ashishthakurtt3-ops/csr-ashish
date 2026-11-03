@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- 1. GREETING & EXECUTIVE HEADER SECTION -->
-<div class="admin-card" style="padding: 24px 28px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(15, 118, 110, 0.04) 0%, rgba(20, 184, 166, 0.08) 100%); border-left: 4px solid var(--primary-brand);">
+<div class="admin-card" style="padding: 24px 28px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(10, 108, 255, 0.04) 0%, rgba(10, 108, 255, 0.08) 100%); border-left: 4px solid var(--primary-brand);">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
@@ -21,6 +21,9 @@
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="{% url 'admin_management:list' %}" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); color:#fff; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(10, 108, 255, 0.25);">
+                <span>⚡</span> <span>Admin Management</span>
+            </a>
             <a href="{% url 'admin_jobs:find' %}" class="btn-admin btn-admin-primary">
                 <span>🔍 Find Jobs Discovery</span>
             </a>
@@ -69,7 +72,7 @@
 <div class="dashboard-kpi-grid">
     <!-- 1. Companies Monitored -->
     <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
-        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(15, 118, 110, 0.1); color: var(--primary-brand); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(10, 108, 255, 0.1); color: var(--primary-brand); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
             🏢
         </div>
         <div>
@@ -81,7 +84,7 @@
 
     <!-- 2. Active Careers -->
     <div class="admin-card" style="padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 0;">
-        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(20, 184, 166, 0.12); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(10, 108, 255, 0.12); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
             💼
         </div>
         <div>
@@ -408,7 +411,7 @@
             </thead>
             <tbody id="audit-history-tbody">
                 {% for r in audit_history %}
-                <tr {% if r.is_current %}style="background: rgba(15, 118, 110, 0.05); font-weight: 600;"{% endif %}>
+                <tr {% if r.is_current %}style="background: rgba(10, 108, 255, 0.05); font-weight: 600;"{% endif %}>
                     <td style="font-family: var(--font-mono); font-size: 12px;">
                         #{{ r.id }} {% if r.is_current %}<span style="color: var(--primary-brand); font-size: 11px;">(CURRENT)</span>{% endif %}
                     </td>
@@ -452,7 +455,7 @@
 
     <!-- Last Reconciliation Table (if available) -->
     {% if current_audit_run.validation_report.reconciliation %}
-    <div style="margin-top: 20px; padding: 14px 18px; background: rgba(15, 118, 110, 0.03); border: 1px solid rgba(15, 118, 110, 0.15); border-radius: var(--radius-md);">
+    <div style="margin-top: 20px; padding: 14px 18px; background: rgba(10, 108, 255, 0.03); border: 1px solid rgba(10, 108, 255, 0.15); border-radius: var(--radius-md);">
         <div style="font-size: 13px; font-weight: 700; color: var(--primary-brand); margin-bottom: 8px;">
             Authoritative Reconciliation Status (Accuracy Guard)
             <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); margin-left: 8px;">

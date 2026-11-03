@@ -6,7 +6,11 @@ from pathlib import Path
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from modules.admin_panel.models import Company, PageRecord, AuditTrail, CSRProject, Job
+from modules.admin_panel.models import (
+    Company, PageRecord, AuditTrail, CSRProject, Job,
+    AIProviderConfig, AISystemSettings, AIConfigurationAuditLog
+)
+from modules.admin_panel.services.ai_config_service import get_active_ai_config
 from modules.crawler_engine import start_background_crawl, CRAWL_TASK_STATE
 
 VERIFIED_CACHE_PATH = Path(__file__).resolve().parents[3] / 'data' / 'verified_company_links.json'
@@ -287,6 +291,51 @@ def recheck_company_domain_status_api(request, company_id):
     return JsonResponse(res)
 
 
+def crawler_ai_config_status_api(request):
+    """
+    Returns sanitized AI configuration for the frontend live domain verification modal.
+    Reveals providers, model choices, and operational status without disclosing secrets or API keys.
+    """
+    active_cfg = get_active_ai_config()
+    system_settings = AISystemSettings.get_solo()
+
+    providers_qs = AIProviderConfig.objects.filter(is_enabled=True)
+    available_providers = []
+
+    for p in providers_qs:
+        has_key = bool(p.encrypted_api_key)
+        available_providers.append({
+            "id": p.provider,
+            "name": p.display_name or p.provider.title(),
+            "selected_model": p.selected_model or "",
+            "is_enabled": p.is_enabled,
+            "has_key": has_key,
+            "status": p.status,
+            "available_models": p.available_models if isinstance(p.available_models, list) else []
+        })
+
+    primary_prov = system_settings.primary_provider or "gemini"
+    primary_model = system_settings.primary_model or "gemini-3.1-flash-lite"
+    fallback_prov = system_settings.fallback_provider or "grok"
+    fallback_model = system_settings.fallback_model or "grok-2-latest"
+
+    is_configured = any(p["has_key"] and p["is_enabled"] for p in available_providers)
+    status_label = "AI Ready" if is_configured else "AI Configuration Required"
+
+    return JsonResponse({
+        "status": "success",
+        "is_configured": is_configured,
+        "status_label": status_label,
+        "primary_provider": primary_prov,
+        "primary_model": primary_model,
+        "fallback_provider": fallback_prov,
+        "fallback_model": fallback_model,
+        "fallback_enabled": system_settings.fallback_enabled,
+        "free_tier_only": system_settings.free_tier_only,
+        "available_providers": available_providers
+    })
+
+
 @csrf_exempt
 def live_sync_fetch_api(request):
     if request.method != 'POST':
@@ -299,16 +348,78 @@ def live_sync_fetch_api(request):
             'detail': 'Global batch sync is disabled until a proper background queue is configured. Set ALLOW_GLOBAL_SYNC=True in settings to override.'
         }, status=403)
 
-    # Parse batch selection (1, 2, 3, 4, or 'all')
+    # Parse batch selection & optional AI extraction configuration
     batch = '1'
+    ai_config_payload = None
+
     if request.body:
         try:
             body_data = json.loads(request.body)
             batch = str(body_data.get('batch', '1')).strip().lower()
+            if 'ai_config' in body_data and isinstance(body_data['ai_config'], dict):
+                ai_config_payload = body_data['ai_config']
         except Exception:
             batch = str(request.POST.get('batch', '1')).strip().lower()
     else:
         batch = str(request.POST.get('batch', '1')).strip().lower()
+
+    # Validate AI configuration if requested
+    validated_ai_config = None
+    if ai_config_payload and ai_config_payload.get('enabled'):
+        raw_prov = str(ai_config_payload.get('provider', 'default')).strip().lower()
+        scope = str(ai_config_payload.get('scope', 'both')).strip().lower()
+        strategy = str(ai_config_payload.get('strategy', 'hybrid')).strip().lower()
+
+        if scope not in ('both', 'jobs', 'csr'):
+            scope = 'both'
+        if strategy not in ('hybrid', 'assisted'):
+            strategy = 'hybrid'
+
+        active_cfg = get_active_ai_config()
+        if raw_prov == 'default':
+            resolved_prov = active_cfg.get('primary_provider', 'gemini')
+            resolved_model = active_cfg.get('primary_model', 'gemini-3.1-flash-lite')
+        else:
+            resolved_prov = raw_prov
+            p_conf = active_cfg.get('providers', {}).get(raw_prov, {})
+            resolved_model = ai_config_payload.get('model') or p_conf.get('selected_model') or ''
+
+        # Ensure provider credentials exist on server
+        p_row = AIProviderConfig.objects.filter(provider=resolved_prov, is_enabled=True).first()
+        if not p_row or not p_row.encrypted_api_key:
+            if resolved_prov != 'mock':
+                return JsonResponse({
+                    'status': 'ERROR',
+                    'detail': f"Selected AI provider '{resolved_prov}' is not enabled or lacks valid API credentials in the database. Please configure it in the Admin Panel or disable AI."
+                }, status=400)
+
+        validated_ai_config = {
+            'enabled': True,
+            'scope': scope,
+            'provider': resolved_prov,
+            'model': resolved_model,
+            'strategy': strategy,
+            'max_requests_per_company': int(ai_config_payload.get('max_requests_per_company', 2)),
+            'max_crawl_requests': int(ai_config_payload.get('max_crawl_requests', 50)),
+            'timeout': int(ai_config_payload.get('timeout', 15)),
+            'fallback_enabled': bool(ai_config_payload.get('fallback_enabled', True))
+        }
+
+        # Record AI configuration audit entry
+        try:
+            AIConfigurationAuditLog.objects.create(
+                action='CRAWL_EXTRACTION',
+                provider=resolved_prov,
+                model_name=resolved_model,
+                status='INITIATED',
+                message=f"Live probe initiated with AI extraction enabled for batch {batch} (Scope: {scope}, Strategy: {strategy}).",
+                details=validated_ai_config,
+                performed_by=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+                ip_address=request.META.get('REMOTE_ADDR', '')
+            )
+        except Exception as audit_err:
+            import logging
+            logging.getLogger(__name__).warning("Failed recording AIConfigurationAuditLog for crawl: %s", audit_err)
 
     all_companies = list(Company.objects.all().order_by('company_id'))
     total_market = len(all_companies)
@@ -333,7 +444,7 @@ def live_sync_fetch_api(request):
     batch_cids = [c.company_id for c in batch_slice]
     sync_time = timezone.now().isoformat()
     
-    started = start_background_crawl(company_ids=batch_cids, batch_label=batch_label)
+    started = start_background_crawl(company_ids=batch_cids, batch_label=batch_label, ai_config=validated_ai_config)
     
     if started:
         msg = f"Live fetch job started for {batch_label} ({len(batch_cids)} companies). Crawling in background."
@@ -366,6 +477,7 @@ def live_sync_fetch_api(request):
         "total_jobs": Job.objects.count(),
         "total_csr_projects": CSRProject.objects.count(),
         "compliance": "Phase 2: True Crawler Engine Active",
+        "ai_extraction": validated_ai_config,
         "events": events,
         "message": msg
     })

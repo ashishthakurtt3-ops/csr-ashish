@@ -1,0 +1,134 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Register New Company — Company Management{% endblock %}
+{% block page_title %}Register New Enterprise Company{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+    <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary">
+        &larr; Back to Company Directory
+    </a>
+</div>
+
+<div class="admin-card" style="max-width: 900px; margin: 0 auto; padding: 28px;">
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+        <h2 style="font-size: 19px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+            🏢 Add New Company Record to Database
+        </h2>
+        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            Register an enterprise entity into the MySQL corporate intelligence database. The system automatically creates a unique identifier, initial verification records, and audit log entries.
+        </div>
+    </div>
+
+    <form method="POST" style="display:flex; flex-direction:column; gap:22px;">
+        {% csrf_token %}
+
+        <!-- Group 1: Core Identification -->
+        <div>
+            <h4 style="font-size: 13px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px;">
+                1. Statutory Identification &amp; Identity
+            </h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Company Name <span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="text" name="company_name" value="{{ form_data.company_name|default:'' }}" required placeholder="e.g. Tata Consultancy Services Limited" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Full Legal Name
+                    </label>
+                    <input type="text" name="legal_name" value="{{ form_data.legal_name|default:'' }}" placeholder="e.g. Tata Consultancy Services Ltd" class="search-input" style="width:100%; height:42px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        CIN (21 characters)
+                    </label>
+                    <input type="text" name="cin" value="{{ form_data.cin|default:'' }}" placeholder="e.g. L22210MH1995PLC084781" maxlength="50" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono);">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        NSE Ticker Symbol
+                    </label>
+                    <input type="text" name="nse_symbol" value="{{ form_data.nse_symbol|default:'' }}" placeholder="e.g. TCS" maxlength="30" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono); text-transform:uppercase;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        BSE Scrip Code
+                    </label>
+                    <input type="text" name="bse_scrip_code" value="{{ form_data.bse_scrip_code|default:'' }}" placeholder="e.g. 532540" maxlength="30" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono);">
+                </div>
+            </div>
+        </div>
+
+        <!-- Group 2: Industry & Geography -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 18px;">
+            <h4 style="font-size: 13px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px;">
+                2. Industry Sector &amp; Corporate Headquarters
+            </h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Sector / Industry
+                    </label>
+                    <input type="text" list="sector-list" name="sector" value="{{ form_data.sector|default:'' }}" placeholder="Select or type sector..." class="search-input" style="width:100%; height:42px;">
+                    <datalist id="sector-list">
+                        {% for sec in all_sectors %}
+                        <option value="{{ sec }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Headquarters Address / City
+                    </label>
+                    <input type="text" name="headquarters" value="{{ form_data.headquarters|default:'' }}" placeholder="e.g. TCS House, Raveline Street, Fort, Mumbai 400001" class="search-input" style="width:100%; height:42px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Group 3: Primary Web Presence & Extraction Endpoints -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 18px;">
+            <h4 style="font-size: 13px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px;">
+                3. Corporate Websites &amp; Intelligence Sources
+            </h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Corporate Homepage URL
+                    </label>
+                    <input type="url" name="website_url" value="{{ form_data.website_url|default:'' }}" placeholder="https://www.example.com" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Official Careers URL (or ATS portal)
+                    </label>
+                    <input type="url" name="careers_url" value="{{ form_data.careers_url|default:'' }}" placeholder="https://www.example.com/careers" class="search-input" style="width:100%; height:42px;">
+                </div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                    Section 135 CSR Portal / Foundation URL
+                </label>
+                <input type="url" name="csr_portal_url" value="{{ form_data.csr_portal_url|default:'' }}" placeholder="https://www.example.com/csr" class="search-input" style="width:100%; height:42px;">
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; display:flex; justify-content:flex-end; gap:12px;">
+            <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary" style="padding:10px 20px;">
+                Cancel
+            </a>
+            <button type="submit" class="btn-admin btn-admin-primary" style="padding:10px 24px; font-size:13.5px; font-weight:700;">
+                ✓ Register Company &amp; Open Dossier
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -678,22 +678,21 @@ def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] 
         'is_free': True, 'features': [], 'highlight_features': [],
         'limits': {'seats': 1, 'daily_matches': 5, 'api_access': False, 'live_reprobe': False, 'view_contacts': False, 'audit_packs': False}
     }
-    ts = _now()
     org_name = user.organization_name if user and user.organization_name else 'Unregistered Organisation'
     email = user.email if user and user.email else None
     return {
-        'subscription_id': f'SUB_FREE_{tenant_id}'.upper()[:48],
+        'subscription_id': f'SUB_NONE_{tenant_id}'.upper()[:48],
         'tenant_id': tenant_id,
         'user_id': user.id if user else None,
         'plan_id': 'starter',
         'plan_code': 'starter',
         'plan_name': starter['name'],
         'tier': 'starter',
-        'status': _STATUS_ACTIVE,
-        'billing_cycle': 'free',
+        'status': 'NONE',
+        'billing_cycle': 'none',
         'organization_name': org_name,
         'contact_email': email,
-        'activated_at': ts, 'current_period_start': ts, 'current_period_end': None,
+        'activated_at': None, 'current_period_start': None, 'current_period_end': None,
         'cancel_at_period_end': 0, 'canceled_at': None, 'cancel_reason': None,
         'auto_renew': False,
         'pending_change_plan': None, 'pending_change_cycle': None, 'pending_change_date': None,
@@ -771,10 +770,10 @@ def _refresh_status(row: Dict[str, Any]) -> Dict[str, Any]:
 def _load(tenant_id: str, user: Optional[User] = None) -> Dict[str, Any]:
     qs = Subscription.objects.all()
     if user and getattr(user, 'is_authenticated', False):
-        s = qs.filter(user=user).first()
+        s = qs.filter(user=user).order_by('-created_at').first()
         if s:
             return _refresh_status(_sub_to_dict(s))
-    s = qs.filter(tenant_id=tenant_id).first()
+    s = qs.filter(tenant_id=tenant_id).order_by('-created_at').first()
     if s:
         if user and not s.user:
             s.user = user

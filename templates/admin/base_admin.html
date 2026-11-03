@@ -47,9 +47,14 @@
             justify-content: center;
             padding: 16px 8px;
         }
-        .admin-sidebar.collapsed + .admin-main {
-            margin-left: 72px;
-            width: calc(100% - 72px);
+        .admin-sidebar.collapsed ~ .admin-main {
+            margin-left: 72px !important;
+            width: calc(100% - 72px) !important;
+        }
+        @media (min-width: 1024px) {
+            #desktopSidebarToggle {
+                display: inline-flex !important;
+            }
         }
         .theme-toggle-btn {
             background: var(--bg-surface-subtle);
@@ -168,16 +173,16 @@
 </head>
 <body class="admin-body">
 
-    <!-- ADMIN SIDEBAR (Deep Navy #0B1F33 with Teal #14B8A6 accents) -->
+    <!-- ADMIN SIDEBAR (Deep Navy #0B1020 with Royal Blue #0A6CFF accents) -->
     <aside class="admin-sidebar" id="adminSidebar">
         <a href="{% url 'admin_portal:dashboard' %}" class="sidebar-brand">
-            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 2px 10px rgba(15,118,110,0.4); flex-shrink:0;">
+            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 2px 10px rgba(10, 108, 255, 0.4); flex-shrink:0;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
             <div>
-                <div class="sidebar-brand-title">ImpactBridge<span style="font-size:10px; color:#14B8A6;">™</span></div>
+                <div class="sidebar-brand-title">ImpactBridge<span style="font-size:10px; color:#0A6CFF;">™</span></div>
                 <div class="sidebar-brand-sub">ESG Intelligence</div>
             </div>
         </a>
@@ -192,9 +197,9 @@
 
             <!-- GROUP 2: CSR & ESG INTELLIGENCE -->
             <div class="nav-section-title">CSR &amp; ESG Intelligence</div>
-            <a href="{% url 'admin_companies:list' %}" class="sidebar-link {% if 'companies' in request.path and 'jobs' not in request.path %}active{% endif %}" title="Companies">
+            <a href="{% url 'admin_companies:list' %}" class="sidebar-link {% if 'companies' in request.path and 'jobs' not in request.path %}active{% endif %}" title="Company Management">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
-                <span>Companies</span>
+                <span>Company Management</span>
             </a>
             <a href="{% url 'admin_opportunities:projects' %}" class="sidebar-link {% if 'opportunities/projects' in request.path %}active{% endif %}" title="CSR Projects">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -249,9 +254,13 @@
 
             <!-- GROUP 6: ADMINISTRATION -->
             <div class="nav-section-title">Administration</div>
-            <a href="{% url 'admin_users:list' %}" class="sidebar-link {% if 'users' in request.path %}active{% endif %}" title="User Accounts">
+            <a href="{% url 'admin_users:list' %}" class="sidebar-link {% if 'admin-portal/users' in request.path %}active{% endif %}" title="User Accounts">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>User Accounts</span>
+            </a>
+            <a href="{% url 'admin_management:list' %}" class="sidebar-link {% if 'admin-portal/admins' in request.path %}active{% endif %}" title="Admin Management">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+                <span>Admin Management</span>
             </a>
             <a href="{% url 'admin_subscriptions:list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'list' and 'subscriptions' in request.path %}active{% endif %}" title="Subscriptions & GST">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -288,7 +297,7 @@
 
         <div class="sidebar-user">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px;">
+                <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; box-shadow:0 2px 6px rgba(10, 108, 255, 0.35);">
                     {{ request.user.username|make_list|first|upper|default:"A" }}
                 </div>
                 <div class="sidebar-user-meta">
@@ -379,7 +388,7 @@
                     </div>
 
                     <!-- 1-Click Master Backup Sync Shortcut -->
-                    <div style="background:var(--accent-light); border:1px solid #CCFBF1; border-radius:var(--radius-md); padding:12px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div style="background:var(--accent-light, #EFF6FF); border:1px solid #BFDBFE; border-radius:var(--radius-md); padding:12px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                         <div>
                             <div style="font-size:13px; font-weight:700; color:var(--primary-brand); display:flex; align-items:center; gap:6px;">
                                 <span>⚡</span> <span>1-Click Fast Sync from Master Backup</span>

@@ -1,0 +1,885 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Admin Management{% endblock %}
+{% block page_title %}Admin Management{% endblock %}
+
+{% block content %}
+<!-- 1. DASHBOARD KPI SUMMARY CARDS -->
+<div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
+    <!-- Total Administrators -->
+    <div class="admin-card" style="margin-bottom:0; padding:18px; border-left: 4px solid var(--primary-brand, #0A6CFF); background: var(--bg-card);">
+        <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+            Total Administrators
+        </div>
+        <div style="font-size:26px; font-weight:800; color:var(--text-primary); font-family:var(--font-mono);">
+            {{ total_admins }}
+        </div>
+        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
+            Full superuser accounts
+        </div>
+    </div>
+
+    <!-- Active Administrators -->
+    <div class="admin-card" style="margin-bottom:0; padding:18px; border-left: 4px solid var(--primary-brand, #0A6CFF); background: var(--bg-card);">
+        <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+            Active Administrators
+        </div>
+        <div style="font-size:26px; font-weight:800; color:#10b981; font-family:var(--font-mono);">
+            {{ active_admins }}
+        </div>
+        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
+            Live operational logins
+        </div>
+    </div>
+
+    <!-- Inactive Administrators -->
+    <div class="admin-card" style="margin-bottom:0; padding:18px; border-left: 4px solid #ef4444; background: var(--bg-card);">
+        <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+            Inactive / Disabled
+        </div>
+        <div style="font-size:26px; font-weight:800; color:{% if inactive_admins > 0 %}#ef4444{% else %}var(--text-secondary){% endif %}; font-family:var(--font-mono);">
+            {{ inactive_admins }}
+        </div>
+        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
+            Deactivated admin logins
+        </div>
+    </div>
+
+    <!-- Recently Added -->
+    <div class="admin-card" style="margin-bottom:0; padding:18px; border-left: 4px solid var(--accent-cyan, #06b6d4); background: var(--bg-card);">
+        <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+            Recently Added (30d)
+        </div>
+        <div style="font-size:26px; font-weight:800; color:var(--accent-cyan, #06b6d4); font-family:var(--font-mono);">
+            {{ recent_admins }}
+        </div>
+        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
+            New administrative personnel
+        </div>
+    </div>
+</div>
+
+<!-- 2. DIRECTORY CARD -->
+<div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <!-- Search and Filter Form -->
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:680px; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search administrators by username, email, name or role..." class="search-input" style="flex:1; min-width:240px; height:40px;">
+            <select name="status" class="select-filter" style="height:40px;">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Disabled Only</option>
+            </select>
+            <button type="submit" class="btn-primary" style="height:40px; padding:0 16px;">Filter</button>
+            {% if q or status_filter != 'all' %}
+            <a href="{% url 'admin_management:list' %}" class="btn-secondary" style="height:40px; padding:0 12px; display:inline-flex; align-items:center;">Reset</a>
+            {% endif %}
+        </form>
+
+        <!-- Action Toolbar with 1-Click Fast Generator -->
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); color:#fff; font-weight:700; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(10, 108, 255, 0.3); border:none; cursor:pointer;" onclick="openQuickGenerateModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> <span>Quick Provision Superuser</span>
+            </button>
+            <a href="{% url 'admin_management:create' %}" class="btn-admin btn-admin-primary" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); font-weight:700;">
+                <span style="font-size:16px; margin-right:4px;">+</span> <span>Add Administrator</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Administrator</th>
+                    <th>Full Name</th>
+                    <th>Email Address</th>
+                    <th>Account Type</th>
+                    <th>Status</th>
+                    <th>Date Created</th>
+                    <th>Last Login</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in page_obj %}
+                <tr>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, rgba(10, 108, 255,0.2), rgba(10, 108, 255, 0.2)); border:1px solid rgba(10, 108, 255, 0.3); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:var(--text-primary);">
+                                {{ a.username|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:700; color:var(--text-primary); font-size:13.5px;">
+                                    {{ a.username }}
+                                    {% if a == request.user %}
+                                    <span style="font-size:10px; padding:1px 5px; border-radius:3px; background:rgba(10, 108, 255, 0.15); color:var(--primary-brand); font-weight:700; margin-left:4px;">YOU</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size:11px; color:var(--text-secondary);">{{ a.designation|default:"Administrator" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-weight:600; color:var(--text-primary);">
+                            {{ a.get_full_name|default:a.username }}
+                        </span>
+                    </td>
+                    <td>{{ a.email|default:"—" }}</td>
+                    <td>
+                        <span class="badge-status" style="background:rgba(10, 108, 255, 0.12); color:#0A6CFF; border:1px solid rgba(10, 108, 255, 0.3); font-weight:700; font-size:11px;">
+                            Administrator / Superuser
+                        </span>
+                    </td>
+                    <td>
+                        {% if a.is_active %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-rejected">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);">
+                        {{ a.date_joined|date:"M d, Y" }}
+                    </td>
+                    <td style="font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);">
+                        {% if a.last_login %}{{ a.last_login|date:"M d, Y H:i" }}{% else %}Never{% endif %}
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <!-- View Details Modal Trigger -->
+                        <button type="button" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="openAdminDetailModal({{ a.id }})">
+                            View
+                        </button>
+
+                        <!-- Edit Details Link -->
+                        <a href="{% url 'admin_management:edit' a.id %}" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;">
+                            Edit
+                        </a>
+
+                        <!-- Reset Password Trigger -->
+                        <button type="button" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" onclick="openResetPasswordModal({{ a.id }}, '{{ a.username|escapejs }}')">
+                            Reset Pwd
+                        </button>
+
+                        <!-- Toggle Status (Activate / Deactivate) with Safety Guard -->
+                        {% if a != request.user %}
+                        <a href="{% url 'admin_management:toggle_status' a.id %}" class="btn-admin {% if a.is_active %}btn-admin-danger{% else %}btn-admin-secondary{% endif %}" style="padding:4px 8px; font-size:11.5px;" onclick="return confirm('Are you sure you want to {% if a.is_active %}disable{% else %}enable{% endif %} administrator \'{{ a.username|escapejs }}\'?');">
+                            {% if a.is_active %}Disable{% else %}Enable{% endif %}
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:36px; color:var(--text-secondary);">
+                        No administrator accounts match the current filter criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-bar">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ filtered_count }} administrators)</div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status_filter }}" class="page-link-btn">&larr; Prev</a>
+            {% endif %}
+            <span class="page-link-btn active">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status_filter }}" class="page-link-btn">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ===== ⚡ QUICK PROVISION SUPERUSER MODAL ===== -->
+<div id="modal-quick-generate" style="display:none; position:fixed; inset:0; z-index:3300; background:rgba(0,0,0,0.7); backdrop-filter:blur(3px); align-items:center; justify-content:center; padding:20px;">
+    <div class="admin-card" style="width:100%; max-width:580px; margin:0; padding:24px; border:1px solid rgba(10, 108, 255, 0.35); box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+        
+        <!-- Modal Header -->
+        <div id="quick-gen-main-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:38px; height:38px; border-radius:10px; background:#EFF6FF; border:1px solid #BFDBFE; color:#0A6CFF; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:17px; font-weight:700; color:var(--text-primary); letter-spacing:-0.01em;">Quick Provision Superuser</h3>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
+                        Generate and activate a full super administrator account with 1 click.
+                    </div>
+                </div>
+            </div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:3px;">
+                    Generate and activate a full super administrator account with 1 click.
+                </div>
+            </div>
+            <button type="button" onclick="closeQuickGenerateModal()" style="background:none; border:none; color:var(--text-secondary); font-size:20px; cursor:pointer;">✕</button>
+        </div>
+
+        <!-- Mode 1: Generator Form -->
+        <div id="quick-gen-form-container">
+            <!-- 1-Click Auto Fill Toolbar -->
+            <div style="margin-bottom:16px; padding:12px 14px; background:rgba(10, 108, 255, 0.08); border:1px solid rgba(10, 108, 255, 0.25); border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span style="font-size:12px; font-weight:600; color:var(--text-primary);">Need random secure details?</span>
+                <button type="button" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); color:#fff; font-size:11.5px; font-weight:700; padding:5px 12px; border:none; cursor:pointer;" onclick="quickModalRandomize()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Auto-Fill Details</span>
+                </button>
+            </div>
+
+            <form id="quick-generate-form" onsubmit="submitQuickGenerate(event)" style="display:flex; flex-direction:column; gap:14px;">
+                {% csrf_token %}
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Username *</label>
+                        <input type="text" id="qg-username" name="username" required placeholder="e.g. admin_ops_1" class="search-input" style="height:38px; width:100%; font-family:var(--font-mono); font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Email Address *</label>
+                        <input type="email" id="qg-email" name="email" required placeholder="e.g. admin_ops_1@impactbridge.org" class="search-input" style="height:38px; width:100%; font-size:13px;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Full Name</label>
+                        <input type="text" id="qg-fullname" name="full_name" placeholder="e.g. Sarah Sharma" class="search-input" style="height:38px; width:100%; font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Designation</label>
+                        <input type="text" id="qg-designation" name="designation" value="System Administrator" class="search-input" style="height:38px; width:100%; font-size:13px;">
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label style="font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Superuser Password *</label>
+                        <button type="button" onclick="qgGeneratePassword()" style="background:none; border:none; color:#0A6CFF; font-size:11px; font-weight:700; cursor:pointer;">
+                            ⚡ Generate Password
+                        </button>
+                    </div>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input type="text" id="qg-password" name="password" required minlength="8" placeholder="Minimum 8 characters" class="search-input" style="height:38px; width:100%; padding-right:70px; font-family:var(--font-mono); font-size:13px;">
+                        <button type="button" onclick="toggleQuickPasswordVisibility()" id="qg-pwd-toggle-btn" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> <span>Hide</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Privilege Guarantee Pill -->
+                <div style="padding:10px 12px; background:rgba(10, 108, 255, 0.08); border:1px solid rgba(10, 108, 255, 0.25); border-radius:6px; font-size:11.5px; color:var(--text-primary); line-height:1.4;">
+                    ✓ <strong>Privileges:</strong> Automatically assigned <code style="color:var(--primary-brand); font-weight:700;">is_superuser=True</code>, <code style="color:var(--primary-brand); font-weight:700;">is_staff=True</code>, <code style="color:var(--primary-brand); font-weight:700;">role=ADMIN</code> with immediate login authorization.
+                </div>
+
+                <div id="qg-error-msg" style="display:none; color:#ef4444; font-size:12px; font-weight:600; padding:8px 12px; background:rgba(239,68,68,0.1); border-radius:6px;"></div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px; border-top:1px solid var(--border-color); padding-top:14px;">
+                    <button type="button" class="btn-admin btn-admin-secondary" onclick="closeQuickGenerateModal()">Cancel</button>
+                    <button type="submit" id="qg-submit-btn" class="btn-admin btn-admin-primary" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); padding:8px 22px; font-weight:700;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> <span>Provision Superuser Now</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+                <!-- Mode 2: Success Credential Receipt Card -->
+        <div id="quick-gen-success-container" style="display:none; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; border-bottom:1px solid #E2E8F0; padding-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:42px; height:42px; border-radius:10px; background:#EFF6FF; border:1px solid #BFDBFE; color:#0A6CFF; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:16.5px; font-weight:700; color:#0F172A; letter-spacing:-0.01em;">Superuser Account Provisioned</h3>
+                        <div style="font-size:12px; color:#64748B; margin-top:2px;">Account is live and authorized for immediate administrator sign-in.</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAndRefresh()" style="background:none; border:none; color:#94A3B8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;" title="Close">✕</button>
+            </div>
+
+            <!-- Credentials Box -->
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px 18px; display:flex; flex-direction:column; gap:11px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:9px; border-bottom:1px solid #E2E8F0;">
+                    <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Username</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-family:var(--font-mono); font-size:13.5px; font-weight:700; color:#0F172A; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 10px; border-radius:6px;" id="rec-username">—</span>
+                        <button type="button" onclick="copyReceiptUsername(this)" title="Copy username" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:9px; border-bottom:1px solid #E2E8F0;">
+                    <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Email Address</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-family:var(--font-mono); font-size:13px; color:#1E293B; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 10px; border-radius:6px;" id="rec-email">—</span>
+                        <button type="button" onclick="copyReceiptEmail(this)" title="Copy email" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:9px; border-bottom:1px solid #E2E8F0;">
+                    <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Initial Password</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-family:var(--font-mono); font-size:13.5px; font-weight:700; color:#0F172A; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 10px; border-radius:6px; letter-spacing:0.03em;" id="rec-password" data-plain="">—</span>
+                        <button type="button" id="rec-pwd-toggle-btn" onclick="togglePasswordDisplay('rec-password', this)" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;" title="Toggle visibility">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            <span>Hide</span>
+                        </button>
+                        <button type="button" onclick="copyReceiptPassword(this)" title="Copy password" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Authorization Tier</span>
+                    <span style="display:inline-flex; align-items:center; gap:6px; background:#EFF6FF; color:#0A6CFF; border:1px solid #BFDBFE; font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Master Superuser (Full Access)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Informational Note -->
+            <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px; font-size:12px; color:#1E40AF; margin-bottom:18px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Please copy these credentials immediately. The administrator should change this password upon first signing in.</span>
+            </div>
+
+            <!-- Modal Receipt Actions -->
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                <button type="button" id="btn-copy-all-receipt" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color:#FFFFFF; font-weight:700; padding:9px 20px; border:none; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 4px 12px rgba(10, 108, 255, 0.28); font-size:13px;" onclick="copyReceiptCredentials(this)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy All Credentials</span>
+                </button>
+                <button type="button" class="btn-admin btn-admin-primary" style="border-radius:8px; padding:9px 18px; font-weight:600; font-size:13px;" onclick="closeAndRefresh()">
+                    Done &amp; Refresh List
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if newly_created_admin %}
+<!-- ===== EXECUTIVE SUPERUSER RECEIPT MODAL ===== -->
+<div id="modal-welcome-super" style="display:flex; position:fixed; inset:0; z-index:3400; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+    <div class="admin-card" style="width:100%; max-width:540px; margin:0; padding:26px; border-radius:16px; background:#FFFFFF; border:1px solid #E2E8F0; box-shadow:0 25px 50px -12px rgba(11, 16, 32, 0.25);">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; border-bottom:1px solid #E2E8F0; padding-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:42px; height:42px; border-radius:10px; background:#EFF6FF; border:1px solid #BFDBFE; color:#0A6CFF; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:16.5px; font-weight:700; color:#0F172A; letter-spacing:-0.01em;">Administrator Account Provisioned</h3>
+                    <div style="font-size:12px; color:#64748B; margin-top:2px;">Account is live and authorized for immediate administrator sign-in.</div>
+                </div>
+            </div>
+            <button type="button" onclick="closeWelcomeModal()" style="background:none; border:none; color:#94A3B8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;" title="Close">✕</button>
+        </div>
+
+        <!-- Credentials Box -->
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px 18px; display:flex; flex-direction:column; gap:11px; margin-bottom:16px;">
+            <!-- Username -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:9px; border-bottom:1px solid #E2E8F0;">
+                <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Username</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-family:var(--font-mono); font-size:13.5px; font-weight:700; color:#0F172A; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 10px; border-radius:6px;" id="welcome-username">{{ newly_created_admin.username }}</span>
+                    <button type="button" onclick="copySingleValue('{{ newly_created_admin.username }}', this)" title="Copy username" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:9px; border-bottom:1px solid #E2E8F0;">
+                <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Email Address</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-family:var(--font-mono); font-size:13px; color:#1E293B; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 10px; border-radius:6px;" id="welcome-email">{{ newly_created_admin.email }}</span>
+                    <button type="button" onclick="copySingleValue('{{ newly_created_admin.email }}', this)" title="Copy email" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Password -->
+            {% if newly_created_admin.plain_password %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:9px; border-bottom:1px solid #E2E8F0;">
+                <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Initial Password</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="welcome-password" data-plain="{{ newly_created_admin.plain_password }}" style="font-family:var(--font-mono); font-size:13.5px; font-weight:700; color:#0F172A; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 10px; border-radius:6px; letter-spacing:0.03em;">{{ newly_created_admin.plain_password }}</span>
+                    <button type="button" id="welcome-pwd-toggle-btn" onclick="togglePasswordDisplay('welcome-password', this)" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;" title="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        <span>Hide</span>
+                    </button>
+                    <button type="button" onclick="copySingleValue('{{ newly_created_admin.plain_password }}', this)" title="Copy password" style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 8px; cursor:pointer; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tier -->
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748B; letter-spacing:0.04em;">Authorization Tier</span>
+                <span style="display:inline-flex; align-items:center; gap:6px; background:#EFF6FF; color:#0A6CFF; border:1px solid #BFDBFE; font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:6px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Master Superuser (Full Access)
+                </span>
+            </div>
+        </div>
+
+        <!-- Note -->
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px; font-size:12px; color:#1E40AF; margin-bottom:18px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>Please copy these credentials immediately. The administrator should change this password upon first signing in.</span>
+        </div>
+
+        <!-- Modal Actions -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <button type="button" id="btn-copy-all-welcome" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color:#FFFFFF; font-weight:700; padding:9px 20px; border:none; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:0 4px 12px rgba(10, 108, 255, 0.28); font-size:13px;" onclick="copyWelcomeCredentials(this)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy All Credentials</span>
+            </button>
+            <button type="button" class="btn-admin btn-admin-secondary" style="border-radius:8px; padding:9px 18px; font-weight:600; font-size:13px; background:#FFFFFF; border:1px solid #CBD5E1; color:#334155; cursor:pointer;" onclick="closeWelcomeModal()">
+                Done
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ===== VIEW ADMINISTRATOR DETAILS MODAL ===== -->
+<div id="modal-admin-detail" style="display:none; position:fixed; inset:0; z-index:3200; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px;">
+    <div class="admin-card" style="width:100%; max-width:540px; margin:0; padding:24px; max-height:90vh; overflow-y:auto; border:1px solid rgba(10, 108, 255, 0.3); box-shadow:0 20px 45px rgba(0,0,0,0.4);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+            <div>
+                <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--text-primary);" id="detail-modal-username">Administrator Dossier</h3>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Full Superuser Account Specifications</div>
+            </div>
+            <button type="button" onclick="closeAdminDetailModal()" style="background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer;">✕</button>
+        </div>
+
+        <div id="detail-modal-loading" style="text-align:center; padding:24px; color:var(--text-secondary);">
+            Loading administrator information...
+        </div>
+
+        <div id="detail-modal-content" style="display:none; flex-direction:column; gap:14px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Full Name</div>
+                    <div style="font-size:13.5px; font-weight:700; color:var(--text-primary); margin-top:3px;" id="dt-fullname">—</div>
+                </div>
+                <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Username</div>
+                    <div style="font-size:13.5px; font-weight:700; color:var(--text-primary); margin-top:3px;" id="dt-username">—</div>
+                </div>
+            </div>
+
+            <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Email Address</div>
+                <div style="font-size:13.5px; color:var(--text-primary); margin-top:3px;" id="dt-email">—</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Account Status</div>
+                    <div style="font-size:13px; font-weight:700; margin-top:3px;" id="dt-status">—</div>
+                </div>
+                <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Designation</div>
+                    <div style="font-size:13px; color:var(--text-primary); margin-top:3px;" id="dt-designation">—</div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Date Provisioned</div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:3px; font-family:var(--font-mono);" id="dt-created">—</div>
+                </div>
+                <div style="padding:10px; background:var(--bg-surface-subtle, rgba(255,255,255,0.03)); border-radius:6px; border:1px solid var(--border-color);">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;">Last Session Login</div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:3px; font-family:var(--font-mono);" id="dt-lastlogin">—</div>
+                </div>
+            </div>
+
+            <div style="padding:12px; background:rgba(10, 108, 255, 0.08); border:1px solid rgba(10, 108, 255, 0.25); border-radius:6px;">
+                <div style="font-size:11.5px; font-weight:800; color:#0A6CFF; text-transform:uppercase; margin-bottom:4px;">Security Privileges</div>
+                <div style="font-size:12px; color:var(--text-primary); line-height:1.5;">
+                    ✓ <strong>is_superuser = True</strong> (Unrestricted database authorization)<br>
+                    ✓ <strong>is_staff = True</strong> (Admin Panel access permitted)<br>
+                    ✓ <strong>Role = ADMIN</strong> (Master Platform Administrator)
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+                <button type="button" class="btn-admin btn-admin-secondary" onclick="closeAdminDetailModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== RESET PASSWORD MODAL WITH VISIBILITY TOGGLES ===== -->
+<div id="modal-admin-reset-pwd" style="display:none; position:fixed; inset:0; z-index:3200; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; padding:20px;">
+    <div class="admin-card" style="width:100%; max-width:480px; margin:0; padding:24px; border:1px solid rgba(239,68,68,0.3); box-shadow:0 20px 45px rgba(0,0,0,0.4);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+            <div>
+                <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--text-primary);">Reset Administrator Password</h3>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">User: <strong id="reset-modal-admin-username" style="color:var(--text-primary);"></strong></div>
+            </div>
+            <button type="button" onclick="closeResetPasswordModal()" style="background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer;">✕</button>
+        </div>
+
+        <form id="reset-password-form" method="POST" style="display:flex; flex-direction:column; gap:16px;">
+            {% csrf_token %}
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">New Password *</label>
+                <div style="position:relative; display:flex; align-items:center;">
+                    <input type="password" id="reset_new_password" name="new_password" required minlength="8" placeholder="Minimum 8 characters" class="search-input" style="height:40px; width:100%; padding-right:70px; font-family:var(--font-mono);">
+                    <button type="button" onclick="toggleResetPwdVisibility('reset_new_password', this)" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>
+                    </button>
+                </div>
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Confirm New Password *</label>
+                <div style="position:relative; display:flex; align-items:center;">
+                    <input type="password" id="reset_confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter password" class="search-input" style="height:40px; width:100%; padding-right:70px; font-family:var(--font-mono);">
+                    <button type="button" onclick="toggleResetPwdVisibility('reset_confirm_password', this)" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>
+                    </button>
+                </div>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                The password will be hashed using standard PBKDF2-SHA256. Passwords are never logged or stored in plaintext.
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; border-top:1px solid var(--border-color); padding-top:14px;">
+                <button type="button" class="btn-admin btn-admin-secondary" onclick="closeResetPasswordModal()">Cancel</button>
+                <button type="submit" class="btn-admin btn-admin-danger" style="padding:8px 18px;">Commit Password Reset</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast notification for copied credentials -->
+<div id="copy-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#10b981; color:#fff; padding:12px 20px; border-radius:8px; font-weight:700; font-size:13px; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:9999;">
+    ✓ Credentials copied to clipboard!
+</div>
+
+<script>
+// --- Quick Provision Modal Logic ---
+function openQuickGenerateModal() {
+    const mainHdr = document.getElementById('quick-gen-main-header'); if (mainHdr) mainHdr.style.display = 'flex';
+    document.getElementById('quick-gen-form-container').style.display = 'block';
+    document.getElementById('quick-gen-success-container').style.display = 'none';
+    document.getElementById('qg-error-msg').style.display = 'none';
+    quickModalRandomize();
+    document.getElementById('modal-quick-generate').style.display = 'flex';
+}
+
+function closeQuickGenerateModal() {
+    document.getElementById('modal-quick-generate').style.display = 'none';
+}
+
+function getRandomAlphanumeric(length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function qgGeneratePassword() {
+    const uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lowers = 'abcdefghjkmnpqrstuvwxyz';
+    const numbers = '23456789';
+    const specials = '!@#$%^&*';
+    const all = uppers + lowers + numbers + specials;
+
+    let pwd = '';
+    pwd += uppers.charAt(Math.floor(Math.random() * uppers.length));
+    pwd += lowers.charAt(Math.floor(Math.random() * lowers.length));
+    pwd += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    pwd += specials.charAt(Math.floor(Math.random() * specials.length));
+
+    for (let i = 0; i < 8; i++) {
+        pwd += all.charAt(Math.floor(Math.random() * all.length));
+    }
+    document.getElementById('qg-password').value = pwd;
+    return pwd;
+}
+
+function quickModalRandomize() {
+    const suffix = getRandomAlphanumeric(4);
+    document.getElementById('qg-username').value = `admin_${suffix}`;
+    document.getElementById('qg-email').value = `admin_${suffix}@impactbridge.org`;
+    document.getElementById('qg-fullname').value = 'Superuser Admin';
+    document.getElementById('qg-designation').value = 'Platform Superuser';
+    qgGeneratePassword();
+}
+
+function toggleQuickPasswordVisibility() {
+    const input = document.getElementById('qg-password');
+    const btn = document.getElementById('qg-pwd-toggle-btn');
+    if (!input || !btn) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> <span>Hide</span>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>';
+    }
+}
+
+function toggleResetPwdVisibility(id, btn) {
+    const input = document.getElementById(id);
+    if (!input || !btn) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> <span>Hide</span>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>';
+    }
+}
+
+function togglePasswordDisplay(targetId, btn) {
+    const el = document.getElementById(targetId);
+    if (!el || !btn) return;
+    const plain = el.getAttribute('data-plain') || el.textContent;
+    if (!el.getAttribute('data-plain')) {
+        el.setAttribute('data-plain', plain);
+    }
+    const isHidden = el.getAttribute('data-hidden') === 'true';
+    if (isHidden) {
+        el.textContent = plain;
+        el.setAttribute('data-hidden', 'false');
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> <span>Hide</span>';
+    } else {
+        el.textContent = '••••••••••••';
+        el.setAttribute('data-hidden', 'true');
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>';
+    }
+}
+
+function copySingleValue(text, btn) {
+    if (!text) return;
+    const originalHTML = btn.innerHTML;
+    copyTextToClipboard(text);
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span style="color:#059669;">Copied!</span>';
+    setTimeout(() => {
+        btn.innerHTML = originalHTML;
+    }, 1800);
+}
+
+function copyReceiptUsername(btn) {
+    if (!lastCreatedAdmin) return;
+    copySingleValue(lastCreatedAdmin.username, btn);
+}
+
+function copyReceiptEmail(btn) {
+    if (!lastCreatedAdmin) return;
+    copySingleValue(lastCreatedAdmin.email, btn);
+}
+
+function copyReceiptPassword(btn) {
+    if (!lastCreatedAdmin) return;
+    copySingleValue(lastCreatedAdmin.plain_password, btn);
+}
+
+function closeWelcomeModal() {
+    const m = document.getElementById('modal-welcome-super');
+    if (m) m.style.display = 'none';
+}
+
+function submitQuickGenerate(e) {
+    e.preventDefault();
+    const btn = document.getElementById('qg-submit-btn');
+    const errDiv = document.getElementById('qg-error-msg');
+    errDiv.style.display = 'none';
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-animation"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Provisioning Superuser...</span>';
+
+    const payload = {
+        username: document.getElementById('qg-username').value.trim(),
+        email: document.getElementById('qg-email').value.trim(),
+        full_name: document.getElementById('qg-fullname').value.trim(),
+        designation: document.getElementById('qg-designation').value.trim(),
+        password: document.getElementById('qg-password').value.trim()
+    };
+
+    fetch('/admin-portal/admins/quick-generate/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> <span>Provision Superuser Now</span>';
+        if (data.status === 'ok') {
+            lastCreatedAdmin = data.admin;
+            document.getElementById('rec-username').textContent = data.admin.username;
+            document.getElementById('rec-email').textContent = data.admin.email;
+            const recPwd = document.getElementById('rec-password');
+            recPwd.textContent = data.admin.plain_password;
+            recPwd.setAttribute('data-plain', data.admin.plain_password);
+            recPwd.setAttribute('data-hidden', 'false');
+            
+            const mainHdr = document.getElementById('quick-gen-main-header'); if (mainHdr) mainHdr.style.display = 'none';
+            document.getElementById('quick-gen-form-container').style.display = 'none';
+            document.getElementById('quick-gen-success-container').style.display = 'flex';
+        } else {
+            errDiv.textContent = data.message || 'Error provisioning superuser account.';
+            errDiv.style.display = 'block';
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> <span>Provision Superuser Now</span>';
+        errDiv.textContent = 'Network or server error while provisioning administrator.';
+        errDiv.style.display = 'block';
+    });
+}
+
+function copyReceiptCredentials(btn) {
+    if (!lastCreatedAdmin) return;
+    const text = `ImpactBridge Superuser Credentials:
+Username: ${lastCreatedAdmin.username}
+Email: ${lastCreatedAdmin.email}
+Password: ${lastCreatedAdmin.plain_password}
+Role: Master Super Administrator
+Login URL: ${window.location.origin}/admin-portal/login/`;
+    copyTextToClipboard(text);
+    if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>✓ Copied to Clipboard!</span>';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }
+}
+
+function copyWelcomeCredentials(btn) {
+    const u = document.getElementById('welcome-username')?.textContent || '';
+    const e = document.getElementById('welcome-email')?.textContent || '';
+    const p = document.getElementById('welcome-password')?.getAttribute('data-plain') || document.getElementById('welcome-password')?.textContent || '';
+    const text = `ImpactBridge Superuser Credentials:
+Username: ${u}
+Email: ${e}
+Password: ${p}
+Role: Master Super Administrator
+Login URL: ${window.location.origin}/admin-portal/login/`;
+    copyTextToClipboard(text);
+    if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>✓ Copied to Clipboard!</span>';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }
+}
+
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('✓ Credentials copied to clipboard!');
+        });
+    } else {
+        const dummy = document.createElement('textarea');
+        dummy.value = text;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        showToast('✓ Credentials copied to clipboard!');
+    }
+}
+
+function closeAndRefresh() {
+    window.location.reload();
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('copy-toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3500);
+}
+
+// --- Detail & Reset Modals ---
+function openAdminDetailModal(adminId) {
+    const modal = document.getElementById('modal-admin-detail');
+    const loading = document.getElementById('detail-modal-loading');
+    const content = document.getElementById('detail-modal-content');
+    
+    modal.style.display = 'flex';
+    loading.style.display = 'block';
+    content.style.display = 'none';
+
+    fetch(`/admin-portal/admins/${adminId}/detail-api/`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                const a = data.admin;
+                document.getElementById('dt-fullname').textContent = a.full_name;
+                document.getElementById('dt-username').textContent = a.username;
+                document.getElementById('dt-email').textContent = a.email || '—';
+                document.getElementById('dt-status').innerHTML = a.is_active ? 
+                    '<span class="badge-status badge-active">Active</span>' : 
+                    '<span class="badge-status badge-rejected">Disabled</span>';
+                document.getElementById('dt-designation').textContent = a.designation;
+                document.getElementById('dt-created').textContent = a.date_joined;
+                document.getElementById('dt-lastlogin').textContent = a.last_login;
+                
+                loading.style.display = 'none';
+                content.style.display = 'flex';
+            } else {
+                loading.textContent = 'Error loading administrator details.';
+            }
+        })
+        .catch(err => {
+            loading.textContent = 'Network error loading administrator details.';
+        });
+}
+
+function closeAdminDetailModal() {
+    document.getElementById('modal-admin-detail').style.display = 'none';
+}
+
+function openResetPasswordModal(adminId, username) {
+    const modal = document.getElementById('modal-admin-reset-pwd');
+    const form = document.getElementById('reset-password-form');
+    document.getElementById('reset-modal-admin-username').textContent = username;
+    form.action = `/admin-portal/admins/${adminId}/reset-password/`;
+    modal.style.display = 'flex';
+}
+
+function closeResetPasswordModal() {
+    document.getElementById('modal-admin-reset-pwd').style.display = 'none';
+}
+</script>
+{% endblock %}

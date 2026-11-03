@@ -208,28 +208,14 @@ def user_profile_view(request):
     user = request.user
     wallet = get_or_create_wallet(user)
 
-    # Get active subscription or create fallback free tier
-    sub = Subscription.objects.filter(user=user, status='ACTIVE').order_by('-created_at').first()
+    # Retrieve user's existing subscription (any status: ACTIVE, EXPIRED, CANCELED)
+    # Login and profile views MUST be strictly read-only and never auto-activate or overwrite subscriptions
+    sub = Subscription.objects.filter(user=user).order_by('-created_at').first()
     if not sub:
-        sub = Subscription.objects.filter(tenant_id=f"user_{user.id}", status='ACTIVE').order_by('-created_at').first()
+        sub = Subscription.objects.filter(tenant_id=f"user_{user.id}").order_by('-created_at').first()
         if sub and not sub.user:
             sub.user = user
             sub.save(update_fields=['user'])
-
-    if not sub:
-        plan_obj = Plan.objects.filter(code='free', is_active=True).first()
-        sub = Subscription.objects.create(
-            subscription_id=f"SUB_{uuid.uuid4().hex[:12].upper()}",
-            user=user,
-            tenant_id=f"user_{user.id}",
-            plan_record=plan_obj,
-            plan_id=plan_obj.code if plan_obj else 'free',
-            status='ACTIVE',
-            billing_cycle='monthly',
-            auto_renew=False,
-            current_period_start=timezone.now().isoformat(),
-            current_period_end=(timezone.now() + timedelta(days=3650)).isoformat()
-        )
 
     # Handle Profile Actions (Top-up, Auto-renew, Cancel)
     if request.method == 'POST':
@@ -265,7 +251,7 @@ def user_profile_view(request):
             messages.success(request, "Auto-renewal reactivated successfully.")
             return redirect('website:user_profile')
 
-        elif action == 'cancel_subscription':
+        elif action == 'cancel_subscription' and sub:
             try:
                 cancel({'reason': 'Cancelled by subscriber via profile'}, tenant_id=sub.tenant_id, user=user)
                 messages.info(request, "Subscription auto-renewal cancelled. You will retain access until current period end.")
@@ -273,8 +259,8 @@ def user_profile_view(request):
                 messages.error(request, f"Cancellation failed: {str(e)}")
             return redirect('website:user_profile')
 
-    plan = get_plan(sub.plan_id)
-    plan_obj = Plan.objects.filter(code=sub.plan_id).first()
+    plan = get_plan(sub.plan_id) if sub else None
+    plan_obj = Plan.objects.filter(code=sub.plan_id).first() if sub else None
     entitlements = plan_obj.entitlements.all() if plan_obj else []
     wallet_txs = WalletTransaction.objects.filter(user=user).order_by('-created_at')[:20]
     payments = Payment.objects.filter(user=user).order_by('-created_at')[:20]

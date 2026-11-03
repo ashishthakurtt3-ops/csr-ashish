@@ -5203,8 +5203,11 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    const anyStillOpen = Array.from(document.querySelectorAll('.modal-backdrop')).some(m => m.style.display === 'flex');
+    if (!anyStillOpen) {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+    }
 }
 
 function closeAllModals() {
@@ -5472,6 +5475,7 @@ function renderPricingGrid() {
     }
 
     const currentNormTier = normalizeSubscriptionTier(currentSubscription.plan_id || currentSubscription.tier);
+    const isActive = !!currentSubscription.is_active;
     const isYearly = activeBillingCycle === 'yearly';
 
     const currentPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currentNormTier);
@@ -5480,7 +5484,7 @@ function renderPricingGrid() {
     let html = '';
     dbPlansCatalog.forEach(plan => {
         const planCode = plan.code.toLowerCase();
-        const isCurrentActive = (currentNormTier === planCode);
+        const isCurrentActive = isActive && (currentNormTier === planCode);
         // Only show RECOMMENDED badge/highlight if the plan is strictly HIGHER than the current tier
         const isHigherTier = plan.display_order > currentOrder;
         const isFeatured = plan.is_popular && isHigherTier;
@@ -5588,7 +5592,8 @@ async function loadSubscriptionState() {
                 plan_name: sub.plan_name || (normTier === 'foundation' ? 'Foundation Master' : (normTier === 'enterprise' ? 'Corporate Enterprise' : (normTier === 'pro' ? 'Impact Pro' : 'Community Starter'))),
                 organization_name: sub.organization_name || 'Institutional Non-Profit Access',
                 contact_email: sub.contact_email || '',
-                status: sub.status || 'ACTIVE',
+                status: sub.status || 'INACTIVE',
+                is_active: sub.is_active !== undefined ? !!sub.is_active : (sub.status === 'ACTIVE' || sub.status === 'TRIALING'),
                 auto_renew: !!sub.auto_renew,
                 pending_change_plan: sub.pending_change_plan,
                 current_period_end: sub.current_period_end,
@@ -5628,19 +5633,34 @@ async function loadSubscriptionState() {
 function applySubscriptionToUI() {
     const normTier = normalizeSubscriptionTier(currentSubscription.tier || currentSubscription.plan_id);
     const planName = currentSubscription.plan_name || (normTier === 'foundation' ? 'Foundation Master' : (normTier === 'enterprise' ? 'Corporate Enterprise' : (normTier === 'pro' ? 'Impact Pro' : 'Community Starter')));
+    const subStatus = (currentSubscription.status || 'INACTIVE').toUpperCase();
+    const isActive = !!currentSubscription.is_active;
 
     // 1. Header Tier Pill
     const headerLabel = document.getElementById('header-tier-label');
     const headerPill = document.getElementById('header-user-tier-pill');
     const headerBtn = document.getElementById('header-tier-btn');
     if (headerLabel) {
-        if (normTier === 'foundation') headerLabel.textContent = '👑 Foundation Master';
-        else if (normTier === 'enterprise') headerLabel.textContent = '🚀 Corporate Enterprise';
-        else if (normTier === 'pro') headerLabel.textContent = '⚡ Impact Pro';
-        else headerLabel.textContent = 'Community Starter (Free)';
+        if (!isActive) {
+            if (subStatus === 'EXPIRED') {
+                headerLabel.textContent = `⚠️ ${planName} (Expired)`;
+            } else if (subStatus === 'CANCELED' || subStatus === 'CANCELLED') {
+                headerLabel.textContent = `🚫 ${planName} (Cancelled)`;
+            } else {
+                headerLabel.textContent = 'No Active Plan';
+            }
+        } else {
+            if (normTier === 'foundation') headerLabel.textContent = '👑 Foundation Master';
+            else if (normTier === 'enterprise') headerLabel.textContent = '🚀 Corporate Enterprise';
+            else if (normTier === 'pro') headerLabel.textContent = '⚡ Impact Pro';
+            else headerLabel.textContent = 'Community Free (Active)';
+        }
     }
     if (headerPill) {
-        if (normTier === 'foundation' || normTier === 'enterprise') {
+        if (!isActive) {
+            headerPill.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            headerPill.style.background = 'rgba(239, 68, 68, 0.08)';
+        } else if (normTier === 'foundation' || normTier === 'enterprise') {
             headerPill.style.borderColor = 'rgba(168, 85, 247, 0.6)';
             headerPill.style.background = 'rgba(168, 85, 247, 0.15)';
         } else if (normTier === 'pro') {
@@ -5652,7 +5672,7 @@ function applySubscriptionToUI() {
         }
     }
     if (headerBtn) {
-        headerBtn.textContent = normTier === 'starter' ? 'Plans ⚡' : 'Active Plan ✓';
+        headerBtn.textContent = isActive ? (normTier === 'starter' ? 'Plans ⚡' : 'Active Plan ✓') : 'Select Plan ⚡';
     }
 
     // 2. Active Subscription Card
@@ -5663,10 +5683,34 @@ function applySubscriptionToUI() {
     const subCard = document.getElementById('active-subscription-card');
 
     if (badgeName) {
-        badgeName.textContent = `${planName.toUpperCase()} (ACTIVE)`;
+        if (!isActive) {
+            if (subStatus === 'EXPIRED') {
+                badgeName.textContent = `${planName.toUpperCase()} (EXPIRED)`;
+                badgeName.style.color = '#ef4444';
+            } else if (subStatus === 'CANCELED' || subStatus === 'CANCELLED') {
+                badgeName.textContent = `${planName.toUpperCase()} (CANCELLED)`;
+                badgeName.style.color = '#f97316';
+            } else {
+                badgeName.textContent = 'NO ACTIVE PLAN';
+                badgeName.style.color = 'var(--text-secondary)';
+            }
+        } else {
+            badgeName.textContent = `${planName.toUpperCase()} (ACTIVE)`;
+            badgeName.style.color = 'var(--accent-cyan)';
+        }
     }
     if (orgTitle) {
-        orgTitle.textContent = `${currentSubscription.organization_name || 'Institutional Non-Profit Access'} • ${planName} Active`;
+        if (!isActive) {
+            if (subStatus === 'EXPIRED') {
+                orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • Subscription Expired`;
+            } else if (subStatus === 'CANCELED' || subStatus === 'CANCELLED') {
+                orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • Subscription Cancelled`;
+            } else {
+                orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • No Subscription Active`;
+            }
+        } else {
+            orgTitle.textContent = `${currentSubscription.organization_name || 'Institutional Non-Profit Access'} • ${planName} Active`;
+        }
     }
     if (featuresSummary) {
         if (normTier === 'foundation') {
@@ -5739,7 +5783,7 @@ async function openSubscriptionModal(tier = 'pro') {
 
     // Current subscription details
     const currTier = normalizeSubscriptionTier((currentSubscription && (currentSubscription.tier || currentSubscription.plan_id)) || 'starter');
-    const isSamePlan = (plan.code.toLowerCase() === currTier);
+    const isSamePlan = !!currentSubscription.is_active && (plan.code.toLowerCase() === currTier);
 
     // Requirement 3: If user selects the currently active plan
     if (isSamePlan) {
@@ -6508,12 +6552,222 @@ function onBatchSelectChange(radio) {
     }
 }
 
+// ===========================================================================
+// AI-POWERED EXTRACTION CONFIGURATION FOR LIVE PROBE
+// ===========================================================================
+let crawlAiConfig = {
+    enabled: false,
+    scope: 'both',
+    provider: 'default',
+    model: null,
+    strategy: 'hybrid',
+    maxRequestsPerCompany: 2,
+    maxCrawlRequests: 50,
+    timeout: 15,
+    fallbackEnabled: true
+};
+let serverAiConfigData = null;
+
+async function openAiConfigModal() {
+    openModal('modal-ai-extraction-config');
+    try {
+        const resp = await fetch(`${API_BASE}/api/crawler/ai-config-status`);
+        if (resp.ok) {
+            serverAiConfigData = await resp.json();
+            populateAiConfigDialog(serverAiConfigData);
+        }
+    } catch (e) {
+        console.warn('Could not fetch server AI config status:', e);
+    }
+}
+
+function closeAiConfigModal() {
+    closeModal('modal-ai-extraction-config');
+}
+
+function populateAiConfigDialog(data) {
+    if (!data) return;
+    const providerSelect = document.getElementById('ai-provider-select');
+    if (providerSelect) {
+        providerSelect.innerHTML = '<option value="default" selected>Use Admin Configured Default</option>';
+        const providers = data.available_providers || [];
+        providers.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.name} (${p.selected_model || 'Default'}) - ${p.status}`;
+            if (crawlAiConfig.provider === p.id) opt.selected = true;
+            providerSelect.appendChild(opt);
+        });
+    }
+
+    const primaryEl = document.getElementById('ai-info-primary');
+    if (primaryEl) primaryEl.textContent = `${data.primary_provider || 'Gemini'} (${data.primary_model || 'gemini-3.1-flash-lite'})`;
+
+    const fallbackEl = document.getElementById('ai-info-fallback');
+    if (fallbackEl) fallbackEl.textContent = `${data.fallback_provider || 'Grok'} (${data.fallback_model || 'grok-2-latest'})`;
+
+    const toggle = document.getElementById('ai-toggle-enable');
+    if (toggle) {
+        toggle.checked = crawlAiConfig.enabled;
+        onAiToggleChanged(toggle);
+    }
+}
+
+function onAiToggleChanged(checkbox) {
+    const container = document.getElementById('ai-config-controls-container');
+    const slider = document.getElementById('ai-toggle-slider');
+    const saveBtn = document.getElementById('btn-save-ai-extraction-config');
+
+    if (checkbox.checked) {
+        if (container) {
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+        }
+        if (slider) {
+            slider.style.backgroundColor = '#a855f7';
+        }
+        if (saveBtn) {
+            saveBtn.textContent = 'Enable AI for This Crawl';
+            saveBtn.style.background = 'linear-gradient(93.75deg, #6366f1 0%, #a855f7 100%)';
+        }
+    } else {
+        if (container) {
+            container.style.opacity = '0.45';
+            container.style.pointerEvents = 'none';
+        }
+        if (slider) {
+            slider.style.backgroundColor = '#94a3b8';
+        }
+        if (saveBtn) {
+            saveBtn.textContent = 'Disable AI for This Crawl';
+            saveBtn.style.background = 'var(--bg-surface-elevated)';
+        }
+    }
+}
+
+function onAiScopeChanged(radio) {
+    document.querySelectorAll('.scope-card').forEach(card => {
+        card.style.border = '1px solid var(--border-color)';
+        card.style.background = 'var(--bg-surface-subtle)';
+    });
+    const parent = radio.closest('.scope-card');
+    if (parent) {
+        parent.style.border = '2px solid var(--accent-cyan)';
+        parent.style.background = 'rgba(6,182,212,0.08)';
+    }
+}
+
+function onAiStrategyChanged(radio) {
+    document.querySelectorAll('.strategy-card').forEach(card => {
+        card.style.border = '1px solid var(--border-color)';
+        card.style.background = 'var(--bg-surface-subtle)';
+    });
+    const parent = radio.closest('.strategy-card');
+    if (parent) {
+        parent.style.border = '2px solid var(--accent-cyan)';
+        parent.style.background = 'rgba(6,182,212,0.08)';
+    }
+}
+
+function onAiProviderSelectChanged(select) {
+    const val = select.value;
+    if (serverAiConfigData && val !== 'default') {
+        const found = (serverAiConfigData.available_providers || []).find(p => p.id === val);
+        if (found) {
+            const primaryEl = document.getElementById('ai-info-primary');
+            if (primaryEl) primaryEl.textContent = `${found.name} (${found.selected_model})`;
+        }
+    } else if (serverAiConfigData) {
+        const primaryEl = document.getElementById('ai-info-primary');
+        if (primaryEl) primaryEl.textContent = `${serverAiConfigData.primary_provider} (${serverAiConfigData.primary_model})`;
+    }
+}
+
+function applyAiExtractionConfig() {
+    const toggle = document.getElementById('ai-toggle-enable');
+    const isEnabled = toggle ? toggle.checked : false;
+
+    const selectedScope = document.querySelector('input[name="ai_extraction_scope"]:checked');
+    const scopeVal = selectedScope ? selectedScope.value : 'both';
+
+    const selectedStrategy = document.querySelector('input[name="ai_extraction_strategy"]:checked');
+    const strategyVal = selectedStrategy ? selectedStrategy.value : 'hybrid';
+
+    const providerSelect = document.getElementById('ai-provider-select');
+    const providerVal = providerSelect ? providerSelect.value : 'default';
+
+    const maxReqInput = document.getElementById('ai-ctrl-max-per-company');
+    const timeoutInput = document.getElementById('ai-ctrl-timeout');
+
+    crawlAiConfig.enabled = isEnabled;
+    crawlAiConfig.scope = scopeVal;
+    crawlAiConfig.strategy = strategyVal;
+    crawlAiConfig.provider = providerVal;
+    crawlAiConfig.maxRequestsPerCompany = maxReqInput ? parseInt(maxReqInput.value) || 2 : 2;
+    crawlAiConfig.timeout = timeoutInput ? parseInt(timeoutInput.value) || 15 : 15;
+
+    // Update parent dialog UI card
+    const pill = document.getElementById('ai-main-status-pill');
+    const statusVal = document.getElementById('ai-status-text-val');
+    const desc = document.getElementById('ai-status-desc');
+    const badgesContainer = document.getElementById('ai-active-badges');
+
+    if (isEnabled) {
+        if (pill) {
+            pill.textContent = 'AI Enabled';
+            pill.className = 'badge badge-emerald';
+            pill.style.background = 'rgba(16,185,129,0.15)';
+            pill.style.color = '#10b981';
+            pill.style.borderColor = 'rgba(16,185,129,0.3)';
+        }
+        if (statusVal) {
+            statusVal.textContent = 'Enabled';
+            statusVal.style.color = '#10b981';
+            statusVal.style.fontWeight = '800';
+        }
+        if (desc) {
+            desc.textContent = 'Intelligent multi-model extraction activated for this run.';
+        }
+        if (badgesContainer) {
+            const scopeLabels = { both: 'Jobs & CSR', jobs: 'Jobs Only', csr: 'CSR Only' };
+            const provName = providerVal === 'default' ? (serverAiConfigData ? serverAiConfigData.primary_provider : 'Admin Default') : providerVal;
+            badgesContainer.innerHTML = `
+                <span class="badge badge-purple" style="font-size:10px;">Scope: ${scopeLabels[scopeVal] || scopeVal}</span>
+                <span class="badge badge-blue" style="font-size:10px;">Provider: ${escapeHtml(provName)}</span>
+                <span class="badge badge-emerald" style="font-size:10px;">Strategy: ${strategyVal === 'hybrid' ? 'Hybrid' : 'Assisted'}</span>
+            `;
+            badgesContainer.style.display = 'flex';
+        }
+    } else {
+        if (pill) {
+            pill.textContent = 'AI Disabled';
+            pill.className = 'badge';
+            pill.style.background = 'rgba(148,163,184,0.15)';
+            pill.style.color = 'var(--text-secondary)';
+            pill.style.borderColor = 'rgba(148,163,184,0.3)';
+        }
+        if (statusVal) {
+            statusVal.textContent = 'Disabled';
+            statusVal.style.color = 'var(--text-secondary)';
+            statusVal.style.fontWeight = '700';
+        }
+        if (desc) {
+            desc.textContent = 'Use configured AI providers to improve extraction of complex, unstructured and document-based information.';
+        }
+        if (badgesContainer) {
+            badgesContainer.style.display = 'none';
+        }
+    }
+
+    closeAiConfigModal();
+}
+
 function executeConfirmedLiveFetch() {
     closeModal('modal-live-fetch-confirm');
     const selectedRadio = document.querySelector('input[name="crawl_batch_select"]:checked');
     const selectedBatch = selectedRadio ? selectedRadio.value : '1';
     const { openModalLogs } = pendingLiveFetchOptions || { openModalLogs: true };
-    triggerLiveFetchAndUpdate(true, true, selectedBatch);
+    triggerLiveFetchAndUpdate(true, true, selectedBatch, crawlAiConfig);
 }
 
 function showLiveToast(message, type = 'success') {
@@ -6668,7 +6922,7 @@ function updateAllFetchTimestamps(timeStr, isInitial = false) {
     }
 }
 
-async function triggerLiveFetchAndUpdate(openModalLogs = false, bypassConfirm = false, selectedBatch = '1') {
+async function triggerLiveFetchAndUpdate(openModalLogs = false, bypassConfirm = false, selectedBatch = '1', aiConfig = null) {
     if (isSyncInProgress) {
         showLiveToast('A live data fetch is already running. Please wait a moment...', 'info');
         return;
@@ -6733,7 +6987,10 @@ async function triggerLiveFetchAndUpdate(openModalLogs = false, bypassConfirm = 
         const resp = await fetch(`${API_BASE}/api/fetch/live-sync`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ batch: selectedBatch })
+            body: JSON.stringify({
+                batch: selectedBatch,
+                ai_config: aiConfig || crawlAiConfig
+            })
         });
         if (!resp.ok) {
             const errData = await resp.json().catch(() => ({}));
@@ -6762,9 +7019,10 @@ async function triggerLiveFetchAndUpdate(openModalLogs = false, bypassConfirm = 
                     for (let i = printedLogsCount; i < events.length; i++) {
                         const evt = events[i];
                         let badgeClass = 'term-badge-probe';
-                        if (evt.status_badge === 'FAILED' || evt.status_badge === 'ERROR') badgeClass = 'term-badge-init';
-                        if (evt.status_badge === 'EXTRACTED' || evt.status_badge === 'VERIFIED') badgeClass = 'term-badge-ok';
-                        if (evt.status_badge === 'SAVED') badgeClass = 'term-badge-db';
+                        if (evt.status_badge === 'FAILED' || evt.status_badge === 'ERROR' || evt.status_badge === 'AI_REJECT') badgeClass = 'term-badge-init';
+                        if (evt.status_badge === 'EXTRACTED' || evt.status_badge === 'VERIFIED' || evt.status_badge === 'AI_VERIFIED') badgeClass = 'term-badge-ok';
+                        if (evt.status_badge === 'SAVED' || evt.status_badge === 'AI_ENABLED') badgeClass = 'term-badge-db';
+                        if (evt.status_badge === 'AI_PROBE') badgeClass = 'term-badge-probe';
                         appendTerminalLog(badgeClass, evt.status_badge || 'LOG', evt.extracted_summary || evt.msg || '');
                     }
                     printedLogsCount = events.length;
@@ -6773,7 +7031,11 @@ async function triggerLiveFetchAndUpdate(openModalLogs = false, bypassConfirm = 
                     const total = stats.companies_requested || 50;
                     const crawled = stats.companies_crawled || 0;
                     let pct = Math.min(95, Math.floor(5 + (crawled / total) * 90));
-                    setProgress(pct, `${currentBatchLabel}: Crawling (${crawled}/${total}) | Openings: ${stats.new_jobs || 0} New, ${stats.updated_jobs || 0} Verified | CSR: ${stats.csr_projects || 0}`);
+                    let stageMsg = `${currentBatchLabel}: Crawling (${crawled}/${total}) | Openings: ${stats.new_jobs || 0} New, ${stats.updated_jobs || 0} Verified | CSR: ${stats.csr_projects || 0}`;
+                    if (stats.ai_enabled) {
+                        stageMsg += ` | AI: ${stats.ai_jobs_extracted || 0} Jobs, ${stats.ai_csr_extracted || 0} CSR (${stats.ai_candidates_verified || 0} Verified, ${stats.ai_candidates_rejected || 0} Rejected)`;
+                    }
+                    setProgress(pct, stageMsg);
                     
                     if (streamData.is_running === false) {
                         crawlRunning = false;

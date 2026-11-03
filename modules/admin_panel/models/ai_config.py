@@ -223,6 +223,7 @@ class AIConfigurationAuditLog(models.Model):
         ('SAVE_PROVIDER', 'Updated Provider Configuration'),
         ('TEST_PROVIDER', 'Executed Live API & Model Test'),
         ('RESET_DEFAULTS', 'Reset AI Configuration to Defaults'),
+        ('CRAWL_EXTRACTION', 'Executed Crawl-Time AI Extraction'),
     ]
 
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)

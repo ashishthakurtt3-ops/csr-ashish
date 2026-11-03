@@ -1237,7 +1237,7 @@ def extract_genuine_csr_live(csr_url: str) -> dict:
 # 1:1 LIVE SYNCHRONIZER (MySQL Atomic State Mirror)
 # ==============================================================================
 
-def sync_single_company_live(company) -> dict:
+def sync_single_company_live(company, ai_config=None) -> dict:
     """
     Performs a 100% live scrape of a single company, upserts current live Jobs & CSR records,
     and updates jobs_access / csr_access honestly based on 'Extract First, Login Wall Last'.
@@ -1308,6 +1308,72 @@ def sync_single_company_live(company) -> dict:
         # Update company extraction strategy and success rate
         company.extraction_strategy = strategy_name
         company.last_strategy_success_rate = direct_pct
+
+        # AI-powered job extraction when enabled and scope includes jobs
+        ai_enabled = bool(ai_config and ai_config.get("enabled"))
+        ai_scope = str(ai_config.get("scope", "both")).lower() if ai_config else "disabled"
+        ai_strat = str(ai_config.get("strategy", "hybrid")).lower() if ai_config else "hybrid"
+
+        if ai_enabled and ai_scope in ("both", "jobs"):
+            if len(extracted_jobs_list) == 0 or ai_strat == "assisted":
+                try:
+                    c_url = company.careers_url or company.website_url
+                    if c_url:
+                        from modules.crawler_engine.state import CRAWL_TASK_STATE, log_event
+                        from modules.crawler_engine.hybrid_ai_service import HybridAIExtractionService
+                        from bs4 import BeautifulSoup
+                        
+                        log_event("AI_EXTRACT", "AI_PROBE", f"AI Job Extraction evaluating careers content for {company.company_name}...", company_id=company.company_id, company_name=company.company_name)
+                        if "stats" in CRAWL_TASK_STATE and "ai_requests_made" in CRAWL_TASK_STATE["stats"]:
+                            CRAWL_TASK_STATE["stats"]["ai_requests_made"] += 1
+
+                        p_fetch = fetch_live_page(c_url)
+                        raw_c_text = ""
+                        if p_fetch.get("ok") and p_fetch.get("html"):
+                            s_car = BeautifulSoup(p_fetch["html"], "html.parser")
+                            for tag in s_car(["script", "style", "nav", "header", "footer"]):
+                                tag.decompose()
+                            raw_c_text = s_car.get_text(separator=" ", strip=True)
+
+                        if len(raw_c_text) > 100:
+                            ai_jobs = HybridAIExtractionService.extract_unstructured_jobs(
+                                company_id=company.company_id,
+                                company_name=company.company_name,
+                                raw_content=raw_c_text,
+                                careers_url=c_url,
+                                provider=ai_config.get("provider"),
+                                model=ai_config.get("model")
+                            )
+
+                            for aj in ai_jobs:
+                                is_valid, reason = HybridAIExtractionService.verify_job_evidence(aj, raw_c_text)
+                                if is_valid:
+                                    if "stats" in CRAWL_TASK_STATE:
+                                        CRAWL_TASK_STATE["stats"]["ai_candidates_verified"] = CRAWL_TASK_STATE["stats"].get("ai_candidates_verified", 0) + 1
+                                        CRAWL_TASK_STATE["stats"]["ai_jobs_extracted"] = CRAWL_TASK_STATE["stats"].get("ai_jobs_extracted", 0) + 1
+                                    extracted_jobs_list.append({
+                                        "title": aj.get("job_title"),
+                                        "location": aj.get("location") or company.headquarters or "India",
+                                        "department": aj.get("department") or "Corporate",
+                                        "employment_type": aj.get("employment_type") or "Full-time",
+                                        "work_mode": aj.get("work_mode") or "On-site",
+                                        "job_description": aj.get("job_description") or aj.get("verbatim_quote"),
+                                        "verbatim_quote": aj.get("verbatim_quote"),
+                                        "application_url": aj.get("application_url") or c_url,
+                                        "canonical_url": aj.get("application_url") or c_url,
+                                        "link_quality": "DIRECT" if aj.get("application_url") else "LISTING_FALLBACK",
+                                        "raw_metadata": {"ai_extracted": True, "provider": ai_config.get("provider"), "model": ai_config.get("model"), "quote": aj.get("verbatim_quote")}
+                                    })
+                                    log_event("AI_VERIFY", "AI_VERIFIED", f"AI Job candidate verified for {company.company_name}: '{aj.get('job_title')}'", company_id=company.company_id, company_name=company.company_name)
+                                else:
+                                    if "stats" in CRAWL_TASK_STATE:
+                                        CRAWL_TASK_STATE["stats"]["ai_candidates_rejected"] = CRAWL_TASK_STATE["stats"].get("ai_candidates_rejected", 0) + 1
+                                    log_event("AI_VERIFY", "AI_REJECT", f"AI Job candidate rejected for {company.company_name}: '{aj.get('job_title', 'Unknown')}' ({reason})", company_id=company.company_id, company_name=company.company_name)
+                            
+                            strategy_name = f"AI_{strategy_name}" if strategy_name != "NONE" else "AI_EXTRACTION"
+                            company.extraction_strategy = strategy_name
+                except Exception as ai_job_err:
+                    logger.warning("AI Job extraction encountered non-blocking warning for %s: %s", company.company_name, ai_job_err)
 
         previous_active_count = Job.objects.filter(company=company, status='ACTIVE').count()
         extracted_count = len(extracted_jobs_list)
@@ -1418,16 +1484,27 @@ def sync_single_company_live(company) -> dict:
                         "content_hash": hashlib.md5(f"{j['title']}_{canon_url}".encode('utf-8')).hexdigest(),
                         "raw_metadata": j.get("raw_metadata") or j,
                     }
-                    obj, created = Job.objects.update_or_create(
-                        fingerprint=fp,
-                        defaults=defaults,
-                    )
-                    if created:
+                    # Check existing by fingerprint or by (company, canonical_url_hash)
+                    existing_job = Job.objects.filter(fingerprint=fp).first()
+                    if not existing_job and quality == "DIRECT" and canon_url:
+                        c_hash = hashlib.sha256(canon_url.encode('utf-8')).hexdigest()
+                        existing_job = Job.objects.filter(company=company, canonical_url_hash=c_hash).first()
+
+                    if existing_job:
+                        for field, val in defaults.items():
+                            if field != "job_id":
+                                setattr(existing_job, field, val)
+                        existing_job.fingerprint = fp
+                        existing_job.save()
+                        obj = existing_job
+                        created = False
+                        jobs_updated += 1
+                    else:
+                        obj = Job.objects.create(fingerprint=fp, **defaults)
                         obj.first_seen_at = sync_timestamp
                         obj.save(update_fields=['first_seen_at'])
+                        created = True
                         jobs_added += 1
-                    else:
-                        jobs_updated += 1
 
                     if ext_id:
                         Job.objects.filter(company=company, external_job_id=ext_id).update(
@@ -1519,6 +1596,64 @@ def sync_single_company_live(company) -> dict:
             csr_res = {"access_status": "ERROR", "error": str(exc), "csr_projects": [], "pdf_reports": []}
         csr_projects_list = csr_res.get("csr_projects", [])
         pdf_reports_list = csr_res.get("pdf_reports", [])
+
+        # AI-powered Section 135 CSR extraction when enabled and scope includes CSR
+        if ai_enabled and ai_scope in ("both", "csr"):
+            if len(csr_projects_list) == 0 or ai_strat == "assisted":
+                try:
+                    from modules.crawler_engine.state import CRAWL_TASK_STATE, log_event
+                    from modules.crawler_engine.hybrid_ai_service import HybridAIExtractionService
+                    from bs4 import BeautifulSoup
+
+                    log_event("AI_EXTRACT", "AI_PROBE", f"AI Section 135 CSR evaluating narrative for {company.company_name}...", company_id=company.company_id, company_name=company.company_name)
+                    if "stats" in CRAWL_TASK_STATE and "ai_requests_made" in CRAWL_TASK_STATE["stats"]:
+                        CRAWL_TASK_STATE["stats"]["ai_requests_made"] += 1
+
+                    csr_fetch = fetch_live_page(csr_target)
+                    raw_csr_text = ""
+                    if csr_fetch.get("ok") and csr_fetch.get("html"):
+                        s_csr = BeautifulSoup(csr_fetch["html"], "html.parser")
+                        for tag in s_csr(["script", "style", "nav", "header", "footer"]):
+                            tag.decompose()
+                        raw_csr_text = s_csr.get_text(separator=" ", strip=True)
+
+                    if len(raw_csr_text) > 100:
+                        csr_cand = HybridAIExtractionService.disambiguate_csr_narrative(
+                            company_id=company.company_id,
+                            company_name=company.company_name,
+                            snippet=raw_csr_text,
+                            source_url=csr_target,
+                            provider=ai_config.get("provider"),
+                            model=ai_config.get("model")
+                        )
+                        if csr_cand and csr_cand.get("is_actual_project"):
+                            is_valid, v_reason = HybridAIExtractionService.verify_csr_evidence(csr_cand, raw_csr_text)
+                            if is_valid:
+                                if "stats" in CRAWL_TASK_STATE:
+                                    CRAWL_TASK_STATE["stats"]["ai_candidates_verified"] = CRAWL_TASK_STATE["stats"].get("ai_candidates_verified", 0) + 1
+                                    CRAWL_TASK_STATE["stats"]["ai_csr_extracted"] = CRAWL_TASK_STATE["stats"].get("ai_csr_extracted", 0) + 1
+                                csr_projects_list.append({
+                                    "title": csr_cand.get("project_title"),
+                                    "focus_area": csr_cand.get("category") or "Community Development",
+                                    "summary": csr_cand.get("description") or csr_cand.get("verbatim_quotation"),
+                                    "budget_allocated": csr_cand.get("budget") or "Statutory CSR Allocation",
+                                    "geographic_location": csr_cand.get("geographic_location") or company.headquarters or "India",
+                                    "state": csr_cand.get("location_state"),
+                                    "source_url": csr_target,
+                                    "raw_metadata": {"ai_extracted": True, "provider": ai_config.get("provider"), "model": ai_config.get("model"), "quote": csr_cand.get("verbatim_quotation")}
+                                })
+                                log_event("AI_VERIFY", "AI_VERIFIED", f"AI Section 135 CSR verified for {company.company_name}: '{csr_cand.get('project_title')}'", company_id=company.company_id, company_name=company.company_name)
+                            else:
+                                if "stats" in CRAWL_TASK_STATE:
+                                    CRAWL_TASK_STATE["stats"]["ai_candidates_rejected"] = CRAWL_TASK_STATE["stats"].get("ai_candidates_rejected", 0) + 1
+                                log_event("AI_VERIFY", "AI_REJECT", f"AI CSR candidate rejected for {company.company_name}: '{csr_cand.get('project_title', 'Unknown')}' ({v_reason})", company_id=company.company_id, company_name=company.company_name)
+                        else:
+                            rejection = csr_cand.get("rejection_reason") if csr_cand else "No specific Section 135 project identified"
+                            if "stats" in CRAWL_TASK_STATE:
+                                CRAWL_TASK_STATE["stats"]["ai_candidates_rejected"] = CRAWL_TASK_STATE["stats"].get("ai_candidates_rejected", 0) + 1
+                            log_event("AI_VERIFY", "AI_REJECT", f"AI CSR evaluated for {company.company_name}: {rejection}", company_id=company.company_id, company_name=company.company_name)
+                except Exception as ai_csr_err:
+                    logger.warning("AI CSR extraction encountered non-blocking warning for %s: %s", company.company_name, ai_csr_err)
 
         if len(csr_projects_list) > 0 or len(pdf_reports_list) > 0:
             company.csr_access = "PUBLIC"
@@ -1795,8 +1930,8 @@ def process_company(company) -> dict:
     return sync_single_company_live(company)
 
 
-def start_background_crawl(company_ids=None, batch_label="Batch 1"):
-    """Background crawl compatibility runner supporting selectable 50-company batches."""
+def start_background_crawl(company_ids=None, batch_label="Batch 1", ai_config=None):
+    """Background crawl compatibility runner supporting selectable 50-company batches and optional AI-powered extraction."""
     from django.conf import settings
     if not getattr(settings, 'ALLOW_GLOBAL_SYNC', False):
         logger.warning("start_background_crawl REFUSED: ALLOW_GLOBAL_SYNC is False. Background crawling is disabled.")
@@ -1817,6 +1952,7 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1"):
         logger.warning("start_background_crawl: No companies found to crawl.")
         return False
 
+    ai_active = bool(ai_config and ai_config.get("enabled"))
     CRAWL_TASK_STATE["is_running"] = True
     CRAWL_TASK_STATE["start_time"] = timezone.now().isoformat()
     CRAWL_TASK_STATE["events"] = []
@@ -1834,14 +1970,33 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1"):
         "csr_pdfs": 0,
         "csr_projects": 0,
         "csr_opportunities": 0,
-        "contacts_found": 0
+        "contacts_found": 0,
+        # AI Metrics
+        "ai_enabled": ai_active,
+        "ai_scope": ai_config.get("scope", "disabled") if ai_config else "disabled",
+        "ai_provider": ai_config.get("provider", "None") if ai_config else "None",
+        "ai_strategy": ai_config.get("strategy", "None") if ai_config else "None",
+        "ai_requests_made": 0,
+        "ai_jobs_extracted": 0,
+        "ai_csr_extracted": 0,
+        "ai_candidates_verified": 0,
+        "ai_candidates_rejected": 0,
+        "ai_failed_requests": 0,
     }
+    
     log_event("INIT", "START", f"Initiating {batch_label} ({total_targets} companies)...")
+    if ai_active:
+        log_event(
+            "AI_CONFIG", "AI_ENABLED",
+            f"AI-Powered Extraction ACTIVATED: Provider={ai_config.get('provider')}, Scope={str(ai_config.get('scope', 'both')).upper()}, Strategy={str(ai_config.get('strategy', 'hybrid')).upper()}"
+        )
+    else:
+        log_event("AI_CONFIG", "AI_DISABLED", "AI extraction disabled for this run (deterministic extraction mode).")
 
     def _crawl_worker(company):
         close_old_connections()
         try:
-            res = sync_single_company_live(company)
+            res = sync_single_company_live(company, ai_config=ai_config)
             crawled = CRAWL_TASK_STATE["stats"]["companies_crawled"] + 1
             CRAWL_TASK_STATE["stats"]["companies_crawled"] = crawled
 

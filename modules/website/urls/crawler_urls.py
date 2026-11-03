@@ -2,7 +2,7 @@ from django.urls import path
 from modules.website.views.crawler_api_views import (
     crawler_logs_api, company_crawler_log_api, recheck_company_domain_api,
     recheck_company_domain_status_api,
-    live_sync_fetch_api, live_crawler_stream_api,
+    live_sync_fetch_api, live_crawler_stream_api, crawler_ai_config_status_api,
     admin_crawler_status_api, admin_verification_queue_api,
     admin_verify_api, admin_audit_trail_api
 )
@@ -20,6 +20,8 @@ urlpatterns = [
     path('api/fetch/live-sync/', live_sync_fetch_api, name='live_sync_fetch_slash'),
     path('api/crawler/live-stream', live_crawler_stream_api, name='live_crawler_stream'),
     path('api/crawler/live-stream/', live_crawler_stream_api, name='live_crawler_stream_slash'),
+    path('api/crawler/ai-config-status', crawler_ai_config_status_api, name='crawler_ai_config_status'),
+    path('api/crawler/ai-config-status/', crawler_ai_config_status_api, name='crawler_ai_config_status_slash'),
 
     # Legacy admin API compatibility endpoints
     path('admin/crawler-status', admin_crawler_status_api, name='legacy_admin_crawler_status'),

@@ -1,133 +1,368 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Edit {{ company.company_name }}{% endblock %}
+{% block title %}Edit {{ company.company_name }} — Company Management{% endblock %}
 {% block page_title %}Update Corporate Record: {{ company.company_name }}{% endblock %}
 
 {% block content %}
-<div style="margin-bottom:20px;">
+<div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
     <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary">
         &larr; Back to Company Dossier
     </a>
+    <span style="font-size:12px; color:var(--text-muted);">
+        Editing Entity ID: <code>{{ company.company_id }}</code>
+    </span>
 </div>
 
-<div class="admin-card" style="max-width: 880px; margin: 0 auto; padding: 28px;">
+<div class="admin-card" style="padding: 28px;">
     <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
-        <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">
-            Edit Corporate Intelligence Record &amp; Login Access Settings
+        <h2 style="font-size: 19px; font-weight: 800; color: var(--text-primary); margin: 0 0 4px;">
+            🏢 Comprehensive Corporate Profile Editor
         </h2>
-        <div style="font-size: 13px; color: var(--text-secondary);">
-            Update statutory profile, official CSR webpage/PDF URLs, and login-wall indicators for <strong>{{ company.company_name }}</strong>.
+        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            Modify statutory identity, verified source URLs, ATS platform settings, crawl governance, and public portal access modes for <strong>{{ company.company_name }}</strong>. All modifications are logged to the MySQL audit trail.
         </div>
     </div>
 
-    <form method="POST" style="display:flex; flex-direction:column; gap:20px;">
+    <form method="POST" style="display:flex; flex-direction:column; gap:26px;">
         {% csrf_token %}
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Company Name *</label>
-                <input type="text" name="company_name" value="{{ company.company_name }}" required class="search-input" style="height:42px;">
+
+        <!-- SECTION 1: CORE STATUTORY IDENTITY -->
+        <div>
+            <h3 style="font-size: 14px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px;">
+                1. Statutory Profile &amp; Stock Exchange Listing
+            </h3>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Company Name <span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="text" name="company_name" value="{{ company.company_name }}" required class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Full Legal Registered Name
+                    </label>
+                    <input type="text" name="legal_name" value="{{ company.legal_name|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Legal Entity Name</label>
-                <input type="text" name="legal_name" value="{{ company.legal_name|default_if_none:'' }}" class="search-input" style="height:42px;">
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        CIN Number
+                    </label>
+                    <input type="text" name="cin" value="{{ company.cin|default_if_none:'' }}" maxlength="50" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono);">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        NSE Ticker Symbol
+                    </label>
+                    <input type="text" name="nse_symbol" value="{{ company.nse_symbol|default_if_none:'' }}" maxlength="30" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono); text-transform:uppercase;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        BSE Scrip Code
+                    </label>
+                    <input type="text" name="bse_scrip_code" value="{{ company.bse_scrip_code|default_if_none:'' }}" maxlength="30" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono);">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        ISIN Code
+                    </label>
+                    <input type="text" name="isin" value="{{ company.isin|default_if_none:'' }}" maxlength="30" class="search-input" style="width:100%; height:42px; font-family:var(--font-mono);">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Listing Status
+                    </label>
+                    <select name="listing_status" class="select-filter" style="width:100%; height:42px;">
+                        <option value="ACTIVE" {% if company.listing_status == "ACTIVE" %}selected{% endif %}>ACTIVE</option>
+                        <option value="DELISTED" {% if company.listing_status == "DELISTED" %}selected{% endif %}>DELISTED</option>
+                        <option value="SUSPENDED" {% if company.listing_status == "SUSPENDED" %}selected{% endif %}>SUSPENDED</option>
+                        <option value="UNLISTED" {% if company.listing_status == "UNLISTED" %}selected{% endif %}>UNLISTED</option>
+                    </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:20px; padding-top:20px;">
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                        <input type="checkbox" name="listed_on_nse" value="1" {% if company.listed_on_nse %}checked{% endif %}>
+                        <span>Listed on NSE</span>
+                    </label>
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                        <input type="checkbox" name="listed_on_bse" value="1" {% if company.listed_on_bse %}checked{% endif %}>
+                        <span>Listed on BSE</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Sector / Industry Classification
+                    </label>
+                    <input type="text" list="sector-list" name="sector" value="{{ company.sector|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                    <datalist id="sector-list">
+                        {% for sec in all_sectors %}
+                        <option value="{{ sec }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Corporate Headquarters Address
+                    </label>
+                    <input type="text" name="headquarters" value="{{ company.headquarters|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Sector</label>
-                <input type="text" name="sector" value="{{ company.sector|default_if_none:'' }}" class="search-input" style="height:42px;">
+        <!-- SECTION 2: WEBSITES & EXTRACTION URLS -->
+        <div style="border-top:1px solid var(--border-color); padding-top:22px;">
+            <h3 style="font-size: 14px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px;">
+                2. Discovered Corporate URLs &amp; Source Provenance
+            </h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Corporate Homepage URL
+                    </label>
+                    <input type="url" name="website_url" value="{{ company.website_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Discovered Official Domain (FQDN)
+                    </label>
+                    <input type="text" name="official_domain" value="{{ company.official_domain|default_if_none:'' }}" placeholder="e.g. tcs.com" class="search-input" style="width:100%; height:42px;">
+                </div>
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Headquarters</label>
-                <input type="text" name="headquarters" value="{{ company.headquarters|default_if_none:'' }}" class="search-input" style="height:42px;">
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Official Careers Landing URL
+                    </label>
+                    <input type="url" name="careers_url" value="{{ company.careers_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Direct Jobs Search / Portal URL
+                    </label>
+                    <input type="url" name="jobs_page_url" value="{{ company.jobs_page_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Crawl Status</label>
-                <select name="crawl_status" class="select-filter" style="width:100%; height:42px;">
-                    <option value="CRAWLED" {% if company.crawl_status == "CRAWLED" %}selected{% endif %}>CRAWLED</option>
-                    <option value="PENDING" {% if company.crawl_status == "PENDING" %}selected{% endif %}>PENDING</option>
-                    <option value="FAILED" {% if company.crawl_status == "FAILED" %}selected{% endif %}>FAILED</option>
-                    <option value="BLOCKED" {% if company.crawl_status == "BLOCKED" %}selected{% endif %}>BLOCKED</option>
-                </select>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Section 135 CSR Portal URL
+                    </label>
+                    <input type="url" name="csr_portal_url" value="{{ company.csr_portal_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Corporate Foundation Portal URL
+                    </label>
+                    <input type="url" name="foundation_url" value="{{ company.foundation_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Sustainability Webpage URL
+                    </label>
+                    <input type="url" name="sustainability_url" value="{{ company.sustainability_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        ESG Disclosures URL
+                    </label>
+                    <input type="url" name="esg_url" value="{{ company.esg_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Annual Report URL
+                    </label>
+                    <input type="url" name="annual_report_url" value="{{ company.annual_report_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        SEBI BRSR Filing URL
+                    </label>
+                    <input type="url" name="brsr_url" value="{{ company.brsr_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Investor Relations URL
+                    </label>
+                    <input type="url" name="investor_url" value="{{ company.investor_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Official Contact Page URL
+                    </label>
+                    <input type="url" name="contact_page_url" value="{{ company.contact_page_url|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+                </div>
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Corporate Website URL</label>
-                <input type="url" name="website_url" value="{{ company.website_url|default_if_none:'' }}" class="search-input" style="height:42px;">
+        <!-- SECTION 3: ATS PLATFORM & CRAWL GOVERNANCE -->
+        <div style="border-top:1px solid var(--border-color); padding-top:22px;">
+            <h3 style="font-size: 14px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px;">
+                3. ATS Integration &amp; Crawl Engine Governance
+            </h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        ATS Platform Vendor
+                    </label>
+                    <input type="text" name="ats_platform" value="{{ company.ats_platform|default_if_none:'' }}" placeholder="e.g. Workday, SuccessFactors, Taleo, Greenhouse" class="search-input" style="width:100%; height:42px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        ATS Tenant / Base URL
+                    </label>
+                    <input type="text" name="ats_url" value="{{ company.ats_url|default_if_none:'' }}" placeholder="https://company.wd3.myworkdayjobs.com/Careers" class="search-input" style="width:100%; height:42px;">
+                </div>
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Careers Portal URL (ATS)</label>
-                <input type="url" name="careers_url" value="{{ company.careers_url|default_if_none:'' }}" class="search-input" style="height:42px;">
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-top:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Crawl Status
+                    </label>
+                    <select name="crawl_status" class="select-filter" style="width:100%; height:42px;">
+                        <option value="CRAWLED" {% if company.crawl_status == "CRAWLED" %}selected{% endif %}>CRAWLED</option>
+                        <option value="PENDING" {% if company.crawl_status == "PENDING" %}selected{% endif %}>PENDING</option>
+                        <option value="FAILED" {% if company.crawl_status == "FAILED" %}selected{% endif %}>FAILED</option>
+                        <option value="SUSPECT_DROP" {% if company.crawl_status == "SUSPECT_DROP" %}selected{% endif %}>SUSPECT_DROP</option>
+                        <option value="BLOCKED" {% if company.crawl_status == "BLOCKED" %}selected{% endif %}>BLOCKED</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Live Sync Status
+                    </label>
+                    <select name="sync_status" class="select-filter" style="width:100%; height:42px;">
+                        {% for st_val, st_lbl in sync_choices %}
+                        <option value="{{ st_val }}" {% if company.sync_status == st_val %}selected{% endif %}>{{ st_lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display:flex; align-items:center; padding-top:20px;">
+                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                        <input type="checkbox" name="website_url_locked" value="1" {% if company.website_url_locked %}checked{% endif %}>
+                        <span>Lock Corporate URLs (Prevent Crawler Overwrite)</span>
+                    </label>
+                </div>
             </div>
         </div>
 
-        <div style="border:1px solid var(--border-color); border-radius:10px; padding:16px;">
-            <div style="font-size:13.5px; font-weight:800; color:var(--text-primary); margin-bottom:4px;">🌱 Official CSR Webpage &amp; Document URLs</div>
-            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
-                Different companies publish CSR disclosures across webpages, foundations, sustainability/ESG portals, or PDF reports (BRSR / Annual Report). Enter all verified official links below:
+        <!-- SECTION 4: VERIFICATION & GOVERNANCE -->
+        <div style="border-top:1px solid var(--border-color); padding-top:22px;">
+            <h3 style="font-size: 14px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px;">
+                4. Statutory Verification State &amp; Evidentiary Notes
+            </h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Verification Status
+                    </label>
+                    <select name="verification_status" class="select-filter" style="width:100%; height:42px;">
+                        {% for v_val, v_lbl in verification_choices %}
+                        <option value="{{ v_val }}" {% if company.verification_status == v_val %}selected{% endif %}>{{ v_lbl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                        Website Health Status
+                    </label>
+                    <select name="website_url_status" class="select-filter" style="width:100%; height:42px;">
+                        <option value="VERIFIED" {% if company.website_url_status == "VERIFIED" %}selected{% endif %}>VERIFIED</option>
+                        <option value="UNKNOWN" {% if company.website_url_status == "UNKNOWN" %}selected{% endif %}>UNKNOWN</option>
+                        <option value="BROKEN" {% if company.website_url_status == "BROKEN" %}selected{% endif %}>BROKEN</option>
+                        <option value="REDIRECTED" {% if company.website_url_status == "REDIRECTED" %}selected{% endif %}>REDIRECTED</option>
+                    </select>
+                </div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">CSR Portal Webpage URL</label>
-                    <input type="url" name="csr_portal_url" value="{{ company.csr_portal_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Corporate Foundation URL</label>
-                    <input type="url" name="foundation_url" value="{{ company.foundation_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Sustainability Webpage URL</label>
-                    <input type="url" name="sustainability_url" value="{{ company.sustainability_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">ESG Webpage URL</label>
-                    <input type="url" name="esg_url" value="{{ company.esg_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">SEBI BRSR Report / PDF URL</label>
-                    <input type="url" name="brsr_url" value="{{ company.brsr_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Annual Report / PDF URL</label>
-                    <input type="url" name="annual_report_url" value="{{ company.annual_report_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Investor Relations URL</label>
-                    <input type="url" name="investor_url" value="{{ company.investor_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
-                <div>
-                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Contact Us Page URL</label>
-                    <input type="url" name="contact_page_url" value="{{ company.contact_page_url|default_if_none:'' }}" class="search-input" style="height:38px;">
-                </div>
+
+            <div style="margin-top:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                    Verification Rationale / Reason
+                </label>
+                <input type="text" name="verification_reason" value="{{ company.verification_reason|default_if_none:'' }}" class="search-input" style="width:100%; height:42px;">
+            </div>
+
+            <div style="margin-top:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                    Verbatim Evidentiary Quotation / Disclosure Proof
+                </label>
+                <textarea name="evidence_text" rows="2" class="search-input" style="width:100%; padding:10px;">{{ company.evidence_text|default_if_none:'' }}</textarea>
             </div>
         </div>
 
-        <div style="border:1.5px solid var(--warning-border, #f59e0b); background:var(--warning-bg, #fffbeb); border-radius:10px; padding:16px;">
-            <div style="font-size:13.5px; font-weight:800; color:#92400E; margin-bottom:4px;">🔒 Login-Required Data Visibility Settings</div>
-            <div style="font-size:12px; color:#78350F; margin-bottom:12px;">
-                Choose <b>Visible only after login on the company website</b> when the company's website requires user login to view that section.
-                Both the Admin Panel and Public Website will clearly display <em>"{{ login_required_text }}"</em> instead of empty or guessed values.
+        <!-- SECTION 5: PUBLIC PORTAL LOGIN REQUIREMENTS -->
+        <div style="border-top:1px solid var(--border-color); padding-top:22px;">
+            <h3 style="font-size: 14px; font-weight: 800; color: var(--primary-brand); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px;">
+                5. Website Login-Wall Indicators (Public Portal Display)
+            </h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px;">
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Jobs Access</label>
+                    <select name="jobs_access" class="select-filter" style="width:100%; height:40px;">
+                        {% for k, v in access_choices %}
+                        <option value="{{ k }}" {% if company.jobs_access == k %}selected{% endif %}>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">CSR Access</label>
+                    <select name="csr_access" class="select-filter" style="width:100%; height:40px;">
+                        {% for k, v in access_choices %}
+                        <option value="{{ k }}" {% if company.csr_access == k %}selected{% endif %}>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:11.5px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Contacts Access</label>
+                    <select name="contacts_access" class="select-filter" style="width:100%; height:40px;">
+                        {% for k, v in access_choices %}
+                        <option value="{{ k }}" {% if company.contacts_access == k %}selected{% endif %}>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            {% for field, label, current in access_fields %}
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                <label style="width:90px; font-size:12px; font-weight:700; text-transform:uppercase; color:#78350F;">{{ label }}</label>
-                <select name="{{ field }}" class="search-input" style="height:38px; flex:1; background:#fff;">
-                    {% for value, text in access_choices %}
-                    <option value="{{ value }}" {% if value == current %}selected{% endif %}>{{ text }}</option>
-                    {% endfor %}
-                </select>
+
+            <div style="margin-top:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                    Portal Display Note (Visible to public when login required)
+                </label>
+                <input type="text" name="data_access_note" value="{{ company.data_access_note|default_if_none:'' }}" placeholder="e.g. Candidate login required on company portal to view openings" class="search-input" style="width:100%; height:42px;">
             </div>
-            {% endfor %}
-            <label style="display:block; font-size:12px; font-weight:700; text-transform:uppercase; color:#78350F; margin:8px 0 6px;">Admin Note (what requires login on the company website)</label>
-            <textarea name="data_access_note" rows="2" class="search-input" style="width:100%; background:#fff;">{{ company.data_access_note|default_if_none:"" }}</textarea>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px; border-top:1px solid var(--border-color); padding-top:18px;">
-            <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary">Cancel</a>
-            <button type="submit" class="btn-admin btn-admin-primary" style="padding:9px 24px;">Save Changes</button>
+        <!-- FORM ACTION BUTTONS -->
+        <div style="border-top:1px solid var(--border-color); padding-top:24px; display:flex; justify-content:flex-end; gap:12px;">
+            <a href="{% url 'admin_companies:detail' company.company_id %}" class="btn-admin btn-admin-secondary" style="padding:10px 20px;">
+                Cancel
+            </a>
+            <button type="submit" class="btn-admin btn-admin-primary" style="padding:10px 24px; font-size:13.5px; font-weight:700;">
+                ✓ Save Company Profile &amp; Audit Trail
+            </button>
         </div>
     </form>
 </div>

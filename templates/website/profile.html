@@ -291,7 +291,7 @@
                 </div>
                 <div style="background:#F8FAFC; padding:14px 16px; border-radius:10px; border:1px solid #E2E8F0;">
                     <div style="font-size:11px; text-transform:uppercase; color:#64748B; font-weight:700;">Tenant Identifier</div>
-                    <div style="font-size:13px; font-weight:600; color:#0F766E; margin-top:3px;" class="mono">{{ subscription.tenant_id }}</div>
+                    <div style="font-size:13px; font-weight:600; color:#0A6CFF; margin-top:3px;" class="mono">{{ subscription.tenant_id }}</div>
                 </div>
             </div>
         </div>
@@ -300,9 +300,10 @@
         <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; align-items:start; margin-bottom:24px;">
             <!-- ACTIVE SUBSCRIPTION CARD -->
             <div class="card" style="margin-bottom:0;">
+                {% if subscription %}
                 <div class="card-header">
                     <div>
-                        <span style="font-size:11px; text-transform:uppercase; color:#0F766E; font-weight:700; letter-spacing:0.5px;">My Subscription</span>
+                        <span style="font-size:11px; text-transform:uppercase; color:#0A6CFF; font-weight:700; letter-spacing:0.5px;">My Subscription</span>
                         <h2 style="margin:2px 0 0; font-size:20px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;">
                             {{ plan.name|default:subscription.plan_id|upper }}
                             {% if subscription.status == "ACTIVE" %}
@@ -359,7 +360,7 @@
                         {% for ent in entitlements %}
                         <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:6px 10px; background:#F8FAFC; border-radius:6px; border:1px solid #F1F5F9;">
                             <span style="color:#334155;">{{ ent.name }}</span>
-                            <span class="mono" style="font-weight:700; color:#0F766E;">{{ ent.raw_value }}</span>
+                            <span class="mono" style="font-weight:700; color:#0A6CFF;">{{ ent.raw_value }}</span>
                         </div>
                         {% empty %}
                         <div style="font-size:12.5px; color:#64748B;">Standard Community features.</div>
@@ -373,7 +374,7 @@
                         Change Plan
                     </a>
 
-                    {% if subscription.plan_id != "starter" %}
+                    {% if subscription.plan_id != "starter" and subscription.plan_id != "free" %}
                         {% if subscription.auto_renew %}
                         <form id="form-cancel-autorenew" method="POST" style="margin:0;" onsubmit="return openAutoRenewOffModal(event);">
                             {% csrf_token %}
@@ -401,6 +402,18 @@
                         </form>
                     {% endif %}
                 </div>
+                {% else %}
+                <div style="text-align:center; padding:32px 16px;">
+                    <span style="font-size:11px; text-transform:uppercase; color:#64748B; font-weight:700; letter-spacing:0.5px;">My Subscription</span>
+                    <h3 style="margin:8px 0 6px; font-size:18px; font-weight:800; color:#0F172A;">No Active Subscription</h3>
+                    <p style="color:#64748B; font-size:13px; max-width:320px; margin:0 auto 18px;">
+                        You do not have an active subscription assigned. You can select an institutional tier below.
+                    </p>
+                    <a href="/#tab-pricing" class="btn-custom btn-primary-c">
+                        View Available Plans
+                    </a>
+                </div>
+                {% endif %}
             </div>
 
             <!-- PROTOTYPE WALLET CARD -->
@@ -521,7 +534,7 @@
                                 <td class="mono" style="color:#16A34A; font-weight:700;">&#8377; {{ inv.total_amount|floatformat:2 }}</td>
                                 <td style="font-size:11.5px; color:#64748B;">{{ inv.issued_at|date:"M d, Y" }}</td>
                                 <td>
-                                    <a href="{% url 'admin_subscriptions:invoice_detail' inv.invoice_id %}" target="_blank" style="color:#0F766E; font-size:12px; text-decoration:none; font-weight:600;">
+                                    <a href="{% url 'admin_subscriptions:invoice_detail' inv.invoice_id %}" target="_blank" style="color:#0A6CFF; font-size:12px; text-decoration:none; font-weight:600;">
                                         View Receipt &nearr;
                                     </a>
                                 </td>
@@ -560,7 +573,7 @@
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:13px;">
                         <span style="color:#64748B;">Active Until:</span>
-                        <strong style="color:#0F766E;">{{ subscription.current_period_end|date:"F j, Y" }}</strong>
+                        <strong style="color:#0A6CFF;">{{ subscription.current_period_end|date:"F j, Y" }}</strong>
                     </div>
                 </div>
                 <div style="font-size:13px; color:#334155; line-height:1.6; margin-bottom:12px;">
@@ -571,7 +584,7 @@
                         <li>After this date, your account will downgrade to the free Community Starter tier unless manually renewed.</li>
                     </ul>
                 </div>
-                <div style="font-size:12px; color:#64748B; background:#F0FDFA; border:1px solid #CCFBF1; border-radius:8px; padding:10px 12px;">
+                <div style="font-size:12px; color:#64748B; background:#EFF6FF; border:1px solid #CCFBF1; border-radius:8px; padding:10px 12px;">
                     💡 You can re-enable automatic renewal at any time before your billing cycle ends.
                 </div>
             </div>
@@ -623,7 +636,7 @@
                 </div>
 
                 <div style="font-size:12px; color:#64748B; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:8px; padding:10px 14px;">
-                    💼 <strong>Need help or customized terms?</strong> Contact our institutional accounts desk at <a href="mailto:support@impactbridge.org" style="color:#0F766E; font-weight:600;">support@impactbridge.org</a> to pause your account or discuss annual team pricing.
+                    💼 <strong>Need help or customized terms?</strong> Contact our institutional accounts desk at <a href="mailto:support@impactbridge.org" style="color:#0A6CFF; font-weight:600;">support@impactbridge.org</a> to pause your account or discuss annual team pricing.
                 </div>
             </div>
             <div class="modal-footer" style="padding:14px 24px; background:#F8FAFC; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
