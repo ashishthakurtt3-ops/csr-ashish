@@ -18,6 +18,7 @@ import logging
 import urllib.request
 import urllib.error
 import urllib.parse
+import asyncio
 from typing import List, Dict, Any, Tuple
 from django.utils import timezone
 from django.db import transaction
@@ -27,6 +28,16 @@ try:
     from curl_cffi import requests as cffi_requests
 except ImportError:
     cffi_requests = None
+
+try:
+    from playwright.async_api import async_playwright
+except ImportError:
+    async_playwright = None
+
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
 
 from bs4 import BeautifulSoup
 
@@ -41,6 +52,15 @@ from modules.crawler_engine.crawler import (
 )
 from modules.crawler_engine.adapters.reliance import ReliancePortalAdapter
 from modules.crawler_engine.adapters.generic_jsonld import GenericStructuredJobAdapter
+from modules.crawler_engine.discovery_helpers import (
+    is_valid_job_title,
+    is_valid_csr_project,
+    is_static_asset_url,
+    derive_deep_job_url,
+    resolve_authentic_csr_url,
+    ENTERPRISE_PORTAL_REGISTRY,
+    ENTERPRISE_CSR_REGISTRY
+)
 
 logger = logging.getLogger(__name__)
 
@@ -61,94 +81,6 @@ BROWSER_HEADERS = {
 
 
 
-JUNK_JOB_TITLE_BLACKLIST = {
-    'fraud alert', 'fraud alert - global', 'equal opportunity policy',
-    'frequently asked questions', 'faq', 'faqs', 'view all', 'download app',
-    'video library', 'privacy policy', 'terms of use', 'terms & conditions',
-    'know more', 'click here', 'apply now', 'read more', 'all rights reserved',
-    'disclaimer', 'sitemap', 'cookie policy', 'cookie settings', 'login',
-    'sign in', 'register', 'types of loan against assets', 'know more about loans'
-}
-
-JUNK_CSR_NAME_BLACKLIST = {
-    'cookie', 'cookies', 'privacy policy', 'terms of use', 'disclaimer',
-    'all rights reserved', 'setter on your browser', 'refuse to accept cookies',
-    'you may refuse to accept', 'click here', 'read more', 'view all'
-}
-
-def is_valid_job_title(title: str) -> bool:
-    if not title or len(title.strip()) < 4 or len(title.strip()) > 120:
-        return False
-    t_lower = title.strip().lower()
-    for junk in JUNK_JOB_TITLE_BLACKLIST:
-        if junk in t_lower:
-            return False
-    # Must have alphabetic characters
-    if not re.search(r'[a-zA-Z]', title):
-        return False
-    return True
-
-def is_valid_csr_project(name: str) -> bool:
-    if not name or len(name.strip()) < 5 or len(name.strip()) > 150:
-        return False
-    n_lower = name.strip().lower()
-    for junk in JUNK_CSR_NAME_BLACKLIST:
-        if junk in n_lower:
-            return False
-    if not re.search(r'[a-zA-Z]', name):
-        return False
-    return True
-
-
-def derive_deep_job_url(careers_url: str, comp_name: str, job_title: str, existing_url: str = "", req_id: str = "") -> str:
-    """
-    Constructs a direct, authentic deep application URL for a job vacancy.
-    Ensures every job links directly to its specific portal requisition page instead of the generic homepage.
-    """
-    if existing_url and str(existing_url).startswith(('http://', 'https://')):
-        # If it's already a direct requisition or ATS apply link, keep it exactly as extracted!
-        if any(k in existing_url.lower() for k in ['/job/', 'jobid=', 'jobreferencecode=', '/jobs/', '/apply', 'req=', 'id=', 'frmjobsearch.aspx', 'workdayjobs.com', 'amazon.jobs', 'lever.co', 'greenhouse.io', 'smartrecruiters.com', 'darwinbox']):
-            return existing_url
-
-    slug = re.sub(r'[^a-zA-Z0-9]+', '-', job_title.strip()).lower().strip('-')
-    h = req_id if (req_id and len(req_id) >= 4) else hashlib.md5(f"{comp_name}_{job_title}".encode('utf-8')).hexdigest()[:8].upper()
-    comp_lower = comp_name.lower()
-
-    if 'tcs' in comp_lower or 'tata consultancy' in comp_lower:
-        return f"https://ibegin.tcsapps.com/candidate/?geography=IN&language=EN#job-{h}"
-    elif 'infosys' in comp_lower:
-        return f"https://career.infosys.com/jobdesc?jobReferenceCode=PRO-{h}"
-    elif 'microsoft' in comp_lower:
-        return f"https://careers.microsoft.com/us/en/job/{h}/{slug}"
-    elif 'reliance' in comp_lower or 'ril' in comp_lower:
-        return f"https://careers.ril.com/rilcareers/frmjobsearch.Aspx?JobId={h}"
-    elif 'samsung' in comp_lower:
-        return f"https://sec.wd3.myworkdayjobs.com/Samsung_Careers/job/{slug}_R-{h}"
-    elif 'amazon' in comp_lower:
-        return f"https://amazon.jobs/en/jobs/{h}"
-    elif 'google' in comp_lower:
-        return f"https://www.google.com/about/careers/applications/jobs/results/{h}"
-    elif 'hcl' in comp_lower:
-        return f"https://www.hcltech.com/careers/jobs/{slug}-{h}"
-    elif 'wipro' in comp_lower:
-        return f"https://careers.wipro.com/careers-home/jobs/{h}"
-    elif 'icici' in comp_lower:
-        return f"https://www.icicicareers.com/CareerApplicant/JobSearch/JobDetail?JobId={h}"
-    elif 'hdfc' in comp_lower:
-        return f"https://www.hdfcbank.com/personal/about-us/careers/job-openings/{h}"
-    elif 'accenture' in comp_lower:
-        return f"https://www.accenture.com/in-en/careers/jobdetails?id={h}"
-    elif 'cognizant' in comp_lower:
-        return f"https://careers.cognizant.com/global/en/job/{h}/{slug}"
-    elif 'l&t' in comp_lower or 'larsen' in comp_lower:
-        return f"https://larsentoubrocareers.peoplestrong.com/portal/job/{h}"
-    elif 'tata motors' in comp_lower:
-        return f"https://careers.tatamotors.com/jobs/{h}"
-    elif 'tata steel' in comp_lower:
-        return f"https://tslhr.tatasteel.co.in/recruit/jobdetails.aspx?req={h}"
-    else:
-        clean_base = careers_url.rstrip('/')
-        return f"{clean_base}/jobs/{slug}-{h}"
 
 class BatchDiscoveryService:
     """Core service orchestrating file parsing, web crawling, AI extraction, and direct database auto-import."""
@@ -289,6 +221,8 @@ class BatchDiscoveryService:
             return ""
         if not s.startswith(('http://', 'https://')):
             s = 'https://' + s
+        if is_static_asset_url(s):
+            return ""
         return s
 
     @classmethod
@@ -415,8 +349,12 @@ class BatchDiscoveryService:
 
             if href_clean.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
                 continue
+            if is_static_asset_url(href_clean):
+                continue
 
             full_url = urllib.parse.urljoin(base_url, href_clean)
+            if is_static_asset_url(full_url):
+                continue
 
             if not discovered['careers_url']:
                 if any(w in combined for w in ['careers', 'career', 'job', 'work-with-us', 'join-us', 'openings', 'current openings', 'vacanc']):
@@ -434,6 +372,61 @@ class BatchDiscoveryService:
         return discovered
 
     @classmethod
+    def fetch_rendered_page(cls, url: str, timeout: int = 15) -> Tuple[str, str, int]:
+        """
+        Uses headless Playwright to render client-side JavaScript SPAs (React, Vue, Angular, SuccessFactors, Workday).
+        Returns (raw_html, cleaned_text, status_code).
+        """
+        if not url or not async_playwright:
+            return "", "", 0
+        try:
+            async def _render():
+                async with async_playwright() as p:
+                    browser = await p.chromium.launch(headless=True)
+                    page = await browser.new_page()
+                    try:
+                        resp = await page.goto(url, wait_until='domcontentloaded', timeout=timeout * 1000)
+                        await page.wait_for_timeout(2500)
+                        content = await page.content()
+                        status = resp.status if resp else 200
+                        return content, status
+                    finally:
+                        await browser.close()
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            raw_html, status = loop.run_until_complete(_render())
+            loop.close()
+            if not raw_html:
+                return "", "", status or 0
+            soup = BeautifulSoup(raw_html, 'html.parser')
+            for tag in soup(['script', 'style', 'nav', 'footer', 'noscript', 'aside']):
+                tag.decompose()
+            cleaned = re.sub(r'\s+', ' ', soup.get_text(' ', strip=True)).strip()
+            return raw_html, cleaned, status
+        except Exception as e:
+            logger.debug(f"Headless render error for {url}: {e}")
+            return "", "", 0
+
+    @classmethod
+    def extract_pdf_text_from_url(cls, pdf_url: str, max_pages: int = 10, timeout: int = 12) -> str:
+        """Downloads and extracts clean text from a statutory Section 135 PDF report."""
+        if not pdf_url or not PdfReader or not cffi_requests:
+            return ""
+        try:
+            resp = cffi_requests.get(pdf_url, impersonate="chrome124", timeout=timeout, headers=BROWSER_HEADERS)
+            if resp.status_code == 200 and resp.content:
+                reader = PdfReader(io.BytesIO(resp.content))
+                pages_text = []
+                for p in reader.pages[:max_pages]:
+                    txt = p.extract_text()
+                    if txt:
+                        pages_text.append(txt)
+                return "\n".join(pages_text).strip()
+        except Exception as e:
+            logger.debug(f"PDF extract error for {pdf_url}: {e}")
+        return ""
+
+    @classmethod
     def find_deep_openings_link(cls, raw_html: str, current_careers_url: str) -> str:
         """
         When on a careers landing page, finds specific links pointing to actual vacancies/openings.
@@ -446,12 +439,21 @@ class BatchDiscoveryService:
             href_clean = href.strip()
             if href_clean.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
                 continue
+            if is_static_asset_url(href_clean):
+                continue
             full_url = urllib.parse.urljoin(current_careers_url, href_clean)
+            if is_static_asset_url(full_url):
+                continue
             if full_url.rstrip('/').lower() == curr_norm:
                 continue
             text_clean = re.sub(r'<[^>]+>', ' ', link_text).strip().lower()
             combined = f"{href_clean.lower()} {text_clean}"
-            if any(k in combined for k in ['openings', 'current-openings', 'current openings', 'vacanc', 'search-job', 'job-search', 'explore-opportunities', 'opportunities', 'view-jobs', 'positions', 'career-opportunities']):
+            if any(k in combined for k in [
+                'openings', 'current-openings', 'current openings', 'vacanc', 'search-job', 'job-search',
+                'explore-opportunities', 'opportunities', 'view-jobs', 'positions', 'career-opportunities',
+                'open-jobs', 'viewalljobs', 'search-jobs', 'find-jobs', 'lateral-hiring', 'job-opportunities',
+                'explore-roles', 'all-jobs', 'view-all', 'work-with-us', 'careers/openings'
+            ]):
                 if not any(bad in full_url.lower() for bad in ['login', 'auth', 'privacy', 'terms', 'facebook', 'twitter', 'linkedin', 'instagram', 'youtube', 'exchange', 'student', 'admission', 'study-abroad']):
                     return full_url
         return ""
@@ -469,12 +471,21 @@ class BatchDiscoveryService:
             href_clean = href.strip()
             if href_clean.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
                 continue
+            if is_static_asset_url(href_clean):
+                continue
             full_url = urllib.parse.urljoin(current_csr_url, href_clean)
+            if is_static_asset_url(full_url):
+                continue
             if full_url.rstrip('/').lower() == curr_norm:
                 continue
             text_clean = re.sub(r'<[^>]+>', ' ', link_text).strip().lower()
             combined = f"{href_clean.lower()} {text_clean}"
-            if any(k in combined for k in ['initiatives', 'projects', 'our-work', 'programmes', 'programs', 'impact', 'focus-areas', 'annual-report', 'policy', 'interventions', 'sustainability-strategy', 'planet-resilience', 'working-with-communities']):
+            if any(k in combined for k in [
+                'initiatives', 'projects', 'our-work', 'programmes', 'programs', 'impact', 'focus-areas',
+                'annual-report', 'policy', 'interventions', 'sustainability-strategy', 'planet-resilience',
+                'working-with-communities', 'csr-policy', 'csr-committee', 'foundation', 'csr-activities',
+                'social-responsibility'
+            ]):
                 if not any(bad in full_url.lower() for bad in ['login', 'auth', 'privacy', 'terms', 'facebook', 'twitter', 'linkedin', 'instagram', 'youtube']):
                     return full_url
         return ""
@@ -482,104 +493,98 @@ class BatchDiscoveryService:
     @classmethod
     def extract_jobs_via_ats_intelligence(cls, company: Company, careers_url: str, sector: str, logs: List[str]) -> List[Dict[str, Any]]:
         """
-        Engages AI Corporate Intelligence to discover genuine active vacancies and recruitment tracks
-        when a company's career page is a dynamic ATS portal (Workday, SuccessFactors, Taleo, etc.)
-        where vacancies are rendered client-side via JavaScript or protected by WAF.
-        Does NOT artificially cap at 5 or any fixed number.
+        Grounded dynamic portal extraction:
+        Renders client-side dynamic DOM using headless browser, and extracts authentic vacancies.
+        NEVER synthesizes hallucinated job titles or fake requisition IDs.
         """
-        logs.append(f"⚡ Engaging AI ATS Intelligence for dynamic portal '{careers_url}'...")
-        prompt = f"""You are an enterprise talent and executive recruitment intelligence auditor specializing in the Indian corporate market.
-Company: {company.company_name}
-Sector: {sector}
-Careers Portal: {careers_url}
-Context: The company is a major enterprise with massive operations across India whose career portal is a dynamic ATS.
-
-Task: Provide the authentic, comprehensive hiring portfolio of all active Indian corporate job vacancies that {company.company_name} recruits for in its delivery hubs and corporate offices (Bengaluru, Mumbai, Hyderabad, Pune, Gurugram, Noida, Chennai, Kolkata).
-Cover all diverse business and technical departments: Cloud Architecture, AI/ML Engineering, Full Stack Software Engineering, Cybersecurity, Data Engineering, SAP/ERP Consulting, QA Automation, Corporate Finance & FP&A, Operations & Supply Chain, HR & Talent Acquisition, and Sales/Account Management.
-Do NOT limit, cap, or truncate at 5 or any arbitrary number. Reflect the true corporate hiring volume of the enterprise.
-
-Respond ONLY with a valid JSON array conforming to this schema:
-[
-  {{
-    "job_title": "Specific job title",
-    "location": "City, State in India",
-    "department": "Engineering / Technology / Operations / Finance / Sales / HR / Product / Consulting",
-    "employment_type": "Full-time",
-    "work_mode": "Hybrid | On-site | Remote",
-    "experience": "3-7 Years | 5-10 Years | 2-5 Years",
-    "job_description": "2-sentence summary of core technical responsibilities and qualifications required for this position",
-    "verbatim_source_quote": "Enterprise hiring track for {company.company_name} India operations",
-    "requisition_id": "Authentic portal job ID or code",
-    "application_url": "Direct deep link to this requisition on the career portal",
-    "confidence": 0.95
-  }}
-]"""
+        logs.append(f"⚡ Inspecting dynamic client-side portal '{careers_url}' with headless browser...")
         try:
-            parsed, prov, model = HybridAIExtractionService._execute_prompt_with_failover(
-                prompt=prompt,
-                preferred_provider="gemini",
-                preferred_model=None,
-                company_id=company.company_id,
-                company_name=company.company_name,
-                task="ats_job_synthesis",
-                evidence_excerpt=f"ATS Synthesis for {company.company_name}"
-            )
-            if isinstance(parsed, list) and parsed:
-                valid_parsed = [j for j in parsed if isinstance(j, dict) and is_valid_job_title(j.get('job_title'))]
-                logs.append(f"✓ AI Corporate Intelligence discovered {len(valid_parsed)} verified active vacancies for {company.company_name}.")
-                return valid_parsed
+            r_html, r_text, r_status = cls.fetch_rendered_page(careers_url, timeout=12)
+            if r_html and len(r_text) > 80:
+                soup = BeautifulSoup(r_html, 'html.parser')
+                cards = detect_repeating_dom_job_cards(soup, careers_url)
+                if cards and len(cards) >= 2:
+                    valid_cards = []
+                    for card in cards:
+                        t = card.get('title')
+                        if is_valid_job_title(t):
+                            valid_cards.append({
+                                'job_title': t,
+                                'location': card.get('location') or 'India',
+                                'department': card.get('department') or 'Corporate',
+                                'work_mode': 'Full-time',
+                                'experience': 'As specified on portal',
+                                'application_url': card.get('apply_url') or careers_url,
+                                'verbatim_source_quote': card.get('verbatim_quote') or f"Rendered Job: {t}",
+                                'confidence': 0.95
+                            })
+                    if valid_cards:
+                        logs.append(f"✓ Headless browser extracted {len(valid_cards)} active vacancies directly from rendered DOM")
+                        return valid_cards
+
+                ai_jobs = HybridAIExtractionService.extract_unstructured_jobs(
+                    company_id=company.company_id,
+                    company_name=company.company_name,
+                    raw_content=r_text,
+                    careers_url=careers_url,
+                    timeout=15
+                )
+                if ai_jobs and isinstance(ai_jobs, list):
+                    valid_ai = [j for j in ai_jobs if isinstance(j, dict) and is_valid_job_title(j.get('job_title'))]
+                    if valid_ai:
+                        logs.append(f"✓ Extracted {len(valid_ai)} active vacancies from rendered portal text")
+                        return valid_ai
         except Exception as e:
-            logs.append(f"AI ATS Intelligence note: {str(e)[:80]}")
+            logs.append(f"Dynamic portal note: {str(e)[:80]}")
+
+        logs.append(f"ℹ️ Portal uses direct candidate login or no static vacancies published.")
         return []
 
     @classmethod
     def extract_csr_via_intelligence(cls, company: Company, csr_url: str, sector: str, logs: List[str]) -> List[Dict[str, Any]]:
         """
-        Engages AI Section 135 Intelligence to extract genuine, authentic CSR initiatives and Foundation projects
-        when a company's CSR details are housed in annual PDF filings, interactive portals, or behind client-side tabs.
-        Does NOT artificially cap at 5 or any fixed number.
+        Grounded Section 135 extraction:
+        Inspects statutory Section 135 annual report and disclosure PDFs, extracting genuine initiatives.
+        NEVER synthesizes templated project names.
         """
-        logs.append(f"⚡ Engaging AI Section 135 Intelligence for MCA Schedule VII disclosures...")
-        prompt = f"""You are an expert corporate social responsibility auditor under Section 135 and Schedule VII of the Indian Companies Act, 2013.
-Company: {company.company_name}
-Sector: {sector}
-Target CSR Portal: {csr_url}
-Context: The company is a major corporate enterprise with substantial operational presence in India subject to Section 135 CSR obligations.
-
-Task: Extract all major official Section 135 Schedule VII CSR programs, flagship foundation initiatives, and social development projects undertaken by {company.company_name} (or its registered Foundation) in India.
-Cover all major Schedule VII focus areas: Education & Digital Literacy, Healthcare & Sanitation, Skill Development & Livelihood, Rural Infrastructure, Water Conservation, and Environmental Sustainability.
-Do NOT limit, cap, or truncate at 5 or any arbitrary number. Return all verified projects reflecting the real social footprint.
-
-Respond ONLY with a valid JSON array conforming to this schema:
-[
-  {{
-    "project_name": "Authentic project title (e.g. STEM Education Initiative, Rural Solar Electrification, Healthcare Outreach Clinic)",
-    "category": "Education & Literacy | Healthcare & Sanitation | Skill Development & Livelihood | Environmental Sustainability | Rural Development",
-    "state": "State in India (e.g. Maharashtra, Karnataka, Uttar Pradesh, Tamil Nadu, or Pan-India)",
-    "district": "District or Region (or Major Operational Corridors)",
-    "budget": "Disclosed under Section 135 (e.g. ₹12.50 Cr or Disclosed under Section 135)",
-    "description": "2-sentence summary of project scope, target beneficiaries, and tangible social impact",
-    "verbatim_quote": "Flagship corporate social responsibility initiative under Section 135 Schedule VII for {company.company_name}",
-    "source_url": "{csr_url}",
-    "confidence": 0.95
-  }}
-]"""
+        logs.append(f"⚡ Inspecting statutory Section 135 PDF filings & disclosure reports...")
         try:
-            parsed, prov, model = HybridAIExtractionService._execute_prompt_with_failover(
-                prompt=prompt,
-                preferred_provider="gemini",
-                preferred_model=None,
-                company_id=company.company_id,
-                company_name=company.company_name,
-                task="section135_csr_synthesis",
-                evidence_excerpt=f"Section 135 Synthesis for {company.company_name}"
-            )
-            if isinstance(parsed, list) and parsed:
-                valid_parsed = [c for c in parsed if isinstance(c, dict) and is_valid_csr_project(c.get('project_name'))]
-                logs.append(f"✓ AI Section 135 Intelligence discovered {len(valid_parsed)} verified CSR projects for {company.company_name}.")
-                return valid_parsed
+            c_html, c_text, _ = cls.fetch_page_content(csr_url)
+            pdf_links = []
+            if csr_url.lower().endswith('.pdf'):
+                pdf_links.append(csr_url)
+            elif c_html:
+                soup = BeautifulSoup(c_html, 'html.parser')
+                for a in soup.find_all('a', href=True):
+                    h = a['href'].strip()
+                    txt = a.get_text(' ', strip=True).lower()
+                    if h.lower().endswith('.pdf') and any(k in h.lower() or k in txt for k in ['csr', 'sustainability', 'annual-report', 'report', 'schedule-vii', 'section-135']):
+                        full_pdf = urllib.parse.urljoin(csr_url, h)
+                        if full_pdf not in pdf_links:
+                            pdf_links.append(full_pdf)
+
+            for pdf_url in pdf_links[:3]:
+                logs.append(f"Parsing statutory CSR disclosure PDF: {pdf_url[:70]}...")
+                pdf_text = cls.extract_pdf_text_from_url(pdf_url, max_pages=8)
+                if pdf_text and len(pdf_text) > 200:
+                    ai_projs = HybridAIExtractionService.extract_unstructured_csr_projects(
+                        company_id=company.company_id,
+                        company_name=company.company_name,
+                        raw_content=pdf_text,
+                        csr_url=pdf_url,
+                        timeout=18
+                    )
+                    if ai_projs and isinstance(ai_projs, list):
+                        valid_p = [p for p in ai_projs if isinstance(p, dict) and is_valid_csr_project(p.get('project_name'))]
+                        if valid_p:
+                            for p in valid_p:
+                                p['source_url'] = pdf_url
+                            logs.append(f"✓ Extracted {len(valid_p)} verified Section 135 initiatives directly from official PDF disclosure")
+                            return valid_p
         except Exception as e:
-            logs.append(f"AI Section 135 Intelligence note: {str(e)[:80]}")
+            logs.append(f"CSR disclosure inspection note: {str(e)[:80]}")
+
+        logs.append(f"ℹ️ No statutory Section 135 projects found in available page text or disclosures.")
         return []
 
     @classmethod
@@ -748,9 +753,14 @@ Respond ONLY with a valid JSON array conforming to this schema:
             logs.append("⚡ Scraping TCS India Lateral & Specialized Hiring tracks...")
             try:
                 tcs_tracks = [
-                    'https://www.tcs.com/careers/india/lateral-hiring',
                     'https://www.tcs.com/careers/india/tcs-cloud-hiring',
-                    'https://www.tcs.com/careers/india/tcs-cybersecurity-hiring'
+                    'https://www.tcs.com/careers/india/tcs-cybersecurity-hiring',
+                    'https://www.tcs.com/careers/india/tcs-ai-careers',
+                    'https://www.tcs.com/careers/india/tcs-data-and-analytics-careers',
+                    'https://www.tcs.com/careers/india/tcs-esu-hiring',
+                    'https://www.tcs.com/careers/india/tcs-industrial-autonomy-engineering-careers',
+                    'https://www.tcs.com/careers/india/tcs-interactive-hiring',
+                    'https://www.tcs.com/careers/india/lateral-hiring'
                 ]
                 tcs_jobs = []
                 seen_titles = set()
@@ -769,7 +779,7 @@ Respond ONLY with a valid JSON array conforming to this schema:
                                         'department': 'Cloud, Cybersecurity & Digital',
                                         'work_mode': 'Hybrid / Full-time',
                                         'experience': '3-8 Years',
-                                        'application_url': 'https://ibegin.tcsapps.com/candidate/?geography=IN&language=EN',
+                                        'application_url': track_url or 'https://www.tcs.com/careers/india',
                                         'verbatim_source_quote': f"TCS Verified Lateral Opening: {txt}",
                                         'confidence': 0.96
                                     })
@@ -963,9 +973,24 @@ Respond ONLY with a valid JSON array conforming to this schema:
         # 1. Resolve or Create Company Record (Directory anchor only, ZERO data pulling)
         company = None
         is_new_company = False
+        # 1. Exact match
         existing = Company.objects.filter(company_name__iexact=comp_name).first()
+        # 2. NSE Symbol match
         if not existing and company_task.get('nse_symbol'):
             existing = Company.objects.filter(nse_symbol__iexact=company_task['nse_symbol']).first()
+        # 3. Clean corporate name match (strips Ltd, Limited, Pvt, Corporation)
+        if not existing:
+            cleaned_comp = re.sub(r'\b(ltd|limited|pvt|private|corp|corporation|inc|incorporated|holdings|group|india)\b', '', comp_name, flags=re.I).strip()
+            if len(cleaned_comp) >= 3:
+                existing = (
+                    Company.objects.filter(company_name__istartswith=cleaned_comp).first()
+                    or Company.objects.filter(company_name__icontains=cleaned_comp).first()
+                )
+        # 4. Domain / Website URL match
+        if not existing and user_url:
+            parsed_net = urllib.parse.urlparse(user_url).netloc.replace('www.', '').lower()
+            if parsed_net:
+                existing = Company.objects.filter(official_domain__iexact=parsed_net).first() or Company.objects.filter(website_url__icontains=parsed_net).first()
 
         if existing:
             company = existing
@@ -1065,23 +1090,16 @@ Respond ONLY with a valid JSON array conforming to this schema:
             logs.append(f"Probing live careers portal: {careers_url}")
             job_html, job_text, job_status = cls.fetch_page_content(careers_url)
             
-            # Multi-path candidate probing if careers URL returned 404 or empty text
+            # Fast candidate probing if careers URL returned 404 or empty text
             if not job_text or len(job_text) < 150:
                 career_candidates = [
-                    f"{base_url}/careers/",
                     f"{base_url}/careers",
-                    f"{base_url}/career",
-                    f"{base_url}/career/",
                     f"{base_url}/jobs",
-                    f"{base_url}/jobs/",
-                    f"{base_url}/work-with-us",
-                    f"{base_url}/job-openings",
-                    f"{base_url}/current-openings",
-                    f"{base_url}/en/careers"
+                    f"{base_url}/work-with-us"
                 ]
                 for cand in career_candidates:
                     if cand != careers_url:
-                        c_html, c_text, c_status = cls.fetch_page_content(cand)
+                        c_html, c_text, c_status = cls.fetch_page_content(cand, timeout=4)
                         if c_text and len(c_text) > 150:
                             job_html, job_text, job_status = c_html, c_text, c_status
                             careers_url = cand
@@ -1091,7 +1109,7 @@ Respond ONLY with a valid JSON array conforming to this schema:
                             break
 
             # If the careers page is an overview/landing page, look for deeper openings link
-            if job_html and not user_specified_careers:
+            if job_html:
                 deep_openings = cls.find_deep_openings_link(job_html, careers_url)
                 if deep_openings and deep_openings != careers_url:
                     logs.append(f"Following deep openings portal link: {deep_openings}")
@@ -1105,7 +1123,13 @@ Respond ONLY with a valid JSON array conforming to this schema:
             # Execute comprehensive multi-tier discovery (Reliance grid, Amazon API, Workday CXS, Specialized ATS, TCS tracks, JSON-LD, DOM cards, and AI extraction)
             discovered_jobs = cls.discover_all_real_jobs(company, careers_url, job_html, job_text, sector_val, logs)
 
+            # Purge any stale defective jobs or candidate login links for this company
+            for old_j in company.jobs.all():
+                if not is_valid_job_title(old_j.job_title) or any(bad in (old_j.application_url or '').lower() for bad in ['/candidate/?', 'candidate.tcsapps.com', 'signin', 'auth/login', 'ibegin.tcs.com', 'tcs/ind/', 'wip-ind-']) or 'Enterprise hiring track' in (old_j.evidence_text or ''):
+                    old_j.delete()
+
             # Auto-import only real discovered jobs into DB
+            verified_jobs_list = []
             for j in discovered_jobs:
                 title = (j.get('job_title') or '').strip()
                 if not is_valid_job_title(title):
@@ -1117,7 +1141,15 @@ Respond ONLY with a valid JSON array conforming to this schema:
                 raw_app = j.get('application_url') or ''
                 req_id = j.get('requisition_id') or ''
                 app_url = derive_deep_job_url(careers_url, company.company_name, title, raw_app, req_id)
+                app_url = re.sub(r'#:~:text=.*$', '', app_url, flags=re.IGNORECASE)
+                if any(bad in app_url.lower() for bad in ['/candidate/?', 'candidate.tcsapps.com', 'signin', 'auth/login']):
+                    app_url = ENTERPRISE_PORTAL_REGISTRY.get(company.company_name.lower()) or careers_url or company.website_url
                 job_source = careers_url or company.website_url
+
+                # Ensure j has the authentic resolved URL for client rendering
+                j['application_url'] = app_url
+                j['canonical_url'] = app_url
+                j['source_url'] = job_source
 
                 now_job = timezone.now()
                 job_evidence_hash = hashlib.sha256(f"{company.company_id}_{title}_{job_source}".encode('utf-8')).hexdigest()
@@ -1145,6 +1177,7 @@ Respond ONLY with a valid JSON array conforming to this schema:
                     }
                 )
                 imported_jobs += 1
+                verified_jobs_list.append(j)
 
             if imported_jobs > 0:
                 logs.append(f"Successfully verified & imported {imported_jobs} live jobs directly from {careers_url}.")
@@ -1163,22 +1196,16 @@ Respond ONLY with a valid JSON array conforming to this schema:
 
             csr_html, csr_text, csr_status = cls.fetch_page_content(csr_url)
             
-            # Multi-path candidate probing for CSR / Sustainability if empty or 404
+            # Fast candidate probing for CSR / Sustainability if empty or 404
             if not csr_text or len(csr_text) < 150:
                 csr_candidates = [
                     f"{base_url}/sustainability",
-                    f"{base_url}/sustainability/",
                     f"{base_url}/csr",
-                    f"{base_url}/csr/",
-                    f"{base_url}/corporate-responsibility",
-                    f"{base_url}/corporate-responsibility/",
-                    f"{base_url}/social-responsibility",
-                    f"{base_url}/esg",
-                    f"{base_url}/foundation"
+                    f"{base_url}/corporate-responsibility"
                 ]
                 for cand in csr_candidates:
                     if cand != csr_url:
-                        c_html, c_text, c_status = cls.fetch_page_content(cand)
+                        c_html, c_text, c_status = cls.fetch_page_content(cand, timeout=4)
                         if c_text and len(c_text) > 150:
                             csr_html, csr_text, csr_status = c_html, c_text, c_status
                             csr_url = cand
@@ -1188,8 +1215,8 @@ Respond ONLY with a valid JSON array conforming to this schema:
                             logs.append(f"✓ Discovered alternate CSR portal: {csr_url}")
                             break
 
-            # If the user did NOT supply an explicit CSR link, look for deeper initiatives link
-            if csr_html and not user_specified_csr:
+            # If the CSR page is an overview/landing page, look for deeper initiatives link
+            if csr_html:
                 deep_csr = cls.find_deep_csr_link(csr_html, csr_url)
                 if deep_csr and deep_csr != csr_url:
                     logs.append(f"Following deep CSR initiatives link: {deep_csr}")
@@ -1204,12 +1231,22 @@ Respond ONLY with a valid JSON array conforming to this schema:
             # Execute comprehensive multi-tier CSR discovery (DOM initiative cards, dedicated links, NLP over full text, and Section 135 Schedule VII Intelligence)
             discovered_csr = cls.discover_all_real_csr(company, csr_url, csr_html, csr_text, sector_val, logs)
 
+            # Purge any stale defective CSR projects for this company
+            for old_c in company.csr_projects.all():
+                if not is_valid_csr_project(old_c.project_name) or any(h in (old_c.project_name or '') for h in ['Environmental Stewardship & Clean Energy Mission', 'Skill Development & Livelihood Mission', 'Foundation - Primary Healthcare & Community Welfare', 'Foundation - Education & Community Upliftment']) or 'Flagship corporate social responsibility initiative under Section 135 Schedule V' in (old_c.evidence_text or ''):
+                    old_c.delete()
+
             # Auto-import only real discovered CSR projects
+            verified_csr_list = []
             for c in discovered_csr:
                 proj_name = (c.get('project_name') or '').strip()
                 if not is_valid_csr_project(proj_name):
                     continue
-                csr_src = c.get('source_url') or csr_url or company.website_url
+                raw_csr = c.get('source_url') or csr_url or company.website_url
+                csr_src = resolve_authentic_csr_url(raw_csr, company.company_name, proj_name)
+                csr_src = re.sub(r'#:~:text=.*$', '', csr_src, flags=re.IGNORECASE)
+                c['source_url'] = csr_src
+                c['canonical_url'] = csr_src
                 now_csr = timezone.now()
                 csr_evidence_hash = hashlib.sha256(f"{company.company_id}_{proj_name}_{csr_src}".encode('utf-8')).hexdigest()
                 csr_obj, created = CSRProject.objects.update_or_create(
@@ -1235,6 +1272,7 @@ Respond ONLY with a valid JSON array conforming to this schema:
                     }
                 )
                 imported_csr += 1
+                verified_csr_list.append(c)
 
             if imported_csr > 0:
                 logs.append(f"Successfully verified & imported {imported_csr} Section 135 CSR projects directly from {csr_url}.")
@@ -1246,7 +1284,7 @@ Respond ONLY with a valid JSON array conforming to this schema:
                 record_id=str(company.company_id),
                 action="LIVE_WEB_AI_DISCOVERY",
                 user_role="AI Web Discovery Engine",
-                notes=f"Live Web AI discovery probe for {comp_name}: scraped {len(discovered_jobs)} real jobs and {len(discovered_csr)} real CSR initiatives directly from company portal.",
+                notes=f"Live Web AI discovery probe for {comp_name}: scraped {len(verified_jobs_list)} real jobs and {len(verified_csr_list)} real CSR initiatives directly from company portal.",
                 timestamp=now.isoformat()
             )
         except Exception as e:
@@ -1264,11 +1302,11 @@ Respond ONLY with a valid JSON array conforming to this schema:
             'website_url': company.website_url,
             'careers_url': careers_url,
             'csr_url': csr_url,
-            'jobs_discovered': len(discovered_jobs),
+            'jobs_discovered': len(verified_jobs_list),
             'jobs_imported': imported_jobs,
-            'csr_discovered': len(discovered_csr),
+            'csr_discovered': len(verified_csr_list),
             'csr_imported': imported_csr,
-            'jobs': discovered_jobs,
-            'csr': discovered_csr,
+            'jobs': verified_jobs_list,
+            'csr': verified_csr_list,
             'logs': logs,
         }

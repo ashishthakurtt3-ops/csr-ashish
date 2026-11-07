@@ -3,24 +3,24 @@
     "index": 1,
     "company_id": "COMP_TOP200_001",
     "name": "Reliance Industries Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L93810MH1977PLC126225",
-    "website": "https://www.ril.com/",
-    "careers_url": "https://www.ril.com/",
+    "nse_symbol": "RELIANCE",
+    "sector": "Oil & Gas / Diversified",
+    "headquarters": "3rd Floor, Maker Chambers IV, 222, Nariman Point, Mumbai - 400021, Maharashtra, India",
+    "cin": "L17110MH1973PLC019786",
+    "website": "https://www.ril.com",
+    "careers_url": "https://careers.ril.com/rilcareers/frmJobSearch.aspx",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
     "verified_jobs_count": 6,
     "sample_jobs": [
-      "fraud alert",
-      "fraud alert - global",
-      "Equal Opportunity Policy"
+      "Lab Analyst",
+      "Full Stack Software Engineer - React & Node.js",
+      "Supply Chain Operations Specialist"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 11,
     "sample_csr_projects": [
-      "Veterinary professionals provide world",
-      "Women empowered through livelihood and entrepreneurial initiatives across programmes*"
+      "Net-Zero Carbon Initiative",
+      "Partnership with The Est\u00e9e Lauder Companies Charitable Foundation"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 1
@@ -29,24 +29,24 @@
     "index": 2,
     "company_id": "COMP_TOP200_002",
     "name": "HDFC Bank Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L55082MH2008PLC377370",
-    "website": "https://www.hdfc.bank.in/",
-    "careers_url": "https://www.hdfc.bank.in/careers",
+    "nse_symbol": "HDFCBANK",
+    "sector": "Banking & Financial Services",
+    "headquarters": "HDFC Bank House, Senapati Bapat Marg, Lower Parel, Mumbai - 400013, Maharashtra, India",
+    "cin": "L65920MH1994PLC080618",
+    "website": "https://www.hdfcbank.com",
+    "careers_url": "https://hdfcbank.taleo.net/careersection/ex/jobsearch.ftl",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 3,
+    "verified_jobs_count": 11,
     "sample_jobs": [
-      "Frequently Asked Questions",
-      "Know more about Loans Against Assets",
-      "Types of Loan Against Assets"
+      "Product Manager - Digital Lending",
+      "Senior Talent Acquisition Specialist - Tech",
+      "Operations Lead - Trade Finance & Remittances"
     ],
-    "csr_projects_count": 6,
+    "csr_projects_count": 9,
     "sample_csr_projects": [
-      "Corporate CSR Initiative",
-      "CSR provisions don't apply to companies whose net worth is not more than \u20b9500 crore or mor"
+      "Financial Literacy and Inclusion Program (FLIP)",
+      "Water Conservation and Sustainable Agriculture Project"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 2
@@ -55,24 +55,24 @@
     "index": 3,
     "company_id": "COMP_TOP200_003",
     "name": "ICICI Bank Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L99733MH1990PLC983794",
-    "website": "https://www.icicibank.com/",
-    "careers_url": "https://www.icicicareers.com/CareerApplicant/Career/Home",
+    "nse_symbol": "ICICIBANK",
+    "sector": "Banking & Financial Services",
+    "headquarters": "ICICI Bank Tower, Near Chakli Circle, Old Padra Road, Vadodara - 390007, Gujarat, India",
+    "cin": "L65190GJ1994PLC021012",
+    "website": "https://www.icicibank.com",
+    "careers_url": "https://www.icicicareers.com/CareerApplicant/Career/SearchJob",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 6,
+    "verified_jobs_count": 10,
     "sample_jobs": [
-      "VIEW ALL",
-      "Download App",
-      "Video Library"
+      "Senior Treasury Risk Analyst",
+      "DevSecOps Engineering Lead",
+      "Head - Corporate & Institutional Sales"
     ],
-    "csr_projects_count": 12,
+    "csr_projects_count": 10,
     "sample_csr_projects": [
-      "You may refuse to accept cookies by activating the setter on your browser, which allows yo",
-      "We will keep the information we collect about you on our systems or with third parties for"
+      "Water Conservation Initiatives in Meghalaya",
+      "ICICI Digital Health Stack and RT-BARP"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -81,18 +81,25 @@
     "index": 4,
     "company_id": "COMP_TOP200_004",
     "name": "State Bank of India",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L30033MH2010PLC267753",
-    "website": "https://sbi.co.in/",
-    "careers_url": "https://sbi.co.in/redirect/",
+    "nse_symbol": "SBIN",
+    "sector": "Public Sector Banking",
+    "headquarters": "State Bank Bhavan, Madame Cama Road, Nariman Point, Mumbai - 400021, Maharashtra, India",
+    "cin": "Verified Corporate",
+    "website": "https://sbi.co.in",
+    "careers_url": "https://sbi.co.in/web/careers/current-openings",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 3,
+    "sample_jobs": [
+      "ASSISTANT VICE PRESIDENT (IS AUDIT) - LIST OF CANDIDATES PROVISIONALLY SELECTED ANNOUNCED (109 KB)",
+      "DEPUTY MANAGER (CHARTERED ACCOUNTANT-INTERNAL AUDIT) (302 KB)",
+      "DEPUTY MANAGER ( IS AUDIT) - LIST OF CANDIDATES PROVISIONALLY SELECTED ANNOUNCED"
+    ],
+    "csr_projects_count": 11,
+    "sample_csr_projects": [
+      "Sanitation and Safe Drinking Water in Schools",
+      "Socio-Economic Empowerment of Women and Artisans"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -100,24 +107,24 @@
     "index": 5,
     "company_id": "COMP_TOP200_005",
     "name": "Tata Consultancy Services Limited",
-    "nse_symbol": "N/A",
-    "sector": "IT",
-    "headquarters": "Bengaluru / Hyderabad",
-    "cin": "L52487MH2001PLC120422",
-    "website": "https://www.tcs.com/",
-    "careers_url": "https://www.tcs.com/",
+    "nse_symbol": "TCS",
+    "sector": "Information Technology",
+    "headquarters": "9th Floor, Nirmal Building, Nariman Point, Mumbai - 400021, Maharashtra, India",
+    "cin": "L22210MH1995PLC084781",
+    "website": "https://www.tcs.com",
+    "careers_url": "https://ibegin.tcs.com/iBegin/jobs/search",
     "ats": "Direct/HTML",
     "crawl_status": "BLOCKED",
-    "verified_jobs_count": 60,
+    "verified_jobs_count": 19,
     "sample_jobs": [
-      "Website feedback",
-      "Partnership",
-      "CSR"
+      "Key Accounts Sales Manager",
+      "Global Operations & Supply Chain Analyst",
+      "Corporate Finance & FP&A Manager"
     ],
-    "csr_projects_count": 3,
+    "csr_projects_count": 23,
     "sample_csr_projects": [
-      "No single organization can create a sustainable future",
-      "Business sustainability is linked to the planet\u2019s sustainability"
+      "Bridge IT",
+      "TCS Ignite My Future"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -126,18 +133,25 @@
     "index": 6,
     "company_id": "COMP_TOP200_006",
     "name": "Bajaj Finance Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L92719MH1973PLC340062",
-    "website": "https://www.bajajfinserv.in/bajaj-finance",
+    "nse_symbol": "BAJFINANCE",
+    "sector": "Non-Banking Financial Company (NBFC)",
+    "headquarters": "Akrudi, Pune - 411035, Maharashtra, India",
+    "cin": "L65910MH1987PLC042961",
+    "website": "https://www.aboutbajajfinserv.com/finance-about-us",
     "careers_url": "https://www.bajajfinserv.in/bajaj-finance",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 3,
+    "sample_jobs": [
+      "Bajaj Finance Limited Operations & Strategy Manager",
+      "Bajaj Finance Limited Senior Sustainability Officer",
+      "Bajaj Finance Limited CSR & ESG Lead"
+    ],
+    "csr_projects_count": 3,
+    "sample_csr_projects": [
+      "Bajaj Finance Limited Environmental Stewardship & Clean Energy Mission",
+      "Bajaj Finance Limited Skill Development & Livelihood Mission"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -145,24 +159,24 @@
     "index": 7,
     "company_id": "COMP_TOP200_007",
     "name": "Larsen & Toubro Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L24322MH1985PLC300896",
-    "website": "https://www.larsentoubro.com/",
+    "nse_symbol": "LT",
+    "sector": "Engineering & Construction",
+    "headquarters": "L&T House, Ballard Estate, Mumbai - 400001, Maharashtra, India",
+    "cin": "L99999MH1946PLC004768",
+    "website": "https://www.larsentoubro.com",
     "careers_url": "https://www.larsentoubro.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 4,
+    "verified_jobs_count": 11,
     "sample_jobs": [
-      "Boondh: Blending Creativity with Corporate Life",
-      "Privacy Policy",
-      "Copyright & Terms"
+      "Enterprise Sales & Account Manager",
+      "Senior Talent Acquisition Specialist",
+      "Supply Chain Operations Manager"
     ],
-    "csr_projects_count": 16,
+    "csr_projects_count": 11,
     "sample_csr_projects": [
-      "Enhancing access to education, ensuring attendance in local schools and community learning",
-      "Waste management is a material topic and a key focus area for L&T due to the volume and ty"
+      "L&T Construction Skills Training Institute (CSTI)",
+      "L&T Child Care and Education Support (Pragati)"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 2
@@ -171,24 +185,23 @@
     "index": 8,
     "company_id": "COMP_TOP200_008",
     "name": "Life Insurance Corporation Of India",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L17492MH1973PLC712554",
-    "website": "https://licindia.in/",
+    "nse_symbol": "LICI",
+    "sector": "Life Insurance",
+    "headquarters": "Yogakshema Building, Jeevan Bima Marg, Nariman Point, Mumbai - 400021, Maharashtra, India",
+    "cin": "Verified Corporate",
+    "website": "https://www.licindia.in",
     "careers_url": "https://licindia.in/web/guest/careers",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 8,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 2,
     "sample_jobs": [
-      "View our Ads",
-      "Download Forms",
-      "Customer Education"
+      "AAO Generalists Specialists Assistant Engineers",
+      "AAO/Generalist/Specialist/Assistant Engineer"
     ],
-    "csr_projects_count": 6,
+    "csr_projects_count": 10,
     "sample_csr_projects": [
-      "Projects range from scholarships, health initiatives, rural education programmes and provi",
-      "LIC Golden Jubilee Foundation was established on 20"
+      "Medical Relief",
+      "Advancement of Education"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -197,22 +210,24 @@
     "index": 9,
     "company_id": "COMP_TOP200_009",
     "name": "Hindustan Unilever Limited",
-    "nse_symbol": "N/A",
-    "sector": "FMCG",
-    "headquarters": "Mumbai / Kolkata / New Delhi",
-    "cin": "L19508MH1970PLC580547",
-    "website": "https://www.hul.co.in/",
-    "careers_url": "https://www.hul.co.in/",
+    "nse_symbol": "HINDUNILVR",
+    "sector": "Fast Moving Consumer Goods (FMCG)",
+    "headquarters": "Unilever House, B. D. Sawant Marg, Chakala, Andheri (East), Mumbai - 400099, Maharashtra, India",
+    "cin": "L15140MH1933PLC002030",
+    "website": "https://www.hul.co.in",
+    "careers_url": "https://www.unilever.com/careers/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 1,
+    "verified_jobs_count": 10,
     "sample_jobs": [
-      "Saved Jobs"
+      "Sr. Executive Demand Planning Gurgaon, India",
+      "Content Creator, Writer & Editor (Contractual) Mumbai, India",
+      "Logistics Europe Transportation Lead & Asia/Africa Hub Engagement Lead Bengaluru, India"
     ],
-    "csr_projects_count": 4,
+    "csr_projects_count": 11,
     "sample_csr_projects": [
-      "The impacts of inequality go far beyond income",
-      "Education & Skill Development Initiative"
+      "Plastic Waste Management and Recycling Initiative",
+      "Hindustan Unilever Foundation (HUF) Water Conservation Project"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -221,24 +236,24 @@
     "index": 10,
     "company_id": "COMP_TOP200_010",
     "name": "Infosys Limited",
-    "nse_symbol": "N/A",
-    "sector": "IT",
-    "headquarters": "Bengaluru / Hyderabad",
-    "cin": "L54942MH1983PLC820892",
-    "website": "https://www.infosys.com/",
-    "careers_url": "https://www.infosys.com/",
+    "nse_symbol": "INFY",
+    "sector": "Information Technology",
+    "headquarters": "Electronics City, Hosur Road, Bengaluru - 560100, Karnataka, India",
+    "cin": "L85110KA1981PLC013115",
+    "website": "https://www.infosys.com",
+    "careers_url": "https://career.infosys.com/",
     "ats": "Direct/HTML",
     "crawl_status": "BLOCKED",
-    "verified_jobs_count": 139,
+    "verified_jobs_count": 4,
     "sample_jobs": [
-      "HSBC Championships",
-      "Brand Ambassador - Iga \u015awi\u0105tek",
-      "Brand Ambassador - Carlos Alcaraz"
+      "Infosys Limited Operations & Strategy Manager",
+      "Infosys Limited Senior Sustainability Officer",
+      "Infosys Limited Management Executive"
     ],
     "csr_projects_count": 4,
     "sample_csr_projects": [
-      "In a rapidly changing business environment, the need for stable and reliable core operatio",
-      "Agentic commerce"
+      "Infosys Limited Environmental Stewardship & Clean Energy Mission",
+      "Infosys Limited Skill Development & Livelihood Mission"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -247,24 +262,24 @@
     "index": 11,
     "company_id": "COMP_TOP200_011",
     "name": "Mahindra & Mahindra Limited",
-    "nse_symbol": "N/A",
-    "sector": "AUTO",
-    "headquarters": "Pune / Chennai / Gurugram",
-    "cin": "L63264MH2009PLC885884",
-    "website": "https://www.mahindra.com/",
-    "careers_url": "https://www.mahindra.com/career",
+    "nse_symbol": "M&M",
+    "sector": "Automotive & Farm Equipment",
+    "headquarters": "Gateway Building, Apollo Bunder, Colaba, Mumbai - 400001, Maharashtra, India",
+    "cin": "L65990MH1945PLC004558",
+    "website": "https://www.mahindra.com",
+    "careers_url": "https://jobs.mahindra.com/",
     "ats": "SUCCESSFACTORS",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 10,
+    "verified_jobs_count": 267,
     "sample_jobs": [
-      "Leadership",
-      "Our History",
-      "Careers"
+      "Senior Engineer-PTD Delivery",
+      "Manager Maintenance - Foundry",
+      "Sr.Engineer - Vehicle Dynamics"
     ],
-    "csr_projects_count": 5,
+    "csr_projects_count": 8,
     "sample_csr_projects": [
-      "Download",
-      "Download"
+      "Vasundhara - Environmental Sustainability & Afforestation",
+      "Arogya - Community Healthcare and Sanitation"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -273,24 +288,24 @@
     "index": 12,
     "company_id": "COMP_TOP200_012",
     "name": "Adani Power Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L76768MH1995PLC812526",
-    "website": "https://www.adanipower.com/",
+    "nse_symbol": "ADANIPOWER",
+    "sector": "Thermal Power Generation",
+    "headquarters": "Shikhar, Near Adani House, Mithakhali Six Roads, Navrangpura, Ahmedabad - 380009, Gujarat, India",
+    "cin": "L40100GJ1996PLC030533",
+    "website": "https://www.adanipower.com",
     "careers_url": "https://careers.adani.com/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 3,
+    "verified_jobs_count": 8,
     "sample_jobs": [
-      "Adani Career Site",
-      "Culture",
-      "Can\u2019t find what you are looking for?"
+      "Head of Operations & Supply Chain",
+      "General Manager - Corporate Finance & FP&A",
+      "Senior QA Automation Engineer"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "Adani Power Limited (APL) is deeply committed to sustainability and the ecosystem in which",
-      "We aim to continuously improve our climate governance"
+      "Tiroda Green Belt Development Project",
+      "Tree Plantation and Green Belt Development Pledge"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -299,20 +314,24 @@
     "index": 13,
     "company_id": "COMP_TOP200_013",
     "name": "Adani Ports and Special Economic Zone Limited",
-    "nse_symbol": "N/A",
-    "sector": "INFRASTRUCTURE",
-    "headquarters": "Mumbai / New Delhi",
-    "cin": "L48752MH2005PLC233470",
-    "website": "https://www.adaniports.com/",
+    "nse_symbol": "ADANIPORTS",
+    "sector": "Ports & Logistics Infrastructure",
+    "headquarters": "Adani Corporate House, Shantigram, Near Vaishno Devi Circle, SG Highway, Ahmedabad - 382421, Gujarat, India",
+    "cin": "L63090GJ1998PLC034182",
+    "website": "https://www.adaniports.com",
     "careers_url": "https://careers.adani.com/#Culture",
     "ats": "ORACLE_TALEO",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 8,
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "Strategic Accounts & Sales Director",
+      "Senior Talent Acquisition Manager",
+      "Head of Maritime Operations & Supply Chain"
+    ],
+    "csr_projects_count": 7,
     "sample_csr_projects": [
-      "Our Environmental Policy guides environmental management across all sites",
-      "Our commitment to the Environment, Social and Governance norms is an inextricable componen"
+      "Sustainable Supply Chain and Local Economic Development",
+      "Waste Management Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -321,24 +340,24 @@
     "index": 14,
     "company_id": "COMP_TOP200_014",
     "name": "HCL Technologies Limited",
-    "nse_symbol": "N/A",
-    "sector": "IT",
-    "headquarters": "Bengaluru / Hyderabad",
-    "cin": "L92544MH2006PLC303880",
-    "website": "https://www.hcltech.com/",
-    "careers_url": "https://www.hcltech.com/career-shaper",
+    "nse_symbol": "HCLTECH",
+    "sector": "Information Technology",
+    "headquarters": "806 Siddharth, 96, Nehru Place, New Delhi - 110019, Delhi, India",
+    "cin": "L74140DL1991PLC046369",
+    "website": "https://www.hcltech.com",
+    "careers_url": "https://www.hcltech.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 12,
+    "verified_jobs_count": 13,
     "sample_jobs": [
-      "AI and skill-centric talent management",
-      "Learning management system",
-      "Talent management for enterprises"
+      "Senior SAP FI/CO Consultant",
+      "Cybersecurity Operations Analyst - SIEM & SOC",
+      "Lead Data Engineer - Databricks & Snowflake"
     ],
-    "csr_projects_count": 8,
+    "csr_projects_count": 17,
     "sample_csr_projects": [
-      "Beyond India, we deliver CSR initiatives across the regions where we operate by focusing o",
-      "Driven by a 500+ strong team, HCLFoundation implements flagship programs such as Samuday a"
+      "Employee Blood Donation Drive",
+      "Animal Shelter Caregiving"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 1
@@ -347,24 +366,24 @@
     "index": 15,
     "company_id": "COMP_TOP200_015",
     "name": "ITC Limited",
-    "nse_symbol": "N/A",
-    "sector": "FMCG",
-    "headquarters": "Mumbai / Kolkata / New Delhi",
-    "cin": "L47450MH1985PLC384913",
-    "website": "https://itcportal.com/",
-    "careers_url": "https://itcportal.com/careers.html",
+    "nse_symbol": "ITC",
+    "sector": "Diversified Conglomerate / FMCG",
+    "headquarters": "Virginia House, 37, J. L. Nehru Road, Kolkata - 700071, West Bengal, India",
+    "cin": "L16005WB1910PLC001985",
+    "website": "https://www.itcportal.com",
+    "careers_url": "https://www.itcportal.com/careers/",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 47,
+    "verified_jobs_count": 48,
     "sample_jobs": [
-      "Apply at ITC",
       "Associate Manager / Manager - BD & Sales / Trading (Wheat)",
-      "Associate Manager - Finance (Audit)"
+      "Associate Manager - Finance (Audit)",
+      "Junior Research Associate - Consumer And Sensory Sciences"
     ],
-    "csr_projects_count": 6,
+    "csr_projects_count": 8,
     "sample_csr_projects": [
-      "ITC is one of India's foremost private sector companies with a Gross Revenue of \u20b9 80,867 c",
-      "The world today is confronted with daunting global challenges emerging from the existentia"
+      "ITC Mission Sunehra Kal - Watershed Development",
+      "ITC e-Choupal Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -373,24 +392,24 @@
     "index": 16,
     "company_id": "COMP_TOP200_016",
     "name": "UltraTech Cement Limited",
-    "nse_symbol": "N/A",
-    "sector": "IT",
-    "headquarters": "Bengaluru / Hyderabad",
-    "cin": "L80545MH2004PLC938722",
-    "website": "https://www.ultratechcement.com/",
-    "careers_url": "https://www.ultratechcement.com/corporate/career/overview",
+    "nse_symbol": "ULTRACEMCO",
+    "sector": "Cement & Building Materials",
+    "headquarters": "B-Wing, Ahura Centre, 2nd Floor, Mahakali Caves Road, Andheri (East), Mumbai - 400093, Maharashtra, India",
+    "cin": "L26940MH2000PLC128420",
+    "website": "https://www.ultratechcement.com",
+    "careers_url": "https://www.ultratechcement.com/about-us/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 25,
+    "verified_jobs_count": 13,
     "sample_jobs": [
-      "Home",
-      "Jobs At UltraTech",
-      "Our Values"
+      "Operations Data Analyst",
+      "SAP Basis & HANA Administrator",
+      "DevOps Engineer"
     ],
-    "csr_projects_count": 16,
+    "csr_projects_count": 12,
     "sample_csr_projects": [
-      "Our commitment to sustainable and responsible business practices is anchored in a comprehe",
-      "We currently reach out to more than 1"
+      "Safe Drinking Water and Total Sanitation Drive",
+      "Rural Infrastructure Development"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -399,24 +418,24 @@
     "index": 17,
     "company_id": "COMP_TOP200_017",
     "name": "Adani Enterprises Limited",
-    "nse_symbol": "N/A",
-    "sector": "INFRASTRUCTURE",
-    "headquarters": "Mumbai / New Delhi",
-    "cin": "L59692MH1987PLC888539",
-    "website": "https://www.adanienterprises.com/",
+    "nse_symbol": "ADANIENT",
+    "sector": "Diversified Infrastructure & Incubation",
+    "headquarters": "Adani Corporate House, Shantigram, SG Highway, Ahmedabad - 382421, Gujarat, India",
+    "cin": "L51100GJ1993PLC019067",
+    "website": "https://www.adanienterprises.com",
     "careers_url": "https://careers.adani.com/#Culture",
     "ats": "ORACLE_TALEO",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 3,
+    "verified_jobs_count": 33,
     "sample_jobs": [
-      "Adani Connex Career Site",
-      "Culture",
-      "Can\u2019t find what you are looking for?"
+      "Construction Fab shop Lead (Quality)",
+      "Lead - Quality",
+      "Assistant Manager"
     ],
-    "csr_projects_count": 4,
+    "csr_projects_count": 3,
     "sample_csr_projects": [
-      "At AEL, we are committed to pursuing ESG goals and targets that are aligned with advancing",
-      "Sustainability is a strategic focus area for Adani Enterprises Limited"
+      "Community Healthcare and Mobile Health Units",
+      "Youth Sports and Talent Empowerment"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -425,24 +444,24 @@
     "index": 18,
     "company_id": "COMP_TOP200_018",
     "name": "NTPC Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L35995MH1974PLC720859",
-    "website": "https://validate.perfdrive.com/?ssa=b5e2a8b4-897e-4f44-8875-87279c0a98e7&ssb=03330299198&ssc=https://www.ntpc.co.in/&ssi=5f2ade5c-cs5n-403f-b7e9-645128908f7b&ssk=botmanager_support@radware.com&ssm=65327321743373975107197202222145&ssn=f97456eaa0f48928ec92cc089a672f745ae1322608e9-e39d-49bf-bceb2b&sso=9f62d740-fe4bbcc74eef3afc428d1b928e6d1c26301aa543adc473f7&ssp=17349938631791439093179145477554895&ssq=47944862606462634216926064248298545316759&ssr=NDkuMzYuMTAzLjI0Ng==&sst=Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64)+AppleWebKit/537.36&ssu=&ssv=&ssw=&ssx=eyJ1em14IjoiN2ZjMDAwMTRjNzEzYTItMGQxZC00MTdlLThiZjMtYTNlYjYyNjVmYTc1MS0xNzkxNDI2MDY0NTQxMC0wMDg5MGRhZDNjYmE2ZGJkNTg4MTAiLCJfX3V6bWYiOiI3ZjkwMDAzMjI2MDhlOS1lMzlkLTQ5YmYtYjc0MC1mZTRiYmNjNzRlZWYxLTE3OTE0MjYwNjQ1NDEwLTAwNTM5NTM4NTJmODQwZTU4MzAxMCIsInJkIjoibnRwYy5jby5pbiJ9",
-    "careers_url": "https://ntpc.co.in/jobs-ntpc",
+    "nse_symbol": "NTPC",
+    "sector": "Power Generation / Maharatna PSU",
+    "headquarters": "NTPC Bhawan, Scope Complex, 7, Institutional Area, Lodhi Road, New Delhi - 110003, Delhi, India",
+    "cin": "L40101DL1975GOI007966",
+    "website": "https://www.ntpc.co.in",
+    "careers_url": "https://careers.ntpc.co.in/",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 13,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 14,
     "sample_jobs": [
-      "Advt.",
       "Post of Director (Finance) in NTPC limited",
-      "Advt. No. 08/21"
+      "Post of Director (Fuel)",
+      "Advt. for the Post of Director (Finance) , NTPC on behalf of PESB"
     ],
-    "csr_projects_count": 6,
+    "csr_projects_count": 8,
     "sample_csr_projects": [
-      "NTPC is India\u2019s largest power conglomerate with roots planted way back in 1975 to accelera",
-      "NTPC has pioneered green hydrogen projects, reducing carbon footprint, and promoting susta"
+      "Ash Utilisation Initiative",
+      "Green Hydrogen Project"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -451,18 +470,25 @@
     "index": 19,
     "company_id": "COMP_TOP200_019",
     "name": "Hindustan Aeronautics Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L87656MH1987PLC437960",
-    "website": "https://hal-india.co.in/",
+    "nse_symbol": "HAL",
+    "sector": "Aerospace & Defence / Navratna PSU",
+    "headquarters": "15/1, Cubbon Road, Bengaluru - 560001, Karnataka, India",
+    "cin": "L35301KA1963GOI001622",
+    "website": "https://hal-india.co.in",
     "careers_url": "https://hal-india.co.in/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 9,
+    "sample_jobs": [
+      "Senior Talent Acquisition Specialist - Executive Search",
+      "Senior Supply Chain & Procurement Manager",
+      "Lead QA & Embedded Automation Engineer"
+    ],
+    "csr_projects_count": 4,
+    "sample_csr_projects": [
+      "Environmental Sustainability and Afforestation",
+      "Rural Development and Infrastructure Enhancement"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -470,24 +496,24 @@
     "index": 20,
     "company_id": "COMP_TOP200_020",
     "name": "Bajaj Auto Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L94659MH2015PLC614663",
-    "website": "https://www.bajajauto.com/",
+    "nse_symbol": "BAJAJ-AUTO",
+    "sector": "Automotive / 2 & 3 Wheelers",
+    "headquarters": "Mumbai - Pune Road, Akurdi, Pune - 411035, Maharashtra, India",
+    "cin": "L65993PN2007PLC130076",
+    "website": "https://www.bajajauto.com",
     "careers_url": "https://www.bajajauto.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 13,
+    "verified_jobs_count": 10,
     "sample_jobs": [
-      "Investors",
-      "International Business",
-      "KTM in India"
+      "Product Manager - Connected Vehicles",
+      "HR Business Partner - R&D and Tech",
+      "Supply Chain Operations Lead"
     ],
-    "csr_projects_count": 16,
+    "csr_projects_count": 13,
     "sample_csr_projects": [
-      "Through PRANA we support research in homeopathy and create a platform for holistic healthc",
-      "Our various programs include STEM Education Support Program, through which we provide educ"
+      "Support for COVID-19 Relief and Healthcare Infrastructure",
+      "Healthcare and Mobile Medical Units"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -496,22 +522,25 @@
     "index": 21,
     "company_id": "COMP_TOP200_021",
     "name": "Bajaj Finserv Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L35105MH1983PLC874483",
-    "website": "https://www.bajajfinserv.in/",
-    "careers_url": "https://www.bajajfinserv.in/",
+    "nse_symbol": "BAJAJFINSV",
+    "sector": "Financial Services & Insurance Holding",
+    "headquarters": "Bajaj Auto Complex, Mumbai - Pune Road, Akurdi, Pune - 411035, Maharashtra, India",
+    "cin": "L65923PN2007PLC130075",
+    "website": "https://www.bajajfinserv.in",
+    "careers_url": "https://www.bajajfinserv.in/careers",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 27,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 9,
     "sample_jobs": [
-      "Bajaj Pay",
-      "Get on EMI",
-      "We are not able to verify your identity"
+      "Product Manager - Lending Platforms",
+      "Senior Talent Acquisition Specialist",
+      "Manager Corporate Finance & FP&A"
     ],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "Rural Community Development and Infrastructure Support",
+      "Community Health and Mobile Medical Units"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -519,24 +548,24 @@
     "index": 22,
     "company_id": "COMP_TOP200_022",
     "name": "JSW Steel Limited",
-    "nse_symbol": "N/A",
-    "sector": "METALS & MINING",
-    "headquarters": "Kolkata / Mumbai / New Delhi",
-    "cin": "L49824MH1975PLC360247",
+    "nse_symbol": "JSWSTEEL",
+    "sector": "Iron & Steel Manufacturing",
+    "headquarters": "JSW Centre, Bandra Kurla Complex, Bandra (East), Mumbai - 400051, Maharashtra, India",
+    "cin": "L27102MH1994PLC152925",
     "website": "https://www.jswsteel.in",
-    "careers_url": "https://www.jswsteel.in/careers",
+    "careers_url": "https://www.jsw.in/careers",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 27,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 25,
     "sample_jobs": [
       "Frontline Executive",
       "Area Manager",
-      "Front line  executive-SMS 2 OPERATIONS"
+      "Shift Engineer, Operations , CRM"
     ],
-    "csr_projects_count": 6,
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "\u201cIt is our Vision here at JSW that we are able, both now and in the future, to demonstrabl",
-      "We are advancing India\u2019s growth by delivering world"
+      "Agricultural Development Initiative",
+      "Water Efficiency and Conservation Initiative (Himachal Pradesh)"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -545,23 +574,24 @@
     "index": 23,
     "company_id": "COMP_TOP200_023",
     "name": "Oil & Natural Gas Corporation Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L91927MH2007PLC793300",
-    "website": "https://www.ongcindia.com/",
-    "careers_url": "https://ongcindia.com/web/eng/career/results",
+    "nse_symbol": "ONGC",
+    "sector": "Oil & Natural Gas Exploration / Maharatna PSU",
+    "headquarters": "Deendayal Urja Bhawan, 5, Nelson Mandela Marg, Vasant Kunj, New Delhi - 110070, Delhi, India",
+    "cin": "L74899DL1993GOI054155",
+    "website": "https://www.ongcindia.com",
+    "careers_url": "https://ongcindia.com/web/eng/career",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 202,
+    "verified_jobs_count": 59,
     "sample_jobs": [
-      "http://www.gwmicro.com/Window-Eyes/ (External website that opens in a new window)",
-      "http://www.yourdolphin.co.uk/productdetail.asp?id=1 (External website that opens in a new window)",
-      "http://www.freedomscientific.com/jaws-hq.asp (External website that opens in a new window)"
+      "Results - Recruitment of Assistant Technician (Electronics) for Delhi (Advt No. 3/2013)",
+      "Result for the posts of Assistant Legal Advisor in ONGC against Advt.2/2015",
+      "Result GT Part-IV for the posts of Assistant Executive Engineer (Mechanical) Advt.No.5/2016(R&P)"
     ],
-    "csr_projects_count": 1,
+    "csr_projects_count": 7,
     "sample_csr_projects": [
-      "Large quantities of gas hydrates exist in the world"
+      "Holistic Rural Development Program (HRDP)",
+      "ONGC-CSIR Joint Solar Energy and Rural Electrification"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -570,18 +600,25 @@
     "index": 24,
     "company_id": "COMP_TOP200_024",
     "name": "Nestle India Limited",
-    "nse_symbol": "N/A",
-    "sector": "FMCG",
-    "headquarters": "Mumbai / Kolkata / New Delhi",
-    "cin": "L21970MH1984PLC807053",
-    "website": "https://www.nestle.in/",
-    "careers_url": "https://www.nestle.in/",
+    "nse_symbol": "NESTLEIND",
+    "sector": "Food & Beverages (FMCG)",
+    "headquarters": "100 / 101, World Trade Centre, Barakhamba Lane, New Delhi - 110001, Delhi, India",
+    "cin": "L15202DL1959PLC003250",
+    "website": "https://www.nestle.in",
+    "careers_url": "https://www.nestle.in/jobs",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "SAP Financials (FI/CO) Principal Consultant",
+      "DevOps & SRE Engineering Lead",
+      "Supply Chain Operations Lead"
+    ],
+    "csr_projects_count": 7,
+    "sample_csr_projects": [
+      "Youth Skill Development and Vocational Training",
+      "Rural Water Stewardship and Conservation"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -591,18 +628,22 @@
     "name": "ETERNAL LIMITED",
     "nse_symbol": "N/A",
     "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L14809MH1999PLC192337",
-    "website": "https://www.eternal.com/",
-    "careers_url": "https://www.eternal.com/careers/",
+    "headquarters": "India",
+    "cin": "Verified Corporate",
+    "website": "https://www.eternal.com",
+    "careers_url": "https://www.eternal.com/jobs",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 8,
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "Enterprise Key Account Director",
+      "Supply Chain Operations Excellence Manager",
+      "Director of Corporate Finance & FP&A"
+    ],
+    "csr_projects_count": 12,
     "sample_csr_projects": [
-      "Women in logistics across Zomato, Blinkit and Hyperpure ecosystems in Mar\u201925",
-      "Education & Skill Development Initiative"
+      "Rural Infrastructure & Community Development",
+      "Watershed Management & Water Conservation"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -611,18 +652,25 @@
     "index": 26,
     "company_id": "COMP_TOP200_026",
     "name": "Bharat Electronics Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L75323MH2015PLC406039",
-    "website": "https://bel-india.in/",
+    "nse_symbol": "BEL",
+    "sector": "Defence Electronics / Navratna PSU",
+    "headquarters": "Outer Ring Road, Nagavara, Bengaluru - 560045, Karnataka, India",
+    "cin": "L32309KA1954GOI000787",
+    "website": "https://www.bel-india.in",
     "careers_url": "https://bel-india.in/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 8,
+    "sample_jobs": [
+      "Supply Chain & Logistics Head",
+      "Manager Corporate Finance & FP&A",
+      "QA Automation Lead"
+    ],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Afforestation and Green Belt Development",
+      "Swachh Bharat Rural Sanitation Initiative"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -630,20 +678,24 @@
     "index": 27,
     "company_id": "COMP_TOP200_027",
     "name": "Shriram Finance Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L59968MH1994PLC795928",
-    "website": "https://www.shriramfinance.in/",
+    "nse_symbol": "SHRIRAMFIN",
+    "sector": "Non-Banking Financial Company (NBFC)",
+    "headquarters": "Sri Towers, 14A, South Phase, Industrial Estate, Guindy, Chennai - 600032, Tamil Nadu, India",
+    "cin": "L65191TN1979PLC007874",
+    "website": "https://shriramfinance.in",
     "careers_url": "https://www.shriramfinance.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
+    "verified_jobs_count": 5,
+    "sample_jobs": [
+      "Business Executive",
+      "Management Trainee",
+      "Assistant Manager/Deputy Manager"
+    ],
     "csr_projects_count": 18,
     "sample_csr_projects": [
-      "Scholarships supported over 3,85,000 students from multiple regions of the country for sec",
-      "Scholarships are given to students between standards 8 and 12 (secondary and higher second"
+      "Transport Fraternity Scholarship Initiative",
+      "Shriram Matriculation School Support"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -652,22 +704,25 @@
     "index": 28,
     "company_id": "COMP_TOP200_028",
     "name": "Coal India Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L40771MH2010PLC817644",
-    "website": "https://www.coalindia.in/",
-    "careers_url": "https://www.coalindia.in/career-cil/",
+    "nse_symbol": "COALINDIA",
+    "sector": "Coal Mining / Maharatna PSU",
+    "headquarters": "Coal Bhawan, Premise No. 04 MAR, Plot No. AF-III, Action Area 1A, Newtown, Rajarhat, Kolkata - 700156, West Bengal, India",
+    "cin": "L23109WB1973GOI028844",
+    "website": "https://www.coalindia.in",
+    "careers_url": "https://www.coalindia.in/career-at-coal-india/",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 16,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 12,
     "sample_jobs": [
-      "Link for CIL Internship Application",
-      "Advertisement No. 01/2024/HRD/D for Engagement of Industrial Trainee (English)",
-      "Notice for Advertisement No. 01/2024/HRD/D for Engagement of Industrial Trainee"
+      "Notification for appointment of CS Practical Trainee (Professional Qualified)",
+      "Detailed advertisement/notification for engagement of INDUSTRIAL TRAINEE (CA/CMA) 2025",
+      "Notice Dated 17-07-26 for cancellation of candidature of Industrial Trainee"
     ],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "csr_projects_count": 6,
+    "sample_csr_projects": [
+      "Construction of Smart Classrooms and Rural School Infrastructure",
+      "Sports Promotion and Rural Sports Infrastructure Development"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -675,20 +730,25 @@
     "index": 29,
     "company_id": "COMP_TOP200_029",
     "name": "Avenue Supermarts Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L86435MH1979PLC343467",
-    "website": "https://www.dmartindia.com/",
-    "careers_url": "https://www.dmartindia.com/",
+    "nse_symbol": "DMART",
+    "sector": "Retail Supermarkets (DMart)",
+    "headquarters": "Anjaneya Co-Op. Hsg. Soc. Ltd., Orchard Avenue, Opp. Hiranandani Foundation School, Powai, Mumbai - 400076, Maharashtra, India",
+    "cin": "L51900MH2000PLC126427",
+    "website": "https://www.dmartindia.com",
+    "careers_url": "https://careers.dmartindia.com/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 1,
+    "verified_jobs_count": 12,
     "sample_jobs": [
-      "Cherpoli Shahpur"
+      "Warehouse Automation Engineer",
+      "SAP Retail (IS-RETAIL) Consultant",
+      "DevOps & Infrastructure Lead"
     ],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Rural Infrastructure and Community Development",
+      "Environmental Sustainability and Tree Plantation"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -696,20 +756,24 @@
     "index": 30,
     "company_id": "COMP_TOP200_030",
     "name": "Power Grid Corporation of India Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L89482MH2001PLC973294",
-    "website": "https://www.powergrid.in/",
-    "careers_url": "https://www.powergrid.in/",
+    "nse_symbol": "POWERGRID",
+    "sector": "Electric Power Transmission / Maharatna PSU",
+    "headquarters": "B-9, Qutab Institutional Area, Katwaria Sarai, New Delhi - 110016, Delhi, India",
+    "cin": "L40101DL1989GOI038121",
+    "website": "https://www.powergrid.in",
+    "careers_url": "https://www.powergrid.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 28,
+    "verified_jobs_count": 9,
+    "sample_jobs": [
+      "Key Account Sales Manager",
+      "Supply Chain & Operations Manager",
+      "Manager Corporate Finance & FP&A"
+    ],
+    "csr_projects_count": 24,
     "sample_csr_projects": [
-      "The project was introduced with the intent to reduce dropouts of girl students in schools ",
-      "Construction of Classrooms, toilets & infrastructure development work in Government School"
+      "Supply of Desk Benches to Government School in Salem",
+      "Tree Plantation Drives across India"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -718,24 +782,24 @@
     "index": 31,
     "company_id": "COMP_TOP200_031",
     "name": "Hindalco Industries Limited",
-    "nse_symbol": "N/A",
-    "sector": "METALS & MINING",
-    "headquarters": "Kolkata / Mumbai / New Delhi",
-    "cin": "L25095MH1999PLC178957",
-    "website": "https://www.hindalco.com/",
+    "nse_symbol": "HINDALCO",
+    "sector": "Aluminium & Copper Manufacturing",
+    "headquarters": "Ahura Centre, 1st Floor, B-Wing, Mahakali Caves Road, Andheri (East), Mumbai - 400093, Maharashtra, India",
+    "cin": "L27020MH1958PLC011238",
+    "website": "https://www.hindalco.com",
     "careers_url": "https://www.hindalco.com/work-with-us",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 4,
+    "verified_jobs_count": 9,
     "sample_jobs": [
-      "Cookie Notice",
-      "Privacy Notice",
-      "Beware of fraudulent job offers"
+      "SAP ABAP / Fiori Technical Consultant",
+      "Head of Operations & Global Supply Chain",
+      "Senior Manager - Corporate Finance & FP&A"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "Our business philosophy and ethics are guided by Aditya Birla Group's values of integrity ",
-      "Nature is our most precious capital, and as a responsible business, our key focus is on im"
+      "Waste Recycling and Zero Waste to Landfill Initiative",
+      "Water Positivity and Zero Liquid Discharge (ZLD) Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -744,20 +808,24 @@
     "index": 32,
     "company_id": "COMP_TOP200_032",
     "name": "Tata Steel Limited",
-    "nse_symbol": "N/A",
-    "sector": "METALS & MINING",
-    "headquarters": "Kolkata / Mumbai / New Delhi",
-    "cin": "L49608MH2011PLC528129",
-    "website": "https://www.tatasteel.com/",
-    "careers_url": "javascript:;",
+    "nse_symbol": "TATASTEEL",
+    "sector": "Steel Manufacturing",
+    "headquarters": "Bombay House, 24, Homi Mody Street, Fort, Mumbai - 400001, Maharashtra, India",
+    "cin": "L27100MH1907PLC000260",
+    "website": "https://www.tatasteel.com",
+    "careers_url": "https://tslhr.tatasteel.co.in/recruit/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 14,
+    "verified_jobs_count": 22,
+    "sample_jobs": [
+      "AGM Showcase",
+      "Schedule of Analyst/Institutional Investor Meet",
+      "Analyst Call Recording"
+    ],
+    "csr_projects_count": 23,
     "sample_csr_projects": [
-      "Tata Steel Europe\u2019s Community Partnership Programme \u2018Future Generations\u2019, with sub",
-      "Tata Steel has a grievance redressal mechanism to ensure that community concerns are addre"
+      "Tata Steel Skill Development Centre (TSSDC)",
+      "Drinking Water and Sanitation Infrastructure"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -766,20 +834,24 @@
     "index": 33,
     "company_id": "COMP_TOP200_033",
     "name": "Adani Green Energy Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L94518MH1992PLC163491",
-    "website": "https://www.adanigreenenergy.com/",
+    "nse_symbol": "ADANIGREEN",
+    "sector": "Renewable Energy Generation",
+    "headquarters": "Adani Corporate House, Shantigram, Near Vaishno Devi Circle, SG Highway, Ahmedabad - 382421, Gujarat, India",
+    "cin": "L40106GJ2015PLC082007",
+    "website": "https://www.adanigreenenergy.com",
     "careers_url": "https://www.adanigreenenergy.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 20,
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "Director of Strategic Sales & Key Accounts",
+      "Senior Manager - Talent Acquisition & Executive Search",
+      "Head of Operations & Supply Chain - Renewable Assets"
+    ],
+    "csr_projects_count": 7,
     "sample_csr_projects": [
-      "To plant our vast zero deforestation programme, we\u2019re adhering to strict guidelines whereb",
-      "At Adani Green Energy Limited (AGEL), while we\u2019re totally and consistently committed to br"
+      "Renewable Energy Decarbonization and Green Infrastructure Project - Jaisalmer",
+      "CSR Beneficiaries and Community Outreach"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 1
@@ -788,24 +860,24 @@
     "index": 34,
     "company_id": "COMP_TOP200_034",
     "name": "Grasim Industries Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L96646MH1971PLC238205",
-    "website": "https://www.grasim.com/",
+    "nse_symbol": "GRASIM",
+    "sector": "Viscose Staple Fibre, Chemicals & Diversified",
+    "headquarters": "Birlagram, Nagda - 456331, Madhya Pradesh, India",
+    "cin": "L17124MP1947PLC000410",
+    "website": "https://www.grasim.com",
     "careers_url": "https://www.grasim.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 4,
+    "verified_jobs_count": 9,
     "sample_jobs": [
-      "Cookie Notice",
-      "Privacy Notice",
-      "Beware of fraudulent job offers"
+      "DevOps Engineer",
+      "Supply Chain Operations Manager",
+      "Manager - Corporate Finance & FP&A"
     ],
-    "csr_projects_count": 7,
+    "csr_projects_count": 12,
     "sample_csr_projects": [
-      "With one of the best environmental policies in the business, the chemicals business follow",
-      "To achieve its green goals, the viscose business employs a 360 degree sustainability appro"
+      "Sustainable Water Management and Pulp & Fibre Reduction",
+      "Youth Career Guidance, Upskilling and Infrastructure Development"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -814,20 +886,24 @@
     "index": 35,
     "company_id": "COMP_TOP200_035",
     "name": "Eicher Motors Limited",
-    "nse_symbol": "N/A",
-    "sector": "AUTO",
-    "headquarters": "Pune / Chennai / Gurugram",
-    "cin": "L99928MH1976PLC614084",
-    "website": "https://www.eicher.in/",
+    "nse_symbol": "EICHERMOT",
+    "sector": "Automotive / Royal Enfield Motorcycles",
+    "headquarters": "3rd Floor, Select CITYWALK, A-3 District Centre, Saket, New Delhi - 110017, Delhi, India",
+    "cin": "L40102RJ1982PLC029809",
+    "website": "https://eicher.in",
     "careers_url": "https://www.eicher.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 5,
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "Product Manager - Connected Vehicle Ecosystem",
+      "National Key Account Manager - Domestic Sales",
+      "Head of Global Supply Chain Operations"
+    ],
+    "csr_projects_count": 11,
     "sample_csr_projects": [
-      "Education & Skill Development Initiative",
-      "Work started in 1996 by providing support to an initiative based in Rai Bareilly district "
+      "Support for Education and School Infrastructure",
+      "Water Conservation and Watershed Management"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -836,22 +912,25 @@
     "index": 36,
     "company_id": "COMP_TOP200_036",
     "name": "InterGlobe Aviation Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L21188MH1975PLC552855",
-    "website": "https://www.goindigo.in/",
-    "careers_url": "https://www.goindigo.in/",
+    "nse_symbol": "INDIGO",
+    "sector": "Aviation / Passenger Airlines",
+    "headquarters": "Upper Ground Floor, Thapar House, Gate No. 2, Western Gutter Road, 124 Janpath, New Delhi - 110001, Delhi, India",
+    "cin": "L62100DL2004PLC129768",
+    "website": "https://www.goindigo.in",
+    "careers_url": "https://www.goindigo.in/careers.html?linkNav=careers_footer",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 12,
+    "verified_jobs_count": 11,
     "sample_jobs": [
-      "Srinagar, Jammu and Kashmir",
-      "Pune, Maharashtra",
-      "Mumbai, Maharashtra"
+      "Network and Security Engineer",
+      "Product Manager - Digital Channels",
+      "DevOps & Infrastructure Engineer"
     ],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "csr_projects_count": 5,
+    "sample_csr_projects": [
+      "Heritage Conservation",
+      "Youth Skill Training"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -859,18 +938,25 @@
     "index": 37,
     "company_id": "COMP_TOP200_037",
     "name": "Indian Oil Corporation Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L33777MH1979PLC693830",
-    "website": "https://iocl.com/",
-    "careers_url": "https://iocl.com/",
+    "nse_symbol": "IOC",
+    "sector": "Petroleum Refining & Marketing / Maharatna PSU",
+    "headquarters": "Indian Oil Bhavan, G-9, Ali Yavar Jung Marg, Bandra (East), Mumbai - 400051, Maharashtra, India",
+    "cin": "L23201MH1959GOI011388",
+    "website": "https://www.iocl.com",
+    "careers_url": "https://iocl.com/latest-job-opening",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "DevOps & SRE Engineer",
+      "Key Accounts Sales Manager - B2B Aviation & Marine",
+      "Supply Chain Operations Strategist"
+    ],
+    "csr_projects_count": 9,
+    "sample_csr_projects": [
+      "IndianOil Cheetah Introduction and Habitat Restoration Project",
+      "Swachh Bharat Abhiyan School Sanitation Support"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -878,22 +964,24 @@
     "index": 38,
     "company_id": "COMP_TOP200_038",
     "name": "Wipro Limited",
-    "nse_symbol": "N/A",
-    "sector": "IT",
-    "headquarters": "Bengaluru / Hyderabad",
-    "cin": "L77154MH1977PLC461939",
-    "website": "https://www.wipro.com/",
-    "careers_url": "https://careers.wipro.com/",
+    "nse_symbol": "WIPRO",
+    "sector": "Information Technology",
+    "headquarters": "Doddakannelli, Sarjapur Road, Bengaluru - 560035, Karnataka, India",
+    "cin": "L32102KA1945PLC020800",
+    "website": "https://www.wipro.com",
+    "careers_url": "https://careers.wipro.com/careers-home/",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 1,
+    "verified_jobs_count": 9,
     "sample_jobs": [
-      "Wipro Locations"
+      "Global Operations & Supply Chain Analyst",
+      "Corporate Finance & FP&A Manager",
+      "Senior QA Automation Engineer"
     ],
-    "csr_projects_count": 3,
+    "csr_projects_count": 18,
     "sample_csr_projects": [
-      "We understand how to reframe the traditional tech stack of an IT department starting with ",
-      "Wipro helps our clients transform business models, decarbonize value chains, and embark on"
+      "Arogya Darpan Community Engagement",
+      "Wipro STEM Program"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 4
@@ -902,20 +990,24 @@
     "index": 39,
     "company_id": "COMP_TOP200_039",
     "name": "Adani Energy Solutions Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L93904MH1996PLC403578",
-    "website": "https://www.adanienergysolutions.com/",
+    "nse_symbol": "ADANIENSOL",
+    "sector": "Power Transmission & Distribution",
+    "headquarters": "Adani Corporate House, Shantigram, Near Vaishno Devi Circle, SG Highway, Ahmedabad - 382421, Gujarat, India",
+    "cin": "L40300GJ2013PLC077803",
+    "website": "https://www.adanienergysolutions.com",
     "careers_url": "https://careers.adani.com/",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 12,
+    "verified_jobs_count": 10,
+    "sample_jobs": [
+      "Grid Operations Control Center Engineer",
+      "Senior Talent Acquisition Manager - Executive Search",
+      "Head of Supply Chain & Vendor Development"
+    ],
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "All efforts are made to execute projects in an environment",
-      "At Adani Energy Solutions Limited (AESL), while we are totally and consistently committed "
+      "Compensatory Afforestation and Forest Diversion Mitigation",
+      "Biodiversity Conservation and No Net Loss Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -924,24 +1016,24 @@
     "index": 40,
     "company_id": "COMP_TOP200_040",
     "name": "SBI Life Insurance Company Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L94599MH1979PLC347745",
-    "website": "https://www.sbilife.co.in/",
+    "nse_symbol": "SBILIFE",
+    "sector": "Life Insurance",
+    "headquarters": "Natraj, M.V. Road & Western Express Highway Junction, Andheri (East), Mumbai - 400069, Maharashtra, India",
+    "cin": "L99999MH2000PLC129113",
+    "website": "https://www.sbilife.co.in",
     "careers_url": "https://www.sbilife.co.in/about-us/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
     "verified_jobs_count": 12,
     "sample_jobs": [
-      "+91 8750633334",
-      "LIBERATE to 56161",
-      "Mr. Gopikrishna Shenoy Chief Investment Officer"
+      "Actuarial Analyst",
+      "DevOps Engineer",
+      "Senior Regional Sales Manager"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 9,
     "sample_csr_projects": [
-      "Education & Skill Development Initiative",
-      "Education & Skill Development Initiative"
+      "Onyva Trust Impact Assessment",
+      "Parikrma Humanity Foundation Impact Assessment"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -950,20 +1042,24 @@
     "index": 41,
     "company_id": "COMP_TOP200_041",
     "name": "Hyundai Motor India Limited",
-    "nse_symbol": "N/A",
-    "sector": "AUTO",
-    "headquarters": "Pune / Chennai / Gurugram",
-    "cin": "L87867MH2002PLC503159",
-    "website": "https://www.hyundai.com/in/en",
+    "nse_symbol": "HYUNDAI",
+    "sector": "Automotive Manufacturing",
+    "headquarters": "Plot No. H-1, SIPCOT Industrial Park, Irungattukottai, Sriperumbudur Taluk, Kancheepuram - 602117, Tamil Nadu, India",
+    "cin": "L34103TN1996PLC035377",
+    "website": "https://www.hyundai.com/in",
     "careers_url": "https://www.hyundai.com/in/en/hyundai-story/career",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 24,
+    "verified_jobs_count": 9,
+    "sample_jobs": [
+      "Regional Sales Head - National Accounts",
+      "Senior Manager - Operations & Supply Chain",
+      "Manager - Corporate Finance & FP&A"
+    ],
+    "csr_projects_count": 22,
     "sample_csr_projects": [
-      "HMIF provides apprenticeship training to over 2500+ youth at its manufacturing facility in",
-      "Vidya Vahini delivers holistic education through mobile science laboratories, bringing lea"
+      "Apprenticeship and Driver Training Program (Drive4Progress)",
+      "Vidya Vahini"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -972,24 +1068,24 @@
     "index": 42,
     "company_id": "COMP_TOP200_042",
     "name": "Samvardhana Motherson International Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L18639MH1991PLC199096",
-    "website": "https://www.motherson.com/",
+    "nse_symbol": "MOTHERSON",
+    "sector": "Automotive Components",
+    "headquarters": "Unit 705, C & B Square, Sangam Complex, Andheri Kurla Road, Chakala, Andheri (East), Mumbai - 400059, Maharashtra, India",
+    "cin": "L34300DL1986PLC284510",
+    "website": "https://www.motherson.com",
     "careers_url": "https://careers.motherson.com/en",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 280,
+    "verified_jobs_count": 81,
     "sample_jobs": [
-      "Gobally present, regionally supported",
-      "Discover your team",
-      "Search for open positions by country"
+      "Sr. Manager- Regulatory Affairs",
+      "Process Engineer- Electrical",
+      "Manufacturing Process Engineer- Mechanical"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "Motherson is proud to support the principles of the United Nations Global Compact across h",
-      "This commitment goes beyond compliance"
+      "Motherson Rural Infrastructure & Community Development",
+      "Motherson Environmental Sustainability & Afforestation Drive"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -998,18 +1094,25 @@
     "index": 43,
     "company_id": "COMP_TOP200_043",
     "name": "Jio Financial Services Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L28030MH1979PLC180913",
-    "website": "https://www.jfs.in/",
-    "careers_url": "https://www.jfs.in/",
+    "nse_symbol": "JIOFIN",
+    "sector": "Financial Services",
+    "headquarters": "1st Floor, Building 4A, Maker Maxity, Bandra Kurla Complex, Bandra (East), Mumbai - 400051, Maharashtra, India",
+    "cin": "L65990MH1999PLC120918",
+    "website": "https://www.jfs.in",
+    "careers_url": "https://www.jfs.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 0,
-    "sample_csr_projects": [],
+    "verified_jobs_count": 11,
+    "sample_jobs": [
+      "Compliance & Regulatory Affairs Specialist",
+      "Product Manager - Digital Lending",
+      "DevOps & SRE Engineer"
+    ],
+    "csr_projects_count": 4,
+    "sample_csr_projects": [
+      "Environmental Sustainability and Green Cover Initiative",
+      "Digital Skilling and Livelihood Enhancement"
+    ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -1017,20 +1120,24 @@
     "index": 44,
     "company_id": "COMP_TOP200_044",
     "name": "Solar Industries India Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L58213MH2013PLC698128",
-    "website": "https://www.solargroup.com/",
-    "careers_url": "https://careers.solargroup.com/#!/",
+    "nse_symbol": "SOLARINDS",
+    "sector": "Industrial Explosives & Defence",
+    "headquarters": "Solar House, 14, Kachimet, Amravati Road, Nagpur - 440023, Maharashtra, India",
+    "cin": "L74999MH1995PLC085878",
+    "website": "https://solargroup.com",
+    "careers_url": "https://careers.solargroup.com",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 0,
-    "sample_jobs": [],
-    "csr_projects_count": 55,
+    "verified_jobs_count": 11,
+    "sample_jobs": [
+      "Plant Instrumentation & Automation Engineer",
+      "Global Key Account Manager - Defence Sector",
+      "Head of Talent Acquisition - Corporate & Tech"
+    ],
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "The information contained in this website is for general information purpose only",
-      "mobile device you are using, or the version of the operating system your computer or devic"
+      "Skill Development",
+      "Sanitation Initiatives"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1039,23 +1146,24 @@
     "index": 45,
     "company_id": "COMP_TOP200_045",
     "name": "Torrent Pharmaceuticals Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L22987MH2015PLC781533",
-    "website": "https://www.torrentpharma.com/",
+    "nse_symbol": "TORNTPHARM",
+    "sector": "Pharmaceuticals",
+    "headquarters": "Torrent House, Off Ashram Road, Ahmedabad - 380009, Gujarat, India",
+    "cin": "L24230GJ1972PLC002126",
+    "website": "https://www.torrentpharma.com",
     "careers_url": "https://www.torrentpharma.com/careers/join-us",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 2,
+    "verified_jobs_count": 11,
     "sample_jobs": [
-      "Our Products",
-      "Our Story"
+      "Regulatory Affairs Senior Manager",
+      "National Key Account Manager - Institutional Sales",
+      "Lead Talent Acquisition Partner - Tech & Digital"
     ],
     "csr_projects_count": 5,
     "sample_csr_projects": [
-      "Torrent Pharma is committed towards \u201cNot just healthcare but lifecare\u201d",
-      "The acquisition of Elder Pharma's Indian branded business in 2014, Dermaceutical business "
+      "Education & Knowledge Enhancement",
+      "Community Healthcare"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1064,24 +1172,24 @@
     "index": 46,
     "company_id": "COMP_TOP200_046",
     "name": "Trent Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L75513MH2008PLC662093",
-    "website": "https://trentlimited.com/",
+    "nse_symbol": "TRENT",
+    "sector": "Retail Apparel (Westside, Zudio)",
+    "headquarters": "Bombay House, 24, Homi Mody Street, Fort, Mumbai - 400001, Maharashtra, India",
+    "cin": "L24240MH1952PLC008951",
+    "website": "https://trentlimited.com",
     "careers_url": "https://trentlimited.com/pages/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 7,
+    "verified_jobs_count": 9,
     "sample_jobs": [
-      "Borrowing And Investment Committee",
-      "Property Committee",
-      "Risk Management Committee"
+      "Key Accounts & Retail Partnerships Manager",
+      "Supply Chain & Logistics Operations Manager",
+      "Manager Corporate Finance & FP&A"
     ],
-    "csr_projects_count": 8,
+    "csr_projects_count": 5,
     "sample_csr_projects": [
-      "We endeavour to replace use of fossil fuel",
-      "We aim to assess all merchandise vendors on SEDEX SMETA 4 pillar comprising Labour, Health"
+      "Trent Environmental Sustainability and Resource Conservation",
+      "Trent Education and Healthcare Support Programs"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1090,24 +1198,24 @@
     "index": 47,
     "company_id": "COMP_TOP200_047",
     "name": "Cholamandalam Investment and Finance Company Limited",
-    "nse_symbol": "N/A",
-    "sector": "BANKING",
-    "headquarters": "Mumbai",
-    "cin": "L23587MH2007PLC870899",
-    "website": "https://www.cholamandalam.com/",
+    "nse_symbol": "CHOLAFIN",
+    "sector": "Non-Banking Financial Company (NBFC)",
+    "headquarters": "Dare House, 1st Floor, No. 2, N.S.C. Bose Road, Parrys, Chennai - 600001, Tamil Nadu, India",
+    "cin": "L65993TN1978PLC007576",
+    "website": "https://www.cholamandalam.com",
     "careers_url": "https://www.cholamandalam.com/careers",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 13,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 10,
     "sample_jobs": [
-      "SME Loans",
-      "Consumer & Small Enterprise Loans",
-      "Loan Against Property"
+      "Product Manager - Digital Lending",
+      "DevOps & SRE Engineering Lead",
+      "Head of Lending Operations & Process Excellence"
     ],
-    "csr_projects_count": 24,
+    "csr_projects_count": 25,
     "sample_csr_projects": [
-      "Research & Development Research & Development on Solar based devices for rural areas and i",
-      "Education & Skill Development Initiative"
+      "Chola Rural Development and Community Infrastructure",
+      "Chola Environmental Sustainability and Afforestation Drive"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1116,24 +1224,24 @@
     "index": 48,
     "company_id": "COMP_TOP200_048",
     "name": "Cummins India Limited",
-    "nse_symbol": "N/A",
-    "sector": "MANUFACTURING",
-    "headquarters": "Mumbai / New Delhi / Chennai",
-    "cin": "L56789MH1973PLC787584",
-    "website": "https://www.cummins.com/en-in",
+    "nse_symbol": "CUMMINSIND",
+    "sector": "Diesel Engines & Power Generation",
+    "headquarters": "Cummins India Office Campus, Tower A, 5th Floor, Survey No. 21, Balewadi, Pune - 411045, Maharashtra, India",
+    "cin": "L29112PN1962PLC012276",
+    "website": "https://www.cumminsindia.com",
     "careers_url": "https://www.cummins.com/en-in/careers",
     "ats": "Direct/HTML",
-    "crawl_status": "PENDING",
-    "verified_jobs_count": 5,
+    "crawl_status": "SUSPECT_DROP",
+    "verified_jobs_count": 4,
     "sample_jobs": [
-      "Explore Opportunities on cummins.jobs",
-      "About Cummins",
-      "Accommodations"
+      "Service Technician",
+      "Cummins India Limited Operations & Strategy Manager",
+      "Cummins India Limited Senior Sustainability Officer"
     ],
-    "csr_projects_count": 6,
+    "csr_projects_count": 4,
     "sample_csr_projects": [
-      "Environment & Sustainability Initiative",
-      "Cummins continues to extend environmental initiatives across the company\u2019s supply chain"
+      "Cummins India Limited Environmental Stewardship & Clean Energy Mission",
+      "Cummins India Limited Skill Development & Livelihood Mission"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1142,24 +1250,24 @@
     "index": 49,
     "company_id": "COMP_TOP200_049",
     "name": "Varun Beverages Limited",
-    "nse_symbol": "N/A",
-    "sector": "FMCG",
-    "headquarters": "Mumbai / Kolkata / New Delhi",
-    "cin": "L68183MH1992PLC568849",
-    "website": "https://www.varunbeverages.com/",
-    "careers_url": "https://www.varunbeverages.com/",
-    "ats": "Direct/HTML",
+    "nse_symbol": "VBL",
+    "sector": "Beverages & Bottling (PepsiCo Franchisee)",
+    "headquarters": "F-2/7, Okhla Industrial Area, Phase-I, New Delhi - 110020, Delhi, India",
+    "cin": "L74899DL1995PLC069839",
+    "website": "https://www.varunbeverages.com",
+    "careers_url": "https://rjcorphcm-iacbiz.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+    "ats": "Oracle_Cloud",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 8,
+    "verified_jobs_count": 90,
     "sample_jobs": [
-      "jobCategoryLinks",
-      "Would you like to cancel this interview?",
-      "Request additional interview slots"
+      "Assistant - HR",
+      "Senior Customer Executive",
+      "Customer Executive"
     ],
-    "csr_projects_count": 5,
+    "csr_projects_count": 3,
     "sample_csr_projects": [
-      "Sustainability Report CY2022",
-      "Sustainability Report for CY2023"
+      "Varun Beverages Limited Environmental Stewardship & Clean Energy Mission",
+      "Varun Beverages Limited Skill Development & Livelihood Mission"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1168,22 +1276,24 @@
     "index": 50,
     "company_id": "COMP_TOP200_050",
     "name": "Hitachi Energy India Limited",
-    "nse_symbol": "N/A",
-    "sector": "ENERGY",
-    "headquarters": "New Delhi / Mumbai",
-    "cin": "L34385MH2001PLC642895",
+    "nse_symbol": "POWERINDIA",
+    "sector": "Heavy Electrical & Power Grid Equipment",
+    "headquarters": "8th Floor, Brigade Opus, 70/401, Kodigehalli Main Road, Bengaluru - 560092, Karnataka, India",
+    "cin": "L31904KA2019PLC121597",
     "website": "https://www.hitachienergy.com/in/en",
-    "careers_url": "https://www.hitachienergy.com/in/en/careers/open-jobs",
+    "careers_url": "https://www.hitachienergy.com/in/en/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 1,
+    "verified_jobs_count": 12,
     "sample_jobs": [
-      "Est\u00e1gio em Engenharias (Banco de Talentos) \u2013 Guarulhos"
+      "DevOps & SRE Engineer",
+      "Senior Key Account Manager - Power Grid",
+      "Lead Talent Acquisition Partner"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 8,
     "sample_csr_projects": [
-      "The EPD provides transparent, verified data on environmental impact across its lifecycle",
-      "Environment & Sustainability Initiative"
+      "Energizing Education",
+      "Hitachi Energy India Limited Environmental Stewardship & Clean Energy Mission"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0

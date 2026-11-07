@@ -8,6 +8,26 @@
 <!-- IN-APP FLOATING NOTIFICATION CENTER (No Browser Push/Popups) -->
 <div id="in-app-notification-center" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; max-width: 420px; width: calc(100vw - 48px);" aria-live="assertive" role="region"></div>
 
+<!-- IN-APP CONFIRMATION MODAL (Strictly In-App, Zero Browser alert/confirm Popups) -->
+<div id="in-app-confirm-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+    <div style="background: var(--card-bg, #FFFFFF); border: 1px solid var(--border-color, #E2E8F0); border-radius: 14px; max-width: 480px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden;">
+        <div style="padding: 22px 24px 16px 24px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <div id="confirm-modal-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245,158,11,0.15); color: #F59E0B; display: flex; align-items: center; justify-content: center; font-size: 18px;">⚠️</div>
+                <div>
+                    <h3 id="confirm-modal-title" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0F172A);">Confirmation</h3>
+                    <div id="confirm-modal-subtitle" style="font-size: 12px; color: var(--text-secondary, #64748B);">Please review before continuing</div>
+                </div>
+            </div>
+            <p id="confirm-modal-body" style="margin: 12px 0 0 0; font-size: 13.5px; color: var(--text-primary, #1E293B); line-height: 1.5;"></p>
+        </div>
+        <div style="padding: 14px 24px 20px 24px; display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-surface-subtle, rgba(0,0,0,0.02)); border-top: 1px solid var(--border-color, #E2E8F0);">
+            <button type="button" id="confirm-modal-cancel-btn" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color, #CBD5E1); background: var(--card-bg, #FFFFFF); color: var(--text-primary, #334155); font-size: 13px; font-weight: 600; cursor: pointer;">Cancel</button>
+            <button type="button" id="confirm-modal-action-btn" style="padding: 8px 18px; border-radius: 8px; border: none; background: #EF4444; color: #FFFFFF; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(239,68,68,0.35);">Confirm</button>
+        </div>
+    </div>
+</div>
+
 <div class="admin-content-container" style="max-width: 1300px; margin: 0 auto; padding-bottom: 60px;">
 
     <!-- TOP HEADER -->
@@ -24,7 +44,11 @@
                 Upload a CSV, Excel, or JSON manifest containing company names. Supports <strong>both existing database entities and any new random companies</strong>. The AI crawler automatically discovers corporate websites, crawls careers and Section 135 CSR portals, and directly auto-imports verified records into the production database.
             </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" onclick="resetAndReuploadManifest(true)" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 9px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(10,108,255,0.3); cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Upload New Manifest ⚡</span>
+            </button>
             <a href="{% url 'admin_ai_discovery:sample_template' %}?format=csv" class="admin-btn" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); text-decoration: none; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>Sample CSV</span>
@@ -150,7 +174,7 @@
 
         <!-- DRAG AND DROP ZONE -->
         <div id="drop-zone" style="border: 2px dashed rgba(10,108,255,0.35); border-radius: 16px; padding: 36px 20px; text-align: center; background: rgba(10,108,255,0.02); cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px;" onclick="document.getElementById('manifest-file-input').click()">
-            <input type="file" id="manifest-file-input" accept=".csv,.xlsx,.xls,.json,.tsv,.txt" style="display: none;" onchange="handleFileSelected(this.files[0])">
+            <input type="file" id="manifest-file-input" accept=".csv,.xlsx,.xls,.json,.tsv,.txt" style="display: none;" onclick="this.value=null;" onchange="handleFileSelected(this.files[0])">
             <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(10,108,255,0.12); color: #0A6CFF; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
             </div>
@@ -344,9 +368,9 @@
                         Export Complete Discovery Report
                     </button>
                     <!-- RE-UPLOAD / UPLOAD ANOTHER FILE BUTTON -->
-                    <button type="button" id="btn-reupload-manifest" onclick="resetAndReuploadManifest()" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 8px 16px; font-size: 12.5px; font-weight: 700; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(10,108,255,0.25);">
+                    <button type="button" id="btn-reupload-manifest" onclick="resetAndReuploadManifest(true)" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 8px 16px; font-size: 12.5px; font-weight: 700; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(10,108,255,0.25);">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        <span>Re-upload / New Manifest</span>
+                        <span>Re-upload / New Manifest ⚡</span>
                     </button>
                 </div>
             </div>
@@ -408,9 +432,9 @@
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <button type="button" onclick="resetAndReuploadManifest()" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 10px 20px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(10,108,255,0.35);">
+                    <button type="button" onclick="resetAndReuploadManifest(true)" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 10px 20px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(10,108,255,0.35);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        <span>Upload Another File (CSV/Excel)</span>
+                        <span>Upload Another File (CSV/Excel) ⚡</span>
                     </button>
                     <button type="button" onclick="exportQueueResultsCSV()" class="admin-btn" style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 18px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -1840,6 +1864,9 @@ async function handleFileSelected(file) {
 
         renderManifestPreview();
 
+        const fileInput = document.getElementById('manifest-file-input');
+        if (fileInput) fileInput.value = '';
+
         logTerminal(`[MANIFEST_PARSED] Successfully extracted ${parsedManifestCompanies.length} companies from '${file.name}'. Paginated preview ready (max 10/page).`, '#10B981');
         showInAppNotification({
             title: 'Manifest Parsed Successfully',
@@ -2090,6 +2117,16 @@ function startParsedManifestDiscovery() {
         return;
     }
 
+    if (window.activeDiscoveryAbortController) {
+        try { window.activeDiscoveryAbortController.abort(); } catch(e) {}
+    }
+    window.activeDiscoveryAbortController = new AbortController();
+
+    if (window.discoveryQueueTimeout) {
+        clearTimeout(window.discoveryQueueTimeout);
+        window.discoveryQueueTimeout = null;
+    }
+
     companyQueue = [...parsedManifestCompanies];
 
     logTerminal(`[QUEUE_START] Initiating automated bulk discovery for ${companyQueue.length} companies...`, '#10B981');
@@ -2102,9 +2139,45 @@ function startParsedManifestDiscovery() {
 
     // Reveal Queue UI & Hide Upload/Preview
     document.getElementById('upload-card').style.display = 'none';
-    document.getElementById('live-queue-container').style.display = 'flex';
-    document.getElementById('queue-total-count').innerText = companyQueue.length;
-    document.getElementById('results-empty-state').style.display = 'none';
+    const liveQueue = document.getElementById('live-queue-container');
+    if (liveQueue) liveQueue.style.display = 'flex';
+    
+    // Completely Reset Queue Heading & Status UI
+    const firstComp = companyQueue[0]?.company_name || '-';
+    const qTot = document.getElementById('queue-total-count');
+    if (qTot) qTot.innerText = companyQueue.length;
+    const qIdx = document.getElementById('queue-current-idx');
+    if (qIdx) qIdx.innerText = '1';
+    const qComp = document.getElementById('queue-current-company');
+    if (qComp) qComp.innerText = firstComp;
+    const qHead = document.getElementById('queue-heading');
+    if (qHead) qHead.innerHTML = `Processing Queue: Company <span id="queue-current-idx">1</span> of <span id="queue-total-count">${companyQueue.length}</span>`;
+    const qSub = document.getElementById('queue-subheading');
+    if (qSub) qSub.innerHTML = `Currently probing: <strong id="queue-current-company" style="color: #0A6CFF;">${escapeHtml(firstComp)}</strong>`;
+
+    // Reset Progress Bar to 0% and Pulse to Active
+    const qBar = document.getElementById('queue-progress-bar');
+    if (qBar) qBar.style.width = '0%';
+    const qPulse = document.getElementById('queue-status-pulse');
+    if (qPulse) qPulse.style.background = '#10B981';
+
+    // Clear Previous Batch Dossier Cards
+    discoveredCompaniesResults = [];
+    resultsCurrentPage = 1;
+    renderDiscoveredResultsList();
+
+    const emptyState = document.getElementById('results-empty-state');
+    if (emptyState) emptyState.style.display = 'none';
+
+    // Reset Counters
+    const cntJobs = document.getElementById('counter-jobs-imported');
+    if (cntJobs) cntJobs.innerText = '0';
+    const cntCsr = document.getElementById('counter-csr-imported');
+    if (cntCsr) cntCsr.innerText = '0';
+    const cntNew = document.getElementById('counter-new-companies');
+    if (cntNew) cntNew.innerText = '0';
+    const cntComp = document.getElementById('counter-comp-completed');
+    if (cntComp) cntComp.innerText = '0';
 
     const compBanner = document.getElementById('queue-completion-banner');
     if (compBanner) compBanner.style.display = 'none';
@@ -2762,9 +2835,9 @@ async function processNextCompany() {
     logTerminal(`[${currentQueueIndex + 1}/${companyQueue.length}] Crawling '${companyTask.company_name}'...`, '#F8FAFC');
 
     const options = {
-        extract_jobs: document.getElementById('opt-jobs').checked,
-        extract_csr: document.getElementById('opt-csr').checked,
-        auto_create_company: document.getElementById('opt-auto-create-company').checked,
+        extract_jobs: document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true,
+        extract_csr: document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true,
+        auto_create_company: document.getElementById('opt-auto-create-company') ? document.getElementById('opt-auto-create-company').checked : true,
     };
 
     let resData = null;
@@ -2773,9 +2846,11 @@ async function processNextCompany() {
     let lastError = null;
 
     while (attempts < maxAttempts && !resData) {
+        if (!isQueueRunning || isQueuePaused) return;
         attempts++;
         try {
-            const resp = await fetch("{% url 'admin_ai_discovery:process_company' %}", {
+            window.activeDiscoveryAbortController = new AbortController();
+            const fetchPromise = fetch("{% url 'admin_ai_discovery:process_company' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2784,8 +2859,15 @@ async function processNextCompany() {
                 body: JSON.stringify({
                     company: companyTask,
                     options: options
-                })
+                }),
+                signal: window.activeDiscoveryAbortController.signal
             });
+
+            // 45s race timeout so a slow corporate portal never stalls the entire queue
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Discovery probe timed out after 45s')), 45000)
+            );
+            const resp = await Promise.race([fetchPromise, timeoutPromise]);
 
             if (resp.status === 403 || resp.status === 401) {
                 throw new Error("Admin session expired or access denied (HTTP 403). Please log into Admin Console.");
@@ -2797,11 +2879,15 @@ async function processNextCompany() {
 
             resData = await resp.json();
             consecutiveNetworkFailures = 0; // reset counter on clean response
+            if (!isQueueRunning) return;
             handleCompanyResult(companyTask, resData);
 
         } catch (err) {
+            if (err.name === 'AbortError' || !isQueueRunning) {
+                return; // Queue was cancelled or reset
+            }
             lastError = err;
-            const isNetworkErr = err.name === 'TypeError' || String(err.message).includes('Failed to fetch') || String(err.message).includes('NetworkError');
+            const isNetworkErr = err.name === 'TypeError' || String(err.message).includes('Failed to fetch') || String(err.message).includes('NetworkError') || String(err.message).includes('timed out');
             if (isNetworkErr && attempts < maxAttempts) {
                 logTerminal(`  [RETRYING] Connection interrupted for '${companyTask.company_name}'. Auto-retrying in 2.5s (Attempt ${attempts + 1}/${maxAttempts})...`, '#F59E0B');
                 await new Promise(r => setTimeout(r, 2500));
@@ -2844,7 +2930,10 @@ async function processNextCompany() {
     document.getElementById('queue-progress-bar').style.width = `${newPct}%`;
 
     // Process next item with respectful pacing to honor API quotas and prevent 429 locks
-    setTimeout(() => {
+    if (window.discoveryQueueTimeout) {
+        clearTimeout(window.discoveryQueueTimeout);
+    }
+    window.discoveryQueueTimeout = setTimeout(() => {
         processNextCompany();
     }, 2500);
 }
@@ -3319,6 +3408,43 @@ function togglePauseQueue() {
     }
 }
 
+// IN-APP CONFIRMATION MODAL ENGINE (Strictly In-App, Zero Browser alerts/popups)
+window.EnterpriseConfirm = {
+    show: function(opts) {
+        opts = opts || {};
+        const modal = document.getElementById('in-app-confirm-modal');
+        if (!modal) {
+            if (opts.onConfirm) opts.onConfirm();
+            return;
+        }
+        const titleEl = document.getElementById('confirm-modal-title');
+        if (titleEl) titleEl.innerText = opts.title || 'Confirm Action';
+        const subEl = document.getElementById('confirm-modal-subtitle');
+        if (subEl) subEl.innerText = opts.subtitle || 'Please review before proceeding';
+        const bodyEl = document.getElementById('confirm-modal-body');
+        if (bodyEl) bodyEl.innerText = opts.alert || 'Are you sure you want to proceed?';
+
+        const actionBtn = document.getElementById('confirm-modal-action-btn');
+        if (actionBtn) {
+            actionBtn.innerText = opts.confirmText || 'Confirm';
+            actionBtn.style.background = opts.severity === 'warning' ? '#F59E0B' : '#EF4444';
+            actionBtn.onclick = function() {
+                modal.style.display = 'none';
+                if (opts.onConfirm) opts.onConfirm();
+            };
+        }
+        const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.innerText = opts.cancelText || 'Cancel';
+            cancelBtn.onclick = function() {
+                modal.style.display = 'none';
+                if (opts.onCancel) opts.onCancel();
+            };
+        }
+        modal.style.display = 'flex';
+    }
+};
+
 function abortQueue() {
     if (typeof EnterpriseConfirm !== 'undefined') {
         EnterpriseConfirm.show({
@@ -3326,14 +3452,13 @@ function abortQueue() {
             subtitle: "Halt crawler and AI extraction engine",
             severity: "danger",
             alert: "Are you sure you want to stop the automated discovery queue? All entities, job vacancies, and CSR initiatives processed up to this point have already been verified and permanently committed to the database.",
-            impacts: [
-                "Crawl queue will immediately halt after the current active network packet",
-                "Remaining pending companies in the manifest will not be scraped",
-                "All previously extracted jobs & CSR records remain safely committed"
-            ],
             confirmText: "Yes, Stop Queue",
             cancelText: "Continue Crawling",
             onConfirm: function() {
+                if (window.activeDiscoveryAbortController) {
+                    try { window.activeDiscoveryAbortController.abort(); } catch(e) {}
+                    window.activeDiscoveryAbortController = null;
+                }
                 isQueueRunning = false;
                 finishQueue();
                 logTerminal(`[STOP] Discovery queue stopped by administrator.`, '#EF4444');
@@ -3345,42 +3470,54 @@ function abortQueue() {
             }
         });
     } else {
+        if (window.activeDiscoveryAbortController) {
+            try { window.activeDiscoveryAbortController.abort(); } catch(e) {}
+            window.activeDiscoveryAbortController = null;
+        }
         isQueueRunning = false;
         finishQueue();
     }
 }
 
-function resetAndReuploadManifest(triggerPicker = true) {
+function resetAndReuploadManifest(triggerPicker = false) {
     if (isQueueRunning) {
-        if (typeof EnterpriseConfirm !== 'undefined') {
-            EnterpriseConfirm.show({
-                title: "Upload New Manifest File?",
-                subtitle: "Active discovery queue will be halted",
-                severity: "warning",
-                alert: "A bulk discovery queue is currently running. Stopping it will preserve all records already saved to the database and reopen the file upload manager for a new CSV/Excel file.",
-                confirmText: "Stop & Upload New File",
-                cancelText: "Keep Crawling",
-                onConfirm: function() {
-                    executeResetToUpload(triggerPicker);
-                }
-            });
-            return;
-        }
+        EnterpriseConfirm.show({
+            title: "Upload New Manifest File?",
+            subtitle: "Active discovery queue will be halted",
+            severity: "warning",
+            alert: "A bulk discovery queue is currently running. Stopping it will preserve all records already saved to the database and reopen the file upload manager for a new CSV/Excel file.",
+            confirmText: "Stop & Upload New File",
+            cancelText: "Keep Crawling",
+            onConfirm: function() {
+                executeResetToUpload(triggerPicker);
+            }
+        });
+        return;
     }
     executeResetToUpload(triggerPicker);
 }
 
-function executeResetToUpload(triggerPicker = true) {
+function executeResetToUpload(triggerPicker = false) {
+    if (window.activeDiscoveryAbortController) {
+        try { window.activeDiscoveryAbortController.abort(); } catch(e) {}
+        window.activeDiscoveryAbortController = null;
+    }
+    if (window.discoveryQueueTimeout) {
+        clearTimeout(window.discoveryQueueTimeout);
+        window.discoveryQueueTimeout = null;
+    }
     isQueueRunning = false;
     isQueuePaused = false;
+    companyQueue = [];
+    currentQueueIndex = 0;
+    parsedManifestCompanies = [];
+    filteredManifestCompanies = [];
+    selectedFile = null;
+    previewCurrentPage = 1;
 
     // Reset file input and state
     const fileInput = document.getElementById('manifest-file-input');
     if (fileInput) fileInput.value = '';
-    selectedFile = null;
-    parsedManifestCompanies = [];
-    filteredManifestCompanies = [];
-    previewCurrentPage = 1;
 
     // Reveal upload card and drop zone
     const uploadCard = document.getElementById('upload-card');
@@ -3399,6 +3536,10 @@ function executeResetToUpload(triggerPicker = true) {
     const compBanner = document.getElementById('queue-completion-banner');
     if (compBanner) compBanner.style.display = 'none';
 
+    // Reset queue progress bar
+    const qBar = document.getElementById('queue-progress-bar');
+    if (qBar) qBar.style.width = '0%';
+
     // Scroll uploadCard into view smoothly
     if (uploadCard) {
         uploadCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3406,14 +3547,14 @@ function executeResetToUpload(triggerPicker = true) {
 
     showInAppNotification({
         title: 'Upload Ready',
-        message: 'Upload zone reset. Select a new CSV, Excel, or JSON manifest to preview.',
+        message: 'Manifest queue reset. Select a CSV, Excel, or JSON file to begin a new discovery run.',
         type: 'info',
-        duration: 4000
+        duration: 3500
     });
 
     if (triggerPicker && fileInput) {
         setTimeout(() => {
-            fileInput.click();
+            try { fileInput.click(); } catch(e) {}
         }, 150);
     }
 }

@@ -85,19 +85,18 @@ def title_matches(expected: str, candidate: str) -> bool:
     return len(overlap) >= min(len(ew), 2)
 
 
-def build_highlight_url(official_page_url: str, verbatim_text: str) -> str:
+def build_highlight_url(official_page_url: str, verbatim_text: str = "") -> str:
     """
-    Appends Chrome/Edge Text Fragment (#:~:text=...) to the official URL so clicking the link
-    opens the official webpage, scrolls directly to the exact text, and highlights it in yellow.
+    Returns the clean, authentic official requisition or careers URL.
+    Strips fragment hacks, fake anchor tags (#job-HEX), and text fragments (#:~:text=)
+    to ensure 100% reliable navigation on corporate ATS portals.
     """
-    clean_base, _ = urldefrag(official_page_url)
-    # Clean punctuation that breaks text fragments
-    cleaned = re.sub(r'[\r\n\t]+', ' ', verbatim_text or '').strip()
-    words = [w for w in cleaned.split(' ') if w and not w.startswith('http')]
-    if len(words) < 4:
-        return clean_base
-    snippet = " ".join(words[:7])
-    return f"{clean_base}#:~:text={quote(snippet)}"
+    if not official_page_url:
+        return ""
+    clean_base, _ = urldefrag(str(official_page_url).strip())
+    # Remove tracking query parameters
+    clean_base = re.sub(r'([?&])(utm_[^&]+|fbclid=[^&]+|ref=[^&]+)', '', clean_base).rstrip('&?')
+    return clean_base
 
 
 def verify_url_live(url: str, timeout: int = 15) -> dict:

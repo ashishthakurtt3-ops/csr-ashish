@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 from .base import BaseStrategy, ExtractionContext
 from ..normalizers import clean_text, normalize_canonical_url
+from ..discovery_helpers import is_valid_job_title
 
 logger = logging.getLogger(__name__)
 
@@ -131,9 +132,9 @@ class AnchorCardStrategy(BaseStrategy):
                         if link_a:
                             title = clean_text(link_a.get_text(" ", strip=True)) or ""
 
-                    if not title or len(title) < 3 or len(title) > 120:
+                    if not title or len(title) < 4 or len(title) > 100:
                         continue
-                    if any(bad in title.lower() for bad in ("apply", "apply now", "view more", "read more", "search", "filter")):
+                    if not is_valid_job_title(title):
                         continue
 
                     dest_url = extract_card_destination_url(card, context.final_url)

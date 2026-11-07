@@ -23,7 +23,11 @@ from .access_detector import fetch_live_page, DEFAULT_HEADERS
 from .link_verifier import build_highlight_url, verify_url_live
 from .semantic_matcher import score_link_semantics, probe_subdomains_and_paths, mine_sitemap_for_links
 from .normalizers import clean_text, normalize_canonical_url, build_job_fingerprint
-from .discovery_helpers import is_real_deep_url, is_same_registrable_domain_or_ats, verify_careers_url_content
+from .discovery_helpers import (
+    is_real_deep_url, is_same_registrable_domain_or_ats, verify_careers_url_content,
+    is_valid_job_title, is_valid_csr_project, is_static_asset_url,
+    derive_deep_job_url, resolve_authentic_csr_url
+)
 from .location_normalizer import normalize_job_location
 from .strategies.pipeline import StrategyPipeline
 
@@ -635,6 +639,10 @@ def detect_repeating_dom_job_cards(soup: BeautifulSoup, page_url: str) -> List[D
                     continue
                 if GENERIC_BUTTON_PHRASES.match(title_clean) or title_clean.lower() in NAVBAR_BLACKLIST:
                     continue
+                if not is_valid_job_title(title_clean):
+                    continue
+                if is_static_asset_url(apply_url):
+                    continue
                 if not apply_url or apply_url.startswith(("javascript:", "mailto:", "tel:", "#")):
                     continue
 
@@ -959,8 +967,12 @@ def extract_genuine_jobs_live(careers_url: str, hop: int = 1) -> dict:
                 continue
             if GENERIC_BUTTON_PHRASES.match(raw_text) or raw_text.lower() in NAVBAR_BLACKLIST:
                 continue
+            if not is_valid_job_title(raw_text):
+                continue
 
             full_href = urljoin(final_url, a["href"].strip())
+            if is_static_asset_url(full_href):
+                continue
             if full_href in seen_urls or full_href.rstrip("/") == final_url.rstrip("/"):
                 continue
 
@@ -1010,7 +1022,11 @@ def extract_genuine_jobs_live(careers_url: str, hop: int = 1) -> dict:
                         continue
                     if GENERIC_BUTTON_PHRASES.match(raw_text) or raw_text.lower() in NAVBAR_BLACKLIST:
                         continue
+                    if not is_valid_job_title(raw_text):
+                        continue
                     full_href = urljoin(spa_final_url, a["href"].strip())
+                    if is_static_asset_url(full_href):
+                        continue
                     if full_href in seen_urls or full_href.rstrip("/") == spa_final_url.rstrip("/"):
                         continue
                     if JOB_HREF_PATTERNS.search(full_href):
@@ -1131,7 +1147,13 @@ def _extract_csr_content_from_page(html: str, page_url: str) -> Tuple[List[Dict[
         budget_str = budget_match.group(0).strip() if budget_match else "Verified on Official Portal"
 
         first_clause = re.split(r'[.।:;–—-]', paragraph)[0].strip()
-        title = first_clause[:90] if len(first_clause) >= 12 else f"{matched_theme or 'Corporate CSR'} Initiative"
+        candidate_title = first_clause[:90] if len(first_clause) >= 12 else ""
+        if candidate_title and is_valid_csr_project(candidate_title):
+            title = candidate_title
+        elif matched_theme and is_valid_csr_project(f"{matched_theme} Initiative"):
+            title = f"{matched_theme} Initiative"
+        else:
+            continue
 
         loc_val, state_val = extract_csr_locations(paragraph)
 
@@ -1142,7 +1164,7 @@ def _extract_csr_content_from_page(html: str, page_url: str) -> Tuple[List[Dict[
             "geographic_location": loc_val,
             "state": state_val,
             "budget_allocated": budget_str,
-            "source_url": build_highlight_url(page_url, paragraph),
+            "source_url": page_url,
             "verification_status": "PUBLISHED"
         })
 
@@ -1421,12 +1443,8 @@ def sync_single_company_live(company, ai_config=None) -> dict:
                     note = j.get("link_check_note") or ""
                     ext_id = j.get("external_job_id")
 
-                    # DIRECT: keep exact canonical_url without any highlight fragment.
-                    # LISTING_FALLBACK: provide highlight text fragment to help users find role on listing page.
-                    if quality == "DIRECT":
-                        app_url = canon_url
-                    else:
-                        app_url = build_highlight_url(canon_url, j["title"])
+                    # Always preserve clean, authentic canonical application URL without disruptive fragments
+                    app_url = canon_url
 
                     if canon_url:
                         live_canonical_urls.add(canon_url)
