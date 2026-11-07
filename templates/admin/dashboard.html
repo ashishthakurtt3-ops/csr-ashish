@@ -506,7 +506,13 @@ function triggerAuditNow() {
     .catch(err => {
         btnText.textContent = "Error triggering audit";
         btn.disabled = false;
-        alert("Failed to start audit: " + err);
+        if (typeof window.showInAppNotification === 'function') {
+            window.showInAppNotification({
+                title: "Audit Error",
+                message: "Failed to start audit: " + (err.message || err),
+                type: "error"
+            });
+        }
     });
 }
 </script>

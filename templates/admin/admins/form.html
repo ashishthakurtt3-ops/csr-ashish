@@ -1,342 +1,354 @@
-{% extends "admin/base_admin.html" %}
-
-{% block title %}{% if edit_admin %}Edit Administrator: {{ edit_admin.username }}{% else %}Add New Administrator{% endif %}{% endblock %}
-{% block page_title %}{% if edit_admin %}Edit Administrator: {{ edit_admin.username }}{% else %}Provision Full Super Administrator{% endif %}{% endblock %}
-
-{% block content %}
-<div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-    <a href="{% url 'admin_management:list' %}" class="btn-admin btn-admin-secondary">
-        &larr; Back to Admin Management
-    </a>
-    <span style="font-size:12px; color:var(--text-secondary);">
-        Platform Tier: <strong style="color:var(--text-primary);">Master Superuser Administration</strong>
-    </span>
-</div>
-
-<div class="admin-card" style="max-width: 860px; margin: 0 auto; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
-    <!-- Card Header -->
-    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-            <div>
-                <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
-                    {% if edit_admin %}Update Administrator Credentials{% else %}Provision Master Superuser Account{% endif %}
-                </h2>
-                <div style="font-size: 13px; color: var(--text-secondary); line-height:1.5;">
-                    Every administrator account created in this section receives full platform and database governance privileges (<strong style="color:var(--text-primary);">is_staff = True</strong>, <strong style="color:var(--text-primary);">is_superuser = True</strong>, <strong style="color:var(--text-primary);">role = Super Administrator</strong>).
-                </div>
-            </div>
-            <span class="badge-status" style="background:rgba(10, 108, 255, 0.12); color:#0A6CFF; border:1px solid rgba(10, 108, 255, 0.3); font-weight:700; font-size:12px; padding:6px 12px;">
-                Full Superuser Privileges
-            </span>
-        </div>
-
-        {% if not edit_admin %}
-        <!-- ⚡ 1-CLICK SUPERUSER CREDENTIALS GENERATOR TOOLBAR -->
-        <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(10, 108, 255, 0.08) 0%, rgba(10, 108, 255, 0.08) 100%); border:1px solid rgba(10, 108, 255, 0.3); border-radius:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="width:28px; height:28px; border-radius:6px; background:#EFF6FF; border:1px solid #BFDBFE; color:#0A6CFF; display:inline-flex; align-items:center; justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
-                    <div>
-                        <strong style="color:var(--text-primary); font-size:13.5px;">Fast Superuser Generator</strong>
-                        <div style="font-size:11.5px; color:var(--text-secondary);">1-Click auto-fill to instantly populate verified superuser credentials.</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button type="button" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); color:#fff; font-weight:700; padding:6px 14px; font-size:12px; cursor:pointer;" onclick="autoGenerateAdminCredentials()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Auto-Fill Credentials</span>
-                    </button>
-                    <button type="button" class="btn-admin btn-admin-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer;" onclick="copyFormCredentialsToClipboard()">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span>Copy Credentials</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Role Presets for Quick Setup -->
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed rgba(10, 108, 255, 0.25);">
-                <span style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Quick Presets:</span>
-                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Security Auditor', 'Compliance & Security')">Security Auditor</button>
-                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Lead Operations', 'Operations Management')">Operations Lead</button>
-                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Platform Admin', 'Platform Engineering')">Platform Engineer</button>
-                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Executive Admin', 'Executive Governance')">Executive Superuser</button>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <form method="POST" id="admin-provision-form" style="display:flex; flex-direction:column; gap:20px;">
-        {% csrf_token %}
-
-        <!-- Username and Email -->
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
-            <div>
-                <label style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
-                    <span>Username *</span>
-                    <span style="font-weight:400; text-transform:none; font-size:11px; color:var(--text-secondary);">Used for portal login</span>
-                </label>
-                <input type="text" id="id_username" name="username" value="{% if edit_admin %}{{ edit_admin.username }}{% else %}{{ username|default:'' }}{% endif %}" {% if edit_admin %}readonly style="opacity:0.75; cursor:not-allowed;"{% endif %} required class="search-input" style="height:44px; width:100%; font-family:var(--font-mono); font-size:13.5px;" placeholder="e.g. admin_ops_1">
-            </div>
-            <div>
-                <label style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
-                    <span>Email Address *</span>
-                    <span style="font-weight:400; text-transform:none; font-size:11px; color:var(--text-secondary);">Notifications &amp; Recovery</span>
-                </label>
-                <input type="email" id="id_email" name="email" value="{% if edit_admin %}{{ edit_admin.email }}{% else %}{{ email|default:'' }}{% endif %}" required class="search-input" style="height:44px; width:100%; font-size:13.5px;" placeholder="e.g. admin@impactbridge.org">
-            </div>
-        </div>
-
-        <!-- First Name and Last Name -->
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">First Name</label>
-                <input type="text" id="id_first_name" name="first_name" value="{% if edit_admin %}{{ edit_admin.first_name }}{% else %}{{ first_name|default:'' }}{% endif %}" placeholder="e.g. Sarah" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
-            </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Last Name</label>
-                <input type="text" id="id_last_name" name="last_name" value="{% if edit_admin %}{{ edit_admin.last_name }}{% else %}{{ last_name|default:'' }}{% endif %}" placeholder="e.g. Sharma" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
-            </div>
-        </div>
-
-        <!-- Designation and Organization -->
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Designation / Title</label>
-                <input type="text" id="id_designation" name="designation" value="{% if edit_admin %}{{ edit_admin.designation }}{% else %}{{ designation|default:'System Administrator' }}{% endif %}" placeholder="e.g. Lead Administrator, Security Auditor" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
-            </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Organization</label>
-                <input type="text" id="id_organization_name" name="organization_name" value="{% if edit_admin %}{{ edit_admin.organization_name }}{% else %}{{ organization_name|default:'ImpactBridge Administration' }}{% endif %}" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
-            </div>
-        </div>
-
-        <!-- Phone and Operational Status -->
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Phone Contact</label>
-                <input type="text" id="id_phone" name="phone" value="{% if edit_admin %}{{ edit_admin.phone }}{% else %}{{ phone|default:'' }}{% endif %}" placeholder="+91 98765 43210" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
-            </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Account Operational Status</label>
-                <select name="is_active" class="select-filter" style="width:100%; height:44px; font-size:13.5px;">
-                    <option value="1" {% if edit_admin %}{% if edit_admin.is_active %}selected{% endif %}{% else %}selected{% endif %}>Active (Login permitted immediately)</option>
-                    <option value="0" {% if edit_admin and not edit_admin.is_active %}selected{% endif %}>Disabled (Login access blocked)</option>
-                </select>
-            </div>
-        </div>
-
-        {% if not edit_admin %}
-        <!-- Password Setup (Only on Creation) -->
-        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                <div style="font-size:13px; font-weight:800; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.04em;">
-                    Administrator Password Setup
-                </div>
-                <button type="button" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 10px; cursor:pointer;" onclick="generateStrongRandomPassword()">
-                    ⚡ Generate Strong Password
-                </button>
-            </div>
-
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
-                <div>
-                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Initial Password *</label>
-                    <div style="position:relative; display:flex; align-items:center;">
-                        <input type="password" id="id_password" name="password" required minlength="8" placeholder="Minimum 8 characters" class="search-input" style="height:44px; width:100%; padding-right:75px; font-family:var(--font-mono); font-size:13.5px;" oninput="validatePasswordsMatch()">
-                        <button type="button" onclick="togglePasswordVisibility('id_password', this)" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11.5px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:4px;">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>
-                        </button>
-                    </div>
-                </div>
-                <div>
-                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Confirm Initial Password *</label>
-                    <div style="position:relative; display:flex; align-items:center;">
-                        <input type="password" id="id_confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter password" class="search-input" style="height:44px; width:100%; padding-right:75px; font-family:var(--font-mono); font-size:13.5px;" oninput="validatePasswordsMatch()">
-                        <button type="button" onclick="togglePasswordVisibility('id_confirm_password', this)" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11.5px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:4px;">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Password Match Status and Guidelines -->
-            <div id="password-match-indicator" style="font-size:12px; font-weight:600; margin-top:8px; min-height:18px;">
-                <span style="color:var(--text-secondary);">Enter minimum 8 characters for the administrator passphrase.</span>
-            </div>
-            <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
-                Passphrases are salted and securely encrypted using PBKDF2-SHA256. Plaintext credentials are never stored.
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Explicit Security Privileges Confirmation -->
-        <div style="padding:14px 18px; background:rgba(10, 108, 255, 0.08); border:1px solid rgba(10, 108, 255, 0.25); border-radius:8px; margin-top:6px;">
-            <div style="font-size:11.5px; font-weight:800; color:#0A6CFF; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
-                Security Privileges Assigned Upon Creation
-            </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; font-size:12px; color:var(--text-primary);">
-                <div>✓ <strong>is_superuser = True</strong> (Master Control)</div>
-                <div>✓ <strong>is_staff = True</strong> (Admin Portal Access)</div>
-                <div>✓ <strong>Role = ADMIN</strong> (Unrestricted Governance)</div>
-            </div>
-        </div>
-
-        <!-- Form Actions -->
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px; border-top:1px solid var(--border-color); padding-top:20px;">
-            <a href="{% url 'admin_management:list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
-            <button type="submit" id="submit-admin-btn" class="btn-admin btn-admin-primary" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); padding:10px 28px; font-weight:700; font-size:13.5px;">
-                {% if edit_admin %}Save Changes{% else %}Provision Superuser Now{% endif %}
-            </button>
-        </div>
-    </form>
-</div>
-
-<!-- Toast notification for copied credentials -->
-<div id="copy-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#10b981; color:#fff; padding:12px 20px; border-radius:8px; font-weight:700; font-size:13px; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:9999;">
-    ✓ Credentials copied to clipboard!
-</div>
-
-<script>
-function togglePasswordVisibility(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    if (input.type === 'password') {
-        input.type = 'text';
-        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> <span>Hide</span>';
-        btn.style.color = '#0A6CFF';
-    } else {
-        input.type = 'password';
-        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> <span>Show</span>';
-        btn.style.color = 'var(--text-secondary)';
-    }
-}
-
-function getRandomAlphanumeric(length) {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
-
-function generateStrongRandomPassword() {
-    const uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lowers = 'abcdefghjkmnpqrstuvwxyz';
-    const numbers = '23456789';
-    const specials = '!@#$%^&*';
-    const all = uppers + lowers + numbers + specials;
-
-    let pwd = '';
-    pwd += uppers.charAt(Math.floor(Math.random() * uppers.length));
-    pwd += lowers.charAt(Math.floor(Math.random() * lowers.length));
-    pwd += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    pwd += specials.charAt(Math.floor(Math.random() * specials.length));
-
-    for (let i = 0; i < 8; i++) {
-        pwd += all.charAt(Math.floor(Math.random() * all.length));
-    }
-
-    const passField = document.getElementById('id_password');
-    const confirmField = document.getElementById('id_confirm_password');
-    if (passField && confirmField) {
-        passField.value = pwd;
-        confirmField.value = pwd;
-        // Temporarily reveal to user so they see the generated password
-        passField.type = 'text';
-        confirmField.type = 'text';
-        validatePasswordsMatch();
-    }
-    return pwd;
-}
-
-function autoGenerateAdminCredentials() {
-    const suffix = getRandomAlphanumeric(4);
-    const username = `admin_${suffix}`;
-    const email = `admin_${suffix}@impactbridge.org`;
-    const pwd = generateStrongRandomPassword();
-
-    document.getElementById('id_username').value = username;
-    document.getElementById('id_email').value = email;
-    if (!document.getElementById('id_first_name').value) {
-        document.getElementById('id_first_name').value = 'Super';
-    }
-    if (!document.getElementById('id_last_name').value) {
-        document.getElementById('id_last_name').value = 'Admin';
-    }
-    if (!document.getElementById('id_designation').value) {
-        document.getElementById('id_designation').value = 'Platform Superuser';
-    }
-    if (!document.getElementById('id_organization_name').value) {
-        document.getElementById('id_organization_name').value = 'ImpactBridge Administration';
-    }
-
-    showToast(`Generated: ${username} with strong password!`);
-}
-
-function applyAdminPreset(designation, dept) {
-    const desField = document.getElementById('id_designation');
-    const orgField = document.getElementById('id_organization_name');
-    if (desField) desField.value = designation;
-    if (orgField) orgField.value = `ImpactBridge ${dept}`;
-    showToast(`Applied preset: ${designation}`);
-}
-
-function validatePasswordsMatch() {
-    const p1 = document.getElementById('id_password')?.value || '';
-    const p2 = document.getElementById('id_confirm_password')?.value || '';
-    const indicator = document.getElementById('password-match-indicator');
-    if (!indicator) return;
-
-    if (!p1 && !p2) {
-        indicator.innerHTML = '<span style="color:var(--text-secondary);">Enter minimum 8 characters for the administrator passphrase.</span>';
-        return;
-    }
-
-    if (p1.length < 8) {
-        indicator.innerHTML = '<span style="color:#f59e0b;">⚠ Password is too short (minimum 8 characters required).</span>';
-        return;
-    }
-
-    if (p1 === p2) {
-        indicator.innerHTML = '<span style="color:#10b981;">✓ Passwords match perfectly. Ready for submission.</span>';
-    } else {
-        indicator.innerHTML = '<span style="color:#ef4444;">✕ Passwords do not match yet.</span>';
-    }
-}
-
-function copyFormCredentialsToClipboard() {
-    const username = document.getElementById('id_username')?.value || '';
-    const email = document.getElementById('id_email')?.value || '';
-    const pwd = document.getElementById('id_password')?.value || '';
-
-    if (!username && !pwd) {
-        showToast('Please auto-fill or enter credentials first!');
-        return;
-    }
-
-    const textToCopy = `ImpactBridge Superuser Credentials:\nUsername: ${username}\nEmail: ${email}\nPassword: ${pwd}\nPortal URL: ${window.location.origin}/admin-portal/login/`;
-    
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showToast('✓ Credentials copied to clipboard!');
-        });
-    } else {
-        const dummy = document.createElement('textarea');
-        dummy.value = textToCopy;
-        document.body.appendChild(dummy);
-        dummy.select();
-        document.execCommand('copy');
-        document.body.removeChild(dummy);
-        showToast('✓ Credentials copied to clipboard!');
-    }
-}
-
-function showToast(msg) {
-    const toast = document.getElementById('copy-toast');
-    if (!toast) return;
-    toast.textContent = msg;
-    toast.style.display = 'block';
-    setTimeout(() => {
-        toast.style.display = 'none';
-    }, 3500);
-}
-</script>
-{% endblock %}
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if edit_admin %}Edit Administrator: {{ edit_admin.username }}{% else %}Add New Administrator{% endif %}{% endblock %}
+{% block page_title %}{% if edit_admin %}Edit Administrator: {{ edit_admin.username }}{% else %}Provision Full Super Administrator{% endif %}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <a href="{% url 'admin_management:list' %}" class="btn-admin btn-admin-secondary">
+        &larr; Back to Admin Management
+    </a>
+    <span style="font-size:12px; color:var(--text-secondary);">
+        Platform Tier: <strong style="color:var(--text-primary);">Master Superuser Administration</strong>
+    </span>
+</div>
+
+<div class="admin-card" style="max-width: 860px; margin: 0 auto; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+    <!-- Card Header -->
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h2 style="font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0 0 6px;">
+                    {% if edit_admin %}Update Administrator Credentials{% else %}Provision Master Superuser Account{% endif %}
+                </h2>
+                <div style="font-size: 13px; color: var(--text-secondary); line-height:1.5;">
+                    Every administrator account created in this section receives full platform and database governance privileges (<strong style="color:var(--text-primary);">is_staff = True</strong>, <strong style="color:var(--text-primary);">is_superuser = True</strong>, <strong style="color:var(--text-primary);">role = Super Administrator</strong>).
+                </div>
+            </div>
+            <span class="badge-status" style="background:rgba(10, 108, 255, 0.12); color:#0A6CFF; border:1px solid rgba(10, 108, 255, 0.3); font-weight:700; font-size:12px; padding:6px 12px;">
+                Full Superuser Privileges
+            </span>
+        </div>
+
+        {% if not edit_admin %}
+        <!-- ⚡ 1-CLICK SUPERUSER CREDENTIALS GENERATOR TOOLBAR -->
+        <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(10, 108, 255, 0.08) 0%, rgba(10, 108, 255, 0.08) 100%); border:1px solid rgba(10, 108, 255, 0.3); border-radius:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:6px; background:#EFF6FF; border:1px solid #BFDBFE; color:#0A6CFF; display:inline-flex; align-items:center; justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
+                    <div>
+                        <strong style="color:var(--text-primary); font-size:13.5px;">Fast Superuser Generator</strong>
+                        <div style="font-size:11.5px; color:var(--text-secondary);">1-Click auto-fill to instantly populate verified superuser credentials.</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn-admin" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); color:#fff; font-weight:700; padding:6px 14px; font-size:12px; cursor:pointer;" onclick="autoGenerateAdminCredentials()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Auto-Fill Credentials</span>
+                    </button>
+                    <button type="button" class="btn-admin btn-admin-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer;" onclick="copyFormCredentialsToClipboard()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span>Copy Credentials</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Role Presets for Quick Setup -->
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed rgba(10, 108, 255, 0.25);">
+                <span style="font-size:11.5px; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Quick Presets:</span>
+                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Security Auditor', 'Compliance & Security')">Security Auditor</button>
+                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Lead Operations', 'Operations Management')">Operations Lead</button>
+                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Platform Admin', 'Platform Engineering')">Platform Engineer</button>
+                <button type="button" class="btn-admin btn-admin-secondary" style="padding:3px 9px; font-size:11px;" onclick="applyAdminPreset('Executive Admin', 'Executive Governance')">Executive Superuser</button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <form method="POST" id="admin-provision-form" style="display:flex; flex-direction:column; gap:20px;">
+        {% csrf_token %}
+
+        <!-- Username and Email -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+            <div>
+                <label style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                    <span>Username *</span>
+                    <span style="font-weight:400; text-transform:none; font-size:11px; color:var(--text-secondary);">Used for portal login</span>
+                </label>
+                <input type="text" id="id_username" name="username" value="{% if edit_admin %}{{ edit_admin.username }}{% else %}{{ username|default:'' }}{% endif %}" {% if edit_admin %}readonly style="opacity:0.75; cursor:not-allowed;"{% endif %} required class="search-input" style="height:44px; width:100%; font-family:var(--font-mono); font-size:13.5px;" placeholder="e.g. admin_ops_1">
+            </div>
+            <div>
+                <label style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">
+                    <span>Email Address *</span>
+                    <span style="font-weight:400; text-transform:none; font-size:11px; color:var(--text-secondary);">Notifications &amp; Recovery</span>
+                </label>
+                <input type="email" id="id_email" name="email" value="{% if edit_admin %}{{ edit_admin.email }}{% else %}{{ email|default:'' }}{% endif %}" required class="search-input" style="height:44px; width:100%; font-size:13.5px;" placeholder="e.g. admin@impactbridge.org">
+            </div>
+        </div>
+
+        <!-- First Name and Last Name -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">First Name</label>
+                <input type="text" id="id_first_name" name="first_name" value="{% if edit_admin %}{{ edit_admin.first_name }}{% else %}{{ first_name|default:'' }}{% endif %}" placeholder="e.g. Sarah" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Last Name</label>
+                <input type="text" id="id_last_name" name="last_name" value="{% if edit_admin %}{{ edit_admin.last_name }}{% else %}{{ last_name|default:'' }}{% endif %}" placeholder="e.g. Sharma" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
+            </div>
+        </div>
+
+        <!-- Designation and Organization -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Designation / Title</label>
+                <input type="text" id="id_designation" name="designation" value="{% if edit_admin %}{{ edit_admin.designation }}{% else %}{{ designation|default:'System Administrator' }}{% endif %}" placeholder="e.g. Lead Administrator, Security Auditor" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Organization</label>
+                <input type="text" id="id_organization_name" name="organization_name" value="{% if edit_admin %}{{ edit_admin.organization_name }}{% else %}{{ organization_name|default:'ImpactBridge Administration' }}{% endif %}" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
+            </div>
+        </div>
+
+        <!-- Phone and Operational Status -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Phone Contact</label>
+                <input type="text" id="id_phone" name="phone" value="{% if edit_admin %}{{ edit_admin.phone }}{% else %}{{ phone|default:'' }}{% endif %}" placeholder="+91 98765 43210" class="search-input" style="height:44px; width:100%; font-size:13.5px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Account Operational Status</label>
+                <select name="is_active" class="select-filter" style="width:100%; height:44px; font-size:13.5px;">
+                    <option value="1" {% if edit_admin %}{% if edit_admin.is_active %}selected{% endif %}{% else %}selected{% endif %}>Active (Login permitted immediately)</option>
+                    <option value="0" {% if edit_admin and not edit_admin.is_active %}selected{% endif %}>Disabled (Login access blocked)</option>
+                </select>
+            </div>
+        </div>
+
+        {% if not edit_admin %}
+        <!-- Password Setup (Only on Creation) -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                <div style="font-size:13px; font-weight:800; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.04em;">
+                    Administrator Password Setup
+                </div>
+                <button type="button" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 10px; cursor:pointer;" onclick="generateStrongRandomPassword()">
+                    ⚡ Generate Strong Password
+                </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Initial Password *</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input type="password" id="id_password" name="password" required minlength="8" placeholder="Minimum 8 characters" class="search-input" style="height:44px; width:100%; padding-right:75px; font-family:var(--font-mono); font-size:13.5px;" oninput="validatePasswordsMatch()">
+                        <button type="button" onclick="togglePasswordVisibility('id_password', this)" aria-label="Toggle password visibility" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11.5px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
+                            <svg class="icon-eye-show" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg class="icon-eye-hide" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle; display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            <span class="toggle-text">Show</span>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">Confirm Initial Password *</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input type="password" id="id_confirm_password" name="confirm_password" required minlength="8" placeholder="Re-enter password" class="search-input" style="height:44px; width:100%; padding-right:75px; font-family:var(--font-mono); font-size:13.5px;" oninput="validatePasswordsMatch()">
+                        <button type="button" onclick="togglePasswordVisibility('id_confirm_password', this)" aria-label="Toggle password visibility" style="position:absolute; right:8px; background:none; border:none; color:var(--text-secondary); font-size:11.5px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
+                            <svg class="icon-eye-show" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle; display:inline-block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg class="icon-eye-hide" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle; display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            <span class="toggle-text">Show</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Match Status and Guidelines -->
+            <div id="password-match-indicator" style="font-size:12px; font-weight:600; margin-top:8px; min-height:18px;">
+                <span style="color:var(--text-secondary);">Enter minimum 8 characters for the administrator passphrase.</span>
+            </div>
+            <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
+                Passphrases are salted and securely encrypted using PBKDF2-SHA256. Plaintext credentials are never stored.
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Explicit Security Privileges Confirmation -->
+        <div style="padding:14px 18px; background:rgba(10, 108, 255, 0.08); border:1px solid rgba(10, 108, 255, 0.25); border-radius:8px; margin-top:6px;">
+            <div style="font-size:11.5px; font-weight:800; color:#0A6CFF; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+                Security Privileges Assigned Upon Creation
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; font-size:12px; color:var(--text-primary);">
+                <div>✓ <strong>is_superuser = True</strong> (Master Control)</div>
+                <div>✓ <strong>is_staff = True</strong> (Admin Portal Access)</div>
+                <div>✓ <strong>Role = ADMIN</strong> (Unrestricted Governance)</div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px; border-top:1px solid var(--border-color); padding-top:20px;">
+            <a href="{% url 'admin_management:list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            <button type="submit" id="submit-admin-btn" class="btn-admin btn-admin-primary" style="background:linear-gradient(135deg, #0A6CFF, #005CE0); padding:10px 28px; font-weight:700; font-size:13.5px;">
+                {% if edit_admin %}Save Changes{% else %}Provision Superuser Now{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Toast notification for copied credentials -->
+<div id="copy-toast" style="display:none; position:fixed; bottom:28px; right:28px; background:#10b981; color:#fff; padding:12px 20px; border-radius:8px; font-weight:700; font-size:13px; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:9999;">
+    ✓ Credentials copied to clipboard!
+</div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input || !btn) return;
+    const button = (btn && btn.closest ? btn.closest('button') : null) || btn;
+    const eyeShow = button.querySelector('.icon-eye-show');
+    const eyeHide = button.querySelector('.icon-eye-hide');
+    const txt = button.querySelector('.toggle-text');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (eyeShow) eyeShow.style.display = 'none';
+        if (eyeHide) eyeHide.style.display = 'inline-block';
+        if (txt) txt.textContent = 'Hide';
+        button.style.color = '#0A6CFF';
+    } else {
+        input.type = 'password';
+        if (eyeShow) eyeShow.style.display = 'inline-block';
+        if (eyeHide) eyeHide.style.display = 'none';
+        if (txt) txt.textContent = 'Show';
+        button.style.color = 'var(--text-secondary)';
+    }
+}
+
+function getRandomAlphanumeric(length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function generateStrongRandomPassword() {
+    const uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lowers = 'abcdefghjkmnpqrstuvwxyz';
+    const numbers = '23456789';
+    const specials = '!@#$%^&*';
+    const all = uppers + lowers + numbers + specials;
+
+    let pwd = '';
+    pwd += uppers.charAt(Math.floor(Math.random() * uppers.length));
+    pwd += lowers.charAt(Math.floor(Math.random() * lowers.length));
+    pwd += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    pwd += specials.charAt(Math.floor(Math.random() * specials.length));
+
+    for (let i = 0; i < 8; i++) {
+        pwd += all.charAt(Math.floor(Math.random() * all.length));
+    }
+
+    const passField = document.getElementById('id_password');
+    const confirmField = document.getElementById('id_confirm_password');
+    if (passField && confirmField) {
+        passField.value = pwd;
+        confirmField.value = pwd;
+        // Temporarily reveal to user so they see the generated password
+        passField.type = 'text';
+        confirmField.type = 'text';
+        validatePasswordsMatch();
+    }
+    return pwd;
+}
+
+function autoGenerateAdminCredentials() {
+    const suffix = getRandomAlphanumeric(4);
+    const username = `admin_${suffix}`;
+    const email = `admin_${suffix}@impactbridge.org`;
+    const pwd = generateStrongRandomPassword();
+
+    document.getElementById('id_username').value = username;
+    document.getElementById('id_email').value = email;
+    if (!document.getElementById('id_first_name').value) {
+        document.getElementById('id_first_name').value = 'Super';
+    }
+    if (!document.getElementById('id_last_name').value) {
+        document.getElementById('id_last_name').value = 'Admin';
+    }
+    if (!document.getElementById('id_designation').value) {
+        document.getElementById('id_designation').value = 'Platform Superuser';
+    }
+    if (!document.getElementById('id_organization_name').value) {
+        document.getElementById('id_organization_name').value = 'ImpactBridge Administration';
+    }
+
+    showToast(`Generated: ${username} with strong password!`);
+}
+
+function applyAdminPreset(designation, dept) {
+    const desField = document.getElementById('id_designation');
+    const orgField = document.getElementById('id_organization_name');
+    if (desField) desField.value = designation;
+    if (orgField) orgField.value = `ImpactBridge ${dept}`;
+    showToast(`Applied preset: ${designation}`);
+}
+
+function validatePasswordsMatch() {
+    const p1 = document.getElementById('id_password')?.value || '';
+    const p2 = document.getElementById('id_confirm_password')?.value || '';
+    const indicator = document.getElementById('password-match-indicator');
+    if (!indicator) return;
+
+    if (!p1 && !p2) {
+        indicator.innerHTML = '<span style="color:var(--text-secondary);">Enter minimum 8 characters for the administrator passphrase.</span>';
+        return;
+    }
+
+    if (p1.length < 8) {
+        indicator.innerHTML = '<span style="color:#f59e0b;">⚠ Password is too short (minimum 8 characters required).</span>';
+        return;
+    }
+
+    if (p1 === p2) {
+        indicator.innerHTML = '<span style="color:#10b981;">✓ Passwords match perfectly. Ready for submission.</span>';
+    } else {
+        indicator.innerHTML = '<span style="color:#ef4444;">✕ Passwords do not match yet.</span>';
+    }
+}
+
+function copyFormCredentialsToClipboard() {
+    const username = document.getElementById('id_username')?.value || '';
+    const email = document.getElementById('id_email')?.value || '';
+    const pwd = document.getElementById('id_password')?.value || '';
+
+    if (!username && !pwd) {
+        showToast('Please auto-fill or enter credentials first!');
+        return;
+    }
+
+    const textToCopy = `ImpactBridge Superuser Credentials:\nUsername: ${username}\nEmail: ${email}\nPassword: ${pwd}\nPortal URL: ${window.location.origin}/admin-portal/login/`;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast('✓ Credentials copied to clipboard!');
+        });
+    } else {
+        const dummy = document.createElement('textarea');
+        dummy.value = textToCopy;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        showToast('✓ Credentials copied to clipboard!');
+    }
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('copy-toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3500);
+}
+</script>
+{% endblock %}

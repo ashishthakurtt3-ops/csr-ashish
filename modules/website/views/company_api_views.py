@@ -391,20 +391,48 @@ def _annotate_company_metrics(qs):
 
 
 def companies_list_api(request):
-    if not request.user.is_authenticated:
-        from modules.website.views.preview_api_views import get_public_preview_companies, PREVIEW_LIMIT
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        if not request.user.is_authenticated and request.GET.get('access') == 'LOGIN_REQUIRED':
+            return JsonResponse({
+                'is_preview': True,
+                'items': [],
+                'total': 0,
+                'page': 1,
+                'total_pages': 1,
+                'has_more': False
+            })
+        from modules.admin_panel.models import GuestPreviewSettings
+        from modules.website.views.preview_api_views import get_public_preview_companies
+        cfg = GuestPreviewSettings.get_settings()
+        if not cfg.preview_enabled:
+            return JsonResponse({
+                'is_preview': True,
+                'preview_enabled': False,
+                'preview_limit': 0,
+                'preview_message': 'Please select a subscription plan to access verified corporate dossiers.' if request.user.is_authenticated else 'Guest preview is currently disabled. Please sign in or register to access verified corporate dossiers.',
+                'plan_required': bool(request.user.is_authenticated),
+                'items': [],
+                'total': 0,
+                'page': 1,
+                'total_pages': 1,
+                'has_more': False
+            })
         items = get_public_preview_companies()
         return JsonResponse({
             'is_preview': True,
-            'preview_limit': PREVIEW_LIMIT,
-            'preview_message': 'You are viewing a limited public preview of 5 verified corporations. Sign in or register to unlock all 201 enterprise profiles.',
+            'preview_enabled': True,
+            'preview_limit': cfg.preview_limit,
+            'preview_message': 'Subscription plan required. Please choose a subscription plan to unlock all enterprise profiles.' if request.user.is_authenticated else f'You are viewing a limited public preview of {len(items)} verified corporations. Sign in or register to unlock all enterprise profiles.',
+            'plan_required': bool(request.user.is_authenticated),
             'login_url': '/login/?next=/companies/',
             'register_url': '/register/?next=/companies/',
-            'total': PREVIEW_LIMIT,
+            'pricing_url': '/?tab=pricing',
+            'items': items,
+            'total': len(items),
             'page': 1,
             'total_pages': 1,
-            'has_more': True,
-            'items': items
+            'has_more': False
         })
 
     q = request.GET.get('q', '').strip()
@@ -486,6 +514,14 @@ def company_detail_api(request, company_id):
             'login_url': f'/login/?next=/companies/{company_id}/',
             'register_url': f'/register/?next=/companies/{company_id}/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to view complete corporate profiles.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     qs = Company.objects.filter(company_id=company_id)
     qs = _annotate_company_metrics(qs).select_related('score_record', 'prospect_entry')
     c = qs.first()
@@ -533,6 +569,14 @@ def company_dossier_api(request, company_id):
             'login_url': f'/login/?next=/companies/{company_id}/',
             'register_url': f'/register/?next=/companies/{company_id}/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to access detailed corporate dossiers.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     """
     Unified strategic dossier:
     Provides standardized data across all 10 universal sections with strict source verification,
@@ -891,6 +935,14 @@ def company_csr_api(request, company_id):
             'login_url': f'/login/?next=/companies/{company_id}/',
             'register_url': f'/register/?next=/companies/{company_id}/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to view Section 135 CSR projects.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     from modules.website.views.opportunity_api_views import serialize_project_item
     try:
         c = Company.objects.get(company_id=company_id)
@@ -913,6 +965,14 @@ def company_jobs_api(request, company_id):
             'login_url': f'/login/?next=/companies/{company_id}/',
             'register_url': f'/register/?next=/companies/{company_id}/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to view active job openings.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     from modules.website.views.job_api_views import serialize_job_item, apply_job_safety_filters
     include_stale = request.GET.get('include_stale', '').lower() in ('true', '1')
     qs = Job.objects.select_related('company').filter(company_id=company_id)
@@ -958,15 +1018,30 @@ import hashlib
 
 def recommendations_api(request):
     if not request.user.is_authenticated:
-        from modules.website.views.preview_api_views import get_public_preview_companies, PREVIEW_LIMIT
+        from modules.admin_panel.models import GuestPreviewSettings
+        from modules.website.views.preview_api_views import get_public_preview_companies
+        cfg = GuestPreviewSettings.get_settings()
+        if not cfg.preview_enabled:
+            return JsonResponse({
+                'is_preview': True,
+                'preview_enabled': False,
+                'preview_limit': 0,
+                'preview_message': 'Guest preview is currently disabled. Please sign in or register to access verified corporate dossiers.',
+                'items': [],
+                'total': 0,
+                'page': 1,
+                'total_pages': 1,
+                'has_more': False
+            })
         items = get_public_preview_companies()
         return JsonResponse({
             'is_preview': True,
-            'preview_limit': PREVIEW_LIMIT,
-            'preview_message': 'You are viewing a limited public preview of 5 verified corporations. Sign in or register to unlock all 201 enterprise profiles.',
+            'preview_enabled': True,
+            'preview_limit': cfg.preview_limit,
+            'preview_message': f'You are viewing a limited public preview of {len(items)} verified corporations. Sign in or register to unlock all 201 enterprise profiles.',
             'login_url': '/login/?next=/companies/',
             'register_url': '/register/?next=/companies/',
-            'total': PREVIEW_LIMIT,
+            'total': len(items),
             'page': 1,
             'total_pages': 1,
             'has_more': True,
@@ -1105,5 +1180,96 @@ def company_fetch_live_api(request, company_id):
             f"(+{diff.get('jobs_added', 0)} Added, ~{diff.get('jobs_updated', 0)} Updated, -{diff.get('jobs_removed', 0)} Removed), "
             f"{diff.get('active_csr_count', 0)} CSR Projects verified."
         ),
+    })
+
+
+@csrf_exempt
+def companies_compare_api(request):
+    """
+    POST or GET /api/companies/compare
+    Side-by-side corporate intelligence comparison.
+    Entitlement enforced via EntitlementService:
+      - Free: Blocked (HTTP 403, Upgrade to Pro)
+      - Pro: Up to 10 companies
+      - Ultra: Unlimited
+    """
+    user = getattr(request, 'user', None)
+    if not (user and user.is_authenticated):
+        return JsonResponse({
+            'detail': 'Authentication required. Please sign in or register to compare companies.',
+            'code': 'unauthorized'
+        }, status=401)
+
+    from modules.website.utils.entitlement_service import EntitlementService, EntitlementError
+    svc = EntitlementService(user)
+
+    if request.method == 'POST':
+        import json
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = {}
+        cids = body.get('company_ids') or body.get('ids') or []
+    else:
+        ids_param = request.GET.get('ids') or request.GET.get('company_ids') or ''
+        cids = [x.strip() for x in ids_param.split(',') if x.strip()]
+
+    if not cids:
+        return JsonResponse({'detail': 'No company IDs provided for comparison.', 'code': 'invalid'}, status=400)
+
+    try:
+        svc.check_company_comparison(count=len(cids))
+    except EntitlementError as e:
+        return JsonResponse({
+            'detail': e.message,
+            'code': 'feature_locked' if (e.limit == 0 or (e.limit is None and svc.tier == 'free')) else 'quota_exceeded',
+            'feature': e.feature,
+            'limit': e.limit,
+            'upgrade_to': e.upgrade_to,
+        }, status=403)
+
+    comps = Company.objects.filter(company_id__in=cids)
+    comps = _annotate_company_metrics(comps).select_related('score_record')
+    comp_map = {c.company_id: c for c in comps}
+
+    results = []
+    for cid in cids:
+        c = comp_map.get(cid)
+        if not c:
+            continue
+        score_obj = getattr(c, 'score_record', None)
+        active_jobs_count = getattr(c, 'active_jobs_count', c.jobs.filter(status='ACTIVE').count())
+        active_csr_count = getattr(c, 'active_csr_count', c.csr_projects.filter(status='ACTIVE').count())
+        total_csr_budget = getattr(c, 'total_csr_budget', None) or 0.0
+
+        results.append({
+            'company_id': c.company_id,
+            'company_name': c.company_name,
+            'nse_symbol': c.nse_symbol,
+            'sector': c.sector,
+            'headquarters': c.headquarters,
+            'cin': c.cin,
+            'website_url': c.website_url,
+            'careers_url': c.careers_url,
+            'csr_portal_url': c.csr_portal_url,
+            'ats_platform': c.ats_platform,
+            'jobs_access': c.jobs_access,
+            'csr_access': c.csr_access,
+            'verification_status': c.verification_status,
+            'active_jobs_count': active_jobs_count,
+            'active_csr_count': active_csr_count,
+            'total_csr_budget': float(total_csr_budget),
+            'opportunity_score': float(score_obj.score if score_obj else 0.0),
+            'readiness_score': float(score_obj.score if score_obj else 0.0),
+            'focus_match': float(score_obj.focus_match if score_obj else 0.0),
+            'sync_status': c.sync_status,
+            'crawl_status': c.crawl_status,
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'count': len(results),
+        'limit': svc.compare_companies_limit,
+        'companies': results
     })
 

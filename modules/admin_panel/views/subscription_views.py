@@ -259,6 +259,71 @@ def plan_list_view(request):
     })
 
 
+def build_standardized_feature_bullets(limits_dict: dict, plan_name: str = "") -> list:
+    """Builds canonical, standardized feature bullets driven strictly by the plan's numbers."""
+    saved_records = limits_dict.get('saved_records_limit')
+    saved_searches = limits_dict.get('saved_searches_limit')
+    export_rows = limits_dict.get('export_rows_per_month')
+    compare_comp = limits_dict.get('compare_companies_limit')
+    alert_freq = str(limits_dict.get('alert_frequency') or 'weekly').lower()
+    adv_filters = bool(limits_dict.get('advanced_filters'))
+    prio_support = bool(limits_dict.get('priority_support'))
+    refresh_req = bool(limits_dict.get('request_company_refresh'))
+    seats = limits_dict.get('seats') or 1
+
+    bullets = [
+        "Browse verified companies & CSR profiles",
+        "Search active corporate vacancies & Section 135 projects",
+        "View verified job & CSR details and original portal links",
+    ]
+
+    # 1. Saved Records
+    if saved_records is None:
+        bullets.append("Unlimited saved jobs & CSR projects")
+    elif saved_records > 0:
+        bullets.append(f"Save up to {saved_records} combined jobs & CSR projects")
+
+    # 2. Saved Searches
+    if saved_searches is None:
+        bullets.append("Unlimited saved search queries")
+    elif saved_searches > 0:
+        bullets.append(f"Save up to {saved_searches} custom search {'queries' if saved_searches > 1 else 'query'}")
+
+    # 3. Export Data
+    if export_rows is None:
+        bullets.append("Unlimited bulk data exports (CSV & Excel)")
+    elif export_rows > 0:
+        bullets.append(f"Export up to {export_rows:,} records / month (CSV & Excel)")
+
+    # 4. Company Comparison
+    if compare_comp is None or (isinstance(compare_comp, int) and compare_comp > 15):
+        bullets.append("Comprehensive multi-company comparison tool")
+    elif isinstance(compare_comp, int) and compare_comp > 0:
+        bullets.append(f"Compare up to {compare_comp} companies side-by-side")
+
+    # 5. Alert Frequency
+    freq_label = "Instant Real-Time" if alert_freq in ('custom', 'instant', 'real-time') else ("Daily" if alert_freq == 'daily' else "Weekly")
+    bullets.append(f"{freq_label} job & CSR alert notifications")
+
+    # 6. Search Filters
+    bullets.append("Advanced multi-dimensional search filters" if adv_filters else "Standard search filters")
+
+    # 7. Refresh Requests
+    if refresh_req:
+        bullets.append("On-demand company data refresh requests")
+
+    # 8. Team Seats
+    if seats > 1:
+        bullets.append(f"Up to {seats} team member accounts")
+    else:
+        bullets.append("Single user account")
+
+    # 9. Support Level
+    bullets.append("Priority Dedicated Support 24/7" if prio_support else "Standard Email Support")
+
+    return bullets
+
+
 @login_required
 def plan_create_edit_view(request, code=None):
     if not _is_admin(request.user):
@@ -316,6 +381,7 @@ def plan_create_edit_view(request, code=None):
 
         # Parse features list (newline separated)
         features_raw = request.POST.get('features', '') or request.POST.get('features_text', '')
+        auto_sync = request.POST.get('auto_sync_features') in ('on', 'true', '1')
         features_list = [f.strip() for f in features_raw.split('\n') if f.strip()]
 
         highlight_raw = request.POST.get('highlight_features', '')
@@ -415,7 +481,7 @@ def plan_create_edit_view(request, code=None):
             'allow_downgrade': allow_downgrade,
             'allow_cancel': allow_cancel,
             'auto_renew_default': auto_renew_default,
-            'features': features_list,
+            'features': build_standardized_feature_bullets(limits_dict, name) if (auto_sync or not features_list) else features_list,
             'highlight_features': highlight_list,
             'limits': limits_dict,
         }

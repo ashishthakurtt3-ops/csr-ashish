@@ -3,12 +3,14 @@ from modules.website.views.company_api_views import (
     companies_list_api, company_detail_api, company_dossier_api,
     company_csr_api, company_jobs_api, company_partners_api,
     company_contacts_api, recommendations_api, company_fetch_live_api,
-    companies_lookup_api
+    companies_lookup_api, companies_compare_api
 )
 
 urlpatterns = [
     path('companies/lookup', companies_lookup_api, name='companies_lookup'),
     path('companies/lookup/', companies_lookup_api, name='companies_lookup_slash'),
+    path('companies/compare', companies_compare_api, name='companies_compare'),
+    path('companies/compare/', companies_compare_api, name='companies_compare_slash'),
     path('companies', companies_list_api, name='companies_list'),
     path('companies/', companies_list_api, name='companies_list_slash'),
     path('companies/<str:company_id>', company_detail_api, name='company_detail'),

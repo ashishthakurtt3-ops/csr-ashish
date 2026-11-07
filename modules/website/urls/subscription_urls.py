@@ -85,12 +85,18 @@ urlpatterns = [
     # Saved Records & Searches (User features)
     path('api/user/saved-records', saved_records_api, name='user_saved_records'),
     path('api/user/saved-records/', saved_records_api, name='user_saved_records_slash'),
+    path('api/subscription/saved-records', saved_records_api, name='sub_saved_records'),
+    path('api/subscription/saved-records/', saved_records_api, name='sub_saved_records_slash'),
     path('api/user/saved-searches', saved_searches_api, name='user_saved_searches'),
     path('api/user/saved-searches/', saved_searches_api, name='user_saved_searches_slash'),
+    path('api/subscription/saved-searches', saved_searches_api, name='sub_saved_searches'),
+    path('api/subscription/saved-searches/', saved_searches_api, name='sub_saved_searches_slash'),
 
     # Ultra features: Team & Refresh
     path('api/user/team', team_members_api, name='user_team_members'),
     path('api/user/team/', team_members_api, name='user_team_members_slash'),
     path('api/user/company-refresh', company_refresh_api, name='user_company_refresh'),
     path('api/user/company-refresh/', company_refresh_api, name='user_company_refresh_slash'),
+    path('api/subscription/company-refresh', company_refresh_api, name='sub_company_refresh'),
+    path('api/subscription/company-refresh/', company_refresh_api, name='sub_company_refresh_slash'),
 ]

@@ -3,6 +3,33 @@
  * Production Client Controller & Modern UX Engine 3.0
  */
 
+// Universal Global Safety Guard: Permanently disable browser push notifications and intercept window.alert
+(function() {
+    if (typeof window !== 'undefined') {
+        try {
+            window.Notification = {
+                permission: 'denied',
+                requestPermission: function() { return Promise.resolve('denied'); }
+            };
+        } catch (e) {}
+
+        window.alert = function(msg) {
+            let type = 'warning';
+            let str = String(msg || '');
+            if (str.toLowerCase().includes('error') || str.toLowerCase().includes('failed')) {
+                type = 'error';
+            } else if (str.toLowerCase().includes('success') || str.toLowerCase().includes('credited') || str.toLowerCase().includes('saved') || str.toLowerCase().includes('copied')) {
+                type = 'success';
+            }
+            if (typeof showLiveToast === 'function') {
+                showLiveToast(str, type);
+            } else {
+                console.log('[IN-APP ALERT INTERCEPTED]:', str);
+            }
+        };
+    }
+})();
+
 const API_BASE = '';
 
 // Company records come strictly from the verified MySQL database (no hard-coded client registry).
@@ -390,6 +417,20 @@ function toggleMobileGuide() {
 }
 
 async function switchTab(tab) {
+    if (window.IS_PREVIEW_MODE) {
+        const restrictedTabs = {
+            'matching': { type: 'matching', title: 'AI Grant Matchmaker' },
+            'prospects': { type: 'crm', title: 'Outreach CRM Pipeline' },
+            'crawler-logs': { type: 'crawler', title: 'Real-Time Crawler Logs' },
+            'coverage': { type: 'coverage', title: 'Enterprise Verification Matrix' }
+        };
+        if (restrictedTabs[tab]) {
+            if (typeof openAuthGateModal === 'function') {
+                openAuthGateModal(restrictedTabs[tab].type, restrictedTabs[tab].title, `/#${tab}`);
+            }
+            return;
+        }
+    }
     activeTab = tab;
     closeMobileNav();
 
@@ -499,6 +540,12 @@ function getCompanyCsrWebpageUrl(company) {
 
 function openCompanyCsr(companyId) {
     if (!companyId) return;
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('csr', companyId, `/companies/${companyId}/csr`);
+        }
+        return;
+    }
     openCompanyDossier(companyId, 'csr');
 }
 
@@ -1013,6 +1060,12 @@ function renderCompanyViews(list, total) {
 
 async function fetchCompanyLiveData(companyId, btnElement) {
     if (!companyId) return;
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('company', companyId, `/companies/${companyId}`);
+        }
+        return;
+    }
     if (!btnElement && window.event) {
         btnElement = window.event.currentTarget;
     }
@@ -1125,6 +1178,12 @@ function renderCompanyCards(list) {
                             <div style="font-size:9.5px; color:var(--text-muted); margin-top:3px;" id="live-time-${item.company_id}">
                                 🕒 Live: ${escapeHtml(liveSyncedTime)}
                             </div>
+                            <div style="margin-top:4px;">
+                                <label style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; color:var(--text-secondary); cursor:pointer;" onclick="event.stopPropagation();">
+                                    <input type="checkbox" data-compare-company-id="${item.company_id}" onchange="toggleCompanyComparison('${item.company_id}', '${escapeHtml(item.company_name)}')" style="accent-color:#0A6CFF; cursor:pointer;">
+                                    <span>Compare</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -1180,6 +1239,21 @@ function renderCompanyCards(list) {
             </div>
         `;
     }).join('');
+
+    if (window.IS_PREVIEW_MODE && list.length > 0) {
+        container.innerHTML += `
+            <div class="guest-preview-unlock-box" style="grid-column:1/-1; background:linear-gradient(135deg, rgba(10,108,255,0.05) 0%, rgba(10,108,255,0.02) 100%); border:2px dashed rgba(10,108,255,0.3); border-radius:16px; padding:32px 20px; text-align:center; margin-top:16px;">
+                <div style="font-size:17px; font-weight:800; color:#0B1020; margin-bottom:6px;">Viewing Guest Preview (5 of 201 Enterprise Profiles)</div>
+                <p style="font-size:13px; color:#465478; max-width:540px; margin:0 auto 18px auto; line-height:1.5;">
+                    Sign in or register to unlock full statutory dossiers, active job applications, and Section 135 CSR allocations across all 201 corporations.
+                </p>
+                <div style="display:inline-flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;">
+                    <a href="/register/" style="background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color:#FFFFFF; font-weight:700; font-size:13px; padding:9px 22px; border-radius:9999px; text-decoration:none; box-shadow:0 3px 12px rgba(10,108,255,0.25);">Create Free Account &rarr;</a>
+                    <a href="/login/" style="background:#FFFFFF; border:1px solid #CBD5E1; color:#0B1020; font-weight:600; font-size:13px; padding:8px 18px; border-radius:9999px; text-decoration:none;">Sign In</a>
+                </div>
+            </div>
+        `;
+    }
 }
 
 function renderCompanyTable(list) {
@@ -1746,6 +1820,9 @@ function renderJobs(list, total, totalPages) {
                     <td>${formatVerificationBadge(job.verification_status, job.status)}</td>
                     <td style="text-align:right;">
                         <div style="display:flex; justify-content:flex-end; gap:6px;">
+                            <button class="btn-bookmark" data-save-job-id="${job.job_row_id}" style="padding:4px 8px; font-size:11px;" onclick="toggleSaveRecord('JOB', ${job.job_row_id}, '${escapeHtml(job.job_title)}', '${escapeHtml(job.company_name)}')" title="Bookmark opening">
+                                🔖 <span>Save</span>
+                            </button>
                             <button class="btn-primary" style="padding:4px 10px; font-size:11.5px;" onclick="openJobDetailsModal(${job.job_row_id})">
                                 View
                             </button>
@@ -1799,6 +1876,9 @@ function renderJobs(list, total, totalPages) {
 
                     <div>
                         <div class="job-actions" style="flex-wrap:wrap; gap:6px;">
+                            <button class="btn-bookmark" data-save-job-id="${job.job_row_id}" onclick="toggleSaveRecord('JOB', ${job.job_row_id}, '${escapeHtml(job.job_title)}', '${escapeHtml(job.company_name)}')" title="Bookmark opening">
+                                🔖 <span>Save</span>
+                            </button>
                             <button class="btn-primary" style="padding:6px 12px; font-size:12px;" onclick="openJobDetailsModal(${job.job_row_id})">
                                 View Job
                             </button>
@@ -2419,7 +2499,12 @@ function filterCompanyDirectory() {
 
 async function openCompanyJobs(companyId) {
     if (!companyId) return;
-
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('job', companyId, `/companies/${companyId}/jobs`);
+        }
+        return;
+    }
     // Switch tab to jobs if not already on it
     switchTab('jobs');
     // Switch to company sub-tab
@@ -3432,6 +3517,7 @@ function renderCsrProjects(items) {
                 <td style="font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--accent-emerald);">${spentDisplay}</td>
                 <td><span class="badge badge-emerald" style="font-size:10px;">${escapeHtml(item.verification_status || 'PUBLISHED')}</span></td>
                 <td style="text-align:right; white-space:nowrap;">
+                    <button class="btn-bookmark" data-save-csr-id="${item.csr_id}" style="padding:2px 7px; font-size:10.5px; margin-right:4px;" onclick="toggleSaveRecord('CSR_PROJECT', ${item.csr_id}, '${escapeHtml(item.project_name)}', '${escapeHtml(item.company_name)}')">🔖 <span>Save</span></button>
                     <button class="btn-primary" style="padding:3px 9px; font-size:11px; margin-right:4px;" onclick="openCsrDetailsModal(${item.csr_id})" title="Open CSR project details & company CSR webpage links">View</button>
                     ${compCsrLink}
                     ${docLink}
@@ -3763,8 +3849,16 @@ function resetCsrFilters() {
 }
 
 function exportCsrCSV() {
+    if (typeof enforceExportAction === 'function') {
+        enforceExportAction(() => _executeExportCsrCSV());
+        return;
+    }
+    _executeExportCsrCSV();
+}
+
+function _executeExportCsrCSV() {
     if (!allCsrProjects || allCsrProjects.length === 0) {
-        alert('No CSR project records currently loaded to export.');
+        showLiveToast('No CSR project records currently loaded to export.', 'warning');
         return;
     }
     const headers = ['Initiative Title', 'Company Name', 'NSE Symbol', 'Category', 'State', 'District', 'Allocated Budget INR', 'Spent Budget INR', 'Status', 'Source Document'];
@@ -4338,6 +4432,12 @@ function renderPipeline(prospects) {
 }
 
 async function quickSaveToPipeline(companyId, companyName, sector) {
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('save', companyName || companyId, '/prospects');
+        }
+        return;
+    }
     if (!companyName && Array.isArray(allDirectoryCompanies)) {
         const found = allDirectoryCompanies.find(c => c.company_id === companyId);
         if (found) {
@@ -4397,6 +4497,12 @@ async function removeProspect(companyId) {
 let currentDossierData = null;
 
 async function openCompanyDossier(companyId, initialTab = 'overview') {
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('company', companyId, `/companies/${companyId}`);
+        }
+        return;
+    }
     const modal = document.getElementById('modal-company-dossier');
     const modalBody = document.getElementById('modal-dossier-body');
     const modalTitle = document.getElementById('modal-dossier-title');
@@ -4418,7 +4524,7 @@ async function openCompanyDossier(companyId, initialTab = 'overview') {
 
     try {
         const res = await fetch(`${API_BASE}/companies/${companyId}/dossier`);
-        if (res.status === 401) {
+        if (res.status === 401 || res.status === 403) {
             if (modal) modal.style.display = 'none';
             document.body.style.overflow = '';
             if (typeof openAuthGateModal === 'function') {
@@ -4459,6 +4565,8 @@ async function openCompanyDossier(companyId, initialTab = 'overview') {
                 <span>Sector: <strong>${sectorText}</strong></span>
                 <span style="margin:0 8px; color:var(--border-color);">•</span>
                 <span>HQ: <strong>${hqText}</strong></span>
+                <span style="margin:0 8px; color:var(--border-color);">•</span>
+                <button class="btn-secondary" style="padding:3px 10px; font-size:11px; border-radius:6px; cursor:pointer;" onclick="requestCompanyDataRefresh('${comp.company_id}', '${escapeHtml(comp.company_name)}')">🔄 Request Live Refresh</button>
             `;
         }
 
@@ -5311,7 +5419,7 @@ async function executeInlineWalletRecharge() {
     const amt = Number(input ? input.value : 0);
 
     if (isNaN(amt) || amt <= 0) {
-        alert('Please enter a valid positive number as money.');
+        showLiveToast('Please enter a valid positive number as money.', 'warning');
         if (input) input.focus();
         return;
     }
@@ -5335,7 +5443,7 @@ async function executeInlineWalletRecharge() {
         userWalletBalance = Number(data.balance_inr !== undefined ? data.balance_inr : (userWalletBalance + amt));
         updateWalletBalanceInUI();
         if (input) input.value = '';
-        showLiveToast(`🎉 Successfully credited ₹${amt.toLocaleString('en-IN')} to your demo wallet!`, 'success');
+        showLiveToast(`Successfully credited ₹${amt.toLocaleString('en-IN')} to your demo wallet!`, 'success');
 
         // Refresh transaction list if drawer is open
         const drawer = document.getElementById('inline-wallet-tx-drawer');
@@ -5349,7 +5457,7 @@ async function executeInlineWalletRecharge() {
             renderCheckoutStep(1, checkoutCurrentQuote?.promo_code || '');
         }
     } catch (err) {
-        alert(`Recharge error: ${err.message}`);
+        showLiveToast(`Recharge error: ${err.message}`, 'error');
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -5417,7 +5525,7 @@ async function addFundsDirectlyInCheckout() {
     const input = document.getElementById('checkout-inline-topup-amt');
     const amt = Number(input ? input.value : 0);
     if (isNaN(amt) || amt <= 0) {
-        alert('Please enter a valid positive number as money.');
+        showLiveToast('Please enter a valid positive number as money.', 'warning');
         return;
     }
     await executeWalletTopup(amt);
@@ -5513,6 +5621,7 @@ function renderPricingGrid() {
         }
 
         // Action Button logic (Requirements 1, 3, 4, 5 - Zero 'Downgrade' UI)
+        const hasActiveSub = !!currentSubscription && !!currentSubscription.is_active;
         let buttonText = `Switch to ${plan.name}`;
         let buttonClass = isFeatured ? 'btn-primary' : 'btn-secondary';
         let buttonDisabled = false;
@@ -5523,6 +5632,10 @@ function renderPricingGrid() {
             buttonClass = 'btn-secondary';
         } else if (plan.is_contact_sales) {
             buttonText = 'Contact Sales Team ↗';
+        } else if (!hasActiveSub) {
+            buttonText = plan.is_free ? 'Select Free Plan' : `Select ${plan.name}`;
+            buttonClass = 'btn-primary';
+            buttonDisabled = false;
         } else {
             const currentPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currentNormTier);
             const currentOrder = currentPlanObj ? currentPlanObj.display_order : 1;
@@ -5566,7 +5679,7 @@ function renderPricingGrid() {
                 <ul class="plan-features">
                     ${featuresHtml}
                 </ul>
-                <button class="${buttonClass}" style="width:100%;" ${buttonDisabled ? 'disabled style="opacity:0.75; cursor:default;"' : ''} onclick="openSubscriptionModal('${planCode}')">
+                <button class="${buttonClass}" style="width:100%;" ${buttonDisabled ? 'disabled style="opacity:0.75; cursor:default;"' : ''} onclick="${plan.is_free && !hasActiveSub ? 'handleFreePlanSelect()' : `openSubscriptionModal('${planCode}')`}">
                     ${buttonText}
                 </button>
             </div>
@@ -5803,10 +5916,11 @@ async function openSubscriptionModal(tier = 'pro') {
     }
 
     // Determine whether higher-priced or lower-priced
+    const hasActiveSub = !!currentSubscription && !!currentSubscription.is_active;
     const currPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currTier);
-    const currentPrice = currPlanObj ? Number(currPlanObj.monthly_price || 0) : 0;
+    const currentPrice = (currPlanObj && hasActiveSub) ? Number(currPlanObj.monthly_price || 0) : 0;
     const targetPrice = Number(plan.monthly_price || 0);
-    const isLowerOrFree = (targetPrice < currentPrice) || plan.is_free;
+    const isLowerOrFree = hasActiveSub && ((targetPrice < currentPrice) || plan.is_free);
 
     if (isLowerOrFree) {
         // Requirement 2 & 5: Lower-priced transition confirmation (NO "Downgrade")
@@ -5872,7 +5986,7 @@ async function executeSchedulePlanChange(targetPlanCode) {
         await loadSubscriptionState();
         renderPlanChangeSuccessScreen(data);
     } catch (err) {
-        alert(`Plan Change Error: ${err.message}`);
+        showLiveToast(`Plan Change Error: ${err.message}`, 'error');
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Confirm Plan Change';
@@ -6069,7 +6183,7 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:4px;">
             <button type="button" class="btn-secondary" onclick="closeModal('modal-subscription')">Cancel</button>
             <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()" style="${hasSufficientWallet ? 'background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:var(--shadow-sm); font-weight:700;' : ''}">
-                ${hasSufficientWallet ? `Confirm &amp; Subscribe — ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}` : 'Insufficient Funds — Add Money Above'}
+                ${hasSufficientWallet ? (finalAmount === 0 ? 'Confirm &amp; Activate Free Plan' : `Confirm &amp; Subscribe — ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`) : 'Insufficient Funds — Add Money Above'}
             </button>
         </div>
 
@@ -6132,7 +6246,7 @@ function renderCheckoutSuccessScreen(data) {
     const title = document.getElementById('modal-sub-title');
     if (!body) return;
 
-    if (title) title.textContent = '🎉 Plan Activated Successfully!';
+    if (title) title.textContent = 'Plan Activated Successfully!';
 
     const p = data.payment || {};
     const sub = data.subscription || {};
@@ -6177,7 +6291,7 @@ function renderCheckoutSuccessScreen(data) {
         </div>
     `;
 
-    showLiveToast(`🎉 Successfully switched to ${checkoutSelectedPlan.name}!`, 'success');
+    showLiveToast(`Successfully switched to ${checkoutSelectedPlan.name}!`, 'success');
 }
 
 function renderCheckoutFailureScreen(errorMessage) {
@@ -6308,7 +6422,7 @@ function confirmModalWalletRecharge() {
     const amt = Number(input ? input.value : 0);
 
     if (amt <= 0) {
-        alert('Please enter a valid amount.');
+        showLiveToast('Please enter a valid amount.', 'warning');
         return;
     }
 
@@ -6350,7 +6464,7 @@ async function executeWalletTopup(amountToCharge) {
     const amount = Number(amountToCharge || 0);
 
     if (amount <= 0) {
-        alert('Please enter a valid top-up amount.');
+        showLiveToast('Please enter a valid top-up amount.', 'warning');
         return;
     }
 
@@ -6374,7 +6488,7 @@ async function executeWalletTopup(amountToCharge) {
         userWalletBalance = Number(data.balance_inr !== undefined ? data.balance_inr : (data.wallet ? data.wallet.balance_inr : (userWalletBalance + amount)));
         updateWalletBalanceInUI();
         closeModal('modal-wallet-topup');
-        showLiveToast(`🎉 Successfully credited ₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} to your demo wallet!`, 'success');
+        showLiveToast(`Successfully credited ₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} to your demo wallet!`, 'success');
 
         // Refresh transaction list if drawer is open
         const drawer = document.getElementById('inline-wallet-tx-drawer');
@@ -6388,7 +6502,7 @@ async function executeWalletTopup(amountToCharge) {
             renderCheckoutStep(1, checkoutCurrentQuote?.promo_code || '');
         }
     } catch (e) {
-        alert(`Recharge error: ${e.message}`);
+        showLiveToast(`Recharge error: ${e.message}`, 'error');
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Confirm';
@@ -6411,9 +6525,17 @@ function triggerCsvDownload(csv, filename) {
 }
 
 function exportJobsCSV() {
+    if (typeof enforceExportAction === 'function') {
+        enforceExportAction(() => _executeExportJobsCSV());
+        return;
+    }
+    _executeExportJobsCSV();
+}
+
+function _executeExportJobsCSV() {
     let list = filteredJobs.length > 0 ? filteredJobs : allJobs;
     if (!list || list.length === 0) {
-        alert('No job records available to export.');
+        showLiveToast('No job records available to export.', 'warning');
         return;
     }
 
@@ -6454,8 +6576,16 @@ function exportJobsCSV() {
 }
 
 function exportCompaniesCSV() {
+    if (typeof enforceExportAction === 'function') {
+        enforceExportAction(() => _executeExportCompaniesCSV());
+        return;
+    }
+    _executeExportCompaniesCSV();
+}
+
+function _executeExportCompaniesCSV() {
     if (!allRecommendations || allRecommendations.length === 0) {
-        alert('No company records available to export.');
+        showLiveToast('No company records available to export.', 'warning');
         return;
     }
 
@@ -6497,7 +6627,7 @@ function exportCompaniesCSV() {
 
 function exportPipelineCSV() {
     if (!allProspects || allProspects.length === 0) {
-        alert('Your Outreach CRM pipeline is currently empty.');
+        showLiveToast('Your Outreach CRM pipeline is currently empty.', 'info');
         return;
     }
 
@@ -6528,6 +6658,12 @@ function openLiveStreamModal() {
 }
 
 function confirmLiveFetch(openModalLogs = false) {
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('audit', 'Live Domain Verification & Audit');
+        }
+        return;
+    }
     if (isSyncInProgress) {
         showLiveToast('A live data fetch is already running. Please wait a moment...', 'info');
         return;
@@ -6775,18 +6911,43 @@ function showLiveToast(message, type = 'success') {
     if (existing) existing.remove();
 
     const toast = document.createElement('div');
-    toast.className = 'live-sync-toast';
+    toast.className = `live-sync-toast live-sync-toast-${type}`;
+    
+    let icon = '⚡';
+    let borderColor = 'rgba(10,108,255,0.4)';
+    let iconBg = 'rgba(10,108,255,0.15)';
+    if (type === 'error') {
+        icon = '✕';
+        borderColor = 'rgba(239,68,68,0.4)';
+        iconBg = 'rgba(239,68,68,0.2)';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+        borderColor = 'rgba(245,158,11,0.4)';
+        iconBg = 'rgba(245,158,11,0.2)';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+        borderColor = 'rgba(59,130,246,0.4)';
+        iconBg = 'rgba(59,130,246,0.2)';
+    } else if (type === 'success') {
+        icon = '✓';
+        borderColor = 'rgba(16,185,129,0.4)';
+        iconBg = 'rgba(16,185,129,0.2)';
+    }
+
+    toast.style.cssText = `position:fixed; bottom:28px; right:28px; z-index:9999999; display:flex; align-items:center; gap:12px; background:#0F172A; color:#FFFFFF; border:1px solid ${borderColor}; border-radius:12px; padding:12px 18px; box-shadow:0 12px 32px rgba(0,0,0,0.45); font-size:13px; font-weight:600; max-width:440px; pointer-events:auto; font-family:Inter,system-ui,sans-serif;`;
+
     toast.innerHTML = `
-        <span style="font-size:18px;">${type === 'success' ? '⚡' : 'ℹ️'}</span>
-        <span>${escapeHtml(message)}</span>
+        <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:${iconBg}; font-size:14px; flex-shrink:0;">${icon}</span>
+        <span style="flex:1; line-height:1.45; word-break:break-word;">${escapeHtml(message)}</span>
+        <span style="cursor:pointer; opacity:0.6; font-size:14px; padding-left:6px;" onclick="this.parentElement.remove()" title="Dismiss">✕</span>
     `;
     document.body.appendChild(toast);
     setTimeout(() => {
-        toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        toast.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
         toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 400);
-    }, 3800);
+        toast.style.transform = 'translateY(16px)';
+        setTimeout(() => toast.remove(), 350);
+    }, 4200);
 }
 
 function appendTerminalLog(badgeClass, badgeText, msg) {
@@ -6825,9 +6986,9 @@ function copyTerminalLogs() {
     if (!screen) return;
     const text = screen.innerText;
     navigator.clipboard.writeText(text).then(() => {
-        showLiveToast('📋 Live terminal logs copied to clipboard!');
+        showLiveToast('📋 Live terminal logs copied to clipboard!', 'success');
     }).catch(() => {
-        alert('Could not copy logs to clipboard.');
+        showLiveToast('Could not copy logs to clipboard.', 'error');
     });
 }
 
@@ -7131,10 +7292,20 @@ document.addEventListener('DOMContentLoaded', () => {
 let allLoginRequiredCompanies = [];
 
 async function loadLoginRequiredCompaniesSection() {
+    if (window.IS_PREVIEW_MODE) {
+        const sec = document.getElementById("public-login-required-section");
+        if (sec) sec.style.display = "none";
+        return;
+    }
     try {
         const res = await cachedFetch(`${API_BASE}/companies?access=LOGIN_REQUIRED&page=1&page_size=12`, { ttl: 60000 });
         if (!res.ok) return;
         const data = await res.json();
+        if (data && data.is_preview) {
+            const sec = document.getElementById("public-login-required-section");
+            if (sec) sec.style.display = "none";
+            return;
+        }
         const items = Array.isArray(data) ? data : (data.items || []);
         allLoginRequiredCompanies = items.map(normalizeCompanyData);
         renderLoginRequiredCompaniesSection(allLoginRequiredCompanies);
@@ -7144,6 +7315,7 @@ async function loadLoginRequiredCompaniesSection() {
 }
 
 function ensureLoginRequiredContainers() {
+    if (window.IS_PREVIEW_MODE) return;
     // 1. Dedicated container inside #tab-companies (above or below main company list)
     const tabCompanies = document.getElementById("tab-companies");
     if (tabCompanies && !document.getElementById("public-login-required-section")) {
@@ -7323,6 +7495,12 @@ function renderLoginRequiredCompaniesSection(list) {
 // ===========================================================================
 async function fetchCompanyLiveData(companyId, btnEl) {
     if (!companyId) return;
+    if (window.IS_PREVIEW_MODE) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('company', companyId, /companies/);
+        }
+        return;
+    }
     const originalText = btnEl ? btnEl.innerHTML : '🔄 Fetch Live Data';
     if (btnEl) {
         btnEl.disabled = true;

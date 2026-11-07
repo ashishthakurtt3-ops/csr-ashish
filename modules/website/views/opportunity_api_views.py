@@ -320,6 +320,14 @@ def csr_project_detail_api(request, csr_id):
             'login_url': f'/login/?next=/csr/projects/{csr_id}/',
             'register_url': f'/register/?next=/csr/projects/{csr_id}/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to view complete project records and CSR dossiers.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     """Retrieve detailed information for a specific CSR project along with related initiatives and company CSR links."""
     try:
         project = public_records(CSRProject.objects.select_related('company')).filter(
@@ -402,16 +410,35 @@ def serialize_opportunity_item(o: CSROpportunity, is_detail: bool = False):
 
 
 def csr_projects_api(request):
-    if not request.user.is_authenticated:
-        from modules.website.views.preview_api_views import get_public_preview_csr, PREVIEW_LIMIT
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        from modules.admin_panel.models import GuestPreviewSettings
+        from modules.website.views.preview_api_views import get_public_preview_csr
+        cfg = GuestPreviewSettings.get_settings()
+        if not cfg.preview_enabled:
+            return JsonResponse({
+                'is_preview': True,
+                'preview_enabled': False,
+                'preview_limit': 0,
+                'preview_message': 'Please select a subscription plan to explore Section 135 initiatives.' if request.user.is_authenticated else 'Guest preview is currently disabled. Please sign in or register to explore Section 135 initiatives.',
+                'plan_required': bool(request.user.is_authenticated),
+                'items': [],
+                'total': 0,
+                'page': 1,
+                'total_pages': 1,
+                'has_more': False
+            })
         items = get_public_preview_csr()
         return JsonResponse({
             'is_preview': True,
-            'preview_limit': PREVIEW_LIMIT,
-            'preview_message': 'You are viewing a limited public preview of 5 verified Section 135 CSR projects. Sign in or register to explore all 1,599 initiatives.',
+            'preview_enabled': True,
+            'preview_limit': cfg.preview_limit,
+            'preview_message': 'Subscription plan required. Please choose a subscription plan to explore all Section 135 initiatives.' if request.user.is_authenticated else f'You are viewing a limited public preview of {len(items)} verified Section 135 CSR projects. Sign in or register to explore all initiatives.',
+            'plan_required': bool(request.user.is_authenticated),
             'login_url': '/login/?next=/csr/projects/',
             'register_url': '/register/?next=/csr/projects/',
-            'total': PREVIEW_LIMIT,
+            'pricing_url': '/?tab=pricing',
+            'total': len(items),
             'page': 1,
             'total_pages': 1,
             'has_more': True,
@@ -475,24 +502,24 @@ def csr_projects_api(request):
         _req_limit = int(request.GET.get('limit', 2000))
         _export_count = min(qs.count(), _req_limit)
         # ── Entitlement: export quota check ──────────────────────────
-        from modules.admin_panel.models import User as _User
-        if getattr(request, 'user', None) and request.user.is_authenticated:
-            _export_user = request.user
-        else:
-            _export_user = _User.objects.filter(is_active=True).order_by('id').first()
-        if _export_user:
-            _export_svc = EntitlementService(_export_user)
-            try:
-                _export_svc.check_export_quota(count=_export_count)
-            except EntitlementError as _ex_err:
-                return JsonResponse({
-                    'error': _ex_err.message,
-                    'feature': _ex_err.feature,
-                    'limit': _ex_err.limit,
-                    'current': _ex_err.current,
-                    'upgrade_to': _ex_err.upgrade_to,
-                    'code': 'entitlement_exceeded',
-                }, status=403)
+        if not (getattr(request, 'user', None) and request.user.is_authenticated):
+            return JsonResponse({
+                'error': 'Authentication required. Please sign in or choose an institutional plan to export data.',
+                'code': 'unauthorized'
+            }, status=401)
+        _export_user = request.user
+        _export_svc = EntitlementService(_export_user)
+        try:
+            _export_svc.check_export_quota(count=_export_count)
+        except EntitlementError as _ex_err:
+            return JsonResponse({
+                'error': _ex_err.message,
+                'feature': _ex_err.feature,
+                'limit': _ex_err.limit,
+                'current': _ex_err.current,
+                'upgrade_to': _ex_err.upgrade_to,
+                'code': 'entitlement_exceeded',
+            }, status=403)
         # ── End entitlement check ────────────────────────────────────
         output = io.StringIO()
         writer = csv.writer(output)
@@ -566,6 +593,14 @@ def csr_opportunities_api(request):
             'login_url': '/login/?next=/opportunities/',
             'register_url': '/register/?next=/opportunities/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to access corporate grant opportunities and RFPs.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     q = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
     company = request.GET.get('company', '').strip() or request.GET.get('company_id', '').strip()
@@ -620,24 +655,24 @@ def csr_opportunities_api(request):
 
     if request.GET.get('format') == 'csv' or request.GET.get('export') == 'csv':
         # ── Entitlement: export quota check ──────────────────────────
-        from modules.admin_panel.models import User as _User
-        if getattr(request, 'user', None) and request.user.is_authenticated:
-            _export_user = request.user
-        else:
-            _export_user = _User.objects.filter(is_active=True).order_by('id').first()
-        if _export_user:
-            _export_svc = EntitlementService(_export_user)
-            try:
-                _export_svc.check_export_quota(count=qs.count())
-            except EntitlementError as _ex_err:
-                return JsonResponse({
-                    'error': _ex_err.message,
-                    'feature': _ex_err.feature,
-                    'limit': _ex_err.limit,
-                    'current': _ex_err.current,
-                    'upgrade_to': _ex_err.upgrade_to,
-                    'code': 'entitlement_exceeded',
-                }, status=403)
+        if not (getattr(request, 'user', None) and request.user.is_authenticated):
+            return JsonResponse({
+                'error': 'Authentication required. Please sign in or choose an institutional plan to export data.',
+                'code': 'unauthorized'
+            }, status=401)
+        _export_user = request.user
+        _export_svc = EntitlementService(_export_user)
+        try:
+            _export_svc.check_export_quota(count=qs.count())
+        except EntitlementError as _ex_err:
+            return JsonResponse({
+                'error': _ex_err.message,
+                'feature': _ex_err.feature,
+                'limit': _ex_err.limit,
+                'current': _ex_err.current,
+                'upgrade_to': _ex_err.upgrade_to,
+                'code': 'entitlement_exceeded',
+            }, status=403)
         # ── End entitlement check ────────────────────────────────────
         output = io.StringIO()
         writer = csv.writer(output)

@@ -32,6 +32,7 @@ AI_FALLBACK_ENABLED: bool = os.getenv("AI_FALLBACK_ENABLED", "true").lower() in 
 
 # --- Google Gemini Configuration (Official Free Tier Only) ---
 GEMINI_FREE_TIER_MODELS = (
+    "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
     "gemini-3.8-flash",
     "gemini-2.5-flash",
@@ -39,7 +40,7 @@ GEMINI_FREE_TIER_MODELS = (
     "gemini-2.0-flash",
     "gemini-1.5-flash-8b",
 )
-GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite").strip()
+GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
 GEMINI_API_KEY_ENV: str = os.getenv("GEMINI_API_KEY_ENV", "GEMINI_API_KEY").strip()
 GEMINI_BASE_URL: str = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta").strip()
 

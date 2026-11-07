@@ -21,6 +21,8 @@ urlpatterns = [
     path('admin-portal/subscriptions/', include('modules.admin_panel.urls.subscription_urls')),
     path('admin-portal/verification/', include('modules.admin_panel.urls.verification_urls')),
     path('admin-portal/ai-config/', include('modules.admin_panel.urls.ai_config_urls')),
+    path('admin-portal/ai-discovery/', include('modules.admin_panel.urls.batch_discovery_urls')),
+    path('admin-portal/preview-settings/', include('modules.admin_panel.urls.preview_settings_urls')),
 
     # Public Enterprise Website & Core REST APIs
     path('', include('modules.website.urls')),

@@ -60,9 +60,14 @@ class EntitlementService:
     @property
     def subscription(self) -> Optional[Subscription]:
         if self._subscription is None:
+            q = Q(user=self.user)
+            if getattr(self.user, 'id', None):
+                q |= Q(tenant_id=f"user_{self.user.id}")
+            if getattr(self.user, 'username', None):
+                q |= Q(tenant_id=f"user_{self.user.username}")
             self._subscription = (
                 Subscription.objects
-                .filter(Q(user=self.user), Q(status='ACTIVE') | Q(status='TRIALING'))
+                .filter(q, Q(status='ACTIVE') | Q(status='TRIALING'))
                 .select_related('plan_record')
                 .order_by('-created_at')
                 .first()
@@ -373,3 +378,24 @@ class EntitlementService:
             },
         }
 
+
+
+def user_has_active_plan(user) -> bool:
+    """
+    Check whether a user has an active, selected subscription plan.
+    - Staff/superusers always return True (admin bypass).
+    - Unauthenticated users return False.
+    - Regular users return True ONLY if they have an active/trialing subscription.
+    """
+    if not user or not getattr(user, 'is_authenticated', False):
+        return False
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
+        return True
+
+    from modules.admin_panel.models import Subscription
+    from django.db.models import Q
+
+    return Subscription.objects.filter(
+        Q(user=user) | Q(tenant_id=f"user_{user.id}") | Q(tenant_id=f"user_{getattr(user, 'username', '')}"),
+        status__in=['ACTIVE', 'TRIALING']
+    ).exclude(plan_id__isnull=True).exclude(plan_id__exact='').exists()

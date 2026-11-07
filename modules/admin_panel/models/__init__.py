@@ -16,6 +16,7 @@ from .service import ServiceCatalog
 from .coverage import CompanyCompletenessRegister
 from .source_registry import CompanySource
 from .ai_config import AIProviderConfig, AISystemSettings, AIConfigurationAuditLog
+from .preview_config import GuestPreviewSettings, PreviewDummyCompany, PreviewDummyJob, PreviewDummyCSRProject
 from .snapshot import AuditRun, StatsSnapshot, JobSummarySnapshot, CompanyMetrics
 
 __all__ = [
@@ -57,4 +58,8 @@ __all__ = [
     'AIProviderConfig',
     'AISystemSettings',
     'AIConfigurationAuditLog',
+    'GuestPreviewSettings',
+    'PreviewDummyCompany',
+    'PreviewDummyJob',
+    'PreviewDummyCSRProject',
 ]

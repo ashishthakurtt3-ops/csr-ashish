@@ -84,7 +84,7 @@
             font-family: "Instrument Serif", Georgia, Cambria, serif !important;
             font-style: italic !important;
             font-weight: 400 !important;
-            background: linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%) !important;
+            background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
         }
@@ -118,7 +118,7 @@
             transition: all 0.15s ease;
         }
         .btn-primary-c {
-            background: linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%);
+            background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important;
             color: #FFFFFF;
             border-color: transparent;
             box-shadow: 0 4px 14px rgba(10, 108, 255, 0.28);
@@ -296,6 +296,181 @@
             </div>
         </div>
 
+        <!-- REAL-TIME PLAN FEATURE QUOTAS & USAGE DASHBOARD -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <div>
+                    <span style="font-size:11px; text-transform:uppercase; color:#0A6CFF; font-weight:700; letter-spacing:0.8px;">Usage &amp; Capabilities</span>
+                    <h2 class="card-title" style="margin-top:2px;">
+                        Plan Entitlements <em>&amp; Live Quotas</em>
+                    </h2>
+                </div>
+                <div>
+                    <span class="badge {% if is_ultra %}badge-active{% elif is_pro %}badge-info{% else %}badge-warning{% endif %}">
+                        {% if is_ultra %}⚡ ULTRA TIER{% elif is_pro %}⭐ PRO TIER{% elif is_free %}🌱 FREE TIER{% else %}NO SUBSCRIPTION{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+                <!-- Saved Records -->
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:11.5px; font-weight:700; color:#64748B; text-transform:uppercase;">Saved Records</span>
+                        <span style="font-size:11px; padding:2px 7px; border-radius:9999px; background:#EFF6FF; color:#0A6CFF; font-weight:700;">Bookmarks</span>
+                    </div>
+                    <div style="font-size:22px; font-weight:800; color:#0F172A;" class="mono">
+                        {{ saved_records_count }} <span style="font-size:13px; font-weight:500; color:#64748B;">/ {% if is_ultra %}Unlimited{% elif is_pro %}100{% else %}10{% endif %}</span>
+                    </div>
+                    <div style="font-size:12px; color:#64748B; margin-top:4px;">
+                        {% if is_ultra %}Unlimited saved jobs &amp; CSR records{% elif is_pro %}Store up to 100 bookmark items{% else %}Up to 10 bookmark items{% endif %}
+                    </div>
+                </div>
+
+                <!-- Saved Searches & Alerts -->
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:11.5px; font-weight:700; color:#64748B; text-transform:uppercase;">Saved Searches</span>
+                        <span style="font-size:11px; padding:2px 7px; border-radius:9999px; background:#EFF6FF; color:#0A6CFF; font-weight:700;">Alerts</span>
+                    </div>
+                    <div style="font-size:22px; font-weight:800; color:#0F172A;" class="mono">
+                        {{ saved_searches_count }} <span style="font-size:13px; font-weight:500; color:#64748B;">/ {% if is_ultra %}50{% elif is_pro %}10{% else %}1{% endif %}</span>
+                    </div>
+                    <div style="font-size:12px; color:#64748B; margin-top:4px;">
+                        {% if is_ultra %}Instant/Custom alert frequencies{% elif is_pro %}Daily email alert frequency{% else %}Weekly digest frequency{% endif %}
+                    </div>
+                </div>
+
+                <!-- Monthly Data Exports -->
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:11.5px; font-weight:700; color:#64748B; text-transform:uppercase;">Data Exports</span>
+                        <span style="font-size:11px; padding:2px 7px; border-radius:9999px; background:#EFF6FF; color:#0A6CFF; font-weight:700;">CSV / Excel</span>
+                    </div>
+                    <div style="font-size:22px; font-weight:800; color:#0F172A;" class="mono">
+                        {% if is_ultra %}2,000{% elif is_pro %}200{% else %}0{% endif %} <span style="font-size:13px; font-weight:500; color:#64748B;">rows/mo</span>
+                    </div>
+                    <div style="font-size:12px; color:#64748B; margin-top:4px;">
+                        {% if is_ultra %}Bulk downloads up to 2,000 rows{% elif is_pro %}Export up to 200 rows per month{% else %}Locked on Free &bull; Upgrade to export{% endif %}
+                    </div>
+                </div>
+
+                <!-- Company Intelligence & Matrix -->
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:11.5px; font-weight:700; color:#64748B; text-transform:uppercase;">Comparison Matrix</span>
+                        <span style="font-size:11px; padding:2px 7px; border-radius:9999px; background:#EFF6FF; color:#0A6CFF; font-weight:700;">Intelligence</span>
+                    </div>
+                    <div style="font-size:16px; font-weight:800; color:#0F172A; margin-top:4px;">
+                        {% if is_ultra %}Multi-Company Matrix{% elif is_pro %}Up to 10 Side-by-Side{% else %}Locked (Pro Feature){% endif %}
+                    </div>
+                    <div style="font-size:12px; color:#64748B; margin-top:4px;">
+                        {% if is_ultra %}Advanced multi-company analytics{% elif is_pro %}Compare up to 10 corporate portfolios{% else %}Upgrade to PRO to compare companies{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEAM WORKSPACE & MULTI-USER SEATS (ULTRA FEATURE) -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <div>
+                    <span style="font-size:11px; text-transform:uppercase; color:#0A6CFF; font-weight:700; letter-spacing:0.8px;">Multi-User Access</span>
+                    <h2 class="card-title" style="margin-top:2px;">
+                        Team Workspace <em>&amp; Collaborator Seats</em>
+                    </h2>
+                </div>
+                <div>
+                    <span class="badge {% if is_ultra %}badge-active{% else %}badge-warning{% endif %}">
+                        {% if is_ultra %}3 Total Seats Available{% else %}Ultra Feature (3 Seats){% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if is_ultra %}
+            <!-- Ultra Team Management -->
+            <div style="display:grid; grid-template-columns: 1fr 1.4fr; gap:24px; align-items:start;">
+                <!-- Invite Form -->
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:20px;">
+                    <h3 style="margin:0 0 6px; font-size:15px; font-weight:700; color:#0F172A;">Invite Colleague</h3>
+                    <p style="font-size:12.5px; color:#64748B; margin:0 0 16px;">
+                        Your ULTRA plan includes up to 3 seats (Owner + 2 team members).
+                    </p>
+                    <form method="POST" style="display:flex; flex-direction:column; gap:12px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="invite_team_member">
+                        <div>
+                            <label style="display:block; font-size:11.5px; font-weight:700; color:#334155; text-transform:uppercase; margin-bottom:4px;">Work Email *</label>
+                            <input type="email" name="member_email" required placeholder="colleague@yourcompany.org" style="width:100%; height:40px; padding:0 14px; border:1px solid #CBD5E1; border-radius:8px; font-size:13.5px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11.5px; font-weight:700; color:#334155; text-transform:uppercase; margin-bottom:4px;">Role *</label>
+                            <select name="member_role" style="width:100%; height:40px; padding:0 12px; border:1px solid #CBD5E1; border-radius:8px; font-size:13.5px; box-sizing:border-box; background:#FFFFFF;">
+                                <option value="MEMBER">Team Member (Full Search &amp; Intelligence Access)</option>
+                                <option value="VIEWER">Viewer (Read-Only Access)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-custom btn-primary-c" style="width:100%; height:42px; margin-top:6px; font-weight:700;">
+                            Send Invitation
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Members List -->
+                <div>
+                    <h3 style="margin:0 0 12px; font-size:15px; font-weight:700; color:#0F172A;">Active Workspace Members</h3>
+                    <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+                        <!-- Owner Row -->
+                        <div style="padding:14px 18px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:700; font-size:14px; color:#0F172A;">{{ user.email }}</div>
+                                <div style="font-size:12px; color:#64748B;">Workspace Owner &bull; Primary Account</div>
+                            </div>
+                            <span class="badge badge-active" style="font-size:11px;">OWNER</span>
+                        </div>
+
+                        <!-- Invited Members -->
+                        {% for m in team_members %}
+                        <div style="padding:14px 18px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:700; font-size:14px; color:#0F172A;">{{ m.invited_email }}</div>
+                                <div style="font-size:12px; color:#64748B;">Role: {{ m.get_role_display }} &bull; Status: <strong style="color:#0A6CFF;">{{ m.get_status_display }}</strong></div>
+                            </div>
+                            <form method="POST" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="revoke_team_member">
+                                <input type="hidden" name="member_id" value="{{ m.id }}">
+                                <button type="submit" class="btn-custom btn-secondary-c" style="color:#DC2626; border-color:#FECACA; padding:4px 12px; font-size:12px;">
+                                    Revoke
+                                </button>
+                            </form>
+                        </div>
+                        {% empty %}
+                        <div style="padding:24px; text-align:center; color:#64748B; font-size:13px;">
+                            No additional team members invited yet. You have 2 seats available to invite collaborators.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Non-Ultra CTA -->
+            <div style="background:#F8FAFC; border:1.5px dashed #CBD5E1; border-radius:14px; padding:28px 24px; text-align:center;">
+                <div style="width:48px; height:48px; border-radius:12px; background:#EFF6FF; border:1px solid #BFDBFE; color:#0A6CFF; display:inline-flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h3 style="margin:0 0 6px; font-size:16px; font-weight:700; color:#0F172A;">Team Collaboration is an ULTRA Feature</h3>
+                <p style="margin:0 auto 18px; max-width:480px; font-size:13px; color:#64748B; line-height:1.5;">
+                    Upgrade to the <strong>ULTRA Plan</strong> to unlock multi-user accounts (Owner + 2 team member seats), shared research workspaces, and consolidated billing.
+                </p>
+                <a href="/#tab-pricing" class="btn-custom btn-primary-c" style="display:inline-flex; align-items:center; gap:8px;">
+                    <span>Upgrade to ULTRA Tier</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
         <!-- 2 Column Section: Subscription & Prototype Wallet -->
         <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; align-items:start; margin-bottom:24px;">
             <!-- ACTIVE SUBSCRIPTION CARD -->
@@ -428,7 +603,7 @@
                     <div class="badge badge-active">Active</div>
                 </div>
 
-                <div style="background:linear-gradient(135deg, rgba(10,108,255,0.04) 0%, rgba(158,13,255,0.04) 100%); border:1px solid #E0E4EE; border-radius:18px; padding:22px; text-align:center; margin-bottom:20px;">
+                <div style="background:linear-gradient(135deg, rgba(10,108,255,0.04) 0%, rgba(0,92,224,0.04) 100%); border:1px solid #E0E4EE; border-radius:18px; padding:22px; text-align:center; margin-bottom:20px;">
                     <div style="font-size:11px; text-transform:uppercase; color:#64748B; font-weight:700; letter-spacing:0.8px;">Current Funds Available</div>
                     <div style="font-size:34px; font-weight:800; color:var(--primary-brand, #005CE0); margin-top:4px;" class="mono">
                         &#8377; {{ wallet.balance_rupees|floatformat:2 }}

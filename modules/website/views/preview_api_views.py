@@ -1,11 +1,23 @@
 """
-Public Preview API Views for Unauthenticated Visitors.
-Strictly server-enforces maximum 5 genuine, verified records per category.
-Tampering with limit, page, or query parameters CANNOT bypass this 5-record ceiling.
+modules/website/views/preview_api_views.py
+==========================================
+Public Preview API Views for Unauthenticated Visitors and Unsubscribed Users.
+Dynamically driven by database-persisted GuestPreviewSettings and dedicated
+high-fidelity PreviewDummy datasets (Companies, Jobs, Section 135 CSR Initiatives).
+
+Guarantees 100%:
+- All preview data is strictly dummy data.
+- Matches real production format, fields, and UI display 1:1.
+- Manageable and uploadable via Excel/CSV in Admin Panel -> Dummy Preview Manager.
+- Real production database records are never exposed to preview visitors.
 """
 from django.http import JsonResponse
-from modules.admin_panel.models import Company, Job, CSRProject
-from modules.admin_panel.verification import public_jobs, NOT_AVAILABLE_TEXT
+from modules.admin_panel.models import (
+    GuestPreviewSettings,
+    PreviewDummyCompany,
+    PreviewDummyJob,
+    PreviewDummyCSRProject
+)
 
 PREVIEW_LIMIT = 5
 
@@ -19,134 +31,149 @@ def _clean_str(val):
 
 
 def get_public_preview_companies():
-    """Retrieve exactly 5 verified corporate records with sanitized public fields."""
-    qs = Company.objects.all().order_by('company_name')[:PREVIEW_LIMIT]
+    """
+    Retrieve corporate records for Guest Preview.
+    Strictly serves high-fidelity dummy data formatted identical to real companies.
+    """
+    cfg = GuestPreviewSettings.get_settings()
+    if not cfg.preview_enabled:
+        return []
 
-    items = []
-    for c in qs:
-        items.append({
-            'company_id': c.company_id,
-            'company_name': c.company_name,
-            'nse_symbol': _clean_str(c.nse_symbol),
-            'sector': _clean_str(c.sector),
-            'headquarters': _clean_str(c.headquarters),
-            'website_url': _clean_str(c.website_url),
-            'careers_url': _clean_str(c.careers_url),
-            'csr_portal_url': _clean_str(c.csr_portal_url or c.sustainability_url),
-            'verification_status': c.verification_status,
-            'job_count': c.jobs.filter(status='ACTIVE').count(),
-            'csr_count': c.csr_projects.count(),
-            'is_preview': True,
-        })
-    return items
+    limit = cfg.preview_limit or 5
+
+    dummy_qs = PreviewDummyCompany.objects.filter(is_active=True).order_by('display_order', 'id')
+    if not dummy_qs.exists():
+        from modules.admin_panel.services.preview_dummy_service import seed_default_dummy_data
+        seed_default_dummy_data()
+        dummy_qs = PreviewDummyCompany.objects.filter(is_active=True).order_by('display_order', 'id')
+
+    return [c.as_preview_dict() for c in dummy_qs[:limit]]
 
 
 def get_public_preview_jobs():
-    """Retrieve exactly 5 active, verified corporate vacancies with sanitized public fields."""
-    qs = public_jobs(Job.objects.select_related('company')).filter(
-        status='ACTIVE'
-    ).order_by('-posted_date', '-job_row_id')[:PREVIEW_LIMIT]
+    """
+    Retrieve career vacancies for Guest Preview.
+    Strictly serves high-fidelity dummy vacancies formatted identical to real jobs.
+    """
+    cfg = GuestPreviewSettings.get_settings()
+    if not cfg.preview_enabled:
+        return []
 
-    items = []
-    for j in qs:
-        comp = j.company
-        items.append({
-            'job_row_id': j.job_row_id,
-            'job_title': j.job_title,
-            'company_name': comp.company_name if comp else 'Verified Corporate',
-            'nse_symbol': _clean_str(comp.nse_symbol) if comp else None,
-            'location': _clean_str(j.location) or 'India',
-            'work_mode': _clean_str(j.work_mode) or 'On-site / Hybrid',
-            'department': _clean_str(j.department) or 'General',
-            'experience': _clean_str(j.experience) or 'Not specified',
-            'application_url': _clean_str(j.application_url),
-            'posted_date': str(j.posted_date) if j.posted_date else None,
-            'is_preview': True,
-        })
-    return items
+    limit = cfg.preview_limit or 5
+
+    dummy_qs = PreviewDummyJob.objects.filter(is_active=True).order_by('display_order', 'id')
+    if not dummy_qs.exists():
+        from modules.admin_panel.services.preview_dummy_service import seed_default_dummy_data
+        seed_default_dummy_data()
+        dummy_qs = PreviewDummyJob.objects.filter(is_active=True).order_by('display_order', 'id')
+
+    return [j.as_preview_dict() for j in dummy_qs[:limit]]
 
 
 def get_public_preview_csr():
-    """Retrieve exactly 5 verified statutory CSR initiatives with sanitized public fields."""
-    qs = CSRProject.objects.select_related('company').filter(
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).order_by('-csr_id')[:PREVIEW_LIMIT]
+    """
+    Retrieve Section 135 CSR initiatives for Guest Preview.
+    Strictly serves high-fidelity dummy CSR filings formatted identical to real projects.
+    """
+    cfg = GuestPreviewSettings.get_settings()
+    if not cfg.preview_enabled:
+        return []
 
-    items = []
-    for p in qs:
-        comp = p.company
-        items.append({
-            'csr_id': p.csr_id,
-            'project_name': p.project_name,
-            'company_name': comp.company_name if comp else 'Verified Enterprise',
-            'sector': _clean_str(p.category) or 'Education & Healthcare',
-            'state': _clean_str(p.state) or 'Pan-India',
-            'budget': _clean_str(p.budget) or 'Statutory Section 135 Allocation',
-            'source_url': _clean_str(p.source_url),
-            'is_preview': True,
-        })
-    return items
+    limit = cfg.preview_limit or 5
+
+    dummy_qs = PreviewDummyCSRProject.objects.filter(is_active=True).order_by('display_order', 'id')
+    if not dummy_qs.exists():
+        from modules.admin_panel.services.preview_dummy_service import seed_default_dummy_data
+        seed_default_dummy_data()
+        dummy_qs = PreviewDummyCSRProject.objects.filter(is_active=True).order_by('display_order', 'id')
+
+    return [p.as_preview_dict() for p in dummy_qs[:limit]]
 
 
 def preview_companies_api(request):
-    """Public preview API: returns max 5 corporate records."""
+    """Public preview API: returns dummy corporate records governed by GuestPreviewSettings."""
+    cfg = GuestPreviewSettings.get_settings()
     companies = get_public_preview_companies()
     return JsonResponse({
         'companies': companies,
         'count': len(companies),
         'total': len(companies),
-        'limit': PREVIEW_LIMIT,
+        'limit': cfg.preview_limit,
         'is_preview': True,
-        'message': 'Guest preview mode active. Showing 5 sample records. Register or log in to access all verified corporations.'
+        'preview_enabled': cfg.preview_enabled,
+        'message': f'Guest preview mode active. Showing {len(companies)} sample records. Register or log in to access all verified corporations.'
     })
 
 
 def preview_jobs_api(request):
-    """Public preview API: returns max 5 career vacancies."""
+    """Public preview API: returns dummy career vacancies governed by GuestPreviewSettings."""
+    cfg = GuestPreviewSettings.get_settings()
     jobs = get_public_preview_jobs()
     return JsonResponse({
         'jobs': jobs,
         'count': len(jobs),
         'total': len(jobs),
-        'limit': PREVIEW_LIMIT,
+        'limit': cfg.preview_limit,
         'is_preview': True,
-        'message': 'Guest preview mode active. Showing 5 sample records. Register or log in to access all verified jobs.'
+        'preview_enabled': cfg.preview_enabled,
+        'message': f'Guest preview mode active. Showing {len(jobs)} sample records. Register or log in to access all verified jobs.'
     })
 
 
 def preview_csr_api(request):
-    """Public preview API: returns max 5 CSR initiatives."""
+    """Public preview API: returns dummy CSR initiatives governed by GuestPreviewSettings."""
+    cfg = GuestPreviewSettings.get_settings()
     csr_projects = get_public_preview_csr()
     return JsonResponse({
         'csr_projects': csr_projects,
         'count': len(csr_projects),
         'total': len(csr_projects),
-        'limit': PREVIEW_LIMIT,
+        'limit': cfg.preview_limit,
         'is_preview': True,
-        'message': 'Guest preview mode active. Showing 5 sample records. Register or log in to access all verified CSR initiatives.'
+        'preview_enabled': cfg.preview_enabled,
+        'message': f'Guest preview mode active. Showing {len(csr_projects)} sample records. Register or log in to access all verified CSR initiatives.'
     })
 
 
 def preview_bundle_api(request):
-    """Consolidated public preview API returning 5 of each entity in a single payload."""
+    """Consolidated public preview API returning sample entities and UI configuration."""
+    cfg = GuestPreviewSettings.get_settings()
     companies = get_public_preview_companies()
     jobs = get_public_preview_jobs()
     csr = get_public_preview_csr()
+
     return JsonResponse({
+        'is_preview': True,
+        'preview_enabled': cfg.preview_enabled,
+        'limit': cfg.preview_limit,
+        'banner': {
+            'enabled': cfg.banner_enabled,
+            'badge_text': cfg.banner_badge_text,
+            'headline': cfg.banner_headline,
+            'cta_text': cfg.banner_cta_text,
+            'cta_url': cfg.banner_cta_url,
+        },
+        'auth_modal': {
+            'title': cfg.auth_modal_title,
+            'description': cfg.auth_modal_description,
+            'primary_btn_text': cfg.auth_modal_primary_btn_text,
+            'primary_btn_url': cfg.auth_modal_primary_btn_url,
+            'secondary_btn_text': cfg.auth_modal_secondary_btn_text,
+            'secondary_btn_url': cfg.auth_modal_secondary_btn_url,
+        },
+        'bottom_banner': {
+            'enabled': cfg.bottom_banner_enabled,
+            'title': cfg.bottom_banner_title,
+            'description': cfg.bottom_banner_description,
+            'btn_text': cfg.bottom_banner_btn_text,
+            'btn_url': cfg.bottom_banner_btn_url,
+        },
         'companies': companies,
         'jobs': jobs,
         'csr_projects': csr,
-        'is_preview': True,
-        'limits': {
-            'companies_preview_count': len(companies),
-            'jobs_preview_count': len(jobs),
-            'csr_preview_count': len(csr),
-            'max_allowed': PREVIEW_LIMIT,
-        },
-        'cta': {
-            'register_url': '/register/',
-            'login_url': '/login/',
-            'pricing_url': '/pricing/',
-            'message': 'Create a free account to unlock full dossiers, active applications, and complete search filters.'
+        'counts': {
+            'companies': len(companies),
+            'jobs': len(jobs),
+            'csr': len(csr),
         }
     })

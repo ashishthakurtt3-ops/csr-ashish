@@ -1,0 +1,595 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Guest Preview Dataset & Showcase Manager - ImpactBridge Admin{% endblock %}
+
+{% block content %}
+<div class="admin-content-container" style="max-width: 1280px; margin: 0 auto; padding-bottom: 70px;">
+
+    <!-- TOP HEADER & EXECUTIVE BAR -->
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 22px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
+                    Guest Preview Dataset &amp; Showcase Manager
+                </h1>
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(14,165,233,0.12); color: #0284C7; border: 1px solid rgba(14,165,233,0.25);">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #0284C7; box-shadow: 0 0 6px #0284C7;"></span>
+                    Public Visitor Showcase
+                </span>
+            </div>
+            <p style="margin: 0; font-size: 14px; color: var(--text-secondary); max-width: 860px; line-height: 1.5;">
+                Configure the authentic enterprise showcase presented to unauthenticated visitors and prospective subscribers in <strong>Guest Preview mode</strong>. 
+                Data format is <strong>100% identical to live production records</strong> (NIFTY corporate schemas, authentic job requisitions, and statutory Section 135 CSR disclosures) while keeping real operational databases completely private.
+            </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" onclick="openLivePreviewModal()" class="admin-btn" style="background: rgba(10,108,255,0.1); border: 1.5px solid rgba(10,108,255,0.3); color: #0A6CFF; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s ease;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>⚡ Test Visitor View</span>
+            </button>
+            <a href="/" target="_blank" class="admin-btn" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); text-decoration: none; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <span>Open Public Portal</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+            <form method="POST" action="{% url 'admin_preview_settings:dummy_reset_defaults' %}" onsubmit="return confirm('Seed and restore the official 5 Flagship Indian Enterprise Showcase (TCS, Reliance, Infosys, HDFC Bank, Tata Motors)? This will replace current preview dummy data.');">
+                {% csrf_token %}
+                <button type="submit" class="admin-btn" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #059669; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                    <span>Seed Real Showcase</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TABS BAR -->
+    <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; padding-bottom: 4px;">
+        <a href="{% url 'admin_preview_settings:index' %}" class="preview-subnav-tab" style="padding: 10px 18px; font-size: 13.5px; font-weight: 600; color: var(--text-secondary); text-decoration: none; border-radius: 8px 8px 0 0; display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>General Banner &amp; Auth-Gate Rules</span>
+        </a>
+        <a href="{% url 'admin_preview_settings:dummy_data' %}" class="preview-subnav-tab active" style="padding: 10px 18px; font-size: 13.5px; font-weight: 700; color: #0A6CFF; text-decoration: none; border-bottom: 2px solid #0A6CFF; display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Preview Dataset Manager (Excel/CSV Upload &amp; Data Studio)</span>
+        </a>
+    </div>
+
+    <!-- FLASH NOTIFICATIONS -->
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div style="padding: 13px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; {% if message.tags == 'success' %}background: rgba(16,185,129,0.12); color: #059669; border: 1.5px solid rgba(16,185,129,0.3);{% else %}background: rgba(239,68,68,0.12); color: #DC2626; border: 1.5px solid rgba(239,68,68,0.3);{% endif %} box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>{% if message.tags == 'success' %}✓{% else %}⚠️{% endif %}</span>
+                <span>{{ message }}</span>
+            </div>
+            <span style="cursor: pointer; opacity: 0.7;" onclick="this.parentElement.remove()">✕</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- LIVE METRICS TILES -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="admin-card" style="padding: 20px; border-left: 4px solid #0A6CFF; position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div style="font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Showcase Corporations</div>
+                    <div style="font-size: 30px; font-weight: 900; color: #0A6CFF; margin-top: 6px; letter-spacing: -0.02em;">{{ summary.companies_count }}</div>
+                </div>
+                <span style="padding: 6px 10px; border-radius: 8px; background: rgba(10,108,255,0.1); color: #0A6CFF; font-size: 16px;">🏢</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Displayed to guests (max {{ settings.preview_limit }} per page)</div>
+        </div>
+
+        <div class="admin-card" style="padding: 20px; border-left: 4px solid #10B981; position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div style="font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Career Vacancies</div>
+                    <div style="font-size: 30px; font-weight: 900; color: #10B981; margin-top: 6px; letter-spacing: -0.02em;">{{ summary.jobs_count }}</div>
+                </div>
+                <span style="padding: 6px 10px; border-radius: 8px; background: rgba(16,185,129,0.1); color: #10B981; font-size: 16px;">💼</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Authentic positions with real deep apply URLs</div>
+        </div>
+
+        <div class="admin-card" style="padding: 20px; border-left: 4px solid #8B5CF6; position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div style="font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Section 135 CSR Projects</div>
+                    <div style="font-size: 30px; font-weight: 900; color: #8B5CF6; margin-top: 6px; letter-spacing: -0.02em;">{{ summary.csr_count }}</div>
+                </div>
+                <span style="padding: 6px 10px; border-radius: 8px; background: rgba(139,92,246,0.1); color: #8B5CF6; font-size: 16px;">🌱</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Schedule VII filings with multi-crore budgets</div>
+        </div>
+
+        <div class="admin-card" style="padding: 20px; border-left: 4px solid #F59E0B; position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div style="font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Production Isolation</div>
+                    <div style="font-size: 30px; font-weight: 900; color: #F59E0B; margin-top: 6px; letter-spacing: -0.02em;">100%</div>
+                </div>
+                <span style="padding: 6px 10px; border-radius: 8px; background: rgba(245,158,11,0.1); color: #F59E0B; font-size: 16px;">🛡️</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Production database records protected from public</div>
+        </div>
+    </div>
+
+    <!-- EXCEL / CSV UPLOAD & TEMPLATE DOWNLOAD CARD -->
+    <div class="admin-card" style="margin-bottom: 24px; border: 1px solid rgba(10,108,255,0.25); background: linear-gradient(180deg, rgba(10,108,255,0.02) 0%, rgba(255,255,255,0) 100%);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h2 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-flex; width: 26px; height: 26px; border-radius: 6px; background: rgba(10,108,255,0.12); color: #0A6CFF; align-items: center; justify-content: center; font-size: 13px; font-weight: 800;">1</span>
+                    Upload Custom Preview Dataset (Multi-Sheet Excel or CSV)
+                </h2>
+                <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
+                    Deploy your own enterprise catalog into the public preview. Upload an Excel workbook (.xlsx) containing sheets for <strong>Companies</strong>, <strong>Jobs</strong>, and <strong>CSR</strong>, or upload individual CSV files.
+                </p>
+            </div>
+            <!-- Download Template Buttons -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <a href="{% url 'admin_preview_settings:download_template' %}?format=xlsx" class="admin-btn" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10B981; padding: 7px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Download All-in-One Excel (.xlsx)</span>
+                </a>
+                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=companies" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
+                    <span>Companies .csv</span>
+                </a>
+                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=jobs" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
+                    <span>Jobs .csv</span>
+                </a>
+                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=csr" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
+                    <span>CSR .csv</span>
+                </a>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'admin_preview_settings:dummy_upload' %}" enctype="multipart/form-data" style="margin-top: 14px;">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 2fr 1.1fr 1fr; gap: 16px; align-items: end; flex-wrap: wrap;">
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Select File (.xlsx, .xls, .csv)</label>
+                    <input type="file" name="file" required accept=".xlsx,.xls,.csv" class="search-input" style="height: 44px; width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1.5px dashed rgba(10,108,255,0.4); background: var(--bg-primary);">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Target Category</label>
+                    <select name="target_category" class="search-input" style="height: 44px; width: 100%; font-size: 13px; border-radius: 8px; font-weight: 600;">
+                        <option value="AUTO">✨ Auto-Detect (Multi-sheet Excel / Headers)</option>
+                        <option value="COMPANIES">🏢 Companies Dataset</option>
+                        <option value="JOBS">💼 Career Vacancies Dataset</option>
+                        <option value="CSR">🌱 Section 135 CSR Initiatives</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Import Mode</label>
+                    <select name="import_mode" class="search-input" style="height: 44px; width: 100%; font-size: 13px; border-radius: 8px; font-weight: 600;">
+                        <option value="REPLACE">🔄 Replace Existing Records</option>
+                        <option value="APPEND">➕ Append / Update by ID</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                <button type="submit" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color: #FFFFFF; font-size: 13.5px; font-weight: 700; padding: 11px 26px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(10,108,255,0.28); display: inline-flex; align-items: center; gap: 8px; transition: transform 0.15s ease;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Deploy Dataset to Public Preview</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- DATASET TABLES SECTION -->
+    <div class="admin-card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+        <!-- TAB SELECTOR, SEARCH & FILTER PILLS -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 14px; background: var(--card-bg);">
+            <!-- Category Tabs -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="dummy-tab-btn active" onclick="switchDummyTab('companies')" id="btn-tab-companies">
+                    🏢 Companies Showcase (<span id="cnt-companies">{{ companies.count }}</span>)
+                </button>
+                <button type="button" class="dummy-tab-btn" onclick="switchDummyTab('jobs')" id="btn-tab-jobs">
+                    💼 Career Vacancies (<span id="cnt-jobs">{{ jobs.count }}</span>)
+                </button>
+                <button type="button" class="dummy-tab-btn" onclick="switchDummyTab('csr')" id="btn-tab-csr">
+                    🌱 Section 135 CSR (<span id="cnt-csr">{{ csr_projects.count }}</span>)
+                </button>
+            </div>
+
+            <!-- Instant Search Input -->
+            <div style="position: relative; width: 300px;">
+                <input type="text" id="dummy-search-input" oninput="filterDummyRows(this.value)" placeholder="Search company, job, sector, city..." class="search-input" style="height: 38px; width: 100%; padding-left: 36px; padding-right: 28px; font-size: 13px; border-radius: 8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; top: 12px; color: var(--text-secondary);">
+                    <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <button type="button" onclick="clearDummySearch()" style="position: absolute; right: 8px; top: 10px; background: none; border: none; color: var(--text-secondary); cursor: pointer; display: none;" id="btn-clear-search">✕</button>
+            </div>
+        </div>
+
+        <!-- 1. COMPANIES TABLE -->
+        <div id="dummy-pane-companies" class="dummy-table-pane">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead>
+                        <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">
+                            <th style="padding: 13px 18px;">Enterprise Entity</th>
+                            <th style="padding: 13px 18px;">NSE Ticker</th>
+                            <th style="padding: 13px 18px;">Industry Sector</th>
+                            <th style="padding: 13px 18px;">Headquarters</th>
+                            <th style="padding: 13px 18px; text-align: center;">Active Jobs</th>
+                            <th style="padding: 13px 18px; text-align: center;">CSR Projects</th>
+                            <th style="padding: 13px 18px; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dummy-table-companies-body">
+                        {% for c in companies %}
+                        <tr class="dummy-row" data-search="{{ c.company_name|lower }} {{ c.company_id|lower }} {{ c.sector|lower }} {{ c.nse_symbol|lower }} {{ c.headquarters|lower }}" style="border-bottom: 1px solid var(--border-color); transition: background 0.1s ease;">
+                            <td style="padding: 14px 18px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="company-badge-avatar" style="width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; color: #FFFFFF; background: linear-gradient(135deg, #0A6CFF 0%, #004BBD 100%); flex-shrink: 0;">
+                                        {{ c.company_name|slice:":3"|upper }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">{{ c.company_name }}</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary); font-family: monospace; margin-top: 2px;">
+                                            ID: {{ c.company_id }}
+                                            {% if c.website_url %}
+                                            • <a href="{{ c.website_url }}" target="_blank" style="color: #0A6CFF; text-decoration: none;">Website ↗</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 14px 18px;">
+                                {% if c.nse_symbol %}
+                                <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 11.5px; background: rgba(10,108,255,0.1); color: #0A6CFF; border: 1px solid rgba(10,108,255,0.2);">
+                                    NSE: {{ c.nse_symbol }}
+                                </span>
+                                {% else %}
+                                <span style="color: var(--text-secondary); font-size: 12px;">Unlisted / Private</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-primary); font-weight: 500;">
+                                {{ c.sector|default:"Corporate Enterprise" }}
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-secondary);">
+                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    {{ c.headquarters|default:"India" }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px; text-align: center;">
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px; background: rgba(59,130,246,0.1); color: #2563EB; border: 1px solid rgba(59,130,246,0.2);">
+                                    {{ c.job_count }} Openings
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px; text-align: center;">
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 12px; background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2);">
+                                    {{ c.csr_count }} Initiatives
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px; text-align: right;">
+                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'company' c.company_id %}" style="display: inline;" onsubmit="return confirm('Remove dummy showcase company \'{{ c.company_name }}\'?');">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px 8px; font-size: 12px; font-weight: 600; border-radius: 4px;" title="Delete Record">
+                                        ✕ Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="padding: 48px 20px; text-align: center; color: var(--text-secondary);">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🏢</div>
+                                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">No Preview Companies Configured</div>
+                                <div style="font-size: 13px; margin-top: 4px;">Click <strong>Seed Real Showcase</strong> above or upload an Excel manifest to populate standard enterprises.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. JOBS TABLE -->
+        <div id="dummy-pane-jobs" class="dummy-table-pane" style="display: none;">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead>
+                        <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">
+                            <th style="padding: 13px 18px;">Job Designation</th>
+                            <th style="padding: 13px 18px;">Employing Enterprise</th>
+                            <th style="padding: 13px 18px;">Location &amp; Work Mode</th>
+                            <th style="padding: 13px 18px;">Department / Function</th>
+                            <th style="padding: 13px 18px;">Experience Required</th>
+                            <th style="padding: 13px 18px;">Authentic Apply Link</th>
+                            <th style="padding: 13px 18px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dummy-table-jobs-body">
+                        {% for j in jobs %}
+                        <tr class="dummy-row" data-search="{{ j.job_title|lower }} {{ j.company_name|lower }} {{ j.department|lower }} {{ j.location|lower }} {{ j.work_mode|lower }}" style="border-bottom: 1px solid var(--border-color); transition: background 0.1s ease;">
+                            <td style="padding: 14px 18px;">
+                                <div style="font-weight: 700; font-size: 13.5px; color: var(--text-primary);">{{ j.job_title }}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary); font-family: monospace; margin-top: 2px;">ID: {{ j.job_row_id }}</div>
+                            </td>
+                            <td style="padding: 14px 18px;">
+                                <div style="font-weight: 700; color: #0A6CFF;">{{ j.company_name }}</div>
+                                {% if j.nse_symbol %}
+                                <span style="font-size: 10.5px; color: var(--text-secondary); font-weight: 600;">NSE: {{ j.nse_symbol }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-secondary);">
+                                <div>{{ j.location }}</div>
+                                <span style="display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; {% if 'hybrid' in j.work_mode|lower %}background: rgba(14,165,233,0.12); color: #0284C7;{% elif 'remote' in j.work_mode|lower %}background: rgba(16,185,129,0.12); color: #059669;{% else %}background: rgba(100,116,139,0.12); color: #475569;{% endif %}">
+                                    {{ j.work_mode }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-primary); font-weight: 500;">{{ j.department }}</td>
+                            <td style="padding: 14px 18px; color: var(--text-secondary); font-weight: 600;">{{ j.experience }}</td>
+                            <td style="padding: 14px 18px;">
+                                {% if j.application_url %}
+                                <a href="{{ j.application_url }}" target="_blank" style="color: #0A6CFF; font-weight: 600; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="{{ j.application_url }}">
+                                    <span>Direct Requisition</span>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </a>
+                                {% else %}
+                                <span style="color: var(--text-secondary); font-size: 12px;">Portal Direct</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 14px 18px; text-align: right;">
+                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'job' j.job_row_id %}" style="display: inline;" onsubmit="return confirm('Remove dummy job \'{{ j.job_title }}\'?');">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px 8px; font-size: 12px; font-weight: 600;" title="Delete Record">
+                                        ✕ Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="padding: 48px 20px; text-align: center; color: var(--text-secondary);">
+                                <div style="font-size: 32px; margin-bottom: 8px;">💼</div>
+                                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">No Preview Jobs Configured</div>
+                                <div style="font-size: 13px; margin-top: 4px;">Click <strong>Seed Real Showcase</strong> to load authentic engineering &amp; leadership roles.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. CSR TABLE -->
+        <div id="dummy-pane-csr" class="dummy-table-pane" style="display: none;">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead>
+                        <tr style="background: var(--bg-primary); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">
+                            <th style="padding: 13px 18px;">Statutory CSR Initiative</th>
+                            <th style="padding: 13px 18px;">Funding Enterprise</th>
+                            <th style="padding: 13px 18px;">Schedule VII Category</th>
+                            <th style="padding: 13px 18px;">Operational Geography</th>
+                            <th style="padding: 13px 18px;">Statutory Outlay</th>
+                            <th style="padding: 13px 18px;">Verification Source</th>
+                            <th style="padding: 13px 18px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dummy-table-csr-body">
+                        {% for p in csr_projects %}
+                        <tr class="dummy-row" data-search="{{ p.project_name|lower }} {{ p.company_name|lower }} {{ p.category|lower }} {{ p.state|lower }} {{ p.budget|lower }}" style="border-bottom: 1px solid var(--border-color); transition: background 0.1s ease;">
+                            <td style="padding: 14px 18px;">
+                                <div style="font-weight: 700; font-size: 13.5px; color: var(--text-primary);">{{ p.project_name }}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary); font-family: monospace; margin-top: 2px;">ID: {{ p.csr_id }}</div>
+                            </td>
+                            <td style="padding: 14px 18px; font-weight: 700; color: #10B981;">{{ p.company_name }}</td>
+                            <td style="padding: 14px 18px;">
+                                <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; background: rgba(139,92,246,0.1); color: #7C3AED; border: 1px solid rgba(139,92,246,0.2);">
+                                    {{ p.category }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px; color: var(--text-secondary);">
+                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    {{ p.state }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px;">
+                                <span style="display: inline-block; padding: 4px 9px; border-radius: 6px; font-weight: 800; font-size: 12px; background: rgba(10,108,255,0.1); color: #0A6CFF; font-family: monospace;">
+                                    {{ p.budget }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px;">
+                                {% if p.source_url %}
+                                <a href="{{ p.source_url }}" target="_blank" style="color: #059669; font-weight: 600; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span>Section 135 Portal</span>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </a>
+                                {% else %}
+                                <span style="color: var(--text-secondary); font-size: 12px;">MCA Annual Filing</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 14px 18px; text-align: right;">
+                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'csr' p.csr_id %}" style="display: inline;" onsubmit="return confirm('Remove dummy CSR project \'{{ p.project_name }}\'?');">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px 8px; font-size: 12px; font-weight: 600;" title="Delete Record">
+                                        ✕ Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="padding: 48px 20px; text-align: center; color: var(--text-secondary);">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🌱</div>
+                                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">No Preview CSR Projects Configured</div>
+                                <div style="font-size: 13px; margin-top: 4px;">Click <strong>Seed Real Showcase</strong> to load statutory Schedule VII programs.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- INTERACTIVE VISITOR VIEW MODAL (SIMULATOR) -->
+<div id="livePreviewModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; max-width: 920px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+            <div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10B981;"></span>
+                    Live Visitor Experience Simulator
+                </h3>
+                <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 3px;">
+                    This is the exact UI/UX presentation and real-world corporate schema that guests and prospective subscribers see on your homepage.
+                </div>
+            </div>
+            <button type="button" onclick="closeLivePreviewModal()" style="background: none; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer; padding: 4px 8px;">✕</button>
+        </div>
+
+        <!-- Mock Banner as shown to guest -->
+        <div style="background: linear-gradient(135deg, rgba(10,108,255,0.12) 0%, rgba(16,185,129,0.08) 100%); border: 1px solid rgba(10,108,255,0.25); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="padding: 3px 8px; border-radius: 6px; background: #0A6CFF; color: #FFF; font-size: 11px; font-weight: 800;">GUEST PREVIEW</span>
+                <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Showing sample enterprise records from our verified corporate intelligence platform.</span>
+            </div>
+            <span style="padding: 6px 14px; border-radius: 8px; background: #0A6CFF; color: #FFF; font-size: 12px; font-weight: 700;">Unlock All Records →</span>
+        </div>
+
+        <!-- Sample Mock Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+            <!-- Card 1: TCS -->
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; background: var(--bg-primary);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 800; color: #0A6CFF; background: rgba(10,108,255,0.1); padding: 2px 6px; border-radius: 4px;">NSE: TCS</span>
+                    <span style="font-size: 11px; color: #059669; font-weight: 700;">✓ VERIFIED</span>
+                </div>
+                <div style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Tata Consultancy Services</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">Information Technology &amp; Digital Solutions</div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.1); color: #2563EB; font-weight: 700;">18 Live Jobs</span>
+                    <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(16,185,129,0.1); color: #059669; font-weight: 700;">7 CSR Projects</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Reliance -->
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; background: var(--bg-primary);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 800; color: #0A6CFF; background: rgba(10,108,255,0.1); padding: 2px 6px; border-radius: 4px;">NSE: RELIANCE</span>
+                    <span style="font-size: 11px; color: #059669; font-weight: 700;">✓ VERIFIED</span>
+                </div>
+                <div style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Reliance Industries Limited</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">Energy, Petrochemicals &amp; Retail</div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.1); color: #2563EB; font-weight: 700;">24 Live Jobs</span>
+                    <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(16,185,129,0.1); color: #059669; font-weight: 700;">8 CSR Projects</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Infosys -->
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; background: var(--bg-primary);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 800; color: #0A6CFF; background: rgba(10,108,255,0.1); padding: 2px 6px; border-radius: 4px;">NSE: INFY</span>
+                    <span style="font-size: 11px; color: #059669; font-weight: 700;">✓ VERIFIED</span>
+                </div>
+                <div style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Infosys Limited</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">IT Consulting &amp; Cloud Platforms</div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.1); color: #2563EB; font-weight: 700;">22 Live Jobs</span>
+                    <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(16,185,129,0.1); color: #059669; font-weight: 700;">6 CSR Projects</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; text-align: center;">
+            <button type="button" onclick="closeLivePreviewModal()" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 22px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                Close Simulator
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.dummy-tab-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.dummy-tab-btn:hover {
+    color: var(--text-primary);
+    background: var(--card-bg);
+}
+.dummy-tab-btn.active {
+    background: linear-gradient(135deg, rgba(10,108,255,0.14) 0%, rgba(10,108,255,0.06) 100%);
+    color: #0A6CFF;
+    border-color: rgba(10,108,255,0.35);
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(10,108,255,0.1);
+}
+.dummy-row:hover {
+    background: rgba(10,108,255,0.02);
+}
+.preview-subnav-tab:hover {
+    color: #0A6CFF !important;
+}
+</style>
+
+<script>
+function switchDummyTab(tabName) {
+    document.querySelectorAll('.dummy-table-pane').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.dummy-tab-btn').forEach(b => b.classList.remove('active'));
+
+    const activePane = document.getElementById(`dummy-pane-${tabName}`);
+    const activeBtn = document.getElementById(`btn-tab-${tabName}`);
+    if (activePane) activePane.style.display = 'block';
+    if (activeBtn) activeBtn.classList.add('active');
+}
+
+function filterDummyRows(query) {
+    const q = String(query || '').trim().toLowerCase();
+    const clearBtn = document.getElementById('btn-clear-search');
+    if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+    document.querySelectorAll('.dummy-row').forEach(row => {
+        const text = row.getAttribute('data-search') || '';
+        if (!q || text.includes(q)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function clearDummySearch() {
+    const inp = document.getElementById('dummy-search-input');
+    if (inp) {
+        inp.value = '';
+        filterDummyRows('');
+    }
+}
+
+function openLivePreviewModal() {
+    const modal = document.getElementById('livePreviewModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeLivePreviewModal() {
+    const modal = document.getElementById('livePreviewModal');
+    if (modal) modal.style.display = 'none';
+}
+</script>
+{% endblock %}

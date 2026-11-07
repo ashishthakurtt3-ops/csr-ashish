@@ -5,9 +5,12 @@
     <script>
         window.IS_PREVIEW_MODE = {{ is_preview_mode|yesno:"true,false" }};
         window.CURRENT_USER_NAME = "{{ user.username|default:'' }}";
+        window.CURRENT_USER_IS_STAFF = {{ user.is_staff|yesno:"true,false" }};
         window.CURRENT_USER_TIER = "{{ plan_tier|default:'FREE' }}";
         window.CURRENT_USER_SUB_STATUS = "{{ sub_status|default:'NONE' }}";
         window.CURRENT_USER_SUB_ACTIVE = {{ is_sub_active|yesno:"true,false" }};
+        window.HAS_ACTIVE_PLAN = {{ has_active_plan|yesno:"true,false" }};
+        window.PLAN_REQUIRED = {{ plan_required|yesno:"true,false" }};
         window.DEFAULT_TAB = "{{ default_tab|default:'companies' }}";
     </script>
     <meta charset="UTF-8">
@@ -101,6 +104,18 @@
                         <button class="user-tier-btn" id="header-tier-btn" onclick="event.stopPropagation(); switchTab('pricing');">Plans ⚡</button>
                     </div>
 
+                    <!-- Saved Records Quick Button -->
+                    <button class="nav-action-btn" onclick="openSavedRecordsModal()" title="View Saved Job & CSR Bookmarks" style="gap:5px; font-size:12px; font-weight:600;">
+                        <span>🔖 Saved</span>
+                        <span class="badge badge-cyan" id="header-saved-records-count" style="display:none; padding:1px 6px; font-size:10px; border-radius:10px;">0</span>
+                    </button>
+
+                    <!-- Saved Searches Quick Button -->
+                    <button class="nav-action-btn" onclick="openSavedSearchesModal()" title="View Saved Search Queries" style="gap:5px; font-size:12px; font-weight:600;">
+                        <span>🔍 Searches</span>
+                        <span class="badge badge-purple" id="header-saved-searches-count" style="display:none; padding:1px 6px; font-size:10px; border-radius:10px;">0</span>
+                    </button>
+
                     <!-- User Profile & Billing Link -->
                     <a href="/profile/" class="nav-action-btn" id="header-profile-btn" title="View Account, Quotas &amp; Invoices" style="text-decoration:none; gap:6px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;">
@@ -110,9 +125,12 @@
                         <span style="font-size:12px; font-weight:600;">@{{ user.username }}</span>
                     </a>
 
-                    {% if user.is_staff or user.is_superuser %}
-                    <a href="/admin-portal/" class="nav-action-btn" title="Open Enterprise Admin Console" style="background:rgba(99,102,241,0.1); color:#818cf8; border-color:rgba(99,102,241,0.3); text-decoration:none; font-weight:600; font-size:12px;">
-                        <span>Admin ↗</span>
+                    {% if user.is_staff or user.is_superuser or user.role == 'ADMIN' or user.role == 'STAFF' or user.is_admin_or_staff %}
+                    <a href="/admin-portal/" class="nav-action-btn" title="Open Enterprise Admin Console" style="background:linear-gradient(135deg, rgba(99,102,241,0.18), rgba(79,70,229,0.22)); color:#a5b4fc; border:1px solid rgba(129,140,248,0.45); text-decoration:none; font-weight:700; font-size:12px; padding:6px 13px; border-radius:9999px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 0 12px rgba(99,102,241,0.25);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;">
+                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        <span>Admin Portal Console ↗</span>
                     </a>
                     {% endif %}
 
@@ -131,7 +149,7 @@
                     <a href="{% url 'website:user_login' %}" class="nav-action-btn" style="text-decoration:none; font-weight:700; color:var(--text-primary); border-color:var(--border-subtle); padding:6px 14px; font-size:12.5px;">
                         <span>Sign In</span>
                     </a>
-                    <a href="{% url 'website:user_register' %}" class="nav-action-btn" style="text-decoration:none; font-weight:700; color:#FFFFFF; background:linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%); border:none; padding:7px 16px; font-size:12.5px; border-radius:9999px; box-shadow:0 2px 10px rgba(10,108,255,0.3);">
+                    <a href="{% url 'website:user_register' %}" class="nav-action-btn" style="text-decoration:none; font-weight:700; color:#FFFFFF; background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); border:none; padding:7px 16px; font-size:12.5px; border-radius:9999px; box-shadow:0 2px 10px rgba(10,108,255,0.3);">
                         <span>Get Started Free</span>
                     </a>
                     {% endif %}
@@ -214,20 +232,45 @@
         </div>
     </header>
 
-    {% if is_preview_mode %}
+    {% if plan_required %}
+    <!-- ===== PLAN SELECTION REQUIRED BANNER (LOGGED IN USER WITHOUT PLAN) ===== -->
+    <div id="plan-selection-required-banner" style="background: linear-gradient(90deg, #1E1B4B 0%, #312E81 100%); border-bottom: 2px solid #6366F1; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; z-index: 860; position: relative; box-shadow: 0 4px 14px rgba(99,102,241,0.25);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(99, 102, 241, 0.35); color: #C7D2FE; font-size: 14px; font-weight: 800; border: 1px solid rgba(99, 102, 241, 0.6);">⚡</span>
+            <span style="color: #F8FAFC; font-size: 13.5px; font-weight: 500;">
+                <strong>Subscription Plan Required:</strong> You are signed in as <strong>{{ user.username }}</strong>, but haven't selected an active subscription plan yet. Please select a plan to unlock all verified corporate profiles, Section 135 CSR projects, and active job openings.
+            </span>
+        </div>
+        <button onclick="switchTab('pricing')" class="btn-primary" style="padding: 7px 18px; font-size: 12.5px; font-weight: 700; background: #6366F1; border: none; border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <span>Select a Plan to Unlock</span> &rarr;
+        </button>
+    </div>
+    {% elif is_preview_mode and preview_settings.banner_enabled and preview_settings.preview_enabled %}
     <!-- ===== PUBLIC PREVIEW MODE BANNER ===== -->
     <div id="public-preview-banner" style="background: linear-gradient(90deg, #1E293B 0%, #0F172A 100%); border-bottom: 1px solid rgba(148,163,184,0.18); padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; z-index: 850; position: relative;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(59,130,246,0.22); color: #60A5FA; font-size: 12px; font-weight: 700; border: 1px solid rgba(59,130,246,0.35);">i</span>
             <span style="color: #F8FAFC; font-size: 13.5px; font-weight: 500;">
-                <strong>Guest Preview Mode:</strong> Viewing 5 sample records from our verified database of <strong>{{ total_companies|default:201 }}</strong> corporations, <strong>{{ jobs_tracked|default:2604 }}</strong> jobs, and <strong>{{ csr_projects|default:1599 }}</strong> CSR initiatives.
+                <strong>{{ preview_settings.banner_badge_text|default:"Guest Preview Mode" }}:</strong> {{ banner_headline_rendered|default:"Viewing sample verified records." }}
             </span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <a href="{% url 'website:user_login' %}" style="color: #94A3B8; font-size: 13px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 6px; transition: color 0.15s ease;">Sign In</a>
-            <a href="{% url 'website:user_register' %}" style="background: linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%); color: #FFFFFF; font-size: 12.5px; font-weight: 700; text-decoration: none; padding: 6px 16px; border-radius: 9999px; box-shadow: 0 2px 10px rgba(10,108,255,0.35); transition: transform 0.15s ease;">
-                Unlock All Records Free &rarr;
-            </a>
+            <a href="{{ preview_settings.banner_cta_url|default:'/register/' }}" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color: #FFFFFF; font-size: 12.5px; font-weight: 700; padding: 7px 16px; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 12px rgba(10,108,255,0.25);">{{ preview_settings.banner_cta_text|default:"Unlock All Records Free →" }}</a>
+        </div>
+    </div>
+    {% elif is_preview_mode and not preview_settings.preview_enabled %}
+    <!-- ===== PREVIEW DISABLED LOGIN ENFORCEMENT BANNER ===== -->
+    <div id="public-preview-banner" style="background: linear-gradient(90deg, #450A0A 0%, #1F0707 100%); border-bottom: 1px solid rgba(239,68,68,0.25); padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; z-index: 850; position: relative;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(239,68,68,0.22); color: #FCA5A5; font-size: 12px; font-weight: 700; border: 1px solid rgba(239,68,68,0.35);">!</span>
+            <span style="color: #F8FAFC; font-size: 13.5px; font-weight: 500;">
+                <strong>Sign In Required:</strong> Guest preview is temporarily paused. Please sign in or register to explore corporate dossiers.
+            </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{% url 'website:user_login' %}" style="color: #FCA5A5; font-size: 13px; font-weight: 600; text-decoration: none; padding: 5px 12px; border-radius: 6px;">Sign In</a>
+            <a href="{% url 'website:user_register' %}" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color: #FFFFFF; font-size: 12.5px; font-weight: 700; padding: 7px 16px; border-radius: 8px; text-decoration: none;">Create Free Account</a>
         </div>
     </div>
     {% endif %}
@@ -826,6 +869,9 @@
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                             <span>Search Jobs</span>
                         </button>
+                        <button class="btn-secondary" style="height:46px; padding:0 18px; font-weight:600; border-radius:var(--radius-md); font-size:13.5px; display:inline-flex; align-items:center; gap:6px;" onclick="openSaveSearchModal('JOBS')" title="Save search query and filters">
+                            <span>🔖 Save Search</span>
+                        </button>
                     </div>
 
                     <!-- Popular Tags / Quick Chips -->
@@ -1112,6 +1158,9 @@
                         <option value="all">All Locations / States</option>
                     </select>
                     <button class="btn-secondary" onclick="resetCsrFilters()">Reset Filters</button>
+                    <button class="btn-secondary" onclick="openSaveSearchModal('CSR')" title="Save active CSR search query" style="display:inline-flex; align-items:center; gap:5px;">
+                        <span>🔖 Save Search</span>
+                    </button>
                 </div>
             </div>
 
@@ -2332,20 +2381,20 @@
     <!-- ===== AUTHENTICATION GATE MODAL (PREVIEW -> FULL PORTAL) ===== -->
     <div id="auth-gate-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
         <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:36px; max-width:440px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.25); text-align:center; position:relative; box-sizing:border-box;">
-            <button onclick="closeAuthGateModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px; line-height:1;" title="Close">✕</button>
-            <div style="width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%); color:#FFFFFF; display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; box-shadow:0 8px 20px rgba(10,108,255,0.28);">
+            <button id="btn-close-auth-gate" onclick="closeAuthGateModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px; line-height:1;" title="Close">✕</button>
+            <div style="width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color:#FFFFFF; display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; box-shadow:0 8px 20px rgba(10,108,255,0.28);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
             </div>
-            <h3 id="auth-gate-title" style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px 0;">Sign In Required</h3>
+            <h3 id="auth-gate-title" style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px 0;">{{ preview_settings.auth_modal_title|default:"Sign In Required" }}</h3>
             <p id="auth-gate-desc" style="font-size:13.5px; color:#64748B; line-height:1.55; margin:0 0 24px 0;">
-                Create a free account or log in to unlock complete corporate dossiers, search active job openings, and access verified Section 135 CSR intelligence.
+                {{ preview_settings.auth_modal_description|default:"Create a free account or log in to unlock complete corporate dossiers, search active job openings, and access verified Section 135 CSR intelligence." }}
             </p>
             <div style="display:flex; flex-direction:column; gap:10px;">
-                <a id="auth-gate-register-btn" href="/register/" style="display:block; padding:12px; border-radius:9999px; background:linear-gradient(135deg, #0A6CFF 0%, #9E0DFF 100%); color:#FFFFFF; font-weight:700; text-decoration:none; font-size:14px; box-shadow:0 4px 14px rgba(10,108,255,0.3); transition:transform 0.15s ease;">Create Free Account</a>
-                <a id="auth-gate-login-btn" href="/login/" style="display:block; padding:11px; border-radius:9999px; border:1px solid #CBD5E1; color:#0F172A; font-weight:600; text-decoration:none; font-size:14px; background:#F8FAFC;">Sign In</a>
+                <a id="auth-gate-register-btn" href="{{ preview_settings.auth_modal_primary_btn_url|default:'/register/' }}" style="display:block; padding:12px; border-radius:9999px; background:linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color:#FFFFFF; font-weight:700; text-decoration:none; font-size:14px; box-shadow:0 4px 14px rgba(10,108,255,0.3); transition:transform 0.15s ease;">{{ preview_settings.auth_modal_primary_btn_text|default:"Create Free Account" }}</a>
+                <a id="auth-gate-login-btn" href="{{ preview_settings.auth_modal_secondary_btn_url|default:'/login/' }}" style="display:block; padding:11px; border-radius:9999px; border:1px solid #CBD5E1; color:#0F172A; font-weight:600; text-decoration:none; font-size:14px; background:#F8FAFC;">{{ preview_settings.auth_modal_secondary_btn_text|default:"Sign In" }}</a>
             </div>
         </div>
     </div>
@@ -2360,6 +2409,23 @@
 
             let nextParam = targetUrl ? '?next=' + encodeURIComponent(targetUrl) : '';
 
+            if (window.CURRENT_USER_NAME && window.PLAN_REQUIRED) {
+                titleEl.textContent = 'Subscription Plan Required ⚡';
+                descEl.textContent = `You are signed in as ${window.CURRENT_USER_NAME}, but you must select an active subscription plan to view complete ${targetTitle || 'records and corporate intelligence'}. Please select a plan to unlock full access.`;
+                if (regBtn) {
+                    regBtn.textContent = 'Choose Subscription Plan ⚡';
+                    regBtn.href = 'javascript:void(0)';
+                    regBtn.onclick = function() { closeAuthGateModal(); switchTab('pricing'); };
+                }
+                if (logBtn) {
+                    logBtn.style.display = 'none';
+                }
+                modal.style.display = 'flex';
+                return;
+            } else if (logBtn) {
+                logBtn.style.display = '';
+            }
+
             if (actionType === 'job') {
                 titleEl.textContent = 'Save Jobs & Career Tracking';
                 descEl.textContent = 'Create a free account or sign in to save jobs, track corporate openings, and access official application portals.';
@@ -2369,13 +2435,37 @@
             } else if (actionType === 'csr') {
                 titleEl.textContent = 'Explore Verified CSR Grants';
                 descEl.textContent = 'Sign in or create a free account to view detailed project budgets, implementing partners, and MCA21 filings.';
-            } else if (actionType === 'preview_limit') {
-                titleEl.textContent = 'Explore All Verified Records';
-                descEl.textContent = 'You are currently viewing a 5-record preview. Create your free account to unlock all 201 corporations, 2,604 jobs, and 1,599 CSR initiatives.';
+            } else if (actionType === 'crm') {
+                titleEl.textContent = 'Outreach CRM Pipeline';
+                descEl.textContent = 'Sign in or create a free account to manage prospective corporate funding partnerships and track outreach stages.';
+            } else if (actionType === 'matching') {
+                titleEl.textContent = 'AI Grant Matchmaker';
+                descEl.textContent = 'Sign in or create a free account to match your NGO causes and thematic focus with verified corporate CSR budgets.';
+            } else if (actionType === 'coverage') {
+                titleEl.textContent = 'Enterprise Verification Matrix';
+                descEl.textContent = 'Sign in to inspect full 200-company verification audit ledgers and real-time MCA21 source verification.';
+            } else if (actionType === 'crawler') {
+                titleEl.textContent = 'Crawler Telemetry & Logs';
+                descEl.textContent = 'Sign in with an authorized account to monitor live HTTP discovery runs and spider telemetry.';
+            } else if (actionType === 'save') {
+                titleEl.textContent = 'Save to Corporate Pipeline';
+                descEl.textContent = `Sign in or create a free account to bookmark ${targetTitle || 'this company'} into your personal outreach pipeline.`;
+            } else if (actionType === 'audit') {
+                titleEl.textContent = 'On-Demand Domain Verification';
+                descEl.textContent = 'Live crawler delta sync and statutory audits require an authenticated user account. Sign in to run verification.';
+            } else {
+                titleEl.textContent = '{{ preview_settings.auth_modal_title|escapejs }}' || 'Explore All Verified Records';
+                descEl.textContent = '{{ preview_settings.auth_modal_description|escapejs }}' || 'You are currently viewing sample records. Create your free account to unlock full corporate dossiers.';
             }
 
-            if (regBtn) regBtn.href = '/register/' + nextParam;
-            if (logBtn) logBtn.href = '/login/' + nextParam;
+            if (regBtn) {
+                regBtn.textContent = '{{ preview_settings.auth_modal_primary_btn_text|escapejs }}' || 'Create Free Account &rarr;';
+                regBtn.href = ('{{ preview_settings.auth_modal_primary_btn_url|escapejs }}' || '/register/') + nextParam;
+            }
+            if (logBtn) {
+                logBtn.textContent = '{{ preview_settings.auth_modal_secondary_btn_text|escapejs }}' || 'Sign In';
+                logBtn.href = ('{{ preview_settings.auth_modal_secondary_btn_url|escapejs }}' || '/login/') + nextParam;
+            }
             modal.style.display = 'flex';
         }
         function closeAuthGateModal() {
@@ -2390,5 +2480,186 @@
             }
         });
     </script>
+
+    <!-- ===== FREE PLAN ACTIVATION MODAL ===== -->
+    <div id="modal-free-plan-confirm" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:32px; max-width:480px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative; box-sizing:border-box;">
+            <button onclick="closeFreePlanModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px; line-height:1;" title="Close">✕</button>
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg, #10B981 0%, #059669 100%); color:#FFFFFF; display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; box-shadow:0 8px 20px rgba(16,185,129,0.3);">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size:21px; font-weight:800; color:#0F172A; margin:0 0 6px 0;">Activate Free Forever Plan</h3>
+                <div style="font-size:13.5px; color:#64748B;">No credit card required &bull; ₹0.00 / month &bull; Immediate activation</div>
+            </div>
+
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:16px; margin-bottom:20px; font-size:13px;">
+                <div style="font-weight:700; color:#0F172A; margin-bottom:10px; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Included Capabilities:</div>
+                <ul style="margin:0; padding-left:18px; color:#334155; display:flex; flex-direction:column; gap:6px; line-height:1.45;">
+                    <li><strong>200 Verified Corporations</strong> &amp; MCA statutory profiles</li>
+                    <li><strong>Live Job Openings &amp; CSR Projects</strong> with direct ATS/portal links</li>
+                    <li><strong>Save up to 10</strong> combined jobs &amp; CSR project bookmarks</li>
+                    <li><strong>1 Custom Saved Search</strong> query with weekly email updates</li>
+                    <li><strong>Single User Account</strong> with prototype wallet</li>
+                </ul>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; gap:12px;">
+                <button type="button" class="btn-secondary" style="flex:1; padding:11px;" onclick="closeFreePlanModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="btn-confirm-free-plan" style="flex:2; padding:11px; background:linear-gradient(135deg, #10B981, #059669); border:none; box-shadow:0 4px 14px rgba(16,185,129,0.35); font-weight:700;" onclick="executeFreePlanActivation()">
+                    Confirm &amp; Activate Free Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SAVED RECORDS (BOOKMARKS) MODAL ===== -->
+    <div id="modal-saved-records" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:32px; max-width:620px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative; box-sizing:border-box;">
+            <button onclick="closeSavedRecordsModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px; line-height:1;" title="Close">✕</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid #E2E8F0;">
+                <div>
+                    <h3 style="font-size:20px; font-weight:800; color:#0F172A; margin:0;">Saved Records &amp; Bookmarks</h3>
+                    <div style="font-size:12.5px; color:#64748B; margin-top:2px;">Quick access to your saved corporate openings &amp; CSR initiatives</div>
+                </div>
+                <span class="badge badge-cyan" id="saved-records-quota-label" style="font-size:11px; padding:4px 12px;">0 / 10 Max</span>
+            </div>
+            <div id="saved-records-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- ===== SAVE SEARCH QUERY MODAL ===== -->
+    <div id="modal-save-search" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:32px; max-width:460px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative; box-sizing:border-box;">
+            <button onclick="closeSaveSearchModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px; line-height:1;" title="Close">✕</button>
+            <h3 style="font-size:19px; font-weight:800; color:#0F172A; margin:0 0 6px 0;">Save Search Query</h3>
+            <p style="font-size:13px; color:#64748B; margin:0 0 18px 0;">Save your active filter criteria to easily re-run queries or receive automatic notifications.</p>
+
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:#0F172A; margin-bottom:6px;">Search Name</label>
+                <input type="text" id="save-search-name" class="form-input" style="width:100%; box-sizing:border-box; padding:10px 14px; border:1px solid #CBD5E1; border-radius:10px; font-size:13.5px;" placeholder="e.g. Bangalore Tech Roles">
+            </div>
+
+            <div style="margin-bottom:22px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:#0F172A; margin-bottom:6px;">Notification Frequency</label>
+                <select id="save-search-frequency" class="form-input" style="width:100%; box-sizing:border-box; padding:10px 14px; border:1px solid #CBD5E1; border-radius:10px; font-size:13.5px; background:#FFFFFF;">
+                </select>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; gap:10px;">
+                <button type="button" class="btn-secondary" style="flex:1; padding:10px;" onclick="closeSaveSearchModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="btn-submit-save-search" style="flex:2; padding:10px;" onclick="executeSaveSearch()">Save Search Query</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SAVED SEARCHES LIST MODAL ===== -->
+    <div id="modal-saved-searches-list" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:32px; max-width:620px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative; box-sizing:border-box;">
+            <button onclick="closeSavedSearchesModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px; line-height:1;" title="Close">✕</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid #E2E8F0;">
+                <div>
+                    <h3 style="font-size:20px; font-weight:800; color:#0F172A; margin:0;">Saved Search Queries</h3>
+                    <div style="font-size:12.5px; color:#64748B; margin-top:2px;">Re-run saved queries or manage automatic digest notifications</div>
+                </div>
+                <span class="badge badge-purple" id="saved-searches-quota-label" style="font-size:11px; padding:4px 12px;">0 / 1 Max</span>
+            </div>
+            <div id="saved-searches-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- ===== COMPANY COMPARISON MODAL ===== -->
+    <div id="modal-company-comparison" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:32px; max-width:1080px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative; box-sizing:border-box;">
+            <button onclick="closeCompanyComparisonModal()" style="position:absolute; right:20px; top:20px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:22px; line-height:1;" title="Close">✕</button>
+            <div style="margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid #E2E8F0;">
+                <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#0A6CFF; letter-spacing:0.8px;">Side-by-Side Corporate Intelligence</span>
+                <h3 style="font-size:22px; font-weight:800; color:#0F172A; margin:4px 0 0 0;">Company Comparison Matrix</h3>
+            </div>
+            <div id="company-comparison-matrix-container"></div>
+        </div>
+    </div>
+
+    <!-- ===== COMPARISON LOCKED MODAL ===== -->
+    <div id="modal-comparison-locked" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:36px; max-width:440px; width:100%; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative;">
+            <button onclick="closeComparisonLockedModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px;">✕</button>
+            <div style="width:52px; height:52px; border-radius:16px; background:#EFF6FF; color:#0A6CFF; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px;">⚖️</div>
+            <h3 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px;">Company Comparison Tool</h3>
+            <p style="font-size:13.5px; color:#64748B; margin:0 0 20px; line-height:1.5;">
+                Comparing companies side-by-side across jobs, CSR commitments, ATS platforms, and ESG scores is included in <strong>Impact Pro</strong> (up to 10 companies) and <strong>Ultra Enterprise</strong> (unlimited).
+            </p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-primary" style="padding:12px; font-weight:700;" onclick="closeComparisonLockedModal(); openSubscriptionModal('pro');">Upgrade to Pro (₹999/mo) ⚡</button>
+                <button class="btn-secondary" style="padding:10px;" onclick="closeComparisonLockedModal()">Continue on Free</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== EXPORT LOCKED MODAL ===== -->
+    <div id="modal-export-locked" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:36px; max-width:440px; width:100%; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative;">
+            <button onclick="closeExportLockedModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px;">✕</button>
+            <div style="width:52px; height:52px; border-radius:16px; background:#EFF6FF; color:#0A6CFF; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px;">📥</div>
+            <h3 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px;">Data Exports are a Pro Feature</h3>
+            <p style="font-size:13.5px; color:#64748B; margin:0 0 20px; line-height:1.5;">
+                Direct CSV &amp; Excel intelligence downloads are included in <strong>Impact Pro</strong> (200 records/month) and <strong>Ultra Enterprise</strong> (2,000 bulk records/month).
+            </p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-primary" style="padding:12px; font-weight:700;" onclick="closeExportLockedModal(); openSubscriptionModal('pro');">Unlock Exports with Pro ⚡</button>
+                <button class="btn-secondary" style="padding:10px;" onclick="closeExportLockedModal()">Continue on Free</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== REFRESH LOCKED MODAL ===== -->
+    <div id="modal-refresh-locked" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card" style="background:#FFFFFF; border-radius:24px; padding:36px; max-width:440px; width:100%; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative;">
+            <button onclick="closeRefreshLockedModal()" style="position:absolute; right:18px; top:18px; background:none; border:none; cursor:pointer; color:#94A3B8; font-size:20px;">✕</button>
+            <div style="width:52px; height:52px; border-radius:16px; background:#EFF6FF; color:#0A6CFF; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:24px;">🔄</div>
+            <h3 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px;">On-Demand Live Refresh</h3>
+            <p style="font-size:13.5px; color:#64748B; margin:0 0 20px; line-height:1.5;">
+                Immediate live crawler re-verification and MCA statutory re-probing is an <strong>ULTRA Enterprise</strong> exclusive capability.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-primary" style="padding:12px; font-weight:700;" onclick="closeRefreshLockedModal(); openSubscriptionModal('ultra');">Upgrade to Ultra 🚀</button>
+                <button class="btn-secondary" style="padding:10px;" onclick="closeRefreshLockedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Entitlements Core Integration -->
+    <script src="{% static 'js/plan_entitlements.js' %}?v={{ STATIC_VERSION }}"></script>
+
+    <!-- Global Project In-App Notification Center & Zero-Browser-Alert Guard -->
+    <div id="in-app-notification-center" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; max-width: 420px; width: calc(100vw - 48px);" aria-live="assertive" role="region"></div>
+    <script>
+        (function() {
+            // Strictly suppress browser Web Notifications API
+            try {
+                window.Notification = {
+                    permission: 'denied',
+                    requestPermission: function() { return Promise.resolve('denied'); }
+                };
+            } catch (e) {}
+
+            // Intercept window.alert to always display in-app toast
+            window.alert = function(msg) {
+                let str = String(msg || '');
+                let type = 'warning';
+                if (str.toLowerCase().includes('error') || str.toLowerCase().includes('failed')) type = 'error';
+                else if (str.toLowerCase().includes('success') || str.toLowerCase().includes('credited') || str.toLowerCase().includes('saved') || str.toLowerCase().includes('copied')) type = 'success';
+                
+                if (typeof showLiveToast === 'function') {
+                    showLiveToast(str, type);
+                } else if (typeof window.showInAppNotification === 'function') {
+                    window.showInAppNotification({ title: 'Notice', message: str, type: type });
+                }
+            };
+        })();
+    </script>
+
 </body>
 </html>

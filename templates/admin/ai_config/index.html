@@ -2962,7 +2962,7 @@
         const allowPaid = document.getElementById("drawerAllowPaidCalls").checked;
 
         if (isPaid && (newRole === 'primary' || newRole === 'failover') && !allowPaid) {
-            alert(`Zero-Cost Guard: '${p.displayName}' is a paid-tier provider. You must authorize 'Allow paid calls' before assigning it as ${newRole === 'primary' ? 'Primary' : 'Failover'}.`);
+            showToast(`Zero-Cost Guard: '${p.displayName}' is a paid-tier provider. You must authorize 'Allow paid calls' before assigning it as ${newRole === 'primary' ? 'Primary' : 'Failover'}.`, 'warning');
         }
         updateRoleRadioUI(newRole);
     }
@@ -3012,7 +3012,7 @@
 
         // Client-side zero-cost validation check
         if (p.isPaidTier && (role === 'primary' || role === 'failover') && !allowPaid) {
-            alert(`Paid Provider Guard: '${p.displayName}' cannot be assigned as ${role.toUpperCase()} without enabling 'Allow paid calls'.`);
+            showToast(`Paid Provider Guard: '${p.displayName}' cannot be assigned as ${role.toUpperCase()} without enabling 'Allow paid calls'.`, 'warning');
             return;
         }
 
@@ -3046,8 +3046,8 @@
 
             if (resp.status === 409) {
                 // Optimistic concurrency conflict (Requirement 4)
-                alert(`Conflict (409): ${data.message || data.error}\n\nThe page will now refresh to show the latest configuration.`);
-                location.reload();
+                showToast(`Conflict (409): ${data.message || data.error}. Refreshing configuration...`, 'error');
+                setTimeout(() => location.reload(), 1500);
                 return;
             }
 
@@ -3318,7 +3318,7 @@
         const total = configuredProviders.length;
 
         if (total === 0) {
-            alert("No configured providers with keys found to test.");
+            showToast("No configured providers with keys found to test.", "warning");
             progressWrap.style.display = "none";
             btn.disabled = false;
             btn.textContent = "Test all connections";
@@ -3457,13 +3457,13 @@
             });
             const data = await resp.json();
             if (data.success) {
-                alert(`Custom provider '${name}' registered successfully.`);
-                location.reload();
+                showToast(`Custom provider '${name}' registered successfully.`, "success");
+                setTimeout(() => location.reload(), 1200);
             } else {
-                alert("Error connecting provider: " + (data.error || data.message));
+                showToast("Error connecting provider: " + (data.error || data.message), "error");
             }
         } catch (e) {
-            alert("Network error: " + e.message);
+            showToast("Network error: " + e.message, "error");
         } finally {
             btn.disabled = false;
             btn.textContent = "Save Provider";

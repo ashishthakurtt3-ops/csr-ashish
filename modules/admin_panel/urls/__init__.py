@@ -3,6 +3,7 @@ from modules.admin_panel.views.dashboard import (
     admin_dashboard_view, run_audit_now_view, audit_status_api
 )
 from modules.admin_panel.views.auth import admin_login_view, admin_logout_view
+from modules.admin_panel.views.preview_settings_views import preview_settings_view
 from modules.admin_panel.data_exchange import (
     export_entity_view, import_entity_view, sample_template_view,
     quick_sync_entity_view, sync_all_master_backup_view,
@@ -25,6 +26,7 @@ urlpatterns = [
     path('subscriptions/', include('modules.admin_panel.urls.subscription_urls')),
     path('verification/', include('modules.admin_panel.urls.verification_urls')),
     path('ai-config/', include('modules.admin_panel.urls.ai_config_urls')),
+    path('preview-settings/', include('modules.admin_panel.urls.preview_settings_urls')),
 
     # Dedicated Downloads Hub Section & Full Master Archive
     path('downloads/', download_hub_view, name='download_hub'),

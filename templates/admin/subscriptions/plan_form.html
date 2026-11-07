@@ -269,12 +269,25 @@
 
     <!-- Section 4: Marketing Feature Bullets -->
     <div class="admin-card">
-        <h3 style="margin-top:0; font-size:15px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
-            <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">4</span>
-            Marketing Feature Bullets (Public Card List)
-        </h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--admin-border); padding-bottom:10px; margin-bottom:16px;">
+            <h3 style="margin:0; font-size:15px; color:#fff; display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; width:22px; height:22px; border-radius:50%; background:rgba(99,102,241,0.2); color:#818cf8; align-items:center; justify-content:center; font-size:11px; font-weight:700;">4</span>
+                Marketing Feature Bullets (Public Card List)
+            </h3>
+            <button type="button" class="btn-admin btn-admin-secondary" onclick="syncBulletsFromLimits(true)" style="font-size:12px; padding:5px 12px; border-color:var(--primary-brand); color:var(--primary-brand);">
+                ⚡ Standardize Bullets from Numeric Limits
+            </button>
+        </div>
+        
+        <div style="margin-bottom:12px; padding:10px 14px; background:rgba(10,108,255,0.08); border:1px solid rgba(10,108,255,0.2); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#fff; cursor:pointer; margin:0;">
+                <input type="checkbox" id="field-auto_sync_features" name="auto_sync_features" checked style="width:16px; height:16px;">
+                <span><strong>Auto-Synchronize Features:</strong> Fixed canonical feature set across all plans. Only the numbers scale based on Section 5 limits below.</span>
+            </label>
+        </div>
+
         <p style="font-size:12px; color:var(--admin-muted); margin-bottom:8px;">
-            Enter each feature on a new line. These are rendered with checkmarks on the user pricing and subscription cards.
+            These bullets render on public pricing cards and user plan modals. When Auto-Sync is enabled, these are updated automatically as you edit numeric limits.
         </p>
         <textarea id="field-features" name="features" rows="6" placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
                   style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px; line-height:1.5;">{{ features_str }}</textarea>
@@ -595,5 +608,86 @@ function proceedPlanSave() {
     closeConfirmModal();
     document.getElementById('plan-admin-form').submit();
 }
+
+function syncBulletsFromLimits(force = false) {
+    const autoSyncEl = document.getElementById('field-auto_sync_features');
+    if (!force && autoSyncEl && !autoSyncEl.checked) return;
+
+    const savedRec = document.getElementById('field-limit_saved_records') ? document.getElementById('field-limit_saved_records').value.trim() : '';
+    const savedSrch = document.getElementById('field-limit_saved_searches') ? document.getElementById('field-limit_saved_searches').value.trim() : '';
+    const expRows = document.getElementById('field-limit_export_rows') ? document.getElementById('field-limit_export_rows').value.trim() : '';
+    const compComp = document.getElementById('field-limit_compare_companies') ? document.getElementById('field-limit_compare_companies').value.trim() : '';
+    const alertFreq = document.getElementById('field-limit_alert_frequency') ? document.getElementById('field-limit_alert_frequency').value.trim() : 'weekly';
+    const advFilters = document.getElementById('field-limit_advanced_filters') ? document.getElementById('field-limit_advanced_filters').checked : false;
+    const prioSupport = document.getElementById('field-limit_priority_support') ? document.getElementById('field-limit_priority_support').checked : false;
+    const refreshReq = document.getElementById('field-limit_request_company_refresh') ? document.getElementById('field-limit_request_company_refresh').checked : false;
+    const seats = parseInt(document.getElementById('field-limit_seats') ? document.getElementById('field-limit_seats').value : 1) || 1;
+
+    const bullets = [
+        "Browse verified companies & CSR profiles",
+        "Search active corporate vacancies & Section 135 projects",
+        "View verified job & CSR details and original portal links",
+    ];
+
+    if (!savedRec || savedRec.toLowerCase() === 'unlimited' || savedRec.toLowerCase() === 'none') {
+        bullets.push("Unlimited saved jobs & CSR projects");
+    } else {
+        bullets.push(`Save up to ${savedRec} combined jobs & CSR projects`);
+    }
+
+    if (!savedSrch || savedSrch.toLowerCase() === 'unlimited' || savedSrch.toLowerCase() === 'none') {
+        bullets.push("Unlimited saved search queries");
+    } else {
+        bullets.push(`Save up to ${savedSrch} custom search ${parseInt(savedSrch) > 1 ? 'queries' : 'query'}`);
+    }
+
+    if (!expRows || expRows.toLowerCase() === 'unlimited' || expRows.toLowerCase() === 'none') {
+        bullets.push("Unlimited bulk data exports (CSV & Excel)");
+    } else if (parseInt(expRows) > 0) {
+        bullets.push(`Export up to ${parseInt(expRows).toLocaleString('en-IN')} records / month (CSV & Excel)`);
+    }
+
+    if (!compComp || compComp.toLowerCase() === 'unlimited' || parseInt(compComp) > 15) {
+        bullets.push("Comprehensive multi-company comparison tool");
+    } else if (parseInt(compComp) > 0) {
+        bullets.push(`Compare up to ${compComp} companies side-by-side`);
+    }
+
+    const freqName = (alertFreq === 'custom' || alertFreq === 'instant') ? 'Instant Real-Time' : (alertFreq === 'daily' ? 'Daily' : 'Weekly');
+    bullets.push(`${freqName} job & CSR alert notifications`);
+    bullets.push(advFilters ? "Advanced multi-dimensional search filters" : "Standard search filters");
+
+    if (refreshReq) {
+        bullets.push("On-demand company data refresh requests");
+    }
+
+    if (seats > 1) {
+        bullets.push(`Up to ${seats} team member accounts`);
+    } else {
+        bullets.push("Single user account");
+    }
+
+    bullets.push(prioSupport ? "Priority Dedicated Support 24/7" : "Standard Email Support");
+
+    const featArea = document.getElementById('field-features');
+    if (featArea) {
+        featArea.value = bullets.join('\n');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const limitInputs = [
+        'field-limit_saved_records', 'field-limit_saved_searches', 'field-limit_export_rows',
+        'field-limit_compare_companies', 'field-limit_seats', 'field-limit_alert_frequency',
+        'field-limit_advanced_filters', 'field-limit_priority_support', 'field-limit_request_company_refresh'
+    ];
+    limitInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', () => syncBulletsFromLimits(false));
+            el.addEventListener('change', () => syncBulletsFromLimits(false));
+        }
+    });
+});
 </script>
 {% endblock %}

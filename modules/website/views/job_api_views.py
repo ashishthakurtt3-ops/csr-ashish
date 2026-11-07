@@ -429,16 +429,35 @@ def serialize_job_item(j: Job, is_detail: bool = True):
 
 
 def jobs_list_api(request):
-    if not request.user.is_authenticated:
-        from modules.website.views.preview_api_views import get_public_preview_jobs, PREVIEW_LIMIT
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        from modules.admin_panel.models import GuestPreviewSettings
+        from modules.website.views.preview_api_views import get_public_preview_jobs
+        cfg = GuestPreviewSettings.get_settings()
+        if not cfg.preview_enabled:
+            return JsonResponse({
+                'is_preview': True,
+                'preview_enabled': False,
+                'preview_limit': 0,
+                'preview_message': 'Please select a subscription plan to access vacancies.' if request.user.is_authenticated else 'Guest preview is currently disabled. Please sign in or register to access vacancies.',
+                'plan_required': bool(request.user.is_authenticated),
+                'items': [],
+                'total': 0,
+                'page': 1,
+                'total_pages': 1,
+                'has_more': False
+            })
         items = get_public_preview_jobs()
         return JsonResponse({
             'is_preview': True,
-            'preview_limit': PREVIEW_LIMIT,
-            'preview_message': 'You are viewing a limited public preview of 5 active job openings. Sign in or register to search, filter, and save all 2,604 vacancies.',
+            'preview_enabled': True,
+            'preview_limit': cfg.preview_limit,
+            'preview_message': 'Subscription plan required. Please choose a subscription plan to search, filter, and save all vacancies.' if request.user.is_authenticated else f'You are viewing a limited public preview of {len(items)} active job openings. Sign in or register to search, filter, and save all vacancies.',
+            'plan_required': bool(request.user.is_authenticated),
             'login_url': '/login/?next=/jobs/',
             'register_url': '/register/?next=/jobs/',
-            'total': PREVIEW_LIMIT,
+            'pricing_url': '/?tab=pricing',
+            'total': len(items),
             'page': 1,
             'total_pages': 1,
             'has_more': True,
@@ -608,24 +627,24 @@ def jobs_list_api(request):
         _req_limit = int(request.GET.get('limit', 2000))
         _export_count = min(qs.count(), _req_limit)
         # ── Entitlement: export quota check ──────────────────────────
-        from modules.admin_panel.models import User as _User
-        if getattr(request, 'user', None) and request.user.is_authenticated:
-            _export_user = request.user
-        else:
-            _export_user = _User.objects.filter(is_active=True).order_by('id').first()
-        if _export_user:
-            _export_svc = EntitlementService(_export_user)
-            try:
-                _export_svc.check_export_quota(count=_export_count)
-            except EntitlementError as _ex_err:
-                return JsonResponse({
-                    'error': _ex_err.message,
-                    'feature': _ex_err.feature,
-                    'limit': _ex_err.limit,
-                    'current': _ex_err.current,
-                    'upgrade_to': _ex_err.upgrade_to,
-                    'code': 'entitlement_exceeded',
-                }, status=403)
+        if not (getattr(request, 'user', None) and request.user.is_authenticated):
+            return JsonResponse({
+                'error': 'Authentication required. Please sign in or choose an institutional plan to export data.',
+                'code': 'unauthorized'
+            }, status=401)
+        _export_user = request.user
+        _export_svc = EntitlementService(_export_user)
+        try:
+            _export_svc.check_export_quota(count=_export_count)
+        except EntitlementError as _ex_err:
+            return JsonResponse({
+                'error': _ex_err.message,
+                'feature': _ex_err.feature,
+                'limit': _ex_err.limit,
+                'current': _ex_err.current,
+                'upgrade_to': _ex_err.upgrade_to,
+                'code': 'entitlement_exceeded',
+            }, status=403)
         # ── End entitlement check ────────────────────────────────────
         output = io.StringIO()
         writer = csv.writer(output)
@@ -698,6 +717,14 @@ def job_detail_api(request, job_id):
             'login_url': f'/login/?next=/jobs/{job_id}/',
             'register_url': f'/register/?next=/jobs/{job_id}/'
         }, status=401)
+    from modules.website.utils.entitlement_service import user_has_active_plan
+    if not user_has_active_plan(request.user):
+        return JsonResponse({
+            'error': 'Subscription plan required. Please select a subscription plan to view complete job descriptions and application links.',
+            'code': 'PLAN_REQUIRED',
+            'plan_required': True,
+            'pricing_url': '/?tab=pricing'
+        }, status=403)
     """Retrieve detailed information for a specific job along with related openings.
     If details have not been fetched from the official portal yet, perform live on-demand extraction
     via UniversalJobDetailExtractor and persist the enriched fields.

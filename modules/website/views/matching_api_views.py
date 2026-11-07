@@ -9,6 +9,13 @@ from modules.website.utils.scoring_service import calculate_ngo_match
 
 @csrf_exempt
 def match_ngo_api(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Sign in or register to run AI grant matching.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': '/login/?next=/#matching',
+            'register_url': '/register/?next=/#matching'
+        }, status=401)
     if request.method not in ('GET', 'POST'):
         return JsonResponse({'detail': 'Method not allowed'}, status=405)
 

@@ -1,0 +1,3488 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}AI Bulk Discovery Engine - ImpactBridge Admin{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<!-- IN-APP FLOATING NOTIFICATION CENTER (No Browser Push/Popups) -->
+<div id="in-app-notification-center" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; max-width: 420px; width: calc(100vw - 48px);" aria-live="assertive" role="region"></div>
+
+<div class="admin-content-container" style="max-width: 1300px; margin: 0 auto; padding-bottom: 60px;">
+
+    <!-- TOP HEADER -->
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary);">AI Bulk Discovery Engine</h1>
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(10,108,255,0.12); color: #0A6CFF; border: 1px solid rgba(10,108,255,0.25);">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    {{ ai_model }} ({{ ai_provider }})
+                </span>
+            </div>
+            <p style="margin: 0; font-size: 14px; color: var(--text-secondary); max-width: 850px;">
+                Upload a CSV, Excel, or JSON manifest containing company names. Supports <strong>both existing database entities and any new random companies</strong>. The AI crawler automatically discovers corporate websites, crawls careers and Section 135 CSR portals, and directly auto-imports verified records into the production database.
+            </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{% url 'admin_ai_discovery:sample_template' %}?format=csv" class="admin-btn" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); text-decoration: none; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Sample CSV</span>
+            </a>
+            <a href="{% url 'admin_ai_discovery:sample_template' %}?format=xlsx" class="admin-btn" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); text-decoration: none; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Sample Excel</span>
+            </a>
+            <a href="{% url 'admin_ai_config:index' %}" class="admin-btn" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-secondary); text-decoration: none; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;">
+                Configure AI Models
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI STATS CARDS -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="admin-card" style="padding: 16px 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Total Monitored Companies</div>
+            <div id="stat-total-companies" style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">{{ total_companies }}</div>
+        </div>
+        <div class="admin-card" style="padding: 16px 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Live Active Jobs</div>
+            <div id="stat-total-jobs" style="font-size: 26px; font-weight: 800; color: #0A6CFF; margin-top: 4px;">{{ total_jobs }}</div>
+        </div>
+        <div class="admin-card" style="padding: 16px 20px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Section 135 CSR Projects</div>
+            <div id="stat-total-csr" style="font-size: 26px; font-weight: 800; color: #10B981; margin-top: 4px;">{{ total_csr }}</div>
+        </div>
+        <div class="admin-card" style="padding: 16px 20px; border-left: 4px solid #10B981;">
+            <div style="font-size: 12px; font-weight: 700; color: #10B981; text-transform: uppercase;">✨ New Companies Added</div>
+            <div id="stat-new-companies" style="font-size: 26px; font-weight: 800; color: #10B981; margin-top: 4px;">0</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Created in DB this session</div>
+        </div>
+        <div class="admin-card" style="padding: 16px 20px; border-left: 4px solid #0A6CFF;">
+            <div style="font-size: 12px; font-weight: 700; color: #0A6CFF; text-transform: uppercase;">Session Total Imports</div>
+            <div id="stat-session-imports" style="font-size: 26px; font-weight: 800; color: #0A6CFF; margin-top: 4px;">0 records</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;"><span id="stat-existing-companies">0</span> existing refreshed</div>
+        </div>
+    </div>
+
+    <!-- 1. INSTANT DIRECT COMPANY AI SEARCH BAR (ANY RANDOM COMPANY) -->
+    <div class="admin-card" id="quick-search-card" style="margin-bottom: 24px; border: 1px solid rgba(10,108,255,0.3); background: linear-gradient(180deg, rgba(10,108,255,0.03) 0%, rgba(255,255,255,0) 100%); box-shadow: 0 4px 20px rgba(10,108,255,0.06); padding: 22px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <h2 style="margin: 0 0 4px 0; font-size: 17px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    Direct AI Search: Crawl Any Random Company
+                </h2>
+                <div style="font-size: 13px; color: var(--text-secondary); max-width: 820px; line-height: 1.45;">
+                    No file required. Enter <strong>any random company name</strong> below (new startup, enterprise, or existing). The AI crawler will resolve its corporate website, crawl its careers &amp; CSR portals, extract all vacancies and Section 135 disclosures, and auto-import them live into MySQL.
+                </div>
+            </div>
+            <span style="font-size: 11.5px; color: #0A6CFF; background: rgba(10,108,255,0.1); padding: 4px 12px; border-radius: 12px; font-weight: 700; border: 1px solid rgba(10,108,255,0.25); display: inline-flex; align-items: center; gap: 5px;">
+                <span>⚡</span> Single Company Discovery
+            </span>
+        </div>
+
+        <!-- Prominent Search Bar (Company Name + Careers URL + CSR URL) -->
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px;">
+            <!-- Field 1: Company Name -->
+            <div style="position: relative; flex: 1; min-width: 220px;">
+                <input type="text" id="quick-company-input" placeholder="Company Name (e.g. Tata Motors, Wipro, Infosys)..." 
+                       style="height: 48px; width: 100%; box-sizing: border-box; border-radius: 10px; border: 2px solid rgba(10,108,255,0.35); padding: 0 16px 0 42px; font-size: 13.5px; font-weight: 600; background: var(--bg-primary); color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.04); outline: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2.2" style="position: absolute; left: 14px; top: 15px;">
+                    <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+
+            <!-- Field 2: Company Website / Careers URL -->
+            <div style="position: relative; flex: 1.1; min-width: 230px;">
+                <input type="text" id="quick-website-input" placeholder="Careers / Jobs URL (e.g. https://www.tatamotors.com/careers)..." 
+                       style="height: 48px; width: 100%; box-sizing: border-box; border-radius: 10px; border: 2px solid rgba(10,108,255,0.35); padding: 0 16px 0 42px; font-size: 13.5px; font-weight: 600; background: var(--bg-primary); color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.04); outline: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2.2" style="position: absolute; left: 14px; top: 15px;">
+                    <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+            </div>
+
+            <!-- Field 3: CSR / Sustainability URL (Functional & Live) -->
+            <div style="position: relative; flex: 1.1; min-width: 230px;">
+                <input type="text" id="quick-csr-input" placeholder="CSR / Sustainability URL (e.g. https://www.tatamotors.com/corporate-responsibility)..." 
+                       style="height: 48px; width: 100%; box-sizing: border-box; border-radius: 10px; border: 2px solid rgba(16,185,129,0.45); padding: 0 16px 0 42px; font-size: 13.5px; font-weight: 600; background: var(--bg-primary); color: var(--text-primary); box-shadow: 0 2px 8px rgba(16,185,129,0.06); outline: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" style="position: absolute; left: 14px; top: 15px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+            </div>
+
+            <!-- Action Button -->
+            <button type="button" id="btn-quick-discover" onclick="startSingleCompanyDiscovery()" 
+                    style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; font-size: 14px; font-weight: 700; padding: 0 24px; height: 48px; border-radius: 10px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(10,108,255,0.35); white-space: nowrap;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Search CSR &amp; Jobs ⚡</span>
+            </button>
+        </div>
+        <!-- Optional Accordion for Obscure Companies -->
+        <div style="margin-top: 10px;">
+            <button type="button" onclick="toggleOptionalQuickFields()" style="background:none; border:none; color: #0A6CFF; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; display: inline-flex; align-items: center; gap: 4px;">
+                <span id="opt-quick-arrow">+</span> <span>Provide optional website, sector, or headquarters (recommended for unlisted startups)</span>
+            </button>
+            <div id="quick-optional-fields" style="display: none; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; padding: 14px; background: var(--bg-surface-subtle); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Sector / Industry (Optional)</label>
+                    <input type="text" id="quick-sector-input" placeholder="e.g. Automotive, Healthcare, IT, FinTech" class="search-input" style="height:36px; width:100%; font-size:12.5px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Corporate Headquarters (Optional)</label>
+                    <input type="text" id="quick-hq-input" placeholder="e.g. Mumbai, Bengaluru, New Delhi" class="search-input" style="height:36px; width:100%; font-size:12.5px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. BULK MANIFEST FILE UPLOAD CARD -->
+    <div class="admin-card" id="upload-card" style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <h2 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Upload Company Manifest File (Any Existing or Brand New Company)
+            </h2>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: var(--text-secondary);">Formats: <strong>Excel (.xlsx, .xls), CSV, JSON, TSV</strong></span>
+            </div>
+        </div>
+
+        <!-- DRAG AND DROP ZONE -->
+        <div id="drop-zone" style="border: 2px dashed rgba(10,108,255,0.35); border-radius: 16px; padding: 36px 20px; text-align: center; background: rgba(10,108,255,0.02); cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px;" onclick="document.getElementById('manifest-file-input').click()">
+            <input type="file" id="manifest-file-input" accept=".csv,.xlsx,.xls,.json,.tsv,.txt" style="display: none;" onchange="handleFileSelected(this.files[0])">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(10,108,255,0.12); color: #0A6CFF; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            </div>
+            <div id="drop-text" style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+                Drag &amp; drop company Excel or CSV file here, or <span style="color: #0A6CFF; text-decoration: underline;">click to browse</span>
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; max-width: 680px; margin: 0 auto;">
+                Upload your file with company details. Only <strong>Company Name</strong> is required. Once selected, a structured <strong>10-per-page paginated preview</strong> will appear instantly below to inspect all parsed columns before initiating discovery.
+            </div>
+        </div>
+
+        <!-- MANIFEST PARSE LOADING SPINNER -->
+        <div id="manifest-loading-state" style="display: none; padding: 42px 20px; text-align: center; background: rgba(10,108,255,0.03); border: 2px dashed rgba(10,108,255,0.3); border-radius: 16px; margin-bottom: 8px;">
+            <div style="width: 48px; height: 48px; border: 4px solid rgba(10,108,255,0.15); border-top-color: #0A6CFF; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px auto;"></div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);" id="manifest-loading-title">Parsing &amp; Validating Manifest File...</div>
+            <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 4px;" id="manifest-loading-sub">Reading company rows, verifying column mappings, and generating paginated preview...</div>
+        </div>
+
+        <!-- MANIFEST PREVIEW & PAGINATION CONTAINER -->
+        <div id="manifest-preview-container" class="manifest-preview-card" style="display: none;">
+            
+            <!-- PREVIEW TOP HEADER & SEARCH -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16,185,129,0.15); color: #10B981; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="preview-filename-badge" style="font-size: 15px; font-weight: 800; color: var(--text-primary);">companies.xlsx</span>
+                            <span style="font-size: 11px; font-weight: 700; background: rgba(16,185,129,0.15); color: #10B981; border: 1px solid rgba(16,185,129,0.3); padding: 2px 8px; border-radius: 12px;">✓ Validated Manifest</span>
+                        </div>
+                        <div id="preview-filemeta-badge" style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Ready for AI Bulk Discovery</div>
+                    </div>
+                </div>
+
+                <!-- SEARCH FILTER & CHANGE FILE -->
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div style="position: relative;">
+                        <input type="text" id="manifest-search-input" placeholder="Filter companies in table..." oninput="filterManifestPreview(this.value)"
+                               style="height: 38px; width: 220px; border-radius: 8px; padding: 0 12px 0 34px; font-size: 12.5px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); outline: none;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 11px; top: 12px; color: var(--text-secondary); pointer-events: none;">
+                            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <button type="button" onclick="clearSelectedFile()" class="admin-btn" 
+                            style="height: 38px; padding: 0 14px; font-size: 12.5px; font-weight: 600; color: #EF4444; border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <span>Change File</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CHIPS SUMMARY BAR -->
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; padding: 10px 14px; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Manifest Breakdown:</div>
+                <div style="font-size: 12px; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0A6CFF;"></span>
+                    Total: <strong id="preview-stat-total" style="color: #0A6CFF;">0</strong> Companies
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10B981;"></span>
+                    Websites: <strong id="preview-stat-web" style="color: #10B981;">0</strong>
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#3B82F6;"></span>
+                    Careers Portals: <strong id="preview-stat-careers" style="color: #3B82F6;">0</strong>
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8B5CF6;"></span>
+                    CSR Portals: <strong id="preview-stat-csr" style="color: #8B5CF6;">0</strong>
+                </div>
+                <div style="margin-left: auto; font-size: 11.5px; color: #10B981; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Paginated at max 10 per page</span>
+                </div>
+            </div>
+
+            <!-- RESPONSIVE TABLE (10 PER PAGE MAX) -->
+            <div class="manifest-table-wrapper">
+                <table class="manifest-preview-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center;">#</th>
+                            <th style="min-width: 220px;">Company Entity</th>
+                            <th style="min-width: 150px;">Sector / Industry</th>
+                            <th style="min-width: 170px;">Official Website</th>
+                            <th style="min-width: 150px;">Careers URL</th>
+                            <th style="min-width: 160px;">CSR Portal URL</th>
+                            <th style="min-width: 140px;">Headquarters</th>
+                            <th style="width: 100px; text-align: center;">NSE / ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manifest-preview-tbody">
+                        <!-- Dynamically populated rows (max 10 per page) -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION BAR -->
+            <div class="manifest-pagination-container">
+                <div class="manifest-pagination-info" id="preview-pagination-info">
+                    Showing <strong id="preview-range-start">1</strong> to <strong id="preview-range-end">10</strong> of <strong id="preview-range-total">0</strong> companies (Page <strong id="preview-page-current">1</strong> of <strong id="preview-page-total">1</strong>)
+                </div>
+                <div class="manifest-pagination-buttons" id="preview-pagination-buttons">
+                    <button type="button" class="manifest-page-btn" id="btn-preview-prev" onclick="changePreviewPage(-1)">
+                        ‹ Prev
+                    </button>
+                    <div id="preview-page-pills" style="display: flex; align-items: center; gap: 4px;">
+                        <!-- Numbered page pills -->
+                    </div>
+                    <button type="button" class="manifest-page-btn" id="btn-preview-next" onclick="changePreviewPage(1)">
+                        Next ›
+                    </button>
+                </div>
+            </div>
+
+            <!-- DISCOVERY OPTIONS -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 20px 0 16px 0; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="opt-jobs" checked style="width: 18px; height: 18px; accent-color: #0A6CFF; cursor: pointer;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">Discover &amp; Auto-Import Jobs</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Crawl careers pages &amp; extract vacancies</div>
+                    </div>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="opt-csr" checked style="width: 18px; height: 18px; accent-color: #0A6CFF; cursor: pointer;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">Discover &amp; Auto-Import CSR</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Crawl sustainability portals &amp; extract projects</div>
+                    </div>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="opt-auto-create-company" checked style="width: 18px; height: 18px; accent-color: #0A6CFF; cursor: pointer;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">Auto-Register New Companies</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Provision any newly discovered company as a canonical entity</div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- ACTION FOOTER BAR -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 12.5px; color: var(--text-secondary);">
+                    💡 <strong>Ready to execute:</strong> Clicking below will launch the automated AI crawling queue with live streaming logs.
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" onclick="clearSelectedFile()" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); font-size: 13px; font-weight: 600; padding: 11px 18px; border-radius: 8px; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button type="button" id="btn-start-parsed-discovery" onclick="startParsedManifestDiscovery()" class="admin-btn" 
+                            style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(10,108,255,0.35); display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <span id="btn-start-parsed-label">Start AI Bulk Discovery (0 Companies) ⚡</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LIVE REAL-TIME INTERACTIVE QUEUE & STREAMING CONSOLE -->
+    <div id="live-queue-container" style="display: none; flex-direction: column; gap: 20px;">
+
+        <!-- PROGRESS CONTROL BAR -->
+        <div class="admin-card" style="border: 1px solid rgba(10,108,255,0.3);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="queue-status-pulse" style="width: 10px; height: 10px; border-radius: 50%; background: #10B981; display: inline-block; animation: pulse 1.5s infinite;"></span>
+                        <h3 id="queue-heading" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary);">
+                            Processing Queue: Company <span id="queue-current-idx">1</span> of <span id="queue-total-count">0</span>
+                        </h3>
+                    </div>
+                    <div id="queue-subheading" style="font-size: 12.5px; color: var(--text-secondary); margin-top: 3px;">
+                        Currently probing: <strong id="queue-current-company" style="color: #0A6CFF;">-</strong>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="btn-pause-resume" onclick="togglePauseQueue()" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 14px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                        Pause
+                    </button>
+                    <button type="button" id="btn-abort-queue" onclick="abortQueue()" class="admin-btn" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); color: #EF4444; padding: 8px 14px; font-size: 12.5px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                        Stop
+                    </button>
+                    <button type="button" id="btn-retry-failed" onclick="retryFailedCompanies()" style="display: none; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #F59E0B; padding: 8px 14px; font-size: 12.5px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+                        🔄 Retry Failed (<span id="failed-count-badge">0</span>)
+                    </button>
+                    <button type="button" id="btn-export-results" onclick="exportQueueResultsCSV()" style="display: none; background: #10B981; color: #FFFFFF; border: none; padding: 8px 16px; font-size: 12.5px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+                        Export Complete Discovery Report
+                    </button>
+                    <!-- RE-UPLOAD / UPLOAD ANOTHER FILE BUTTON -->
+                    <button type="button" id="btn-reupload-manifest" onclick="resetAndReuploadManifest()" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 8px 16px; font-size: 12.5px; font-weight: 700; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(10,108,255,0.25);">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Re-upload / New Manifest</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- EMERGENCY CONNECTION / SERVER RESTART ALERT -->
+            <div id="queue-emergency-alert" style="display: none; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">⚠️</span>
+                    <div>
+                        <div id="emergency-alert-title" style="font-size: 13.5px; font-weight: 700; color: #EF4444;">Server Connection Interrupted</div>
+                        <div id="emergency-alert-msg" style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">The server did not respond (connection refused or dev server reload). Queue was auto-paused to preserve your data.</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="resumeQueueAfterCheck()" class="admin-btn" style="background: #10B981; color: white; border: none; padding: 7px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+                        Resume Queue ⚡
+                    </button>
+                </div>
+            </div>
+
+            <!-- ANIMATED PROGRESS BAR -->
+            <div style="width: 100%; height: 10px; border-radius: 6px; background: var(--bg-primary); overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 14px;">
+                <div id="queue-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0A6CFF 0%, #00D4FF 100%); transition: width 0.3s ease; border-radius: 6px;"></div>
+            </div>
+
+            <!-- LIVE COUNTERS -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 12.5px;">
+                <div style="background: var(--bg-primary); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Jobs Discovered &amp; Saved:</span>
+                    <strong id="counter-jobs-imported" style="color: #0A6CFF; font-size: 14px; margin-left: 6px;">0</strong>
+                </div>
+                <div style="background: var(--bg-primary); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">CSR Projects Discovered &amp; Saved:</span>
+                    <strong id="counter-csr-imported" style="color: #10B981; font-size: 14px; margin-left: 6px;">0</strong>
+                </div>
+                <div style="background: var(--bg-primary); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">New Entities Added:</span>
+                    <strong id="counter-new-companies" style="color: #10B981; font-size: 14px; margin-left: 6px;">0</strong>
+                </div>
+                <div style="background: var(--bg-primary); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Total Companies Processed:</span>
+                    <strong id="counter-comp-completed" style="color: var(--text-primary); font-size: 14px; margin-left: 6px;">0</strong>
+                </div>
+            </div>
+
+            <!-- QUEUE COMPLETION ACTION BANNER (NO PAGE REFRESH REQUIRED) -->
+            <div id="queue-completion-banner" style="display: none; margin-top: 16px; padding: 16px 20px; background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(10,108,255,0.08) 100%); border: 1.5px solid rgba(16,185,129,0.35); border-radius: 12px; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #10B981; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+                        ✓
+                    </div>
+                    <div>
+                        <div style="font-size: 15px; font-weight: 800; color: var(--text-primary);" id="queue-completion-banner-title">
+                            Bulk Discovery Completed Successfully!
+                        </div>
+                        <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;" id="queue-completion-banner-subtitle">
+                            All discovered jobs &amp; CSR initiatives have been committed to the database. Ready for your next batch.
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" onclick="resetAndReuploadManifest()" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; border: none; padding: 10px 20px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(10,108,255,0.35);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Upload Another File (CSV/Excel)</span>
+                    </button>
+                    <button type="button" onclick="exportQueueResultsCSV()" class="admin-btn" style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 18px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Download CSV Report</span>
+                    </button>
+                    <a href="{% url 'admin_companies:list' %}" class="admin-btn" style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 16px; font-size: 13px; font-weight: 700; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>View Corporate Database ↗</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPLIT CONSOLE: DISCOVERY RESULTS TABLE & STREAMING TERMINAL -->
+        <div id="console-split-grid" class="console-split-grid">
+
+            <!-- RESULTS LIST -->
+            <div id="results-dossiers-column" class="admin-card" style="padding: 18px; display: flex; flex-direction: column;">
+                <!-- Header with Title & Live Count Badge -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary);">
+                                Discovered Companies &amp; Extracted Details
+                            </h3>
+                            <span id="queue-results-badge" style="font-size: 11.5px; font-weight: 800; color: #0A6CFF; background: rgba(10,108,255,0.12); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(10,108,255,0.25);">
+                                0 processed
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
+                            Structured intelligence dossiers: canonical entity profile, verified vacancies, and Section 135 CSR disclosures
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" id="btn-export-dossiers-csv" onclick="exportQueueResultsCSV()" style="display: none; background: rgba(16,185,129,0.12); color: #10B981; border: 1px solid rgba(16,185,129,0.3); font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Filter Pills & Search Input -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <button type="button" class="results-tab-pill active" onclick="setResultsTabFilter('all')" data-tab="all" id="tab-pill-all">
+                            All (<span id="tab-cnt-all">0</span>)
+                        </button>
+                        <button type="button" class="results-tab-pill" onclick="setResultsTabFilter('jobs')" data-tab="jobs" id="tab-pill-jobs">
+                            💼 With Jobs (<span id="tab-cnt-jobs">0</span>)
+                        </button>
+                        <button type="button" class="results-tab-pill" onclick="setResultsTabFilter('csr')" data-tab="csr" id="tab-pill-csr">
+                            🌱 With CSR (<span id="tab-cnt-csr">0</span>)
+                        </button>
+                        <button type="button" class="results-tab-pill" onclick="setResultsTabFilter('new')" data-tab="new" id="tab-pill-new">
+                            ✨ New Entities (<span id="tab-cnt-new">0</span>)
+                        </button>
+                    </div>
+                    <div style="position: relative; flex: 1; max-width: 260px; min-width: 180px;">
+                        <input type="text" id="results-search-filter" oninput="onResultsSearch(this.value)" placeholder="Search extracted dossiers..." 
+                               style="height: 34px; width: 100%; font-size: 12px; border-radius: 8px; padding: 0 10px 0 30px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); outline: none;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 10px; top: 11px; color: var(--text-secondary); pointer-events: none;">
+                            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Cards Container (Paginated: Max 5 Extracted Dossiers per page for clean navigation) -->
+                <div style="display: flex; flex-direction: column; gap: 14px; min-height: 280px;" id="results-card-list">
+                    <!-- Cards dynamically populated -->
+                    <div id="results-empty-state" style="text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 13px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(10,108,255,0.08); color: #0A6CFF; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </div>
+                        <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">Discovery Queue Ready</div>
+                        <div style="margin-top: 4px; font-size: 12px; max-width: 420px; margin-left: auto; margin-right: auto;">
+                            Extracted company details, verified jobs, and Section 135 CSR initiatives will populate here in proper structured format as crawling progresses.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Extracted Results Pagination Bar -->
+                <div id="results-pagination-container" style="display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                    <div style="font-size: 12px; color: var(--text-secondary);" id="results-pagination-info">
+                        Showing <strong id="res-range-start">1</strong> to <strong id="res-range-end">5</strong> of <strong id="res-range-total">0</strong> companies
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;" id="results-pagination-buttons">
+                        <button type="button" class="manifest-page-btn" id="btn-res-prev" onclick="changeResultsPage(-1)">‹ Prev</button>
+                        <div id="results-page-pills" style="display: flex; align-items: center; gap: 4px;"></div>
+                        <button type="button" class="manifest-page-btn" id="btn-res-next" onclick="changeResultsPage(1)">Next ›</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- UPGRADED EXECUTIVE AI DISCOVERY STREAM LOG CONSOLE -->
+            <div class="admin-card stream-console-card">
+                <!-- 1. TERMINAL CHROME BAR -->
+                <div class="stream-chrome-bar">
+                    <!-- Left: Window Dots + Title + Status Beacon -->
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="mac-window-dots">
+                            <span class="mac-dot mac-dot-red" title="Close / Dismiss"></span>
+                            <span class="mac-dot mac-dot-yellow" title="Minimize"></span>
+                            <span class="mac-dot mac-dot-green" title="Expand View" onclick="toggleConsoleExpand()"></span>
+                        </div>
+                        <div class="term-divider"></div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="terminal-live-beacon" class="terminal-radar-beacon"></span>
+                            <h3 class="terminal-title">
+                                AI LIVE CRAWLER TELEMETRY STREAM
+                            </h3>
+                            <span id="term-status-pill" class="term-status-pill-idle">
+                                STANDBY
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Search + Action Tools + Layout Toggle -->
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <!-- Inline Search Box -->
+                        <div class="term-search-box">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="term-inline-search" placeholder="Search stream..." oninput="filterTerminalLogs(this.value)" autocomplete="off">
+                            <span id="term-search-clear" onclick="clearTerminalSearch()" style="display: none; cursor: pointer; color: #94A3B8; font-size: 11px;">✕</span>
+                        </div>
+
+                        <!-- Tool Buttons -->
+                        <button type="button" id="btn-toggle-autoscroll" onclick="toggleAutoScroll()" title="Toggle auto-scroll to latest log" class="term-tool-btn term-tool-btn-active">
+                            <span id="autoscroll-icon">⇣</span> <span id="autoscroll-text">Auto-Scroll</span>
+                        </button>
+                        <button type="button" onclick="copyTerminalLogs()" title="Copy all logs to clipboard" class="term-tool-btn">
+                            <span id="copy-log-icon">📋</span> <span>Copy</span>
+                        </button>
+                        <button type="button" onclick="downloadTerminalLogFile()" title="Download logs as text file" class="term-tool-btn">
+                            <span>📥</span> <span>Export</span>
+                        </button>
+                        <button type="button" onclick="clearTerminalLogs()" title="Clear stream log" class="term-tool-btn term-tool-btn-danger">
+                            <span>🗑</span> <span>Clear</span>
+                        </button>
+                        <button type="button" id="btn-toggle-expand" onclick="toggleConsoleExpand()" title="Toggle full-width terminal view" class="term-tool-btn term-tool-btn-expand">
+                            <span id="expand-icon">⤢</span> <span id="expand-text">Full-Width</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. LIVE TELEMETRY HUD (Heads-Up-Display) STRIP -->
+                <div class="stream-telemetry-hud">
+                    <div class="hud-item hud-target">
+                        <span class="hud-label">ACTIVE PROBE:</span>
+                        <span class="hud-value" id="hud-active-target">IDLE — Awaiting Crawler Manifest</span>
+                    </div>
+                    <div class="hud-item hud-stage">
+                        <span class="hud-label">STAGE:</span>
+                        <span class="hud-value" id="hud-active-stage">Awaiting Input</span>
+                    </div>
+                    <div class="hud-metrics-strip">
+                        <span class="hud-metric-chip chip-jobs">💼 <strong id="hud-metric-jobs">0</strong> Jobs</span>
+                        <span class="hud-metric-chip chip-csr">🌱 <strong id="hud-metric-csr">0</strong> CSR</span>
+                        <span class="hud-metric-chip chip-entities">🏢 <strong id="hud-metric-entities">0</strong> Entities</span>
+                    </div>
+                </div>
+
+                <!-- 3. QUICK LOG FILTER PILLS -->
+                <div class="stream-filters-bar">
+                    <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+                        <span class="filter-lead-label">STREAM CHANNELS:</span>
+                        <button type="button" class="log-filter-btn active" onclick="setLogFilter('all')" data-filter="all">
+                            All (<span id="count-log-all">1</span>)
+                        </button>
+                        <button type="button" class="log-filter-btn" onclick="setLogFilter('jobs')" data-filter="jobs">
+                            💼 Careers (<span id="count-log-jobs">0</span>)
+                        </button>
+                        <button type="button" class="log-filter-btn" onclick="setLogFilter('csr')" data-filter="csr">
+                            🌱 CSR / ESG (<span id="count-log-csr">0</span>)
+                        </button>
+                        <button type="button" class="log-filter-btn" onclick="setLogFilter('direct')" data-filter="direct">
+                            ⚡ Probes (<span id="count-log-direct">0</span>)
+                        </button>
+                        <button type="button" class="log-filter-btn" onclick="setLogFilter('error')" data-filter="error">
+                            ✕ Errors (<span id="count-log-error">0</span>)
+                        </button>
+                    </div>
+                    <div id="term-search-result-badge" style="display: none; font-size: 11px; font-family: monospace; color: #38BDF8; background: rgba(56,189,248,0.12); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.25);">
+                        Matching: <span id="term-search-match-count">0</span>
+                    </div>
+                </div>
+
+                <!-- 4. TERMINAL STREAM VIEWPORT -->
+                <div id="terminal-log-window" class="custom-terminal-scroll terminal-viewport">
+                    <div class="log-row log-type-sys" data-type="sys">
+                        <span class="log-time">[READY]</span>
+                        <span class="log-badge log-badge-sys">⚙ SYSTEM</span>
+                        <span class="log-text" style="color: #94A3B8;">AI Bulk Discovery Engine initialized. Ready to probe corporate career portals and Section 135 CSR disclosures.</span>
+                    </div>
+                </div>
+
+                <!-- 5. TERMINAL METRICS FOOTER STRIP -->
+                <div class="stream-footer-bar">
+                    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                        <span class="footer-status-indicator">
+                            <span class="footer-beacon"></span>
+                            <span>ENGINE:</span>
+                            <strong id="term-status-label" style="color: #38BDF8;">STANDBY IDLE</strong>
+                        </span>
+                        <span class="footer-sep">•</span>
+                        <span>Jobs Discovered: <strong id="term-stat-jobs" style="color: #60A5FA;">0</strong></span>
+                        <span class="footer-sep">•</span>
+                        <span>CSR Initiatives: <strong id="term-stat-csr" style="color: #34D399;">0</strong></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span>Telemetry Lines: <strong id="term-stat-lines" style="color: #E2E8F0;">1</strong></span>
+                        <span class="footer-sep">•</span>
+                        <span class="footer-model-badge">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            <span>{{ ai_model|default:"Gemini 3.8 Flash (Live Web)" }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+/* RESULTS DOSSIER CARDS & TABS */
+.results-tab-pill {
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.results-tab-pill:hover {
+    color: var(--text-primary);
+    border-color: #0A6CFF;
+}
+.results-tab-pill.active {
+    background: #0A6CFF !important;
+    color: #FFFFFF !important;
+    border-color: #0A6CFF !important;
+    box-shadow: 0 2px 8px rgba(10,108,255,0.25);
+}
+
+.extracted-dossier-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+.extracted-dossier-card:hover {
+    border-color: rgba(10,108,255,0.4);
+    box-shadow: 0 6px 18px rgba(10,108,255,0.06);
+}
+.dossier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.dossier-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(10,108,255,0.18), rgba(0,212,255,0.18));
+    color: #0A6CFF;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(10,108,255,0.25);
+}
+.dossier-name {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+.badge-new-entity {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.03em;
+}
+.badge-synced-entity {
+    background: rgba(10,108,255,0.12);
+    color: #0A6CFF;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+.badge-live-verified {
+    background: rgba(16,185,129,0.12);
+    color: #10B981;
+    border: 1px solid rgba(16,185,129,0.25);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.dossier-code {
+    font-size: 10.5px;
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-color);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+.dossier-quick-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+.dossier-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dossier-btn {
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+.dossier-btn-primary {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+.dossier-btn-primary:hover {
+    border-color: #0A6CFF;
+    color: #0A6CFF;
+}
+.dossier-btn-subtle {
+    background: rgba(10,108,255,0.08);
+    border: 1px solid rgba(10,108,255,0.2);
+    color: #0A6CFF;
+}
+.dossier-urls-strip {
+    display: flex;
+    gap: 14px;
+    font-size: 11.5px;
+    flex-wrap: wrap;
+    background: var(--bg-surface-subtle);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+.dossier-url-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.dossier-url-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.dossier-url-link {
+    color: #0A6CFF;
+    text-decoration: none;
+    font-weight: 600;
+}
+.dossier-url-link-csr {
+    color: #10B981;
+}
+.dossier-url-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    opacity: 0.8;
+}
+.dossier-tabs-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+.dossier-tab-btn {
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+.dossier-tab-btn:hover {
+    color: var(--text-primary);
+}
+.dossier-tab-btn.active {
+    color: #0A6CFF;
+    background: rgba(10,108,255,0.08);
+}
+.dossier-item-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+.dossier-item-card:hover {
+    border-color: rgba(10,108,255,0.3);
+}
+.dossier-pills-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+.dossier-pill {
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-color);
+    padding: 2px 7px;
+    border-radius: 5px;
+}
+.dossier-pill-emerald {
+    background: rgba(16,185,129,0.08);
+    color: #10B981;
+    border-color: rgba(16,185,129,0.25);
+    font-weight: 600;
+}
+.dossier-apply-btn {
+    color: #0A6CFF;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(10,108,255,0.08);
+    white-space: nowrap;
+}
+.dossier-source-btn {
+    color: #10B981;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(16,185,129,0.08);
+    white-space: nowrap;
+}
+
+/* MANIFEST PREVIEW CARD & TABLE */
+.manifest-preview-card {
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+.manifest-table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    margin: 16px 0;
+}
+.manifest-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+.manifest-preview-table th {
+    background: var(--bg-surface-subtle);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+.manifest-preview-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+.manifest-preview-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.manifest-preview-table tbody tr:hover {
+    background: rgba(10, 108, 255, 0.035);
+}
+.manifest-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(10,108,255,0.15), rgba(0,212,255,0.15));
+    color: #0A6CFF;
+    font-weight: 800;
+    font-size: 11.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(10,108,255,0.25);
+}
+.manifest-badge-sector {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.manifest-link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.manifest-link-pill-web {
+    color: #0A6CFF;
+    background: rgba(10, 108, 255, 0.08);
+}
+.manifest-link-pill-web:hover {
+    background: rgba(10, 108, 255, 0.16);
+}
+.manifest-link-pill-csr {
+    color: #10B981;
+    background: rgba(16, 185, 129, 0.08);
+}
+.manifest-link-pill-csr:hover {
+    background: rgba(16, 185, 129, 0.16);
+}
+.manifest-auto-pill {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.85;
+}
+
+/* PAGINATION CONTROLS */
+.manifest-pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 4px 4px 4px;
+}
+.manifest-pagination-info {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.manifest-pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.manifest-page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+.manifest-page-btn:hover:not(:disabled) {
+    border-color: #0A6CFF;
+    color: #0A6CFF;
+    background: rgba(10, 108, 255, 0.05);
+}
+.manifest-page-btn.active {
+    background: #0A6CFF !important;
+    color: #FFFFFF !important;
+    border-color: #0A6CFF !important;
+    box-shadow: 0 2px 8px rgba(10,108,255,0.3);
+}
+.manifest-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.company-result-card {
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.company-result-card:hover {
+    border-color: #0A6CFF !important;
+}
+
+/* IN-APP NOTIFICATION TOAST SYSTEM */
+.in-app-toast {
+    pointer-events: auto;
+    background: #0F172A;
+    color: #F8FAFC;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 14px 35px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    position: relative;
+    overflow: hidden;
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: all 0.25s ease;
+}
+.in-app-toast.toast-closing {
+    animation: toastSlideOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.in-app-toast-error {
+    border-left: 4px solid #EF4444;
+}
+.in-app-toast-success {
+    border-left: 4px solid #10B981;
+}
+.in-app-toast-warning {
+    border-left: 4px solid #F59E0B;
+}
+.in-app-toast-info {
+    border-left: 4px solid #0A6CFF;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateY(-20px) scale(0.96);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+@keyframes toastSlideOut {
+    from {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px) scale(0.96);
+        opacity: 0;
+    }
+}
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* TERMINAL CHROME & EXECUTIVE LOG STREAM CONSOLE */
+.console-split-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 20px;
+    align-items: start;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.console-split-grid.expanded-terminal {
+    grid-template-columns: 1fr;
+}
+.console-split-grid.expanded-terminal #results-dossiers-column {
+    display: none !important;
+}
+.console-split-grid.expanded-terminal .stream-console-card {
+    grid-column: 1 / -1;
+}
+
+.stream-console-card {
+    padding: 0;
+    background: #060A13;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.09) 0px, transparent 55%),
+        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.07) 0px, transparent 55%);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.55), 0 0 25px rgba(56, 189, 248, 0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Chrome Header Bar */
+.stream-chrome-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: rgba(13, 20, 36, 0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.mac-window-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mac-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    cursor: pointer;
+}
+.mac-dot:hover {
+    transform: scale(1.15);
+}
+.mac-dot-red { background: #EF4444; opacity: 0.85; }
+.mac-dot-yellow { background: #F59E0B; opacity: 0.85; }
+.mac-dot-green { background: #10B981; opacity: 0.85; }
+.term-divider {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.12);
+}
+.terminal-radar-beacon {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00D4FF;
+    box-shadow: 0 0 10px #00D4FF;
+    display: inline-block;
+    animation: radarPulse 2s infinite ease-in-out;
+}
+@keyframes radarPulse {
+    0% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #00D4FF; }
+    50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 14px #00D4FF, 0 0 20px rgba(0, 212, 255, 0.4); }
+    100% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #00D4FF; }
+}
+.terminal-title {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #F8FAFC;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    letter-spacing: 0.03em;
+}
+.term-status-pill-idle {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(148, 163, 184, 0.15);
+    color: #94A3B8;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+.term-status-pill-crawling {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(0, 212, 255, 0.15);
+    color: #00D4FF;
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.25);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    animation: pulse 1.6s infinite;
+}
+
+/* In-Console Search */
+.term-search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(6, 11, 22, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    padding: 2px 8px;
+    height: 26px;
+    color: #E2E8F0;
+    transition: all 0.15s ease;
+}
+.term-search-box:focus-within {
+    border-color: #38BDF8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    background: rgba(6, 11, 22, 0.95);
+}
+.term-search-box svg {
+    color: #64748B;
+    flex-shrink: 0;
+}
+.term-search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #F8FAFC;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    width: 85px;
+    transition: width 0.2s ease;
+}
+.term-search-box input:focus {
+    width: 115px;
+}
+.term-search-box input::placeholder {
+    color: #64748B;
+}
+
+/* Tool Buttons */
+.term-tool-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    color: #94A3B8;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+.term-tool-btn:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+.term-tool-btn-active {
+    color: #00D4FF !important;
+    background: rgba(0, 212, 255, 0.1) !important;
+    border-color: rgba(0, 212, 255, 0.3) !important;
+}
+.term-tool-btn-expand {
+    color: #38BDF8 !important;
+    background: rgba(56, 189, 248, 0.1) !important;
+    border-color: rgba(56, 189, 248, 0.3) !important;
+}
+.term-tool-btn-expand:hover {
+    background: rgba(56, 189, 248, 0.2) !important;
+    color: #FFFFFF !important;
+}
+.term-tool-btn-danger:hover {
+    color: #FCA5A5 !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Live Telemetry HUD Bar */
+.stream-telemetry-hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 16px;
+    background: rgba(8, 14, 28, 0.95);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.hud-label {
+    color: #64748B;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+.hud-value {
+    color: #F1F5F9;
+    font-weight: 600;
+}
+.hud-target .hud-value {
+    color: #38BDF8;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+}
+.hud-stage .hud-value {
+    color: #94A3B8;
+}
+.hud-metrics-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.hud-metric-chip {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.chip-jobs {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60A5FA;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.chip-csr {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.chip-entities {
+    background: rgba(168, 85, 247, 0.15);
+    color: #C084FC;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+/* Filters Bar */
+.stream-filters-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 16px;
+    background: rgba(6, 11, 22, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-x: auto;
+    gap: 8px;
+}
+.filter-lead-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #475569;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.06em;
+    margin-right: 4px;
+    user-select: none;
+}
+.log-filter-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: #94A3B8;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+.log-filter-btn:hover {
+    color: #F8FAFC;
+    background: rgba(255, 255, 255, 0.1);
+}
+.log-filter-btn.active {
+    background: rgba(14, 165, 233, 0.25);
+    color: #38BDF8;
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+}
+
+/* Terminal Viewport & Custom Scrollbar */
+.terminal-viewport {
+    height: 490px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Consolas, monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #94A3B8;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+    background: rgba(5, 9, 18, 0.85);
+    scroll-behavior: smooth;
+    position: relative;
+}
+.custom-terminal-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-terminal-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.35);
+}
+.custom-terminal-scroll::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 4px;
+}
+.custom-terminal-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.55);
+}
+
+/* Log Rows & Badges */
+.log-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: background 0.1s ease;
+    word-break: break-word;
+    font-size: 11.5px;
+    line-height: 1.55;
+}
+.log-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.log-row.log-substep {
+    padding-left: 20px;
+    position: relative;
+}
+.log-tree-branch {
+    color: #38BDF8;
+    opacity: 0.6;
+    font-weight: 700;
+    margin-right: 2px;
+    user-select: none;
+}
+.log-row .log-time {
+    color: #475569;
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+}
+.log-row .log-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+    user-select: none;
+    margin-top: 1px;
+}
+.log-badge-sys { background: rgba(148, 163, 184, 0.15); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.25); }
+.log-badge-direct { background: rgba(0, 212, 255, 0.15); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.35); text-shadow: 0 0 8px rgba(0,212,255,0.4); }
+.log-badge-probe { background: rgba(168, 85, 247, 0.18); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35); }
+.log-badge-jobs { background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); }
+.log-badge-csr { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); }
+.log-badge-err { background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+.log-badge-parsed { background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35); }
+.log-badge-saved { background: rgba(5, 150, 105, 0.25); color: #6EE7B7; border: 1px solid rgba(5, 150, 105, 0.45); }
+
+/* Syntax Tokens in Terminal */
+.term-url-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #38BDF8 !important;
+    padding: 1px 6px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 11px;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    transition: all 0.15s ease;
+}
+.term-url-pill:hover {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38BDF8;
+    color: #FFFFFF !important;
+    text-decoration: none;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+.term-metric-num {
+    display: inline-block;
+    padding: 0 5px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34D399;
+    border-radius: 3px;
+    font-weight: 700;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.term-status-code {
+    display: inline-block;
+    padding: 0 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 10px;
+}
+.term-status-200 {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34D399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.term-status-err {
+    background: rgba(239, 68, 68, 0.2);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* Footer Metrics Strip */
+.stream-footer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: rgba(10, 16, 30, 0.92);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #64748B;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.footer-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #94A3B8;
+}
+.footer-beacon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38BDF8;
+    box-shadow: 0 0 6px #38BDF8;
+    display: inline-block;
+}
+.footer-sep {
+    color: rgba(255, 255, 255, 0.12);
+}
+.footer-model-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #94A3B8;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+</style>
+
+<script>
+let selectedFile = null;
+
+function getCsrfToken() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el && el.value) return el.value;
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
+function toggleOptionalQuickFields() {
+    const f = document.getElementById('quick-optional-fields');
+    const arrow = document.getElementById('opt-quick-arrow');
+    if (!f) return;
+    if (f.style.display === 'none' || f.style.display === '') {
+        f.style.display = 'grid';
+        if (arrow) arrow.innerText = '−';
+    } else {
+        f.style.display = 'none';
+        if (arrow) arrow.innerText = '+';
+    }
+}
+
+async function startSingleCompanyDiscovery() {
+    const input = document.getElementById('quick-company-input');
+    let compName = (input ? input.value : '').trim();
+    const websiteInput = document.getElementById('quick-website-input');
+    let websiteVal = (websiteInput ? websiteInput.value : '').trim();
+    const csrInput = document.getElementById('quick-csr-input');
+    let csrVal = (csrInput ? csrInput.value : '').trim();
+
+    // Auto-derive company name if only careers URL or CSR URL was provided
+    if (!compName && (websiteVal || csrVal)) {
+        try {
+            let refUrl = websiteVal || csrVal;
+            let domain = refUrl.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0].split('.')[0];
+            if (domain && domain.length > 1) {
+                compName = domain.charAt(0).toUpperCase() + domain.slice(1);
+                if (input) input.value = compName;
+            }
+        } catch(e) {}
+    }
+
+    if (!compName) {
+        showInAppNotification({ title: 'Input Required', message: 'Please enter a company name, careers URL, or CSR portal URL to discover.', type: 'warning' });
+        if (input) input.focus();
+        return;
+    }
+    const sectorVal = (document.getElementById('quick-sector-input')?.value || '').trim();
+    const hqVal = (document.getElementById('quick-hq-input')?.value || '').trim();
+
+    const btn = document.getElementById('btn-quick-discover');
+    const originalBtnHTML = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; display: inline-block; vertical-align: middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Crawling &amp; Extracting...</span>`;
+    }
+
+    // Ensure live queue and results container is displayed
+    const liveContainer = document.getElementById('live-queue-container');
+    if (liveContainer) liveContainer.style.display = 'flex';
+    const emptyState = document.getElementById('results-empty-state');
+    if (emptyState) emptyState.style.display = 'none';
+
+    const qHeading = document.getElementById('queue-heading');
+    if (qHeading) qHeading.innerHTML = `Direct AI Discovery: <span style="color:#0A6CFF;">${escapeHtml(compName)}</span>`;
+    const qSubheading = document.getElementById('queue-subheading');
+    if (qSubheading) qSubheading.innerText = `Resolving corporate website, probing careers portal for vacancies, and discovering Section 135 CSR projects...`;
+    const qComp = document.getElementById('queue-current-company');
+    if (qComp) qComp.innerText = compName;
+    const qBar = document.getElementById('queue-progress-bar');
+    if (qBar) qBar.style.width = '65%';
+
+    logTerminal(`[DIRECT_SEARCH] Initiating instant AI discovery for '${compName}'...`, '#00D4FF');
+    showInAppNotification({
+        title: 'Crawl In Progress',
+        message: `Probing official portals and running AI extraction for ${compName}...`,
+        type: 'info',
+        duration: 3500
+    });
+
+    const options = {
+        extract_jobs: document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true,
+        extract_csr: document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true,
+        auto_create_company: document.getElementById('opt-auto-create-company') ? document.getElementById('opt-auto-create-company').checked : true,
+    };
+
+    if (csrVal) {
+        logTerminal(`[DIRECT_SEARCH] Direct CSR / Sustainability link: ${csrVal}`, '#10B981');
+    }
+
+    const companyTask = {
+        company_name: compName,
+        website_url: websiteVal,
+        careers_url: websiteVal,
+        csr_url: csrVal,
+        sector: sectorVal,
+        headquarters: hqVal
+    };
+
+    try {
+        const resp = await fetch("{% url 'admin_ai_discovery:process_company' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                company: companyTask,
+                options: options
+            })
+        });
+
+        const resData = await resp.json();
+        handleCompanyResult(companyTask, resData);
+
+        if (qBar) qBar.style.width = '100%';
+        if (qHeading) qHeading.innerHTML = `Discovery Complete: <span style="color:#10B981;">${escapeHtml(resData.company_name || compName)}</span>`;
+        if (qSubheading) qSubheading.innerText = `${resData.is_new_company ? '✨ Brand new entity created in database' : '🔄 Existing database entity refreshed'}. Discovered and verified ${resData.jobs_imported || 0} jobs and ${resData.csr_imported || 0} CSR projects.`;
+        const btnExp = document.getElementById('btn-export-results');
+        if (btnExp) btnExp.style.display = 'inline-block';
+
+        if (btn) {
+            btn.innerHTML = `✓ Discovered!`;
+            btn.style.background = '#10B981';
+            showInAppNotification({
+                title: 'Discovery Complete!',
+                message: `Verified and saved ${resData.jobs_imported || 0} jobs and ${resData.csr_imported || 0} Section 135 CSR projects for ${resData.company_name || compName}.`,
+                type: 'success',
+                duration: 5000
+            });
+            setTimeout(() => {
+                btn.innerHTML = originalBtnHTML;
+                btn.style.background = 'linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%)';
+                btn.disabled = false;
+            }, 2200);
+        }
+
+        // Clear quick search input for next search
+        if (input) input.value = '';
+        if (document.getElementById('quick-website-input')) document.getElementById('quick-website-input').value = '';
+        if (document.getElementById('quick-csr-input')) document.getElementById('quick-csr-input').value = '';
+        if (document.getElementById('quick-sector-input')) document.getElementById('quick-sector-input').value = '';
+        if (document.getElementById('quick-hq-input')) document.getElementById('quick-hq-input').value = '';
+
+    } catch (err) {
+        logTerminal(`[ERROR] Direct discovery failed for '${compName}': ${err.message}`, '#EF4444');
+        showInAppNotification({ title: 'Discovery Error', message: err.message || 'Error occurred during discovery', type: 'error', duration: 6000 });
+        if (btn) {
+            btn.innerHTML = originalBtnHTML;
+            btn.disabled = false;
+        }
+    }
+}
+
+let companyQueue = [];
+let parsedManifestCompanies = [];
+let filteredManifestCompanies = [];
+let previewCurrentPage = 1;
+const PREVIEW_PAGE_SIZE = 10;
+let currentQueueIndex = 0;
+let isQueuePaused = false;
+let isQueueRunning = false;
+let totalJobsImported = 0;
+let totalCsrImported = 0;
+let totalNewCompanies = 0;
+let totalExistingCompanies = 0;
+let processedResults = [];
+
+async function handleFileSelected(file) {
+    if (!file) return;
+    selectedFile = file;
+
+    // Show loading spinner in place of dropzone
+    const dropZone = document.getElementById('drop-zone');
+    const loadingState = document.getElementById('manifest-loading-state');
+    const previewContainer = document.getElementById('manifest-preview-container');
+
+    if (dropZone) dropZone.style.display = 'none';
+    if (previewContainer) previewContainer.style.display = 'none';
+    if (loadingState) {
+        loadingState.style.display = 'block';
+        document.getElementById('manifest-loading-title').innerText = `Parsing ${file.name}...`;
+        document.getElementById('manifest-loading-sub').innerText = `Validating columns and extracting company records (${(file.size / 1024).toFixed(1)} KB)...`;
+    }
+
+    logTerminal(`[FILE_SELECT] Uploading & parsing manifest: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`, '#00D4FF');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const resp = await fetch("{% url 'admin_ai_discovery:parse_file' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: formData
+        });
+
+        const data = await resp.json();
+        if (data.status !== 'success' || !data.companies || !data.companies.length) {
+            if (loadingState) loadingState.style.display = 'none';
+            if (dropZone) dropZone.style.display = 'block';
+            const errMsg = data.message || 'No valid company records found in uploaded file. Please ensure Company Name column exists.';
+            showInAppNotification({ title: 'Manifest Parse Error', message: errMsg, type: 'error', duration: 6000 });
+            logTerminal(`[PARSE_ERROR] ${errMsg}`, '#EF4444');
+            selectedFile = null;
+            const fileInput = document.getElementById('manifest-file-input');
+            if (fileInput) fileInput.value = '';
+            return;
+        }
+
+        parsedManifestCompanies = data.companies;
+        filteredManifestCompanies = [...parsedManifestCompanies];
+        previewCurrentPage = 1;
+
+        // Populate badges and preview
+        document.getElementById('preview-filename-badge').innerText = file.name;
+        document.getElementById('preview-filemeta-badge').innerText = `${(file.size / 1024).toFixed(1)} KB • ${parsedManifestCompanies.length} companies detected`;
+        
+        const searchInput = document.getElementById('manifest-search-input');
+        if (searchInput) searchInput.value = '';
+
+        if (loadingState) loadingState.style.display = 'none';
+        if (previewContainer) previewContainer.style.display = 'block';
+
+        renderManifestPreview();
+
+        logTerminal(`[MANIFEST_PARSED] Successfully extracted ${parsedManifestCompanies.length} companies from '${file.name}'. Paginated preview ready (max 10/page).`, '#10B981');
+        showInAppNotification({
+            title: 'Manifest Parsed Successfully',
+            message: `Loaded ${parsedManifestCompanies.length} companies from "${file.name}". You can now inspect and filter them before discovery.`,
+            type: 'success',
+            duration: 4500
+        });
+
+    } catch (err) {
+        if (loadingState) loadingState.style.display = 'none';
+        if (dropZone) dropZone.style.display = 'block';
+        logTerminal(`[NETWORK_ERROR] Failed to parse manifest: ${err.message}`, '#EF4444');
+        showInAppNotification({ title: 'Network Error', message: 'Unable to communicate with server to parse manifest.', type: 'error' });
+        selectedFile = null;
+        const fileInput = document.getElementById('manifest-file-input');
+        if (fileInput) fileInput.value = '';
+    }
+}
+
+function clearSelectedFile() {
+    selectedFile = null;
+    parsedManifestCompanies = [];
+    filteredManifestCompanies = [];
+    previewCurrentPage = 1;
+
+    const fileInput = document.getElementById('manifest-file-input');
+    if (fileInput) fileInput.value = '';
+
+    const previewContainer = document.getElementById('manifest-preview-container');
+    if (previewContainer) previewContainer.style.display = 'none';
+
+    const loadingState = document.getElementById('manifest-loading-state');
+    if (loadingState) loadingState.style.display = 'none';
+
+    const dropZone = document.getElementById('drop-zone');
+    if (dropZone) dropZone.style.display = 'block';
+
+    const searchInput = document.getElementById('manifest-search-input');
+    if (searchInput) searchInput.value = '';
+
+    logTerminal('[MANIFEST_RESET] Manifest cleared by administrator.');
+}
+
+function filterManifestPreview(query) {
+    const q = (query || '').toLowerCase().trim();
+    if (!q) {
+        filteredManifestCompanies = [...parsedManifestCompanies];
+    } else {
+        filteredManifestCompanies = parsedManifestCompanies.filter(c => {
+            const name = (c.company_name || '').toLowerCase();
+            const sector = (c.sector || '').toLowerCase();
+            const hq = (c.headquarters || '').toLowerCase();
+            const nse = (c.nse_symbol || '').toLowerCase();
+            const web = (c.website_url || '').toLowerCase();
+            const csr = (c.csr_url || '').toLowerCase();
+            const car = (c.careers_url || '').toLowerCase();
+            return name.includes(q) || sector.includes(q) || hq.includes(q) || nse.includes(q) || web.includes(q) || csr.includes(q) || car.includes(q);
+        });
+    }
+    previewCurrentPage = 1;
+    renderManifestPreview();
+}
+
+function renderManifestPreview() {
+    const tbody = document.getElementById('manifest-preview-tbody');
+    if (!tbody) return;
+
+    // Summary stats calculation
+    let webCount = 0;
+    let careersCount = 0;
+    let csrCount = 0;
+    parsedManifestCompanies.forEach(c => {
+        if (c.website_url) webCount++;
+        if (c.careers_url) careersCount++;
+        if (c.csr_url) csrCount++;
+    });
+
+    const statTot = document.getElementById('preview-stat-total');
+    if (statTot) statTot.innerText = parsedManifestCompanies.length;
+    const statWeb = document.getElementById('preview-stat-web');
+    if (statWeb) statWeb.innerText = webCount;
+    const statCar = document.getElementById('preview-stat-careers');
+    if (statCar) statCar.innerText = careersCount;
+    const statCsr = document.getElementById('preview-stat-csr');
+    if (statCsr) statCsr.innerText = csrCount;
+
+    // CTA Button text
+    const btnLabel = document.getElementById('btn-start-parsed-label');
+    if (btnLabel) {
+        btnLabel.innerText = `Start AI Bulk Discovery (${parsedManifestCompanies.length} Companies) ⚡`;
+    }
+
+    const total = filteredManifestCompanies.length;
+    const totalPages = Math.max(1, Math.ceil(total / PREVIEW_PAGE_SIZE));
+
+    if (previewCurrentPage > totalPages) previewCurrentPage = totalPages;
+    if (previewCurrentPage < 1) previewCurrentPage = 1;
+
+    const startIndex = (previewCurrentPage - 1) * PREVIEW_PAGE_SIZE;
+    const endIndex = Math.min(startIndex + PREVIEW_PAGE_SIZE, total);
+    const pageItems = filteredManifestCompanies.slice(startIndex, endIndex);
+
+    if (total === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 36px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">No matching companies found</div>
+                    <div style="font-size: 12px;">Try adjusting your search filter above.</div>
+                </td>
+            </tr>
+        `;
+    } else {
+        tbody.innerHTML = pageItems.map((c, idx) => {
+            const rowNum = startIndex + idx + 1;
+            const initials = (c.company_name || 'CO').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'CO';
+            
+            const sectorBadge = c.sector 
+                ? `<span class="manifest-badge-sector" title="${escapeHtml(c.sector)}">${escapeHtml(c.sector)}</span>` 
+                : `<span class="manifest-auto-pill">🔍 Auto-detect</span>`;
+
+            const websiteCell = c.website_url 
+                ? `<a href="${escapeHtml(c.website_url)}" target="_blank" rel="noopener noreferrer" class="manifest-link-pill manifest-link-pill-web" title="${escapeHtml(c.website_url)}">
+                    <span>${escapeHtml(c.website_url.replace(/^https?:\/\//i, '').replace(/^www\./i, ''))}</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                   </a>`
+                : `<span class="manifest-auto-pill">🔍 Auto-probe</span>`;
+
+            const careersCell = c.careers_url 
+                ? `<a href="${escapeHtml(c.careers_url)}" target="_blank" rel="noopener noreferrer" class="manifest-link-pill manifest-link-pill-web" title="${escapeHtml(c.careers_url)}">
+                    <span>Careers Portal</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                   </a>`
+                : `<span class="manifest-auto-pill">🔍 Auto-search</span>`;
+
+            const csrCell = c.csr_url 
+                ? `<a href="${escapeHtml(c.csr_url)}" target="_blank" rel="noopener noreferrer" class="manifest-link-pill manifest-link-pill-csr" title="${escapeHtml(c.csr_url)}">
+                    <span>CSR / ESG</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                   </a>`
+                : `<span class="manifest-auto-pill" style="color:#10B981;">🌱 Sec. 135 Auto</span>`;
+
+            const hqCell = c.headquarters 
+                ? `<span style="font-size: 12px; color: var(--text-primary); display: inline-flex; align-items: center; gap: 4px;">📍 ${escapeHtml(c.headquarters)}</span>` 
+                : `<span class="manifest-auto-pill">Auto-detect</span>`;
+
+            const nseCell = c.nse_symbol 
+                ? `<span style="font-family: monospace; font-size: 11px; font-weight: 700; background: var(--bg-surface-subtle); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: var(--text-primary);">${escapeHtml(c.nse_symbol)}</span>` 
+                : `<span style="color: var(--text-secondary); font-size: 11px;">—</span>`;
+
+            return `
+                <tr>
+                    <td style="text-align: center; font-weight: 700; color: var(--text-secondary); font-size: 11.5px;">${rowNum}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="manifest-avatar">${initials}</div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 13.5px; color: var(--text-primary); line-height: 1.3;">${escapeHtml(c.company_name)}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 1px;">Ready for live crawl</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${sectorBadge}</td>
+                    <td>${websiteCell}</td>
+                    <td>${careersCell}</td>
+                    <td>${csrCell}</td>
+                    <td>${hqCell}</td>
+                    <td style="text-align: center;">${nseCell}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Update Pagination Display
+    const rangeStart = total === 0 ? 0 : startIndex + 1;
+    const rangeEnd = endIndex;
+    
+    document.getElementById('preview-range-start').innerText = rangeStart;
+    document.getElementById('preview-range-end').innerText = rangeEnd;
+    document.getElementById('preview-range-total').innerText = total;
+    document.getElementById('preview-page-current').innerText = previewCurrentPage;
+    document.getElementById('preview-page-total').innerText = totalPages;
+
+    const btnPrev = document.getElementById('btn-preview-prev');
+    if (btnPrev) btnPrev.disabled = (previewCurrentPage <= 1);
+
+    const btnNext = document.getElementById('btn-preview-next');
+    if (btnNext) btnNext.disabled = (previewCurrentPage >= totalPages);
+
+    // Render numbered page pills
+    const pillsContainer = document.getElementById('preview-page-pills');
+    if (pillsContainer) {
+        pillsContainer.innerHTML = '';
+        
+        let pages = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (previewCurrentPage > 3) pages.push('...');
+            const startP = Math.max(2, previewCurrentPage - 1);
+            const endP = Math.min(totalPages - 1, previewCurrentPage + 1);
+            for (let i = startP; i <= endP; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (previewCurrentPage < totalPages - 2) pages.push('...');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+
+        pages.forEach(p => {
+            if (p === '...') {
+                const dots = document.createElement('span');
+                dots.style.cssText = 'padding: 0 4px; color: var(--text-secondary); font-size: 12px; user-select: none;';
+                dots.innerText = '…';
+                pillsContainer.appendChild(dots);
+            } else {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `manifest-page-btn ${p === previewCurrentPage ? 'active' : ''}`;
+                btn.innerText = p;
+                btn.onclick = () => goToPreviewPage(p);
+                pillsContainer.appendChild(btn);
+            }
+        });
+    }
+}
+
+function changePreviewPage(delta) {
+    const totalPages = Math.max(1, Math.ceil(filteredManifestCompanies.length / PREVIEW_PAGE_SIZE));
+    const newPage = previewCurrentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+        previewCurrentPage = newPage;
+        renderManifestPreview();
+        const container = document.getElementById('manifest-preview-container');
+        if (container) container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function goToPreviewPage(pageNum) {
+    previewCurrentPage = pageNum;
+    renderManifestPreview();
+    const container = document.getElementById('manifest-preview-container');
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function startParsedManifestDiscovery() {
+    if (!parsedManifestCompanies || !parsedManifestCompanies.length) {
+        showInAppNotification({ title: 'No Manifest', message: 'Please upload a valid manifest file first.', type: 'warning' });
+        return;
+    }
+
+    companyQueue = [...parsedManifestCompanies];
+
+    logTerminal(`[QUEUE_START] Initiating automated bulk discovery for ${companyQueue.length} companies...`, '#10B981');
+    showInAppNotification({
+        title: 'Bulk Discovery Launched',
+        message: `Processing ${companyQueue.length} companies through live crawling and AI extraction engine.`,
+        type: 'success',
+        duration: 4000
+    });
+
+    // Reveal Queue UI & Hide Upload/Preview
+    document.getElementById('upload-card').style.display = 'none';
+    document.getElementById('live-queue-container').style.display = 'flex';
+    document.getElementById('queue-total-count').innerText = companyQueue.length;
+    document.getElementById('results-empty-state').style.display = 'none';
+
+    const compBanner = document.getElementById('queue-completion-banner');
+    if (compBanner) compBanner.style.display = 'none';
+    const btnPause = document.getElementById('btn-pause-resume');
+    if (btnPause) { btnPause.style.display = 'inline-block'; btnPause.innerText = 'Pause'; }
+    const btnStop = document.getElementById('btn-abort-queue');
+    if (btnStop) btnStop.style.display = 'inline-block';
+    const btnExp = document.getElementById('btn-export-results');
+    if (btnExp) btnExp.style.display = 'none';
+
+    currentQueueIndex = 0;
+    isQueueRunning = true;
+    isQueuePaused = false;
+    totalJobsImported = 0;
+    totalCsrImported = 0;
+    totalNewCompanies = 0;
+    totalExistingCompanies = 0;
+    processedResults = [];
+    failedCompaniesList = [];
+    consecutiveNetworkFailures = 0;
+
+    const alertBox = document.getElementById('queue-emergency-alert');
+    if (alertBox) alertBox.style.display = 'none';
+    updateFailedCompaniesUI();
+
+    processNextCompany();
+}
+
+// Drag & drop listeners
+const dropZone = document.getElementById('drop-zone');
+['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#0A6CFF';
+        dropZone.style.background = 'rgba(10,108,255,0.08)';
+    }, false);
+});
+['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'rgba(10,108,255,0.35)';
+        dropZone.style.background = 'rgba(10,108,255,0.02)';
+    }, false);
+});
+dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    if (dt.files && dt.files.length) {
+        handleFileSelected(dt.files[0]);
+    }
+});
+
+// ==============================================================================
+// 1. DEDICATED IN-APP TOAST NOTIFICATION SYSTEM (No Browser Alerts / Push)
+// ==============================================================================
+function showInAppNotification(opts) {
+    const container = document.getElementById('in-app-notification-center');
+    if (!container) return;
+
+    let title = typeof opts === 'object' ? (opts.title || '') : '';
+    let message = typeof opts === 'object' ? (opts.message || '') : String(opts);
+    let type = typeof opts === 'object' ? (opts.type || 'info') : 'info';
+    let duration = typeof opts === 'object' ? (opts.duration || 4500) : 4500;
+
+    if (!title) {
+        if (type === 'error') title = 'Discovery Error';
+        else if (type === 'success') title = 'Success';
+        else if (type === 'warning') title = 'Attention Required';
+        else title = 'System Notification';
+    }
+
+    let accentColor = '#0A6CFF';
+    let iconBg = 'rgba(10, 108, 255, 0.15)';
+    let iconColor = '#60A5FA';
+    let iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+
+    if (type === 'error') {
+        accentColor = '#EF4444';
+        iconBg = 'rgba(239, 68, 68, 0.18)';
+        iconColor = '#F87171';
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    } else if (type === 'success') {
+        accentColor = '#10B981';
+        iconBg = 'rgba(16, 185, 129, 0.18)';
+        iconColor = '#34D399';
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+    } else if (type === 'warning') {
+        accentColor = '#F59E0B';
+        iconBg = 'rgba(245, 158, 11, 0.18)';
+        iconColor = '#FBBF24';
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `in-app-toast in-app-toast-${type}`;
+    toast.innerHTML = `
+        <div style="width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: ${iconBg}; color: ${iconColor};">
+            ${iconSvg}
+        </div>
+        <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 13.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between;">
+                <span>${escapeHtml(title)}</span>
+                <span style="font-size: 10.5px; font-weight: 500; color: #94A3B8; font-family: monospace;">Just now</span>
+            </div>
+            <div style="font-size: 12.5px; color: #CBD5E1; margin-top: 3px; line-height: 1.45; word-break: break-word;">
+                ${escapeHtml(message)}
+            </div>
+        </div>
+        <button type="button" onclick="dismissToast(this.closest('.in-app-toast'))" style="background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; margin-top: -3px; margin-right: -4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Dismiss">
+            ✕
+        </button>
+        <div class="toast-progress-bar" style="position: absolute; bottom: 0; left: 0; height: 3px; background: ${accentColor}; width: 100%; animation: toastProgress ${duration}ms linear forwards;"></div>
+    `;
+
+    container.appendChild(toast);
+
+    let dismissTimer = setTimeout(() => {
+        dismissToast(toast);
+    }, duration);
+
+    toast.addEventListener('mouseenter', () => {
+        clearTimeout(dismissTimer);
+        const bar = toast.querySelector('.toast-progress-bar');
+        if (bar) bar.style.animationPlayState = 'paused';
+    });
+
+    toast.addEventListener('mouseleave', () => {
+        const bar = toast.querySelector('.toast-progress-bar');
+        if (bar) bar.style.animationPlayState = 'running';
+        dismissTimer = setTimeout(() => {
+            dismissToast(toast);
+        }, 1800);
+    });
+}
+
+function dismissToast(toastEl) {
+    if (!toastEl || toastEl.classList.contains('toast-closing')) return;
+    toastEl.classList.add('toast-closing');
+    setTimeout(() => {
+        if (toastEl.parentElement) toastEl.remove();
+    }, 250);
+}
+
+// Override window.alert so third-party or residual code never throws browser push alerts
+window.alert = function(msg) {
+    showInAppNotification({
+        title: 'System Alert',
+        message: String(msg),
+        type: 'warning'
+    });
+};
+
+// ==============================================================================
+// 2. ADVANCED STREAMING TERMINAL CONSOLE & TELEMETRY
+// ==============================================================================
+let allLogsData = [];
+let autoScrollEnabled = true;
+let currentFilter = 'all';
+let currentSearchTerm = '';
+let isConsoleExpanded = false;
+let logCounters = { all: 0, jobs: 0, csr: 0, direct: 0, error: 0 };
+
+function getLogColor(type) {
+    switch (type) {
+        case 'direct': return '#38BDF8';
+        case 'probe': return '#C084FC';
+        case 'jobs': return '#93C5FD';
+        case 'csr': return '#6EE7B7';
+        case 'saved': return '#34D399';
+        case 'error': return '#FCA5A5';
+        case 'parsed': return '#FBBF24';
+        case 'sys': return '#94A3B8';
+        default: return '#CBD5E1';
+    }
+}
+
+function updateFilterBadges() {
+    const elAll = document.getElementById('count-log-all');
+    if (elAll) elAll.innerText = logCounters.all;
+    const elJobs = document.getElementById('count-log-jobs');
+    if (elJobs) elJobs.innerText = logCounters.jobs;
+    const elCsr = document.getElementById('count-log-csr');
+    if (elCsr) elCsr.innerText = logCounters.csr;
+    const elDirect = document.getElementById('count-log-direct');
+    if (elDirect) elDirect.innerText = logCounters.direct;
+    const elErr = document.getElementById('count-log-error');
+    if (elErr) elErr.innerText = logCounters.error;
+
+    const termStatJobs = document.getElementById('term-stat-jobs');
+    if (termStatJobs) termStatJobs.innerText = totalJobsImported;
+    const termStatCsr = document.getElementById('term-stat-csr');
+    if (termStatCsr) termStatCsr.innerText = totalCsrImported;
+    const termStatLines = document.getElementById('term-stat-lines');
+    if (termStatLines) termStatLines.innerText = allLogsData.length;
+
+    // HUD metrics
+    const hudJobs = document.getElementById('hud-metric-jobs');
+    if (hudJobs) hudJobs.innerText = totalJobsImported;
+    const hudCsr = document.getElementById('hud-metric-csr');
+    if (hudCsr) hudCsr.innerText = totalCsrImported;
+    const hudEntities = document.getElementById('hud-metric-entities');
+    if (hudEntities) hudEntities.innerText = (typeof processedResults !== "undefined" ? processedResults.length : 0);
+}
+
+function updateHUDStatus(target, stage, isCrawling) {
+    const hudTarget = document.getElementById('hud-active-target');
+    if (hudTarget && target) hudTarget.innerText = target;
+    const hudStage = document.getElementById('hud-active-stage');
+    if (hudStage && stage) hudStage.innerText = stage;
+
+    const statusLabel = document.getElementById('term-status-label');
+    const statusPill = document.getElementById('term-status-pill');
+
+    if (isCrawling) {
+        if (statusLabel) {
+            statusLabel.innerText = 'CRAWLING ACTIVE';
+            statusLabel.style.color = '#00D4FF';
+        }
+        if (statusPill) {
+            statusPill.innerText = 'STREAMING LIVE';
+            statusPill.className = 'term-status-pill-crawling';
+        }
+    } else {
+        if (statusLabel) {
+            statusLabel.innerText = 'STANDBY IDLE';
+            statusLabel.style.color = '#38BDF8';
+        }
+        if (statusPill) {
+            statusPill.innerText = 'STANDBY';
+            statusPill.className = 'term-status-pill-idle';
+        }
+    }
+}
+
+function logTerminal(msg, color) {
+    const term = document.getElementById('terminal-log-window');
+    if (!term) return;
+
+    const time = new Date().toLocaleTimeString();
+    let rawText = String(msg || '').trim();
+    if (!rawText) return;
+
+    let type = 'probe';
+    let badge = 'CRAWL';
+    let isSubstep = false;
+
+    // Check tree sub-step
+    if (rawText.startsWith('↳') || rawText.startsWith('->') || rawText.startsWith('  ') || rawText.includes('Found ') || rawText.includes('Extracting ') || rawText.includes('Probing ')) {
+        isSubstep = true;
+        // Strip any existing leading tree/arrow characters to prevent double rendering
+        rawText = rawText.replace(/^[↳\->\s]+/, '').trim();
+    }
+
+    if (rawText.includes('[DIRECT_SEARCH]')) {
+        type = 'direct';
+        badge = '⚡ PROBE';
+        rawText = rawText.replace(/\[DIRECT_SEARCH\]\s*/i, '');
+    } else if (rawText.includes('[ERROR]') || rawText.includes('[NETWORK_ERROR]') || rawText.toLowerCase().includes('error') || rawText.toLowerCase().includes('failed') || rawText.includes('⚠️')) {
+        type = 'error';
+        badge = '✕ ERROR';
+        rawText = rawText.replace(/\[ERROR\]\s*/i, '').replace(/\[NETWORK_ERROR\]\s*/i, '');
+    } else if (rawText.includes('Successfully verified') || rawText.includes('imported') || rawText.includes('Saved ')) {
+        type = 'saved';
+        badge = '✓ SAVED';
+    } else if (rawText.includes('job') || rawText.includes('Job') || rawText.includes('vacancies') || rawText.includes('careers')) {
+        type = 'jobs';
+        badge = '💼 CAREERS';
+    } else if (rawText.includes('CSR') || rawText.includes('csr') || rawText.includes('Section 135') || rawText.includes('Sustainability')) {
+        type = 'csr';
+        badge = '🌱 CSR/ESG';
+    } else if (rawText.includes('[SYSTEM]')) {
+        type = 'sys';
+        badge = '⚙ SYSTEM';
+        rawText = rawText.replace(/\[SYSTEM\]\s*/i, '');
+    } else if (rawText.includes('[PARSED]') || rawText.includes('[FILE]')) {
+        type = 'parsed';
+        badge = '📋 FILE';
+    } else if (rawText.includes('Starting live web discovery') || rawText.includes('Provisioned new company')) {
+        type = 'direct';
+        badge = 'DISCOVERY';
+    }
+
+    // Dynamic HUD updates from crawler logs
+    const companyMatch = rawText.match(/for ['"]([^'"]+)['"]/i) || rawText.match(/company ['"]([^'"]+)['"]/i);
+    if (companyMatch) {
+        updateHUDStatus(`🏢 ${companyMatch[1]}`, 'Probing official corporate web presence...', true);
+    } else if (type === 'jobs') {
+        const activeTarget = document.getElementById('hud-active-target')?.innerText || '';
+        if (activeTarget && !activeTarget.includes('IDLE')) {
+            updateHUDStatus(null, 'Extracting verified career vacancies & portals...', true);
+        }
+    } else if (type === 'csr') {
+        const activeTarget = document.getElementById('hud-active-target')?.innerText || '';
+        if (activeTarget && !activeTarget.includes('IDLE')) {
+            updateHUDStatus(null, 'Extracting Section 135 CSR disclosures & reports...', true);
+        }
+    } else if (type === 'saved') {
+        updateHUDStatus(null, 'Database commit verified. Moving to next target.', true);
+    }
+
+    // Syntax Highlight & URL capsule styling
+    let formattedHtml = escapeHtml(rawText);
+
+    // Format URLs as capsule pills
+    formattedHtml = formattedHtml.replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="term-url-pill" title="$1">🔗 $1</a>'
+    );
+
+    // Highlight HTTP status codes
+    formattedHtml = formattedHtml.replace(/HTTP\s+200/g, '<span class="term-status-code term-status-200">HTTP 200 OK</span>');
+    formattedHtml = formattedHtml.replace(/HTTP\s+(4\d\d|5\d\d)/g, '<span class="term-status-code term-status-err">HTTP $1</span>');
+
+    // Highlight numbers preceding key terms
+    formattedHtml = formattedHtml.replace(/(\d+)\s*(jobs|vacancies|positions|openings)/gi, '<span class="term-metric-num">$1 $2</span>');
+    formattedHtml = formattedHtml.replace(/(\d+)\s*(CSR|projects|initiatives)/gi, '<span class="term-metric-num">$1 $2</span>');
+
+    const logEntry = {
+        id: allLogsData.length + 1,
+        time: time,
+        type: type,
+        badge: badge,
+        text: rawText,
+        html: formattedHtml,
+        isSubstep: isSubstep
+    };
+    allLogsData.push(logEntry);
+
+    logCounters.all++;
+    if (type === 'jobs' || badge === '💼 CAREERS') logCounters.jobs++;
+    if (type === 'csr' || badge === '🌱 CSR/ESG') logCounters.csr++;
+    if (type === 'direct' || type === 'probe') logCounters.direct++;
+    if (type === 'error') logCounters.error++;
+
+    updateFilterBadges();
+
+    // Check if matches active filter & search term
+    if (matchesActiveFilter(logEntry)) {
+        appendLogDOM(logEntry);
+    }
+}
+
+function matchesActiveFilter(entry) {
+    // 1. Channel Filter
+    if (currentFilter !== 'all') {
+        if (currentFilter === 'jobs' && entry.type !== 'jobs' && entry.badge !== '💼 CAREERS') return false;
+        if (currentFilter === 'csr' && entry.type !== 'csr' && entry.badge !== '🌱 CSR/ESG') return false;
+        if (currentFilter === 'direct' && entry.type !== 'direct' && entry.type !== 'probe') return false;
+        if (currentFilter === 'error' && entry.type !== 'error') return false;
+    }
+    // 2. Text Search Query
+    if (currentSearchTerm) {
+        const q = currentSearchTerm.toLowerCase();
+        if (!entry.text.toLowerCase().includes(q) && !entry.badge.toLowerCase().includes(q)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function appendLogDOM(logEntry) {
+    const term = document.getElementById('terminal-log-window');
+    if (!term) return;
+
+    const row = document.createElement('div');
+    row.className = `log-row log-type-${logEntry.type} ${logEntry.isSubstep ? 'log-substep' : ''}`;
+    row.setAttribute('data-type', logEntry.type);
+
+    const treeBranch = logEntry.isSubstep ? '<span class="log-tree-branch">↳</span>' : '';
+
+    row.innerHTML = `
+        <span class="log-time">[${logEntry.time}]</span>
+        <span class="log-badge log-badge-${logEntry.type}">${logEntry.badge}</span>
+        ${treeBranch}
+        <span class="log-text" style="color: ${getLogColor(logEntry.type)}; flex: 1;">${logEntry.html}</span>
+    `;
+    term.appendChild(row);
+
+    if (autoScrollEnabled) {
+        term.scrollTop = term.scrollHeight;
+    }
+}
+
+function renderAllFilteredLogs() {
+    const term = document.getElementById('terminal-log-window');
+    if (!term) return;
+    term.innerHTML = '';
+
+    const matching = allLogsData.filter(entry => matchesActiveFilter(entry));
+    matching.forEach(entry => appendLogDOM(entry));
+
+    const badge = document.getElementById('term-search-result-badge');
+    const matchCount = document.getElementById('term-search-match-count');
+    if (currentSearchTerm) {
+        if (badge) badge.style.display = 'inline-block';
+        if (matchCount) matchCount.innerText = matching.length;
+    } else {
+        if (badge) badge.style.display = 'none';
+    }
+}
+
+function setLogFilter(filterName) {
+    currentFilter = filterName;
+    document.querySelectorAll('.log-filter-btn').forEach(b => {
+        if (b.getAttribute('data-filter') === filterName) b.classList.add('active');
+        else b.classList.remove('active');
+    });
+    renderAllFilteredLogs();
+}
+
+function filterTerminalLogs(query) {
+    currentSearchTerm = String(query || '').trim();
+    const clearBtn = document.getElementById('term-search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = currentSearchTerm ? 'inline' : 'none';
+    }
+    renderAllFilteredLogs();
+}
+
+function clearTerminalSearch() {
+    const input = document.getElementById('term-inline-search');
+    if (input) input.value = '';
+    filterTerminalLogs('');
+}
+
+function toggleConsoleExpand() {
+    isConsoleExpanded = !isConsoleExpanded;
+    const grid = document.getElementById('console-split-grid');
+    const btn = document.getElementById('btn-toggle-expand');
+    const icon = document.getElementById('expand-icon');
+    const text = document.getElementById('expand-text');
+
+    if (!grid) return;
+
+    if (isConsoleExpanded) {
+        grid.classList.add('expanded-terminal');
+        if (icon) icon.innerText = '⤡';
+        if (text) text.innerText = 'Split View';
+        if (btn) btn.title = 'Switch back to split view';
+        showInAppNotification({
+            title: 'Full-Width View Active',
+            message: 'Expanded terminal console to full viewport width for dense log inspection.',
+            type: 'info',
+            duration: 3000
+        });
+    } else {
+        grid.classList.remove('expanded-terminal');
+        if (icon) icon.innerText = '⤢';
+        if (text) text.innerText = 'Full-Width';
+        if (btn) btn.title = 'Expand terminal to full width';
+    }
+
+    // Scroll to bottom if autoscroll active
+    const term = document.getElementById('terminal-log-window');
+    if (term && autoScrollEnabled) {
+        setTimeout(() => { term.scrollTop = term.scrollHeight; }, 100);
+    }
+}
+
+function toggleAutoScroll() {
+    autoScrollEnabled = !autoScrollEnabled;
+    const btn = document.getElementById('btn-toggle-autoscroll');
+    const icon = document.getElementById('autoscroll-icon');
+    const text = document.getElementById('autoscroll-text');
+    if (autoScrollEnabled) {
+        if (btn) btn.classList.add('term-tool-btn-active');
+        if (icon) icon.innerText = '⇣';
+        if (text) text.innerText = 'Auto-Scroll';
+        const term = document.getElementById('terminal-log-window');
+        if (term) term.scrollTop = term.scrollHeight;
+    } else {
+        if (btn) btn.classList.remove('term-tool-btn-active');
+        if (icon) icon.innerText = '⏸';
+        if (text) text.innerText = 'Paused';
+    }
+}
+
+function copyTerminalLogs() {
+    if (!allLogsData.length) {
+        showInAppNotification({ title: 'Stream Empty', message: 'No logs recorded to copy.', type: 'info' });
+        return;
+    }
+    const plainText = allLogsData.map(l => `[${l.time}] [${l.badge}] ${l.text}`).join('\n');
+    navigator.clipboard.writeText(plainText).then(() => {
+        const copyIcon = document.getElementById('copy-log-icon');
+        if (copyIcon) {
+            copyIcon.innerText = '✓';
+            setTimeout(() => { copyIcon.innerText = '📋'; }, 2000);
+        }
+        showInAppNotification({ title: 'Logs Copied', message: `Copied ${allLogsData.length} log lines to clipboard.`, type: 'success' });
+    }).catch(err => {
+        showInAppNotification({ title: 'Copy Failed', message: 'Unable to access clipboard.', type: 'error' });
+    });
+}
+
+function downloadTerminalLogFile() {
+    if (!allLogsData.length) {
+        showInAppNotification({ title: 'Stream Empty', message: 'No logs to export.', type: 'info' });
+        return;
+    }
+    const header = `=== AI DISCOVERY STREAM LOG EXPORT ===\nExported: ${new Date().toISOString()}\nTotal Lines: ${allLogsData.length}\nActive AI Model: Gemini 3.8 Flash (Live Web)\n\n`;
+    const plainText = header + allLogsData.map(l => `[${l.time}] [${l.badge}] ${l.text}`).join('\n');
+    const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ai_discovery_stream_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_')}.log`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showInAppNotification({ title: 'Log File Exported', message: `Saved ${allLogsData.length} lines to .log file.`, type: 'success' });
+}
+
+function clearTerminalLogs() {
+    allLogsData = [];
+    logCounters = { all: 0, jobs: 0, csr: 0, direct: 0, error: 0 };
+    updateFilterBadges();
+    const term = document.getElementById('terminal-log-window');
+    if (term) {
+        term.innerHTML = `
+            <div class="log-row log-type-sys" data-type="sys">
+                <span class="log-time">[CLEARED]</span>
+                <span class="log-badge log-badge-sys">⚙ SYSTEM</span>
+                <span class="log-text" style="color: #94A3B8;">Terminal stream cleared. Ready for next discovery session.</span>
+            </div>
+        `;
+    }
+    updateHUDStatus('IDLE — Awaiting Crawler Manifest', 'Standby', false);
+    showInAppNotification({ title: 'Terminal Cleared', message: 'Console stream log reset.', type: 'info' });
+}
+
+async function uploadAndStartQueue() {
+    if (!selectedFile) return;
+
+    logTerminal(`Uploading and parsing '${selectedFile.name}'...`, '#00D4FF');
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+        const resp = await fetch("{% url 'admin_ai_discovery:parse_file' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: formData
+        });
+
+        const data = await resp.json();
+        if (data.status !== 'success') {
+            showInAppNotification({ title: 'Manifest Error', message: data.message || 'Error parsing manifest file.', type: 'error', duration: 5500 });
+            logTerminal(`[ERROR] ${data.message}`, '#EF4444');
+            return;
+        }
+
+        companyQueue = data.companies || [];
+        if (companyQueue.length === 0) {
+            showInAppNotification({ title: 'Empty Manifest', message: 'No valid company names detected in the uploaded file.', type: 'warning' });
+            return;
+        }
+
+        logTerminal(`[PARSED] Detected ${companyQueue.length} companies to probe.`, '#10B981');
+        showInAppNotification({ title: 'Manifest Ready', message: `Parsed ${companyQueue.length} companies. Starting automated crawling queue...`, type: 'success', duration: 4000 });
+
+        // Reveal Queue UI
+        document.getElementById('upload-card').style.display = 'none';
+        document.getElementById('live-queue-container').style.display = 'flex';
+        document.getElementById('queue-total-count').innerText = companyQueue.length;
+        document.getElementById('results-empty-state').style.display = 'none';
+
+        currentQueueIndex = 0;
+        isQueueRunning = true;
+        isQueuePaused = false;
+        totalJobsImported = 0;
+        totalCsrImported = 0;
+        totalNewCompanies = 0;
+        totalExistingCompanies = 0;
+        processedResults = [];
+
+        processNextCompany();
+
+    } catch (err) {
+        logTerminal(`[NETWORK_ERROR] ${err.message}`, '#EF4444');
+        showInAppNotification({ title: "Upload Failed", message: "Network connection error while uploading manifest.", type: "error" });
+    }
+}
+
+let consecutiveNetworkFailures = 0;
+let failedCompaniesList = [];
+
+function updateFailedCompaniesUI() {
+    const btn = document.getElementById('btn-retry-failed');
+    const badge = document.getElementById('failed-count-badge');
+    if (btn && badge) {
+        if (failedCompaniesList.length > 0) {
+            btn.style.display = 'inline-flex';
+            badge.innerText = failedCompaniesList.length;
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+}
+
+function resumeQueueAfterCheck() {
+    const alertBox = document.getElementById('queue-emergency-alert');
+    if (alertBox) alertBox.style.display = 'none';
+    consecutiveNetworkFailures = 0;
+    isQueuePaused = false;
+    const btn = document.getElementById('btn-pause-resume');
+    if (btn) btn.innerText = 'Pause';
+    logTerminal(`[RESUME] Server connection re-verified. Resuming queue from company #${currentQueueIndex + 1}...`, '#10B981');
+    processNextCompany();
+}
+
+function retryFailedCompanies() {
+    if (!failedCompaniesList.length) return;
+    const failedToRetry = failedCompaniesList.map(item => item.task);
+    companyQueue = [...failedToRetry];
+    failedCompaniesList = [];
+    currentQueueIndex = 0;
+    consecutiveNetworkFailures = 0;
+    isQueueRunning = true;
+    isQueuePaused = false;
+
+    updateFailedCompaniesUI();
+    const alertBox = document.getElementById('queue-emergency-alert');
+    if (alertBox) alertBox.style.display = 'none';
+
+    document.getElementById('queue-total-count').innerText = companyQueue.length;
+    document.getElementById('queue-heading').innerHTML = `Retrying Failed: Company <span id="queue-current-idx">1</span> of <span id="queue-total-count">${companyQueue.length}</span>`;
+    const btn = document.getElementById('btn-pause-resume');
+    if (btn) {
+        btn.style.display = 'inline-block';
+        btn.innerText = 'Pause';
+    }
+
+    logTerminal(`[RETRY_START] Re-launching discovery queue for ${companyQueue.length} previously failed companies...`, '#10B981');
+    processNextCompany();
+}
+
+async function processNextCompany() {
+    if (!isQueueRunning || isQueuePaused) return;
+
+    if (currentQueueIndex >= companyQueue.length) {
+        finishQueue();
+        return;
+    }
+
+    const companyTask = companyQueue[currentQueueIndex];
+    document.getElementById('queue-current-idx').innerText = currentQueueIndex + 1;
+    document.getElementById('queue-current-company').innerText = companyTask.company_name;
+
+    const pct = Math.round(((currentQueueIndex) / companyQueue.length) * 100);
+    document.getElementById('queue-progress-bar').style.width = `${pct}%`;
+
+    logTerminal(`[${currentQueueIndex + 1}/${companyQueue.length}] Crawling '${companyTask.company_name}'...`, '#F8FAFC');
+
+    const options = {
+        extract_jobs: document.getElementById('opt-jobs').checked,
+        extract_csr: document.getElementById('opt-csr').checked,
+        auto_create_company: document.getElementById('opt-auto-create-company').checked,
+    };
+
+    let resData = null;
+    let attempts = 0;
+    const maxAttempts = 2;
+    let lastError = null;
+
+    while (attempts < maxAttempts && !resData) {
+        attempts++;
+        try {
+            const resp = await fetch("{% url 'admin_ai_discovery:process_company' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    company: companyTask,
+                    options: options
+                })
+            });
+
+            if (resp.status === 403 || resp.status === 401) {
+                throw new Error("Admin session expired or access denied (HTTP 403). Please log into Admin Console.");
+            }
+
+            if (!resp.ok) {
+                throw new Error(`Server returned HTTP ${resp.status}`);
+            }
+
+            resData = await resp.json();
+            consecutiveNetworkFailures = 0; // reset counter on clean response
+            handleCompanyResult(companyTask, resData);
+
+        } catch (err) {
+            lastError = err;
+            const isNetworkErr = err.name === 'TypeError' || String(err.message).includes('Failed to fetch') || String(err.message).includes('NetworkError');
+            if (isNetworkErr && attempts < maxAttempts) {
+                logTerminal(`  [RETRYING] Connection interrupted for '${companyTask.company_name}'. Auto-retrying in 2.5s (Attempt ${attempts + 1}/${maxAttempts})...`, '#F59E0B');
+                await new Promise(r => setTimeout(r, 2500));
+            }
+        }
+    }
+
+    if (!resData) {
+        consecutiveNetworkFailures++;
+        const isNetworkErr = lastError && (lastError.name === 'TypeError' || String(lastError.message).includes('Failed to fetch') || String(lastError.message).includes('HTTP 403'));
+        const errMsg = isNetworkErr ? `Connection refused / Server unreachable (${lastError.message})` : (lastError ? lastError.message : 'Unknown error');
+        logTerminal(`[ERROR] ${companyTask.company_name}: ${errMsg}`, '#EF4444');
+
+        failedCompaniesList.push({
+            task: companyTask,
+            error: errMsg
+        });
+        updateFailedCompaniesUI();
+
+        // Circuit breaker: If 3 consecutive network failures occur, pause queue
+        if (consecutiveNetworkFailures >= 3 && isNetworkErr) {
+            isQueuePaused = true;
+            const pauseBtn = document.getElementById('btn-pause-resume');
+            if (pauseBtn) pauseBtn.innerText = 'Resume';
+            logTerminal(`[CIRCUIT_BREAKER] ⚠️ 3 consecutive network connection errors. The Django development server was likely restarted or socket was closed. Queue auto-paused to preserve remaining companies.`, '#EF4444');
+            showInAppNotification({
+                title: 'Queue Auto-Paused',
+                message: 'Server connection interrupted. Please ensure the server is running and click "Resume Queue".',
+                type: 'error',
+                duration: 8000
+            });
+            const alertBox = document.getElementById('queue-emergency-alert');
+            if (alertBox) alertBox.style.display = 'flex';
+            return;
+        }
+    }
+
+    currentQueueIndex++;
+    const newPct = Math.round(((currentQueueIndex) / companyQueue.length) * 100);
+    document.getElementById('queue-progress-bar').style.width = `${newPct}%`;
+
+    // Process next item with respectful pacing to honor API quotas and prevent 429 locks
+    setTimeout(() => {
+        processNextCompany();
+    }, 2500);
+}
+
+let discoveredCompaniesResults = [];
+let resultsCurrentTab = 'all'; // 'all', 'jobs', 'csr', 'new'
+let resultsSearchQuery = '';
+let resultsCurrentPage = 1;
+const RESULTS_PAGE_SIZE = 5;
+
+function handleCompanyResult(task, res) {
+    if (res.logs && Array.isArray(res.logs)) {
+        res.logs.forEach(l => logTerminal(`  ${l}`));
+    }
+
+    const jobsImported = res.jobs_imported || 0;
+    const csrImported = res.csr_imported || 0;
+    const isNew = Boolean(res.is_new_company);
+
+    totalJobsImported += jobsImported;
+    totalCsrImported += csrImported;
+    if (isNew) {
+        totalNewCompanies++;
+        const statTotComp = document.getElementById('stat-total-companies');
+        if (statTotComp) {
+            statTotComp.innerText = ((parseInt(statTotComp.innerText.replace(/,/g, '')) || 0) + 1).toLocaleString();
+        }
+    } else {
+        totalExistingCompanies++;
+    }
+
+    const statJobs = document.getElementById('stat-total-jobs');
+    if (statJobs && jobsImported > 0) {
+        statJobs.innerText = ((parseInt(statJobs.innerText.replace(/,/g, '')) || 0) + jobsImported).toLocaleString();
+    }
+    const statCsr = document.getElementById('stat-total-csr');
+    if (statCsr && csrImported > 0) {
+        statCsr.innerText = ((parseInt(statCsr.innerText.replace(/,/g, '')) || 0) + csrImported).toLocaleString();
+    }
+
+    const completedTotal = discoveredCompaniesResults.length + 1;
+    document.getElementById('counter-jobs-imported').innerText = totalJobsImported;
+    document.getElementById('counter-csr-imported').innerText = totalCsrImported;
+    document.getElementById('counter-new-companies').innerText = totalNewCompanies;
+    document.getElementById('counter-comp-completed').innerText = completedTotal;
+    document.getElementById('stat-new-companies').innerText = totalNewCompanies;
+    document.getElementById('stat-existing-companies').innerText = totalExistingCompanies;
+    document.getElementById('stat-session-imports').innerText = `${totalJobsImported + totalCsrImported} records`;
+    document.getElementById('queue-results-badge').innerText = `${completedTotal} processed`;
+    const termStatJobs = document.getElementById('term-stat-jobs');
+    if (termStatJobs) termStatJobs.innerText = totalJobsImported;
+    const termStatCsr = document.getElementById('term-stat-csr');
+    if (termStatCsr) termStatCsr.innerText = totalCsrImported;
+    const termStatus = document.getElementById('term-status-label');
+    if (termStatus) termStatus.innerText = 'IDLE';
+
+    // Store in structured results model
+    const cardUniqueId = `dossier-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const dossierEntry = {
+        cardId: cardUniqueId,
+        company_name: res.company_name || task.company_name,
+        company_id: res.company_id || '',
+        is_new: isNew,
+        sector: res.sector || 'Corporate Enterprise',
+        headquarters: res.headquarters || 'India',
+        nse_symbol: res.nse_symbol || '',
+        website_url: res.website_url || '',
+        careers_url: res.careers_url || '',
+        csr_url: res.csr_url || '',
+        jobs: Array.isArray(res.jobs) ? res.jobs : [],
+        csr: Array.isArray(res.csr) ? res.csr : [],
+        jobs_imported: jobsImported,
+        csr_imported: csrImported,
+        activeTab: (Array.isArray(res.jobs) && res.jobs.length > 0) ? 'jobs' : ((Array.isArray(res.csr) && res.csr.length > 0) ? 'csr' : 'jobs'),
+        timestamp: new Date()
+    };
+
+    discoveredCompaniesResults.unshift(dossierEntry);
+    processedResults.push({
+        company_name: dossierEntry.company_name,
+        company_id: dossierEntry.company_id,
+        is_new_company: isNew ? 'YES' : 'NO',
+        sector: dossierEntry.sector,
+        headquarters: dossierEntry.headquarters,
+        website_url: dossierEntry.website_url,
+        careers_url: dossierEntry.careers_url,
+        csr_url: dossierEntry.csr_url,
+        jobs_imported: jobsImported,
+        csr_imported: csrImported,
+        status: 'SUCCESS'
+    });
+
+    renderDiscoveredResultsList();
+}
+
+function setResultsTabFilter(tabName) {
+    resultsCurrentTab = tabName;
+    ['all', 'jobs', 'csr', 'new'].forEach(t => {
+        const btn = document.getElementById(`tab-pill-${t}`);
+        if (btn) {
+            if (t === tabName) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+    });
+    resultsCurrentPage = 1;
+    renderDiscoveredResultsList();
+}
+
+function onResultsSearch(query) {
+    resultsSearchQuery = (query || '').toLowerCase().trim();
+    resultsCurrentPage = 1;
+    renderDiscoveredResultsList();
+}
+
+function switchCardTab(cardId, tabName) {
+    const entry = discoveredCompaniesResults.find(d => d.cardId === cardId);
+    if (entry) {
+        entry.activeTab = tabName;
+        const jobsContent = document.getElementById(`${cardId}-tab-jobs`);
+        const csrContent = document.getElementById(`${cardId}-tab-csr`);
+        const jobsBtn = document.getElementById(`${cardId}-btn-jobs`);
+        const csrBtn = document.getElementById(`${cardId}-btn-csr`);
+
+        if (jobsContent && csrContent) {
+            if (tabName === 'jobs') {
+                jobsContent.style.display = 'flex';
+                csrContent.style.display = 'none';
+                if (jobsBtn) jobsBtn.classList.add('active');
+                if (csrBtn) csrBtn.classList.remove('active');
+            } else {
+                jobsContent.style.display = 'none';
+                csrContent.style.display = 'flex';
+                if (jobsBtn) jobsBtn.classList.remove('active');
+                if (csrBtn) csrBtn.classList.add('active');
+            }
+        }
+    }
+}
+
+function renderDiscoveredResultsList() {
+    const list = document.getElementById('results-card-list');
+    if (!list) return;
+
+    // 1. Update filter tab counts
+    const totalCount = discoveredCompaniesResults.length;
+    let jobsCount = 0;
+    let csrCount = 0;
+    let newCount = 0;
+
+    discoveredCompaniesResults.forEach(d => {
+        if (d.jobs && d.jobs.length > 0) jobsCount++;
+        if (d.csr && d.csr.length > 0) csrCount++;
+        if (d.is_new) newCount++;
+    });
+
+    const cntAll = document.getElementById('tab-cnt-all');
+    if (cntAll) cntAll.innerText = totalCount;
+    const cntJobs = document.getElementById('tab-cnt-jobs');
+    if (cntJobs) cntJobs.innerText = jobsCount;
+    const cntCsr = document.getElementById('tab-cnt-csr');
+    if (cntCsr) cntCsr.innerText = csrCount;
+    const cntNew = document.getElementById('tab-cnt-new');
+    if (cntNew) cntNew.innerText = newCount;
+
+    const btnExportDossiers = document.getElementById('btn-export-dossiers-csv');
+    if (btnExportDossiers) {
+        btnExportDossiers.style.display = totalCount > 0 ? 'inline-flex' : 'none';
+    }
+
+    if (totalCount === 0) {
+        list.innerHTML = `
+            <div id="results-empty-state" style="text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 13px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(10,108,255,0.08); color: #0A6CFF; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">Discovery Queue Ready</div>
+                <div style="margin-top: 4px; font-size: 12px; max-width: 420px; margin-left: auto; margin-right: auto;">
+                    Extracted company details, verified jobs, and Section 135 CSR initiatives will populate here in proper structured format as crawling progresses.
+                </div>
+            </div>
+        `;
+        const paginationBox = document.getElementById('results-pagination-container');
+        if (paginationBox) paginationBox.style.display = 'none';
+        return;
+    }
+
+    // 2. Filter records
+    let filtered = discoveredCompaniesResults.filter(d => {
+        if (resultsCurrentTab === 'jobs' && (!d.jobs || d.jobs.length === 0)) return false;
+        if (resultsCurrentTab === 'csr' && (!d.csr || d.csr.length === 0)) return false;
+        if (resultsCurrentTab === 'new' && !d.is_new) return false;
+
+        if (resultsSearchQuery) {
+            const name = (d.company_name || '').toLowerCase();
+            const sec = (d.sector || '').toLowerCase();
+            const hq = (d.headquarters || '').toLowerCase();
+            const id = (d.company_id || '').toLowerCase();
+            const jobsText = (d.jobs || []).map(j => (j.job_title || '') + ' ' + (j.location || '')).join(' ').toLowerCase();
+            const csrText = (d.csr || []).map(c => (c.project_name || '') + ' ' + (c.category || '')).join(' ').toLowerCase();
+            return name.includes(resultsSearchQuery) || sec.includes(resultsSearchQuery) || hq.includes(resultsSearchQuery) || id.includes(resultsSearchQuery) || jobsText.includes(resultsSearchQuery) || csrText.includes(resultsSearchQuery);
+        }
+        return true;
+    });
+
+    // 3. Paginate records
+    const filteredTotal = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(filteredTotal / RESULTS_PAGE_SIZE));
+    if (resultsCurrentPage > totalPages) resultsCurrentPage = totalPages;
+    if (resultsCurrentPage < 1) resultsCurrentPage = 1;
+
+    const startIndex = (resultsCurrentPage - 1) * RESULTS_PAGE_SIZE;
+    const endIndex = Math.min(startIndex + RESULTS_PAGE_SIZE, filteredTotal);
+    const pageItems = filtered.slice(startIndex, endIndex);
+
+    if (filteredTotal === 0) {
+        list.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 13px; background: var(--bg-surface-subtle); border-radius: 10px; border: 1px dashed var(--border-color);">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">No matching company dossiers</div>
+                <div style="margin-top: 4px; font-size: 12px;">Try clearing or adjusting your search filters above.</div>
+            </div>
+        `;
+    } else {
+        list.innerHTML = pageItems.map(c => {
+            const initials = (c.company_name || 'CO').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'CO';
+            
+            // Format Jobs HTML
+            let jobsListHtml = '';
+            if (c.jobs && c.jobs.length > 0) {
+                jobsListHtml = c.jobs.map((j, idx) => `
+                    <div class="dossier-item-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); line-height: 1.35;">
+                                ${idx + 1}. ${escapeHtml(j.job_title || 'Career Opportunity')}
+                            </div>
+                            ${j.application_url ? `
+                                <a href="${escapeHtml(j.application_url)}" target="_blank" rel="noopener noreferrer" class="dossier-apply-btn">
+                                    <span>Apply ↗</span>
+                                </a>
+                            ` : ''}
+                        </div>
+                        <div class="dossier-pills-row">
+                            <span class="dossier-pill">🏢 ${escapeHtml(j.department || 'Operations')}</span>
+                            <span class="dossier-pill">📍 ${escapeHtml(j.location || 'India')}</span>
+                            <span class="dossier-pill">⏱ ${escapeHtml(j.work_mode || 'Full-Time')}</span>
+                            <span class="dossier-pill">🎓 ${escapeHtml(j.experience || 'Experience unspecified')}</span>
+                            ${j.salary_range ? `<span class="dossier-pill" style="color:#10B981; font-weight:600;">💰 ${escapeHtml(j.salary_range)}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                jobsListHtml = `
+                    <div style="text-align: center; padding: 18px 12px; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12px;">
+                        ℹ️ No active job postings published on careers portal during this crawl cycle.
+                    </div>
+                `;
+            }
+
+            // Format CSR HTML
+            let csrListHtml = '';
+            if (c.csr && c.csr.length > 0) {
+                csrListHtml = c.csr.map((p, idx) => `
+                    <div class="dossier-item-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <div style="font-weight: 700; font-size: 13px; color: #10B981; line-height: 1.35;">
+                                🌱 ${idx + 1}. ${escapeHtml(p.project_name || 'Section 135 Initiative')}
+                            </div>
+                            ${p.source_url ? `
+                                <a href="${escapeHtml(p.source_url)}" target="_blank" rel="noopener noreferrer" class="dossier-source-btn">
+                                    <span>Source ↗</span>
+                                </a>
+                            ` : ''}
+                        </div>
+                        <div class="dossier-pills-row">
+                            <span class="dossier-pill dossier-pill-emerald">🏷️ ${escapeHtml(p.category || 'CSR Focus Area')}</span>
+                            <span class="dossier-pill">📍 ${escapeHtml(p.state || 'Pan-India')}</span>
+                            <span class="dossier-pill">💰 ${escapeHtml(p.budget || 'Section 135 Outlay')}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45; margin-top: 3px;">
+                            ${escapeHtml(p.description || 'Statutory CSR commitment under Companies Act 2013.')}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                csrListHtml = `
+                    <div style="text-align: center; padding: 18px 12px; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12px;">
+                        ℹ️ No Section 135 CSR projects or disclosures detected on this company's portals.
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="extracted-dossier-card" id="${c.cardId}">
+                    <!-- HEADER -->
+                    <div class="dossier-header">
+                        <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 250px;">
+                            <div class="dossier-avatar">${initials}</div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="dossier-name">${escapeHtml(c.company_name)}</span>
+                                    ${c.is_new ? 
+                                        '<span class="badge-new-entity">✨ NEW CANONICAL ENTITY</span>' : 
+                                        '<span class="badge-synced-entity">🔄 SYNCED RECORD</span>'
+                                    }
+                                    <span class="badge-live-verified">✓ Live Crawl Verified</span>
+                                    <code class="dossier-code">${escapeHtml(c.company_id || 'ID Pending')}</code>
+                                </div>
+                                <div class="dossier-quick-meta">
+                                    <span>🏢 <strong>${escapeHtml(c.sector)}</strong></span>
+                                    <span>📍 <strong>${escapeHtml(c.headquarters)}</strong></span>
+                                    ${c.nse_symbol ? `<span>📈 NSE: <strong>${escapeHtml(c.nse_symbol)}</strong></span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dossier-actions">
+                            ${c.company_id ? `
+                                <a href="/admin-portal/companies/${c.company_id}/" target="_blank" class="dossier-btn dossier-btn-primary" title="View company in admin directory">
+                                    <span>Admin Profile</span>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </a>
+                                <a href="/admin-portal/companies/${c.company_id}/edit/" target="_blank" class="dossier-btn dossier-btn-subtle" title="Edit company details">
+                                    <span>Edit</span>
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- URLS STRIP -->
+                    <div class="dossier-urls-strip">
+                        <div class="dossier-url-item">
+                            <span class="dossier-url-label">🌐 Website:</span>
+                            ${c.website_url ? `<a href="${escapeHtml(c.website_url)}" target="_blank" rel="noopener noreferrer" class="dossier-url-link">${escapeHtml(c.website_url.replace(/^https?:\/\//i, '').replace(/^www\./i, ''))} ↗</a>` : '<span class="dossier-url-empty">Auto-resolved</span>'}
+                        </div>
+                        <div class="dossier-url-item">
+                            <span class="dossier-url-label">💼 Careers:</span>
+                            ${c.careers_url ? `<a href="${escapeHtml(c.careers_url)}" target="_blank" rel="noopener noreferrer" class="dossier-url-link">Careers Portal ↗</a>` : '<span class="dossier-url-empty">Not detected</span>'}
+                        </div>
+                        <div class="dossier-url-item">
+                            <span class="dossier-url-label">🌱 CSR / ESG:</span>
+                            ${c.csr_url ? `<a href="${escapeHtml(c.csr_url)}" target="_blank" rel="noopener noreferrer" class="dossier-url-link dossier-url-link-csr">CSR Portal ↗</a>` : '<span class="dossier-url-empty">Not detected</span>'}
+                        </div>
+                    </div>
+
+                    <!-- SEGMENTED TABS STRIP -->
+                    <div class="dossier-tabs-strip">
+                        <button type="button" id="${c.cardId}-btn-jobs" class="dossier-tab-btn ${c.activeTab === 'jobs' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'jobs')">
+                            💼 Verified Jobs (${c.jobs.length})
+                        </button>
+                        <button type="button" id="${c.cardId}-btn-csr" class="dossier-tab-btn ${c.activeTab === 'csr' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'csr')">
+                            🌱 Section 135 CSR Initiatives (${c.csr.length})
+                        </button>
+                    </div>
+
+                    <!-- JOBS TAB CONTENT -->
+                    <div id="${c.cardId}-tab-jobs" style="display: ${c.activeTab === 'jobs' ? 'flex' : 'none'}; flex-direction: column; gap: 8px;">
+                        ${jobsListHtml}
+                    </div>
+
+                    <!-- CSR TAB CONTENT -->
+                    <div id="${c.cardId}-tab-csr" style="display: ${c.activeTab === 'csr' ? 'flex' : 'none'}; flex-direction: column; gap: 8px;">
+                        ${csrListHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 4. Update Pagination Controls
+    const paginationBox = document.getElementById('results-pagination-container');
+    if (paginationBox) {
+        if (filteredTotal > RESULTS_PAGE_SIZE) {
+            paginationBox.style.display = 'flex';
+            document.getElementById('res-range-start').innerText = startIndex + 1;
+            document.getElementById('res-range-end').innerText = endIndex;
+            document.getElementById('res-range-total').innerText = filteredTotal;
+
+            const btnPrev = document.getElementById('btn-res-prev');
+            if (btnPrev) btnPrev.disabled = (resultsCurrentPage <= 1);
+            const btnNext = document.getElementById('btn-res-next');
+            if (btnNext) btnNext.disabled = (resultsCurrentPage >= totalPages);
+
+            const pills = document.getElementById('results-page-pills');
+            if (pills) {
+                pills.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = `manifest-page-btn ${i === resultsCurrentPage ? 'active' : ''}`;
+                    b.innerText = i;
+                    b.onclick = () => goToResultsPage(i);
+                    pills.appendChild(b);
+                }
+            }
+        } else {
+            paginationBox.style.display = 'none';
+        }
+    }
+}
+
+function changeResultsPage(delta) {
+    const filteredTotal = discoveredCompaniesResults.filter(d => {
+        if (resultsCurrentTab === 'jobs' && (!d.jobs || d.jobs.length === 0)) return false;
+        if (resultsCurrentTab === 'csr' && (!d.csr || d.csr.length === 0)) return false;
+        if (resultsCurrentTab === 'new' && !d.is_new) return false;
+        return true;
+    }).length;
+    const totalPages = Math.max(1, Math.ceil(filteredTotal / RESULTS_PAGE_SIZE));
+    const newPage = resultsCurrentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+        resultsCurrentPage = newPage;
+        renderDiscoveredResultsList();
+    }
+}
+
+function goToResultsPage(page) {
+    resultsCurrentPage = page;
+    renderDiscoveredResultsList();
+}
+
+function finishQueue() {
+    isQueueRunning = false;
+    const completedHeading = failedCompaniesList.length > 0
+        ? `Discovery Finished with <span style="color:#F59E0B;">${failedCompaniesList.length} Failed</span>`
+        : `Discovery Complete! <span style="color:#10B981;">(100% Processed)</span>`;
+    document.getElementById('queue-heading').innerHTML = completedHeading;
+    document.getElementById('queue-subheading').innerText = `Processed ${companyQueue.length} companies: ${totalNewCompanies} brand new entities added, ${totalExistingCompanies} refreshed. Total ${totalJobsImported} jobs and ${totalCsrImported} CSR projects live in database.`;
+    document.getElementById('queue-status-pulse').style.background = failedCompaniesList.length > 0 ? '#F59E0B' : '#10B981';
+    document.getElementById('queue-progress-bar').style.width = '100%';
+    const btnPause = document.getElementById('btn-pause-resume');
+    if (btnPause) btnPause.style.display = 'none';
+    const btnStop = document.getElementById('btn-abort-queue');
+    if (btnStop) btnStop.style.display = 'none';
+    const btnExp = document.getElementById('btn-export-results');
+    if (btnExp) btnExp.style.display = 'inline-block';
+    updateFailedCompaniesUI();
+
+    // Reveal completion action banner
+    const compBanner = document.getElementById('queue-completion-banner');
+    if (compBanner) {
+        compBanner.style.display = 'flex';
+        const bTitle = document.getElementById('queue-completion-banner-title');
+        const bSub = document.getElementById('queue-completion-banner-subtitle');
+        if (bTitle) {
+            bTitle.innerHTML = failedCompaniesList.length > 0 
+                ? `Bulk Discovery Completed with <span style="color:#F59E0B;">${failedCompaniesList.length} Warnings</span>`
+                : `Bulk Discovery Completed Successfully! (100% Processed)`;
+        }
+        if (bSub) {
+            bSub.innerHTML = `Processed ${companyQueue.length} companies: <strong>${totalNewCompanies}</strong> new entities added, <strong>${totalJobsImported}</strong> jobs &amp; <strong>${totalCsrImported}</strong> CSR projects saved in production database.`;
+        }
+    }
+
+    logTerminal(`[FINISHED] Discovery complete! New Entities: ${totalNewCompanies}, Jobs: ${totalJobsImported}, CSR: ${totalCsrImported}, Failed: ${failedCompaniesList.length}. All records verified in production database.`, failedCompaniesList.length > 0 ? '#F59E0B' : '#10B981');
+    showInAppNotification({
+        title: failedCompaniesList.length > 0 ? 'Discovery Queue Finished with Warnings' : 'Discovery Queue Completed!',
+        message: `Processed ${companyQueue.length} companies: ${totalNewCompanies} new entities created, ${totalJobsImported} jobs & ${totalCsrImported} CSR projects imported.${failedCompaniesList.length > 0 ? ' ' + failedCompaniesList.length + ' companies failed (use Retry button).' : ''}`,
+        type: failedCompaniesList.length > 0 ? 'warning' : 'success',
+        duration: 7000
+    });
+}
+
+function togglePauseQueue() {
+    const btn = document.getElementById('btn-pause-resume');
+    if (isQueuePaused) {
+        isQueuePaused = false;
+        btn.innerText = 'Pause';
+        logTerminal(`[RESUME] Discovery queue resumed.`, '#00D4FF');
+        processNextCompany();
+    } else {
+        isQueuePaused = true;
+        btn.innerText = 'Resume';
+        logTerminal(`[PAUSE] Discovery queue paused by administrator.`, '#F59E0B');
+    }
+}
+
+function abortQueue() {
+    if (typeof EnterpriseConfirm !== 'undefined') {
+        EnterpriseConfirm.show({
+            title: "Stop Discovery Queue?",
+            subtitle: "Halt crawler and AI extraction engine",
+            severity: "danger",
+            alert: "Are you sure you want to stop the automated discovery queue? All entities, job vacancies, and CSR initiatives processed up to this point have already been verified and permanently committed to the database.",
+            impacts: [
+                "Crawl queue will immediately halt after the current active network packet",
+                "Remaining pending companies in the manifest will not be scraped",
+                "All previously extracted jobs & CSR records remain safely committed"
+            ],
+            confirmText: "Yes, Stop Queue",
+            cancelText: "Continue Crawling",
+            onConfirm: function() {
+                isQueueRunning = false;
+                finishQueue();
+                logTerminal(`[STOP] Discovery queue stopped by administrator.`, '#EF4444');
+                showInAppNotification({
+                    title: 'Queue Stopped',
+                    message: 'Bulk discovery halted. Processed records are safely preserved.',
+                    type: 'info'
+                });
+            }
+        });
+    } else {
+        isQueueRunning = false;
+        finishQueue();
+    }
+}
+
+function resetAndReuploadManifest(triggerPicker = true) {
+    if (isQueueRunning) {
+        if (typeof EnterpriseConfirm !== 'undefined') {
+            EnterpriseConfirm.show({
+                title: "Upload New Manifest File?",
+                subtitle: "Active discovery queue will be halted",
+                severity: "warning",
+                alert: "A bulk discovery queue is currently running. Stopping it will preserve all records already saved to the database and reopen the file upload manager for a new CSV/Excel file.",
+                confirmText: "Stop & Upload New File",
+                cancelText: "Keep Crawling",
+                onConfirm: function() {
+                    executeResetToUpload(triggerPicker);
+                }
+            });
+            return;
+        }
+    }
+    executeResetToUpload(triggerPicker);
+}
+
+function executeResetToUpload(triggerPicker = true) {
+    isQueueRunning = false;
+    isQueuePaused = false;
+
+    // Reset file input and state
+    const fileInput = document.getElementById('manifest-file-input');
+    if (fileInput) fileInput.value = '';
+    selectedFile = null;
+    parsedManifestCompanies = [];
+    filteredManifestCompanies = [];
+    previewCurrentPage = 1;
+
+    // Reveal upload card and drop zone
+    const uploadCard = document.getElementById('upload-card');
+    if (uploadCard) uploadCard.style.display = 'block';
+
+    const dropZone = document.getElementById('drop-zone');
+    if (dropZone) dropZone.style.display = 'block';
+
+    const loadingState = document.getElementById('manifest-loading-state');
+    if (loadingState) loadingState.style.display = 'none';
+
+    const previewContainer = document.getElementById('manifest-preview-container');
+    if (previewContainer) previewContainer.style.display = 'none';
+
+    // Hide completion banner if visible
+    const compBanner = document.getElementById('queue-completion-banner');
+    if (compBanner) compBanner.style.display = 'none';
+
+    // Scroll uploadCard into view smoothly
+    if (uploadCard) {
+        uploadCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    showInAppNotification({
+        title: 'Upload Ready',
+        message: 'Upload zone reset. Select a new CSV, Excel, or JSON manifest to preview.',
+        type: 'info',
+        duration: 4000
+    });
+
+    if (triggerPicker && fileInput) {
+        setTimeout(() => {
+            fileInput.click();
+        }, 150);
+    }
+}
+
+function exportQueueResultsCSV() {
+    if (!processedResults.length) return;
+    let csvContent = "data:text/csv;charset=utf-8,Company Name,Company ID,New Entity Created,Sector,Headquarters,Website URL,Careers URL,CSR URL,Jobs Auto-Imported,CSR Auto-Imported,Status\n";
+    processedResults.forEach(r => {
+        csvContent += `"${r.company_name}","${r.company_id}","${r.is_new_company}","${r.sector}","${r.headquarters}","${r.website_url}","${r.careers_url}","${r.csr_url}",${r.jobs_imported},${r.csr_imported},"${r.status}"\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `ai_discovery_results_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const quickInput = document.getElementById('quick-company-input');
+    const quickWebInput = document.getElementById('quick-website-input');
+    
+    if (quickInput) {
+        // Auto-extract name if user pastes a URL in the company name field
+        quickInput.addEventListener('input', (e) => {
+            const v = e.target.value.trim();
+            if ((v.startsWith('http://') || v.startsWith('https://') || v.startsWith('www.')) && quickWebInput && !quickWebInput.value) {
+                quickWebInput.value = v;
+                try {
+                    let domain = v.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].split('.')[0];
+                    if (domain && domain.length > 2) {
+                        e.target.value = domain.charAt(0).toUpperCase() + domain.slice(1);
+                    }
+                } catch (err) {}
+            }
+        });
+
+        quickInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startSingleCompanyDiscovery();
+            }
+        });
+    }
+
+    if (quickWebInput) {
+        quickWebInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startSingleCompanyDiscovery();
+            }
+        });
+    }
+
+    const quickCsrInput = document.getElementById('quick-csr-input');
+    if (quickCsrInput) {
+        quickCsrInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startSingleCompanyDiscovery();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

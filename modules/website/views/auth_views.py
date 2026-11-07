@@ -49,29 +49,58 @@ def user_login_view(request):
     safe_next = _get_safe_next_url(request)
 
     if request.user.is_authenticated:
+        if (hasattr(request.user, 'is_admin_or_staff') and request.user.is_admin_or_staff()) or request.user.is_staff or request.user.is_superuser:
+            return redirect(safe_next or '/admin-portal/')
         return redirect(safe_next or '/')
 
     form = PublicLoginForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        username = form.cleaned_data['username'].strip()
-        password = form.cleaned_data['password']
+    if request.method == 'POST':
+        if form.is_valid():
+            username = form.cleaned_data['username'].strip()
+            password = form.cleaned_data['password']
 
-        user = authenticate(request, username=username, password=password)
-        if not user:
-            # Fallback: attempt email lookup
-            try:
-                user_obj = User.objects.filter(email__iexact=username).first()
-                if user_obj:
-                    user = authenticate(request, username=user_obj.username, password=password)
-            except Exception:
-                user = None
+            user = authenticate(request, username=username, password=password)
+            if not user:
+                # Fallback: attempt email lookup
+                try:
+                    user_obj = User.objects.filter(email__iexact=username).first()
+                    if user_obj:
+                        user = authenticate(request, username=user_obj.username, password=password)
+                except Exception:
+                    user = None
 
-        if user and user.is_active:
-            login(request, user)
-            messages.success(request, f"Welcome back, {user.first_name or user.username}!")
-            return redirect(safe_next or '/')
+            if user and user.is_active:
+                login(request, user)
+
+                # Administrator / Staff routing: instantly redirect to Admin Portal console
+                is_admin = False
+                if hasattr(user, 'is_admin_or_staff') and user.is_admin_or_staff():
+                    is_admin = True
+                elif user.is_staff or user.is_superuser or getattr(user, 'role', None) in ('ADMIN', 'STAFF'):
+                    is_admin = True
+
+                if is_admin:
+                    messages.success(request, f"Welcome Administrator, {user.first_name or user.username}!")
+                    return redirect(safe_next or '/admin-portal/')
+
+                from modules.website.utils.entitlement_service import user_has_active_plan
+                if not user_has_active_plan(user):
+                    messages.info(request, f"Welcome back, {user.first_name or user.username}! Please select a subscription plan to unlock access to all corporate and job intelligence records.")
+                    return redirect('/?tab=pricing&plan_required=1')
+                messages.success(request, f"Welcome back, {user.first_name or user.username}!")
+                return redirect(safe_next or '/')
+            elif user and not user.is_active:
+                messages.error(request, "This account is currently disabled. Please contact support.")
+            else:
+                messages.error(request, "Invalid username or password. Please verify your credentials.")
         else:
-            messages.error(request, "Invalid username or password. Please verify your credentials.")
+            messages.error(request, "Please enter both username/email and password.")
+
+        # Post-Redirect-Get pattern: redirect to clean GET to prevent stuck error loops on page refresh
+        redirect_url = request.path
+        if safe_next:
+            redirect_url += f"?next={safe_next}"
+        return redirect(redirect_url)
 
     context = {
         'form': form,
@@ -131,39 +160,7 @@ def user_register_view(request):
                 # Initialize prototype wallet with zero balance
                 wallet = get_or_create_wallet(user)
 
-                # Retrieve canonical active FREE plan (code='free', 0 INR)
-                free_plan = Plan.objects.filter(code='free', is_active=True).first()
-                if not free_plan:
-                    free_plan = Plan.objects.filter(monthly_price_paise=0, is_active=True).first()
-
-                sub_id = f"SUB_{uuid.uuid4().hex[:12].upper()}"
-                now_iso = timezone.now().isoformat()
-                end_iso = (timezone.now() + timedelta(days=3650)).isoformat()
-
-                sub = Subscription.objects.create(
-                    subscription_id=sub_id,
-                    user=user,
-                    tenant_id=f"user_{user.id}",
-                    plan_record=free_plan,
-                    plan_id=free_plan.code if free_plan else 'free',
-                    status='ACTIVE',
-                    billing_cycle='monthly',
-                    auto_renew=False,
-                    current_period_start=now_iso,
-                    current_period_end=end_iso,
-                    organization_name=user.organization_name or user.username,
-                    contact_email=user.email,
-                    activated_at=now_iso,
-                )
-
-                SubscriptionEvent.objects.create(
-                    subscription_id=sub_id,
-                    tenant_id=sub.tenant_id,
-                    event_type='SUBSCRIPTION_CREATED',
-                    notes=f"Community Free tier subscription initialized on registration @{user.username}.",
-                    actor=user.username,
-                    created_at=now_iso
-                )
+# User registers without auto-subscription; plan must be explicitly chosen on pricing page
 
             # Send welcome email asynchronously or safely
             try:
@@ -173,8 +170,8 @@ def user_register_view(request):
 
             # Log user in immediately upon successful registration
             login(request, user)
-            messages.success(request, f"Welcome to ImpactBridge, {user.username}! Your free account has been activated.")
-            return redirect(safe_next or '/')
+            messages.info(request, f"Welcome to ImpactBridge, {user.username}! Your account has been created. Please select a subscription plan to unlock corporate intelligence.")
+            return redirect('/?tab=pricing&plan_required=1')
 
         except Exception as e:
             messages.error(request, f"Registration failed due to an internal error: {str(e)}")
@@ -259,6 +256,40 @@ def user_profile_view(request):
                 messages.error(request, f"Cancellation failed: {str(e)}")
             return redirect('website:user_profile')
 
+        elif action == 'invite_team_member':
+            from modules.website.utils.entitlement_service import EntitlementService, EntitlementError
+            from modules.admin_panel.models import TeamMembership
+            import secrets
+            email = request.POST.get('member_email', '').strip().lower()
+            role = request.POST.get('member_role', 'MEMBER')
+            svc = EntitlementService(user)
+            try:
+                svc.check_can_add_team_member()
+                member, created = TeamMembership.objects.get_or_create(
+                    owner=user,
+                    invited_email=email,
+                    defaults={'role': role, 'status': 'INVITED', 'invitation_token': secrets.token_hex(32)}
+                )
+                if not created and member.status == 'REVOKED':
+                    member.status = 'INVITED'
+                    member.save()
+                messages.success(request, f"Team invitation sent to {email}!")
+            except Exception as e:
+                messages.error(request, str(e))
+            return redirect('website:user_profile')
+
+        elif action == 'revoke_team_member':
+            from modules.admin_panel.models import TeamMembership
+            mid = request.POST.get('member_id')
+            if mid:
+                TeamMembership.objects.filter(owner=user, id=int(mid)).update(status='REVOKED')
+                messages.info(request, "Team membership revoked.")
+            return redirect('website:user_profile')
+
+    from modules.admin_panel.models import SavedRecord, SavedSearch, TeamMembership
+    from modules.website.utils.entitlement_service import EntitlementService
+
+    svc = EntitlementService(user)
     plan = get_plan(sub.plan_id) if sub else None
     plan_obj = Plan.objects.filter(code=sub.plan_id).first() if sub else None
     entitlements = plan_obj.entitlements.all() if plan_obj else []
@@ -266,6 +297,13 @@ def user_profile_view(request):
     payments = Payment.objects.filter(user=user).order_by('-created_at')[:20]
     invoices = Invoice.objects.filter(user=user).order_by('-issued_at')[:20]
     available_plans = Plan.objects.filter(is_active=True, is_visible=True).order_by('display_order')
+
+    saved_records_count = SavedRecord.objects.filter(user=user).count()
+    saved_searches_count = SavedSearch.objects.filter(user=user, is_active=True).count()
+    team_members = list(TeamMembership.objects.filter(owner=user).exclude(status='REVOKED'))
+    is_ultra = bool(sub and sub.status in ('ACTIVE', 'TRIALING') and (sub.plan_id in ('ultra', 'enterprise', 'foundation')))
+    is_pro = bool(sub and sub.status in ('ACTIVE', 'TRIALING') and (sub.plan_id == 'pro'))
+    is_free = bool(sub and sub.status in ('ACTIVE', 'TRIALING') and (sub.plan_id in ('free', 'starter')))
 
     context = {
         'user': user,
@@ -277,5 +315,12 @@ def user_profile_view(request):
         'payments': payments,
         'invoices': invoices,
         'available_plans': available_plans,
+        'saved_records_count': saved_records_count,
+        'saved_searches_count': saved_searches_count,
+        'team_members': team_members,
+        'is_ultra': is_ultra,
+        'is_pro': is_pro,
+        'is_free': is_free,
+        'quota_summary': svc.quota_summary(),
     }
     return render(request, 'website/profile.html', context)

@@ -589,7 +589,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A6CFF" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             5. Gateway Identifiers &amp; Raw Audit Metadata
         </h3>
-        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('raw-meta-box').innerText); alert('Audit metadata copied to clipboard!');" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 10px;">
+        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('raw-meta-box').innerText); if (window.showInAppNotification) window.showInAppNotification({ title: 'Copied', message: 'Audit metadata JSON copied to clipboard!', type: 'success' });" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:4px 10px;">
             Copy Metadata JSON
         </button>
     </div>

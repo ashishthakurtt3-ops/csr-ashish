@@ -37,6 +37,13 @@ def serialize_prospect_item(p: Prospect):
 
 @csrf_exempt
 def prospects_api(request, company_id=None):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'Authentication required. Sign in or register to access the Outreach CRM Pipeline.',
+            'code': 'UNAUTHENTICATED',
+            'login_url': '/login/?next=/prospects/',
+            'register_url': '/register/?next=/prospects/'
+        }, status=401)
     if request.method == 'GET':
         stage = request.GET.get('stage', '').strip()
         page = request.GET.get('page')

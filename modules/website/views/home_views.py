@@ -32,10 +32,29 @@ IMPACT_ROLE_FILTER = (
 def index_view(request, default_tab='companies'):
     """Serve the primary ImpactBridge Dynamic Web Portal with server-rendered telemetry and auth state."""
     from modules.admin_panel.snapshot_service import get_current_stats_snapshot
-    from modules.admin_panel.models import Subscription
+    from modules.admin_panel.models import Subscription, GuestPreviewSettings
     from modules.website.utils.subscription_service import get_or_create_wallet
 
     data, is_stale, audit_run_id, data_as_of = get_current_stats_snapshot()
+    preview_cfg = GuestPreviewSettings.get_settings()
+
+    try:
+        banner_headline_rendered = preview_cfg.banner_headline.format(
+            count=preview_cfg.preview_limit,
+            companies=data.get('total_companies', 201),
+            jobs=data.get('jobs_tracked', 2619),
+            csr=data.get('csr_projects', 1600)
+        )
+    except Exception:
+        banner_headline_rendered = preview_cfg.banner_headline
+
+    try:
+        bottom_title_rendered = preview_cfg.bottom_banner_title.format(
+            count=preview_cfg.preview_limit,
+            total=data.get('total_companies', 201)
+        )
+    except Exception:
+        bottom_title_rendered = preview_cfg.bottom_banner_title
 
     user_sub = None
     user_wallet = None
@@ -45,11 +64,15 @@ def index_view(request, default_tab='companies'):
     is_sub_active = False
     sub_status = "NONE"
 
+    has_active_plan = False
     if request.user.is_authenticated:
         # Query latest subscription regardless of status (read-only)
         user_sub = Subscription.objects.filter(user=request.user).order_by('-created_at').first()
         if not user_sub:
             user_sub = Subscription.objects.filter(tenant_id=f"user_{request.user.id}").order_by('-created_at').first()
+
+        from modules.website.utils.entitlement_service import user_has_active_plan
+        has_active_plan = user_has_active_plan(request.user)
 
         if user_sub:
             sub_status = (user_sub.status or 'INACTIVE').upper()
@@ -63,6 +86,11 @@ def index_view(request, default_tab='companies'):
                 plan_tier_label = f"{plan_tier} Cancelled"
             else:
                 plan_tier_label = f"{plan_tier} ({sub_status})"
+        elif request.user.is_staff or request.user.is_superuser:
+            sub_status = "ACTIVE"
+            is_sub_active = True
+            plan_tier = "ADMIN"
+            plan_tier_label = "Admin Access"
         else:
             sub_status = "NONE"
             plan_tier = "FREE"
@@ -71,6 +99,15 @@ def index_view(request, default_tab='companies'):
         user_wallet = get_or_create_wallet(request.user)
         if user_wallet:
             wallet_balance_inr = f"{user_wallet.balance_paise / 100:,.2f}"
+
+    plan_required = bool(request.user.is_authenticated and not has_active_plan)
+    is_preview_mode = not has_active_plan
+
+    tab_param = request.GET.get('tab')
+    if tab_param in ('companies', 'jobs', 'csr', 'matching', 'prospects', 'pricing'):
+        default_tab = tab_param
+    elif request.GET.get('plan_required') or (plan_required and not request.GET.get('tab')):
+        default_tab = 'pricing'
 
     context = {
         'total_companies': data.get('total_companies', 0),
@@ -88,7 +125,12 @@ def index_view(request, default_tab='companies'):
         'is_sub_active': is_sub_active,
         'sub_status': sub_status,
         'default_tab': default_tab,
-        'is_preview_mode': not request.user.is_authenticated,
+        'is_preview_mode': is_preview_mode,
+        'has_active_plan': has_active_plan,
+        'plan_required': plan_required,
+        'preview_settings': preview_cfg,
+        'banner_headline_rendered': banner_headline_rendered,
+        'bottom_title_rendered': bottom_title_rendered,
     }
     return render(request, 'website/index.html', context)
 

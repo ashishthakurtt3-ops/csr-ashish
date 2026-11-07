@@ -243,6 +243,15 @@ class BaseAIClient(AIClient):
         text = str(raw_text or "").strip()
         # Strip reasoning thinking tags if present
         text = re.sub(r'<think>[\s\S]*?</think>', '', text).strip()
+
+        # 0. Markdown code fence extraction anywhere in text
+        fence_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', text)
+        if fence_match:
+            try:
+                return json.loads(fence_match.group(1).strip())
+            except Exception:
+                pass
+
         if text.startswith("```json"):
             text = text[7:]
         elif text.startswith("```"):
@@ -269,7 +278,22 @@ class BaseAIClient(AIClient):
         # 3. Fallback regex extraction of embedded JSON array or object
         match = re.search(r'(\[[\s\S]*\]|\{[\s\S]*\})', text)
         if match:
-            return json.loads(match.group(1))
+            try:
+                return json.loads(match.group(1))
+            except Exception:
+                pass
+
+        # 4. Truncated JSON array repair: salvage complete objects before truncation
+        bracket_idx = text.find('[')
+        if bracket_idx != -1:
+            arr_candidate = text[bracket_idx:]
+            last_brace = arr_candidate.rfind('}')
+            if last_brace != -1:
+                try:
+                    repaired = arr_candidate[:last_brace + 1].strip() + ']'
+                    return json.loads(repaired)
+                except Exception:
+                    pass
 
         raise AIClientError(f"Failed to parse JSON from AI response: {text[:200]}")
 
@@ -1168,7 +1192,8 @@ class GeminiApiClient(BaseAIClient):
                 f"({cfg.GEMINI_FREE_TIER_MODELS}). Paid models violate the zero-cost policy."
             )
 
-        endpoint = f"{self.base_url}/models/{self.model}?key={self.api_key}"
+        base_v1beta = self.base_url if "/v1beta" in self.base_url else f"{self.base_url}/v1beta"
+        endpoint = f"{base_v1beta}/models/{self.model}?key={self.api_key}"
         try:
             resp = requests.get(endpoint, timeout=cfg.REQUEST_TIMEOUT)
             if resp.status_code == 200:
@@ -1199,19 +1224,17 @@ class GeminiApiClient(BaseAIClient):
         if self.metrics["api_calls_made"] >= cfg.MAX_API_CALLS_PER_RUN:
             raise QuotaExhaustedError(f"Reached configured run limit of {cfg.MAX_API_CALLS_PER_RUN} API calls.")
 
-        # Google Gemini Interactions API endpoint
-        endpoint = f"{self.base_url}/interactions?key={self.api_key}"
+        base_v1beta = self.base_url if "/v1beta" in self.base_url else f"{self.base_url}/v1beta"
+        endpoint = f"{base_v1beta}/models/{self.model}:generateContent?key={self.api_key}"
         headers = {
             "Content-Type": "application/json",
             "x-goog-api-key": self.api_key
         }
 
         body: Dict[str, Any] = {
-            "model": self.model,
-            "input": prompt,
-            "response_format": {
-                "type": "text",
-                "mime_type": "application/json"
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "responseMimeType": "application/json"
             }
         }
 
@@ -1226,22 +1249,24 @@ class GeminiApiClient(BaseAIClient):
                     actual_model = data.get("model") or self.model
                     raw_text = ""
 
-                    # Interactions API: step-based response
-                    for step in data.get("steps", []):
-                        if step.get("type") == "model_output":
-                            for part in step.get("content", []):
-                                if isinstance(part, dict) and "text" in part:
-                                    raw_text += part["text"]
-                                elif isinstance(part, str):
-                                    raw_text += part
+                    # Standard generateContent candidates:
+                    if "candidates" in data and data["candidates"]:
+                        parts = data["candidates"][0].get("content", {}).get("parts", [])
+                        for part in parts:
+                            if isinstance(part, dict) and "text" in part:
+                                raw_text += part["text"]
+                            elif isinstance(part, str):
+                                raw_text += part
 
-                    # Legacy candidates fallback
-                    if not raw_text and "candidates" in data:
-                        candidates = data.get("candidates", [])
-                        if candidates:
-                            text_parts = candidates[0].get("content", {}).get("parts", [])
-                            if text_parts:
-                                raw_text = text_parts[0].get("text", "").strip()
+                    # Interactions API: step-based response fallback
+                    if not raw_text:
+                        for step in data.get("steps", []):
+                            if step.get("type") == "model_output":
+                                for part in step.get("content", []):
+                                    if isinstance(part, dict) and "text" in part:
+                                        raw_text += part["text"]
+                                    elif isinstance(part, str):
+                                        raw_text += part
 
                     if not raw_text:
                         raise AIClientError(f"Gemini Interactions API returned empty output text. Status: {data.get('status')}")

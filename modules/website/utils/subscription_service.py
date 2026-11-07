@@ -680,6 +680,7 @@ def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] 
     }
     org_name = user.organization_name if user and user.organization_name else 'Unregistered Organisation'
     email = user.email if user and user.email else None
+    ts = datetime.now(timezone.utc).isoformat()
     return {
         'subscription_id': f'SUB_NONE_{tenant_id}'.upper()[:48],
         'tenant_id': tenant_id,
@@ -1579,8 +1580,13 @@ def change_plan(payload: Dict[str, Any], user: User, tenant_id: str = DEFAULT_TE
     target_plan = require_plan(target_plan_id)
     user_obj, resolved_tenant = resolve_user_and_tenant(user, tenant_id)
     current_row = _load(resolved_tenant, user_obj)
-    curr_plan_id = effective_plan_id(current_row)
+    has_active_sub = current_row.get('status') in (_STATUS_ACTIVE, _STATUS_TRIALING)
 
+    if not has_active_sub:
+        # User has no active subscription yet: immediately activate the selected plan via checkout!
+        return checkout(payload, tenant_id=resolved_tenant, user=user)
+
+    curr_plan_id = effective_plan_id(current_row)
     if curr_plan_id == target_plan['id']:
         raise SubscriptionError('You are already on this plan.', 400, 'same_plan')
 

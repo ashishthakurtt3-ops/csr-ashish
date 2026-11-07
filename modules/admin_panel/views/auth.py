@@ -22,32 +22,43 @@ def admin_login_view(request):
     if request.user.is_authenticated and hasattr(request.user, 'is_admin_or_staff') and request.user.is_admin_or_staff():
         return redirect('admin_portal:dashboard')
 
+    next_url = request.GET.get('next') or request.POST.get('next') or ''
+
     form = AdminLoginForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        username = form.cleaned_data['username']
-        password = form.cleaned_data['password']
-        
-        # Support logging in by email or username
-        user = authenticate(request, username=username, password=password)
-        if not user:
-            try:
-                user_obj = User.objects.get(email=username)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
+    if request.method == 'POST':
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            
+            # Support logging in by email or username
+            user = authenticate(request, username=username, password=password)
+            if not user:
+                try:
+                    user_obj = User.objects.get(email=username)
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    user = None
 
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                messages.success(request, f"Welcome back, {user.first_name or user.username}!")
-                next_url = request.GET.get('next', 'admin_portal:dashboard')
-                return redirect(next_url)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    messages.success(request, f"Welcome back, {user.first_name or user.username}!")
+                    target = next_url or 'admin_portal:dashboard'
+                    return redirect(target)
+                else:
+                    messages.error(request, "This account is currently deactivated.")
             else:
-                messages.error(request, "This account is currently deactivated.")
+                messages.error(request, "Invalid username or password. Please try again.")
         else:
-            messages.error(request, "Invalid username or password. Please try again.")
+            messages.error(request, "Please enter both username/email and security password.")
 
-    return render(request, 'admin/auth/login.html', {'form': form})
+        # Post-Redirect-Get pattern: redirect to clean GET to prevent stuck error loops on page refresh
+        redirect_url = request.path
+        if next_url:
+            redirect_url += f"?next={next_url}"
+        return redirect(redirect_url)
+
+    return render(request, 'admin/auth/login.html', {'form': form, 'next_url': next_url})
 
 
 def admin_logout_view(request):

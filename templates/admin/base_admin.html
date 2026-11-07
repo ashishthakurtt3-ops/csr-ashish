@@ -168,6 +168,44 @@
             border-color: var(--accent);
             background: var(--accent-light);
         }
+
+        /* GLOBAL IN-APP NOTIFICATION TOAST SYSTEM (Zero Browser Popups) */
+        .in-app-toast {
+            pointer-events: auto;
+            background: #0F172A;
+            color: #F8FAFC;
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            position: relative;
+            overflow: hidden;
+            animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: all 0.25s ease;
+        }
+        .in-app-toast.toast-closing {
+            animation: toastSlideOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .in-app-toast-error { border-left: 4px solid #EF4444; }
+        .in-app-toast-success { border-left: 4px solid #10B981; }
+        .in-app-toast-warning { border-left: 4px solid #F59E0B; }
+        .in-app-toast-info { border-left: 4px solid #0A6CFF; }
+
+        @keyframes toastSlideIn {
+            from { transform: translateY(-20px) scale(0.96); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateY(0) scale(1); opacity: 1; }
+            to { transform: translateY(-20px) scale(0.96); opacity: 0; }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -208,6 +246,11 @@
             <a href="{% url 'admin_opportunities:list' %}" class="sidebar-link {% if 'opportunities/opportunities' in request.path %}active{% endif %}" title="Opportunities & Grants">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 <span>Opportunities &amp; RFPs</span>
+            </a>
+            <a href="{% url 'admin_ai_discovery:index' %}" class="sidebar-link {% if 'ai-discovery' in request.path or 'ai-batch-discovery' in request.path %}active{% endif %}" title="AI Bulk Discovery Engine">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                <span>AI Bulk Discovery</span>
+                <span class="badge-status badge-active" style="background:#0A6CFF; color:#ffffff; font-size:10px; padding:1px 6px; border-radius:10px; font-weight:700;">AI</span>
             </a>
 
             <!-- GROUP 3: JOBS & CAREERS (DEDICATED EXPERIENCES) -->
@@ -281,6 +324,14 @@
             <a href="{% url 'admin_ai_config:index' %}" class="sidebar-link {% if 'ai-config' in request.path %}active{% endif %}" title="AI Models & API Configuration">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
                 <span>AI Models &amp; API Config</span>
+            </a>
+            <a href="{% url 'admin_preview_settings:index' %}" class="sidebar-link {% if 'preview-settings' in request.path and 'dummy-data' not in request.path %}active{% endif %}" title="Public Guest Preview Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>Guest Preview Controls</span>
+            </a>
+            <a href="{% url 'admin_preview_settings:dummy_data' %}" class="sidebar-link {% if 'dummy-data' in request.path %}active{% endif %}" title="Dummy Preview Dataset (Excel/CSV Upload)" style="padding-left: 36px; font-size: 12px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Preview Dummy Data</span>
             </a>
 
             <!-- EXTERNAL SYSTEM SHORTCUTS -->
@@ -555,8 +606,131 @@
                 document.getElementById('selectedFileName').innerHTML = '✅ <strong>Ready:</strong> ' + file.name + ' (' + sizeKb + ' KB)';
             }
         }
+
+        // ==============================================================================
+        // GLOBAL IN-APP TOAST NOTIFICATION ENGINE (Replaces all intrusive browser alerts)
+        // ==============================================================================
+        window.showInAppNotification = function(opts) {
+            let container = document.getElementById('in-app-notification-center');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'in-app-notification-center';
+                container.style.cssText = 'position:fixed; top:24px; right:24px; z-index:999999; display:flex; flex-direction:column; gap:12px; pointer-events:none; max-width:420px; width:calc(100vw - 48px);';
+                document.body.appendChild(container);
+            }
+
+            let title = typeof opts === 'object' ? (opts.title || '') : '';
+            let message = typeof opts === 'object' ? (opts.message || '') : String(opts);
+            let type = typeof opts === 'object' ? (opts.type || 'info') : 'info';
+            let duration = typeof opts === 'object' ? (opts.duration || 4500) : 4500;
+
+            if (!title) {
+                if (type === 'error') title = 'Error Alert';
+                else if (type === 'success') title = 'Action Succeeded';
+                else if (type === 'warning') title = 'System Notice';
+                else title = 'Notification';
+            }
+
+            let accentColor = '#0A6CFF';
+            let iconBg = 'rgba(10, 108, 255, 0.15)';
+            let iconColor = '#60A5FA';
+            let iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+
+            if (type === 'error') {
+                accentColor = '#EF4444';
+                iconBg = 'rgba(239, 68, 68, 0.18)';
+                iconColor = '#F87171';
+                iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+            } else if (type === 'success') {
+                accentColor = '#10B981';
+                iconBg = 'rgba(16, 185, 129, 0.18)';
+                iconColor = '#34D399';
+                iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+            } else if (type === 'warning') {
+                accentColor = '#F59E0B';
+                iconBg = 'rgba(245, 158, 11, 0.18)';
+                iconColor = '#FBBF24';
+                iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+            }
+
+            function esc(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `in-app-toast in-app-toast-${type}`;
+            toast.innerHTML = `
+                <div style="width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: ${iconBg}; color: ${iconColor};">
+                    ${iconSvg}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 13.5px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between;">
+                        <span>${esc(title)}</span>
+                        <span style="font-size: 10.5px; font-weight: 500; color: #94A3B8; font-family: monospace;">Just now</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #CBD5E1; margin-top: 3px; line-height: 1.45; word-break: break-word;">
+                        ${esc(message)}
+                    </div>
+                </div>
+                <button type="button" onclick="this.closest('.in-app-toast').remove()" style="background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; margin-top: -3px; margin-right: -4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Dismiss">
+                    ✕
+                </button>
+                <div class="toast-progress-bar" style="position: absolute; bottom: 0; left: 0; height: 3px; background: ${accentColor}; width: 100%; animation: toastProgress ${duration}ms linear forwards;"></div>
+            `;
+
+            container.appendChild(toast);
+
+            let timer = setTimeout(() => {
+                if (toast.classList) toast.classList.add('toast-closing');
+                setTimeout(() => { if (toast.parentElement) toast.remove(); }, 250);
+            }, duration);
+
+            toast.addEventListener('mouseenter', () => {
+                clearTimeout(timer);
+                const bar = toast.querySelector('.toast-progress-bar');
+                if (bar) bar.style.animationPlayState = 'paused';
+            });
+
+            toast.addEventListener('mouseleave', () => {
+                const bar = toast.querySelector('.toast-progress-bar');
+                if (bar) bar.style.animationPlayState = 'running';
+                timer = setTimeout(() => {
+                    if (toast.classList) toast.classList.add('toast-closing');
+                    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 250);
+                }, 1800);
+            });
+        };
+
+        // Global safety override: permanently suppress browser push notifications
+        try {
+            window.Notification = {
+                permission: 'denied',
+                requestPermission: function() { return Promise.resolve('denied'); }
+            };
+        } catch (e) {}
+
+        // Global safety override: intercept all window.alert() and transform into in-app notifications
+        window.alert = function(msg) {
+            let type = 'warning';
+            let title = 'System Alert';
+            let str = String(msg || '');
+            if (str.toLowerCase().includes('error') || str.toLowerCase().includes('failed')) {
+                type = 'error';
+                title = 'Error Alert';
+            } else if (str.toLowerCase().includes('success') || str.toLowerCase().includes('copied') || str.toLowerCase().includes('saved')) {
+                type = 'success';
+                title = 'Success';
+            }
+            window.showInAppNotification({
+                title: title,
+                message: str,
+                type: type
+            });
+        };
+
     </script>
     {% include "admin/components/enterprise_confirm_modal.html" %}
     {% block extra_js %}{% endblock %}
+    <div id="in-app-notification-center" style="position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; max-width: 420px; width: calc(100vw - 48px);" aria-live="assertive" role="region"></div>
 </body>
 </html>
