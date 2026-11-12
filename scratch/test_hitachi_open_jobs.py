@@ -9,3 +9,4 @@ for a in soup.find_all('a', href=True):
     h = a['href']
     if 'job' in h.lower() or 'workday' in h.lower() or 'careers' in h.lower():
         print("Link:", a.get_text(strip=True)[:40], "->", h)
+

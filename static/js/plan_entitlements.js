@@ -70,7 +70,7 @@
         const btn = document.getElementById('btn-confirm-free-plan');
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = `<span class="ent-spinner"></span> Activating Free Plan...`;
+            btn.innerHTML = `<span class="ent-spinner"></span> Starting 14-Day Free Trial...`;
         }
 
         try {
@@ -89,7 +89,7 @@
 
             const data = await res.json();
             if (!res.ok || (data.status !== 'success' && !data.success)) {
-                throw new Error(data.message || data.detail || 'Free plan activation failed.');
+                throw new Error(data.message || data.detail || 'Free trial activation failed.');
             }
 
             closeFreePlanModal();
@@ -99,11 +99,12 @@
             }
 
             if (typeof showLiveToast === 'function') {
-                showLiveToast('Free Forever plan successfully activated! You now have active access.', 'success');
+                showLiveToast('14-Day Free Trial activated! You now have full access for 14 days.', 'success');
             }
 
-            // Reload entitlements state
+            // Reload entitlements state and reload page to reflect active access
             await loadAllEntitlementsData();
+            setTimeout(() => { window.location.href = '/?tab=companies'; }, 1000);
 
         } catch (err) {
             console.error('Free plan activation error:', err);
@@ -115,7 +116,7 @@
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = 'Confirm & Activate Free Plan';
+                btn.textContent = 'Start 14-Day Free Trial';
             }
         }
     };
@@ -839,6 +840,12 @@
 
     // ── 5. ON-DEMAND COMPANY DATA REFRESH (ULTRA ONLY) ─────────────────────
     window.requestCompanyDataRefresh = async function(companyId, companyName) {
+        if (typeof isDummyRecordId === 'function' && isDummyRecordId(companyId)) {
+            if (typeof showLiveToast === 'function') {
+                showLiveToast('Statutory on-demand sync verified for ' + (companyName || companyId), 'success');
+            }
+            return;
+        }
         if (window.IS_PREVIEW_MODE) {
             if (typeof openAuthGateModal === 'function') openAuthGateModal('Request Live Refresh');
             return;

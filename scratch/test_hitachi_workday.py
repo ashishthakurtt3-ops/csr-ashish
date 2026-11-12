@@ -15,3 +15,4 @@ try:
             print("    Path:", j.get('externalPath'))
 except Exception as e:
     print("Workday Error:", e)
+

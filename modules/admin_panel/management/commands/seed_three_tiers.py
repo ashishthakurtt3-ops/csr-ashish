@@ -56,13 +56,13 @@ class Command(BaseCommand):
                 'name': 'FREE',
                 'slug': 'free',
                 'description': (
-                    'Basic access for new users, students, job seekers, '
-                    'and casual researchers.'
+                    '14-Day evaluation access to verified corporate profiles, '
+                    'active career opportunities, and Section 135 CSR projects.'
                 ),
-                'badge': 'Free Forever',
-                'cta_text': 'Get Started',
-                'button_text': 'Get Started',
-                'billing_note': 'No payment method required',
+                'badge': '14-Day Free Trial',
+                'cta_text': 'Start 14-Day Free Trial',
+                'button_text': 'Start 14-Day Free Trial',
+                'billing_note': '14-Day Free Trial • No credit card required',
                 'monthly_price_paise': 0,
                 'yearly_price_paise': 0,
                 'currency': 'INR',
@@ -71,29 +71,32 @@ class Command(BaseCommand):
                 'is_recommended': False,
                 'is_popular': False,
                 'display_order': 1,
-                'trial_days': 0,
+                'trial_days': 14,
                 'allow_upgrade': True,
                 'allow_downgrade': False,
                 'allow_cancel': True,
                 'auto_renew_default': False,
                 'features': [
-                    "Browse verified companies & CSR profiles",
-                    "Search job openings & CSR projects",
-                    "View job & project details and original links",
-                    "Save up to 10 combined jobs & CSR projects",
+                    "Browse up to 20 verified companies & portals",
+                    "Search active corporate vacancies & Section 135 projects",
+                    "View verified job & CSR details and original portal links",
+                    "Save up to 20 combined companies, jobs & CSR projects",
+                    "Export up to 20 records / month (CSV & Excel)",
                     "Save 1 custom search query",
-                    "Weekly email notifications",
+                    "Weekly job & CSR alert notifications",
                     "Single user account",
                 ],
                 'highlight_features': [
-                    "10 Saved Records",
-                    "1 Saved Search",
-                    "Weekly Alerts",
+                    "20 Verified Companies",
+                    "20 Saved Records",
+                    "20 Exports / Month",
+                    "14-Day Free Trial",
                 ],
                 'limits': {
-                    'saved_records_limit': 10,
+                    'browse_companies_limit': 20,
+                    'saved_records_limit': 20,
                     'saved_searches_limit': 1,
-                    'export_rows_per_month': 0,
+                    'export_rows_per_month': 20,
                     'alert_frequency': 'weekly',
                     'seats': 1,
                     'compare_companies_limit': 0,
@@ -118,13 +121,13 @@ class Command(BaseCommand):
                 'name': 'PRO',
                 'slug': 'pro',
                 'description': (
-                    'Advanced features for regular users, job seekers, '
-                    'researchers, and CSR professionals.'
+                    'Advanced features for active professionals, job seekers, '
+                    'corporate researchers, and Section 135 CSR teams.'
                 ),
                 'badge': 'RECOMMENDED',
                 'cta_text': 'Upgrade to Pro',
                 'button_text': 'Upgrade to Pro',
-                'billing_note': 'Billed monthly or annually (+18% GST)',
+                'billing_note': 'Billed monthly or annually (+18% GST) • Instant activation',
                 # Initial admin-configurable defaults — NOT hardcoded final prices
                 'monthly_price_paise': 99900,   # Rs 999 — change in Admin Panel
                 'yearly_price_paise': 999000,   # Rs 9,990 — change in Admin Panel
@@ -134,38 +137,40 @@ class Command(BaseCommand):
                 'is_recommended': True,
                 'is_popular': True,
                 'display_order': 2,
-                'trial_days': 14,
+                'trial_days': 0,
                 'allow_upgrade': True,
                 'allow_downgrade': False,
                 'allow_cancel': True,
                 'auto_renew_default': True,
                 'features': [
                     "Everything in Free, plus:",
-                    "Advanced search filters (Industry, Department, Experience, Focus Area)",
-                    "Save up to 100 combined jobs & CSR projects",
+                    "Browse up to 100 verified companies & portals",
+                    "Save up to 100 combined companies, jobs & CSR projects",
+                    "Export up to 100 records / month (CSV & Excel)",
+                    "On-demand company crawler rescan requests",
+                    "Advanced multi-dimensional search filters",
                     "Save up to 10 search queries",
-                    "Export up to 200 records / month (CSV & Excel)",
                     "Daily matching notifications",
                     "Detailed company profiles & historical data",
-                    "Compare up to 10 companies",
-                    "Advanced research dashboard",
+                    "Compare up to 10 companies side-by-side",
                 ],
                 'highlight_features': [
+                    "100 Verified Companies",
                     "100 Saved Records",
-                    "200 Exports / Month",
-                    "10 Saved Searches",
-                    "Compare 10 Companies",
+                    "100 Exports / Month",
+                    "Crawler Rescan Enabled",
                 ],
                 'limits': {
+                    'browse_companies_limit': 100,
                     'saved_records_limit': 100,
                     'saved_searches_limit': 10,
-                    'export_rows_per_month': 200,
+                    'export_rows_per_month': 100,
                     'alert_frequency': 'daily',
                     'seats': 1,
                     'compare_companies_limit': 10,
                     'advanced_filters': True,
                     'priority_support': False,
-                    'request_company_refresh': False,
+                    'request_company_refresh': True,
                 },
             }
         )
@@ -180,13 +185,13 @@ class Command(BaseCommand):
                 'name': 'ULTRA',
                 'slug': 'ultra',
                 'description': (
-                    'Premium intelligence for businesses, consultants, '
+                    'Unlimited institutional intelligence for businesses, consultants, '
                     'research teams, and organizations.'
                 ),
                 'badge': 'TEAMS & ORG',
                 'cta_text': 'Upgrade to Ultra',
                 'button_text': 'Upgrade to Ultra',
-                'billing_note': 'Billed monthly or annually (+18% GST)',
+                'billing_note': 'Billed monthly or annually (+18% GST) • Instant activation',
                 # Initial admin-configurable defaults — NOT hardcoded final prices
                 'monthly_price_paise': 199900,   # Rs 1,999 — change in Admin Panel
                 'yearly_price_paise': 1999000,   # Rs 19,990 — change in Admin Panel
@@ -196,36 +201,38 @@ class Command(BaseCommand):
                 'is_recommended': False,
                 'is_popular': False,
                 'display_order': 3,
-                'trial_days': 14,
+                'trial_days': 0,
                 'allow_upgrade': True,
                 'allow_downgrade': False,
                 'allow_cancel': True,
                 'auto_renew_default': True,
                 'features': [
                     "Everything in Pro, plus:",
-                    "Unlimited saved jobs & CSR projects",
+                    "Browse full directory of all verified companies & corporate portals",
+                    "Unlimited saved companies, jobs & CSR projects",
+                    "Unlimited bulk data exports (CSV & Excel)",
+                    "On-demand company crawler rescan requests",
                     "Save up to 50 search queries",
-                    "Bulk export up to 2,000 records / month (CSV & Excel)",
-                    "Custom alerts & instant matching notifications",
-                    "Advanced company comparison & intelligence",
+                    "Custom & instant real-time alert notifications",
+                    "Comprehensive multi-company comparison tool",
                     "Up to 3 team members (Owner + 2 members)",
                     "Multi-company research workspace",
-                    "Priority dedicated support",
-                    "On-demand company data refresh requests",
+                    "Priority Dedicated Support 24/7",
                 ],
                 'highlight_features': [
+                    "All Companies (Full Access)",
                     "Unlimited Saved Records",
-                    "2,000 Exports / Month",
-                    "3 Team Members",
-                    "Custom Alerts",
+                    "Unlimited Exports",
+                    "Crawler Rescan Enabled",
                 ],
                 'limits': {
-                    'saved_records_limit': None,   # Unlimited
+                    'browse_companies_limit': None,   # Unlimited (All companies)
+                    'saved_records_limit': None,      # Unlimited
                     'saved_searches_limit': 50,
-                    'export_rows_per_month': 2000,
+                    'export_rows_per_month': None,    # Unlimited
                     'alert_frequency': 'custom',
                     'seats': 3,
-                    'compare_companies_limit': None,  # Unlimited / advanced
+                    'compare_companies_limit': None,  # Unlimited
                     'advanced_filters': True,
                     'priority_support': True,
                     'request_company_refresh': True,
@@ -238,14 +245,14 @@ class Command(BaseCommand):
 
         # ── STEP 5: Populate PlanEntitlements for comparison table ─────
         # These drive the dynamic comparison table in the customer portal.
-        # 16 rows x 3 plans = 48 entitlement records.
+        # 17 rows x 3 plans = 51 entitlement records.
         ENTITLEMENTS = [
             # (feature_key, display_name,
             #   free_spec, pro_spec, ultra_spec)
             # Each spec is (value, type) where type is one of:
             #   BOOLEAN, NUMERIC, UNLIMITED, TEXT
-            ('browse_companies', 'Browse available companies',
-                (True, 'BOOLEAN'), (True, 'BOOLEAN'), (True, 'BOOLEAN')),
+            ('browse_companies', 'Browse verified companies & portals',
+                (20, 'NUMERIC'), (100, 'NUMERIC'), (None, 'UNLIMITED')),
             ('view_job_csr_openings', 'View job openings & CSR projects',
                 (True, 'BOOLEAN'), (True, 'BOOLEAN'), (True, 'BOOLEAN')),
             ('verified_portal_links', 'Verified official portal & career links',
@@ -258,12 +265,14 @@ class Command(BaseCommand):
                 ('Basic Filters', 'TEXT'),
                 ('Advanced Filters', 'TEXT'),
                 ('Advanced + Custom Filters', 'TEXT')),
-            ('saved_records_limit', 'Saved jobs & CSR projects',
-                (10, 'NUMERIC'), (100, 'NUMERIC'), (None, 'UNLIMITED')),
+            ('saved_records_limit', 'Saved companies, jobs & CSR projects',
+                (20, 'NUMERIC'), (100, 'NUMERIC'), (None, 'UNLIMITED')),
             ('saved_searches_limit', 'Saved search queries',
                 (1, 'NUMERIC'), (10, 'NUMERIC'), (50, 'NUMERIC')),
             ('export_rows_per_month', 'Export data (CSV & Excel)',
-                (0, 'NUMERIC'), (200, 'NUMERIC'), (2000, 'NUMERIC')),
+                (20, 'NUMERIC'), (100, 'NUMERIC'), (None, 'UNLIMITED')),
+            ('crawler_rescan', 'On-demand crawler rescan requests',
+                (False, 'BOOLEAN'), (True, 'BOOLEAN'), (True, 'BOOLEAN')),
             ('alert_notifications', 'Matching & alert notifications',
                 ('Weekly Email', 'TEXT'),
                 ('Daily Matching Alerts', 'TEXT'),
@@ -277,7 +286,7 @@ class Command(BaseCommand):
                 ('1 Member', 'TEXT'),
                 ('Up to 3 Team Members', 'TEXT')),
             ('data_refresh_requests', 'On-demand company data refresh',
-                (False, 'BOOLEAN'), (False, 'BOOLEAN'), (True, 'BOOLEAN')),
+                (False, 'BOOLEAN'), (True, 'BOOLEAN'), (True, 'BOOLEAN')),
             ('research_workspace', 'Research workspace',
                 (False, 'BOOLEAN'),
                 ('Advanced Dashboard', 'TEXT'),
@@ -287,9 +296,9 @@ class Command(BaseCommand):
                 ('Standard Email Support', 'TEXT'),
                 ('Priority Dedicated Support', 'TEXT')),
             ('trial_period', 'Trial period',
-                ('No Trial (Free)', 'TEXT'),
                 ('14 Days Free Trial', 'TEXT'),
-                ('14 Days Free Trial', 'TEXT')),
+                ('No Trial', 'TEXT'),
+                ('No Trial', 'TEXT')),
             ('billing_flexibility', 'Billing options',
                 ('Free Forever', 'TEXT'),
                 ('Monthly & Annual Billing', 'TEXT'),

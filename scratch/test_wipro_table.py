@@ -9,3 +9,4 @@ for table in soup.find_all(['table', 'ul', 'div']):
         print("Found container:", table.name, table.get('class'))
         print(table.get_text(' ', strip=True)[:300])
         break
+

@@ -22,3 +22,4 @@ for name, url in portals.items():
         print(f"[{r.status_code}] {name}: {url}")
     except Exception as e:
         print(f"[ERR] {name}: {e}")
+

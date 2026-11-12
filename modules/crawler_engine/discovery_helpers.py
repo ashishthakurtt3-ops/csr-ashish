@@ -101,7 +101,26 @@ CORE_ROLE_NOUNS = {
     'attorney', 'advocate', 'paralegal', 'underwriter', 'actuary', 'instructor',
     'trainer', 'inspector', 'writer', 'expert', 'fellow', 'worker', 'helper',
     'agent', 'qa', 'devops', 'sre', 'dba', 'sde', 'post of director', 'estágio',
-    'mgr', 'partner', 'president', 'chief'
+    'mgr', 'partner', 'president', 'chief', 'physician', 'doctor', 'nurse', 'pharmacist'
+}
+
+JOB_DISCIPLINE_WORDS = {
+    'senior', 'junior', 'lead', 'principal', 'staff', 'chief', 'associate', 'assistant', 'deputy',
+    'field', 'service', 'services', 'project', 'projects', 'product', 'products', 'program', 'programs',
+    'plant', 'branch', 'store', 'sales', 'marketing', 'finance', 'financial', 'account', 'accounts',
+    'operations', 'operation', 'operational', 'supply', 'chain', 'human', 'resources', 'hr', 'talent',
+    'client', 'clients', 'customer', 'customers', 'technical', 'technology', 'tech', 'general', 'regional',
+    'area', 'zonal', 'global', 'business', 'quality', 'safety', 'security', 'risk', 'compliance',
+    'credit', 'legal', 'digital', 'data', 'cloud', 'software', 'hardware', 'network', 'systems', 'system',
+    'site', 'civil', 'mechanical', 'electrical', 'chemical', 'mining', 'production', 'maintenance',
+    'logistics', 'procurement', 'warehouse', 'inventory', 'shift', 'line', 'unit', 'office', 'portfolio',
+    'asset', 'wealth', 'relationship', 'audit', 'tax', 'treasury', 'underwriting', 'claims', 'medical',
+    'clinical', 'research', 'lab', 'testing', 'facilities', 'environmental', 'sustainability', 'brand',
+    'content', 'media', 'public', 'community', 'strategy', 'strategic', 'transformation', 'innovation',
+    'design', 'devops', 'infrastructure', 'automation', 'it', 'ai', 'ml', 'bi', 'erp', 'crm', 'sap',
+    'commercial', 'corporate', 'group', 'executive', 'division', 'enterprise', 'growth',
+    'manufacturing', 'engineering', 'development', 'solutions', 'delivery', 'consulting', 'advisory',
+    'continuous', 'improvement'
 }
 
 INDIAN_STATES_CITIES = {
@@ -140,10 +159,16 @@ def is_valid_job_title(title: Optional[str]) -> bool:
             return False
 
     # 3. Reject personal names with salutations or executive quotes (e.g. "Mitika Bajpai Deputy General Manager", "Mr. Gopikrishna Shenoy...")
-    if re.match(r'^(mr|ms|mrs|dr|prof)\.?\s+[a-z]+', t, re.IGNORECASE):
+    if re.match(r'^(mr|ms|mrs|dr|prof|shri|smt)\.?\s+[a-z]+', t, re.IGNORECASE):
         return False
-    if re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+\s+(Deputy General Manager|General Manager|Chief|Director|Officer|Lead|Manager)', t):
+    if re.search(r'\b(says|said|shares|shared|speaks|spoke|testimonial|quote)\b', t_lower):
         return False
+    words = t_clean.split()
+    if len(words) >= 3 and re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+\s+(Deputy General Manager|General Manager|Chief|Director|Officer|Lead|Leader|Manager)', t):
+        w0 = words[0].lower()
+        w1 = words[1].lower()
+        if w0 not in JOB_DISCIPLINE_WORDS and w1 not in JOB_DISCIPLINE_WORDS:
+            return False
 
     # 4. Reject banking/financial products, account types, and loan categories
     if re.search(r'\b(senior citizen account|senior citizen|loan against|loans against|sme loan|sme loans|business loan|home loan|personal loan|gold loan|demat account|savings account|current account|credit card|debit card|fixed deposit|recurring deposit|banking comfort|premium offerings)\b', t_lower):
@@ -213,7 +238,10 @@ CSR_PROGRAM_INDICATORS = {
     'code unnati', 'sabbatical', 'bridge it', 'ignite my future', 'goit', 'jyoti',
     'vasundhara', 'vidyaadhanam', 'sparsh', 'upbridge', 'shwet', 'social', 'parivartan',
     'nanhi kali', 'samuday', 'mansi', 'bajaj beyond', 'boond', 'vidushi', 'satya bharti',
-    'colour academy', 'palliative care', 'vidya mandir', 'academy', 'institute', 'training', 'road safety'
+    'colour academy', 'palliative care', 'vidya mandir', 'academy', 'institute', 'training', 'road safety',
+    'skillsbuild', 'impact accelerator', 'call for code', 'ai for good', 'accelerator', 'philanthropies',
+    'community impact', 'sustainability initiative', 'climate', 'net zero', 'grant', 'giving', 'stewardship',
+    'fellows', 'stem', 'digital literacy', 'green'
 }
 
 def is_valid_csr_project(name: Optional[str]) -> bool:
@@ -241,13 +269,14 @@ ENTERPRISE_PORTAL_REGISTRY = {
     'tata consultancy': 'https://www.tcs.com/careers/india',
     'tcs': 'https://www.tcs.com/careers/india',
     'infosys': 'https://career.infosys.com/',
-    'microsoft': 'https://careers.microsoft.com/professionals/us/en/search-results?q=India',
+    'microsoft': 'https://jobs.careers.microsoft.com/global/en/search?lc=India',
     'reliance': 'https://careers.ril.com/rilcareers/frmjobsearch.Aspx',
     'ril': 'https://careers.ril.com/rilcareers/frmjobsearch.Aspx',
     'samsung': 'https://sec.wd3.myworkdayjobs.com/Samsung_Careers',
     'amazon': 'https://amazon.jobs/en/search?country=IND',
     'google': 'https://www.google.com/about/careers/applications/jobs/results/?location=India',
-    'hcl': 'https://www.hcltech.com/careers',
+    'hcl': 'https://careers.hcltech.com/',
+    'hcltech': 'https://careers.hcltech.com/',
     'wipro': 'https://careers.wipro.com/search',
     'icici': 'https://www.icicicareers.com/CareerApplicant/Career/SearchJob',
     'hdfc': 'https://hdfcbank.taleo.net/careersection/ex/jobsearch.ftl',
@@ -256,9 +285,16 @@ ENTERPRISE_PORTAL_REGISTRY = {
     'larsen': 'https://www.larsentoubro.com/corporate/careers/',
     'l&t': 'https://www.larsentoubro.com/corporate/careers/',
     'tata motors': 'https://careers.tatamotors.com/go/View-All-Opportunities/3505801/',
-    'tata steel': 'https://tslhr.tatasteel.co.in/recruit/',
-    'maruti': 'https://www.marutisuzuki.com/corporate/careers',
+    'tata steel': 'https://www.tatasteel.com/careers/',
+    'maruti': 'https://maruti.app.param.ai/jobs/',
+    'maruti suzuki': 'https://maruti.app.param.ai/jobs/',
+    'ibm': 'https://www.ibm.com/careers/search?q=India',
+    'adobe': 'https://careers.adobe.com/us/en/search-results?qcountry=India',
     'sap': 'https://jobs.sap.com/',
+    'pfizer': 'https://pfizer.wd1.myworkdayjobs.com/PfizerCareers',
+    'jpmorgan': 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/requisitions?keyword=India',
+    'jpmc': 'https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/requisitions?keyword=India',
+    'hsbc': 'https://mycareer.hsbc.com/en_GB/external',
     'axis bank': 'https://www.axisbank.com/careers',
     'state bank': 'https://sbi.co.in/web/careers/current-openings',
     'sbi': 'https://sbi.co.in/web/careers/current-openings',
@@ -271,7 +307,7 @@ ENTERPRISE_PORTAL_REGISTRY = {
     'asian paints': 'https://www.asianpaints.com/careers.html',
     'bajaj': 'https://www.bajajauto.com/careers',
     'hindalco': 'https://www.hindalco.com/careers',
-    'ntpc': 'https://careers.ntpc.co.in/recruitment/',
+    'ntpc': 'https://www.ntpc.co.in/jobs-ntpc',
     'ongc': 'https://ongcindia.com/web/eng/career',
     'power grid': 'https://www.powergrid.in/careers',
     'coal india': 'https://www.coalindia.in/career-cil/',
@@ -279,8 +315,8 @@ ENTERPRISE_PORTAL_REGISTRY = {
     'bpcl': 'https://www.bharatpetroleum.in/careers/',
     'indian oil': 'https://iocl.com/latest-job-opening',
     'iocl': 'https://iocl.com/latest-job-opening',
-    'hindustan unilever': 'https://www.unilever.com/careers/',
-    'hul': 'https://www.unilever.com/careers/',
+    'hindustan unilever': 'https://www.hul.co.in/careers/',
+    'hul': 'https://www.hul.co.in/careers/',
     'nestle': 'https://www.nestle.in/jobs',
     'ultratech': 'https://www.ultratechcement.com/careers',
     'jsw': 'https://www.jsw.in/careers',
@@ -299,41 +335,117 @@ ENTERPRISE_PORTAL_REGISTRY = {
 ENTERPRISE_CSR_REGISTRY = {
     'tata consultancy': 'https://www.tcs.com/corporate-social-responsibility',
     'tcs': 'https://www.tcs.com/corporate-social-responsibility',
-    'infosys': 'https://www.infosys.com/infosys-foundation/',
-    'reliance': 'https://www.reliancefoundation.org/',
-    'ril': 'https://www.reliancefoundation.org/',
-    'maruti': 'https://www.marutisuzuki.com/corporate/sustainability/csr',
+    'infosys': 'https://www.infosys.org/',
+    'reliance': 'https://www.ril.com/about/corporate-social-responsibility',
+    'ril': 'https://www.ril.com/about/corporate-social-responsibility',
+    'maruti': 'https://www.marutisuzuki.com/corporate/investors/company-updates',
+    'maruti suzuki': 'https://www.marutisuzuki.com/corporate/investors/company-updates',
     'hdfc': 'https://www.hdfcbank.com/personal/about-us/corporate-social-responsibility',
     'icici': 'https://www.icicifoundation.org/',
     'wipro': 'https://wiprofoundation.org/',
-    'hcl': 'https://www.hclfoundation.org/',
-    'larsen': 'https://www.larsentoubro.com/corporate-social-responsibility/',
-    'l&t': 'https://www.larsentoubro.com/corporate-social-responsibility/',
-    'tata motors': 'https://www.tatamotors.com/sustainability/csr/',
-    'tata steel': 'https://www.tatasteel.com/corporate/sustainability/corporate-social-responsibility/',
-    'sap': 'https://www.sap.com/about/company/corporate-social-responsibility.html',
+    'hcl': 'https://www.hcltech.com/sustainability',
+    'larsen': 'https://www.larsentoubro.com/corporate/sustainability/',
+    'l&t': 'https://www.larsentoubro.com/corporate/sustainability/',
+    'tata motors': 'https://www.tatamotors.com/corporate-responsibility/planet-resilience/',
+    'tata steel': 'https://www.tatasteel.com/sustainability/',
+    'sap': 'https://www.sap.com/corporate/en/company/sustainability-csr.html',
     'amazon': 'https://www.aboutamazon.in/impact/community/csr-policy',
     'microsoft': 'https://www.microsoft.com/en-in/about/csr',
-    'mahindra': 'https://www.mahindra.com/sustainability/corporate-social-responsibility',
+    'google': 'https://www.google.org/',
+    'ibm': 'https://www.ibm.com/impact',
+    'adobe': 'https://www.adobe.com/corporate-responsibility.html',
+    'mahindra': 'https://www.mahindra.com/sustainability',
     'itc': 'https://www.itcportal.com/sustainability/',
     'asian paints': 'https://www.asianpaints.com/more/csr.html',
     'sun pharma': 'https://sunpharma.com/csr/',
-    'bajaj': 'https://www.bajajauto.com/about-us/corporate-social-responsibility',
+    'bajaj': 'https://www.bajajbeyond.com/',
     'airtel': 'https://www.bhartifoundation.org/',
     'bharti': 'https://www.bhartifoundation.org/',
-    'ultratech': 'https://www.ultratechcement.com/sustainability/corporate-social-responsibility',
+    'ultratech': 'https://www.ultratechcement.com/corporate/sustainability/sustainability',
     'jsw': 'https://www.jsw.in/foundation',
     'adani': 'https://www.adanifoundation.org/',
     'tech mahindra': 'https://techmahindrafoundation.org/',
     'dr. reddy': 'https://www.drreddysfoundation.org/',
-    'cipla': 'https://www.ciplafoundation.org/'
+    'cipla': 'https://www.ciplafoundation.org/',
+    'pfizer': 'https://www.pfizer.com/about/responsibility',
+    'jpmorgan': 'https://www.jpmorganchase.com/impact',
+    'jpmc': 'https://www.jpmorganchase.com/impact',
+    'hsbc': 'https://www.hsbc.com/who-we-are/hsbc-and-sustainability',
+    'samsung': 'https://www.samsung.com/in/sustainability/environment/',
+    'hcltech': 'https://www.hcltech.com/sustainability'
 }
+
+def get_registrable_domain(url_or_host: str) -> str:
+    """
+    Extracts the registrable domain (eTLD+1) from a URL or hostname.
+    E.g. 'https://careers.tatamotors.com/jobs/1' -> 'tatamotors.com'
+    'https://tslhr.tatasteel.co.in/recruit/' -> 'tatasteel.co.in'
+    'https://sec.wd3.myworkdayjobs.com/Samsung_Careers' -> 'myworkdayjobs.com'
+    """
+    if not url_or_host:
+        return ""
+    if "://" in url_or_host:
+        host = urllib.parse.urlparse(url_or_host).netloc.lower()
+    else:
+        host = url_or_host.lower().split('/')[0]
+    host = host.split(':')[0].replace('www.', '').strip('.')
+    parts = host.split('.')
+    if len(parts) <= 2:
+        return host
+    two_part_suffixes = {'co.in', 'com.au', 'co.uk', 'org.in', 'gov.in', 'ac.in', 'net.in', 'gen.in'}
+    if len(parts) >= 3 and f"{parts[-2]}.{parts[-1]}" in two_part_suffixes:
+        return ".".join(parts[-3:])
+    return ".".join(parts[-2:])
+
+
+ALLOWED_ATS_HOSTS = {
+    'myworkdayjobs.com',
+    'oraclecloud.com',
+    'successfactors.com',
+    'greenhouse.io',
+    'lever.co',
+    'smartrecruiters.com',
+    'ashbyhq.com',
+    'icims.com',
+    'taleo.net',
+    'param.ai',
+    'ripplehire.com',
+    'darwinbox.in',
+    'darwinbox.com',
+    'peoplestrong.com',
+    'phenompeople.com',
+    'phenom.com',
+}
+
+
+def is_allowed_domain_or_ats(target_url: str, company_domain_or_url: str) -> bool:
+    """
+    Validates whether a URL belongs to the company's registrable domain, a known subdomain,
+    an approved third-party enterprise ATS host, or a common brand root domain match.
+    """
+    if not target_url:
+        return False
+    target_reg = get_registrable_domain(target_url)
+    company_reg = get_registrable_domain(company_domain_or_url)
+    if company_reg and target_reg == company_reg:
+        return True
+    if any(target_reg.endswith(ats) or ats in target_reg for ats in ALLOWED_ATS_HOSTS):
+        return True
+    if company_reg and target_reg:
+        c_root = company_reg.split('.')[0].lower()
+        t_root = target_reg.split('.')[0].lower()
+        if len(c_root) >= 4 and len(t_root) >= 4 and (c_root in t_root or t_root in c_root):
+            return True
+    return False
+
 
 def derive_deep_job_url(careers_url: str, comp_name: str, job_title: str, existing_url: str = "", req_id: str = "") -> str:
     """
     Constructs an authentic, working application URL for a job vacancy.
-    Preserves real ATS/portal deep links, maps known enterprises to their live recruitment portals,
-    and never fabricates fake MD5 hash parameters or broken image URLs.
+    STRICT RULES:
+    1. Returns ONLY URLs actually found in the DOM, an API response, or JSON-LD.
+    2. NEVER falls back to the careers-portal landing page, homepage, or search links.
+    3. If no authentic job-level URL exists, returns empty string so the validator can drop it.
     """
     comp_lower = comp_name.strip().lower()
 
@@ -345,25 +457,36 @@ def derive_deep_job_url(careers_url: str, comp_name: str, job_title: str, existi
             clean_u = re.sub(r'#job-[A-F0-9]{4,16}$', '', clean_u, flags=re.IGNORECASE)
             clean_u = re.sub(r'#:~:text=.*$', '', clean_u, flags=re.IGNORECASE)
 
-            # Strictly reject candidate login walls, account signin portals, and session walls
+            # Strictly reject candidate login walls, account signin portals, session walls, and non-job corporate pages
             if any(bad in clean_u.lower() for bad in [
                 '/candidate/?', '/candidate/', 'candidate.tcsapps.com', 'ibegin.tcsapps.com/candidate',
-                'signin', 'auth/login', 'accounts.google', 'login.microsoftonline'
+                'signin', 'auth/login', 'accounts.google', 'login.microsoftonline',
+                '/policy-positions', '/programs-policies', '/about-us', '/who-we-are',
+                '/investor', '/fixed-income', '/press-releases', '/culture', '/media',
+                '/contact-us', '/terms', '/privacy', 'sustainability-and-technology',
+                '/news/', '/notice', '/fraudulent', '/our-people', '/diversity', '/equal-opportunities',
+                'business-opportunit', 'equal-opportunit'
             ]):
-                clean_u = ""
-            elif any(k in u_str.lower() for k in [
+                return ""
+            
+            # Reject bare landing pages masquerading as direct apply links
+            parsed_u = urlparse(clean_u)
+            clean_path = parsed_u.path.strip('/').lower()
+            if clean_path in ('', 'careers', 'career', 'jobs', 'job', 'home', 'corporate/careers', 'about/careers'):
+                return ""
+
+            if any(k in u_str.lower() for k in [
                 '/job/', 'jobid=', 'jobreferencecode=', '/jobs/', '/apply', 'req=', 'id=',
                 'frmjobsearch.aspx', 'workdayjobs.com', 'amazon.jobs', 'lever.co',
                 'greenhouse.io', 'smartrecruiters.com', 'darwinbox', 'peoplestrong.com',
-                'taleo.net', 'oraclecloud.com', 'successfactors'
+                'taleo.net', 'oraclecloud.com', 'successfactors', 'param.ai'
             ]):
                 return clean_u
             elif clean_u:
-                parsed_u = urlparse(clean_u)
-                if parsed_u.path.strip('/') not in ('', 'careers', 'career', 'jobs', 'job', 'home'):
+                if any(k in clean_path for k in ['opening', 'vacancy', 'detail', 'position', 'role']):
                     return clean_u
 
-    # 2. If requisition ID is present, construct authentic deep ATS link ONLY for platforms with direct ID routes:
+    # 2. If requisition ID is present, construct authentic deep ATS link ONLY for platforms with verified direct ID routes:
     if req_id and str(req_id).strip():
         req_clean = str(req_id).strip()
         # Strictly reject synthetic AI-hallucinated pattern IDs
@@ -374,47 +497,34 @@ def derive_deep_job_url(careers_url: str, comp_name: str, job_title: str, existi
                 return f"https://careers.ril.com/rilcareers/frmJobSearch.aspx?jbID={req_clean}"
             if 'samsung' in comp_lower:
                 return f"https://sec.wd3.myworkdayjobs.com/Samsung_Careers/job/{req_clean}"
+            if 'jpmorgan' in comp_lower or 'jpmc' in comp_lower:
+                return f"https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/{req_clean}"
 
-    # 3. Check enterprise verified portal registry for targeted deep job search:
-    for k, portal in ENTERPRISE_PORTAL_REGISTRY.items():
-        if k in comp_lower:
-            return portal
+    # ZERO FALLBACK RULE: Never guess, never assign careers portal URL, never assign homepage
+    return ""
 
-    # 4. Fallback: Clean and return the company's verified careers_url
-    if careers_url and str(careers_url).startswith(('http://', 'https://')):
-        c_clean = str(careers_url).strip()
-        if not is_static_asset_url(c_clean):
-            return re.sub(r'\?.*$', '', c_clean).rstrip('/')
-
-    return f"https://www.google.com/search?q={urllib.parse.quote_plus(comp_name + ' careers jobs apply')}"
 
 def resolve_authentic_csr_url(csr_url: str, comp_name: str, project_name: str = "") -> str:
     """
     Constructs an authentic, verified Section 135 CSR portal URL.
-    Preserves deep initiative pages and avoids degrading them to generic portals.
+    Preserves deep initiative pages and rejects non-CSR pages.
     """
-    # 1. If an explicit, valid project-level URL was discovered, PRESERVE IT!
     if csr_url and str(csr_url).startswith(('http://', 'https://')):
         c_clean = str(csr_url).strip()
         c_clean = re.sub(r'#:~:text=.*$', '', c_clean, flags=re.IGNORECASE)
         if not is_static_asset_url(c_clean):
-            parsed = urlparse(c_clean)
-            path_clean = parsed.path.strip('/')
-            if path_clean and path_clean not in ('', 'csr', 'sustainability', 'about-us'):
-                return re.sub(r'([?&])(utm_[^&]+|fbclid=[^&]+|ref=[^&]+)', '', c_clean).rstrip('&?/')
+            # Block invalid or blacklist pages
+            if any(b in c_clean.lower() for b in ['404', 'notfound', 'accessdenied', 'signin', 'login']):
+                return ""
+            return re.sub(r'([?&])(utm_[^&]+|fbclid=[^&]+|ref=[^&]+)', '', c_clean).rstrip('&?/')
 
-    # 2. Check enterprise CSR registry for authoritative foundation/CSR portal
+    # Check enterprise CSR registry for authoritative foundation/CSR portal
     comp_lower = comp_name.strip().lower()
     for k, portal in ENTERPRISE_CSR_REGISTRY.items():
         if k in comp_lower:
             return portal
 
-    if csr_url and str(csr_url).startswith(('http://', 'https://')):
-        c_clean = str(csr_url).strip()
-        if not is_static_asset_url(c_clean):
-            return re.sub(r'\?.*$', '', c_clean).rstrip('/')
-
-    return f"https://www.google.com/search?q={urllib.parse.quote_plus(comp_name + ' corporate social responsibility CSR Section 135')}"
+    return ""
 
 JOB_ACTION_PHRASES = re.compile(
     r'\b(apply\s+now|apply\s+for\s+this\s+job|view\s+job|view\s+openings|search\s+jobs|open\s+positions|explore\s+roles|current\s+openings|submit\s+application|job\s+details)\b',

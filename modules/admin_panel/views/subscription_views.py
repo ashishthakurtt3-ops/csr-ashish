@@ -261,6 +261,7 @@ def plan_list_view(request):
 
 def build_standardized_feature_bullets(limits_dict: dict, plan_name: str = "") -> list:
     """Builds canonical, standardized feature bullets driven strictly by the plan's numbers."""
+    browse_companies = limits_dict.get('browse_companies_limit')
     saved_records = limits_dict.get('saved_records_limit')
     saved_searches = limits_dict.get('saved_searches_limit')
     export_rows = limits_dict.get('export_rows_per_month')
@@ -271,54 +272,61 @@ def build_standardized_feature_bullets(limits_dict: dict, plan_name: str = "") -
     refresh_req = bool(limits_dict.get('request_company_refresh'))
     seats = limits_dict.get('seats') or 1
 
-    bullets = [
-        "Browse verified companies & CSR profiles",
-        "Search active corporate vacancies & Section 135 projects",
-        "View verified job & CSR details and original portal links",
-    ]
+    bullets = []
 
-    # 1. Saved Records
-    if saved_records is None:
-        bullets.append("Unlimited saved jobs & CSR projects")
-    elif saved_records > 0:
-        bullets.append(f"Save up to {saved_records} combined jobs & CSR projects")
+    # 1. Browse Companies & Portals
+    if browse_companies is None or (isinstance(browse_companies, str) and browse_companies.lower() in ('unlimited', 'all', 'none')):
+        bullets.append("Browse full directory of all verified companies & corporate portals")
+    elif isinstance(browse_companies, int) and browse_companies > 0:
+        bullets.append(f"Browse up to {browse_companies} verified companies & portals")
+    else:
+        bullets.append("Browse verified companies & CSR profiles")
 
-    # 2. Saved Searches
-    if saved_searches is None:
+    bullets.append("Search active corporate vacancies & Section 135 projects")
+    bullets.append("View verified job & CSR details and original portal links")
+
+    # 2. Saved Records
+    if saved_records is None or (isinstance(saved_records, str) and str(saved_records).lower() in ('unlimited', 'all', 'none')):
+        bullets.append("Unlimited saved companies, jobs & CSR projects")
+    elif isinstance(saved_records, int) and saved_records > 0:
+        bullets.append(f"Save up to {saved_records} combined companies, jobs & CSR projects")
+
+    # 3. Saved Searches
+    if saved_searches is None or (isinstance(saved_searches, str) and str(saved_searches).lower() in ('unlimited', 'all', 'none')):
         bullets.append("Unlimited saved search queries")
-    elif saved_searches > 0:
+    elif isinstance(saved_searches, int) and saved_searches > 0:
         bullets.append(f"Save up to {saved_searches} custom search {'queries' if saved_searches > 1 else 'query'}")
 
-    # 3. Export Data
-    if export_rows is None:
+    # 4. Export Data
+    if export_rows is None or (isinstance(export_rows, str) and str(export_rows).lower() in ('unlimited', 'all', 'none')):
         bullets.append("Unlimited bulk data exports (CSV & Excel)")
-    elif export_rows > 0:
+    elif isinstance(export_rows, int) and export_rows > 0:
         bullets.append(f"Export up to {export_rows:,} records / month (CSV & Excel)")
 
-    # 4. Company Comparison
+    # 5. Crawler Rescan
+    if refresh_req:
+        bullets.append("On-demand company crawler rescan requests")
+
+    # 6. Company Comparison
     if compare_comp is None or (isinstance(compare_comp, int) and compare_comp > 15):
         bullets.append("Comprehensive multi-company comparison tool")
     elif isinstance(compare_comp, int) and compare_comp > 0:
         bullets.append(f"Compare up to {compare_comp} companies side-by-side")
 
-    # 5. Alert Frequency
+    # 7. Alert Frequency
     freq_label = "Instant Real-Time" if alert_freq in ('custom', 'instant', 'real-time') else ("Daily" if alert_freq == 'daily' else "Weekly")
     bullets.append(f"{freq_label} job & CSR alert notifications")
 
-    # 6. Search Filters
+    # 8. Search Filters
     bullets.append("Advanced multi-dimensional search filters" if adv_filters else "Standard search filters")
 
-    # 7. Refresh Requests
-    if refresh_req:
-        bullets.append("On-demand company data refresh requests")
-
-    # 8. Team Seats
+    # 9. Team Seats
     if seats > 1:
         bullets.append(f"Up to {seats} team member accounts")
     else:
         bullets.append("Single user account")
 
-    # 9. Support Level
+    # 10. Support Level
     bullets.append("Priority Dedicated Support 24/7" if prio_support else "Standard Email Support")
 
     return bullets
@@ -400,6 +408,7 @@ def plan_create_edit_view(request, code=None):
                 return None
 
         # Limits / entitlements (Three-Tier Plan Configuration)
+        browse_companies_val = _parse_opt_int(request.POST.get('limit_browse_companies'))
         saved_records_val = _parse_opt_int(request.POST.get('limit_saved_records'))
         saved_searches_val = _parse_opt_int(request.POST.get('limit_saved_searches'))
         compare_companies_val = _parse_opt_int(request.POST.get('limit_compare_companies'))
@@ -426,6 +435,7 @@ def plan_create_edit_view(request, code=None):
         export_limit_val = _parse_opt_int(request.POST.get('limit_export'))
 
         limits_dict = {
+            'browse_companies_limit': browse_companies_val,
             'saved_records_limit': saved_records_val,
             'saved_searches_limit': saved_searches_val,
             'compare_companies_limit': compare_companies_val,
@@ -488,17 +498,20 @@ def plan_create_edit_view(request, code=None):
 
         plan_obj, created = Plan.objects.update_or_create(code=plan_code, defaults=defaults)
 
-        # Update structured entitlements (strictly canonical 16-row keys)
+        # Update structured entitlements (strictly canonical 17-row keys)
         entitlements_spec = [
-            ('saved_records_limit', 'Saved jobs & CSR projects', PlanEntitlement.TYPE_UNLIMITED if saved_records_val is None else PlanEntitlement.TYPE_NUMERIC, saved_records_val, saved_records_val is None),
+            ('browse_companies', 'Browse verified companies & portals', PlanEntitlement.TYPE_UNLIMITED if browse_companies_val is None else PlanEntitlement.TYPE_NUMERIC, browse_companies_val, browse_companies_val is None),
+            ('saved_records_limit', 'Saved companies, jobs & CSR projects', PlanEntitlement.TYPE_UNLIMITED if saved_records_val is None else PlanEntitlement.TYPE_NUMERIC, saved_records_val, saved_records_val is None),
             ('saved_searches_limit', 'Saved search queries', PlanEntitlement.TYPE_UNLIMITED if saved_searches_val is None else PlanEntitlement.TYPE_NUMERIC, saved_searches_val, saved_searches_val is None),
             ('export_rows_per_month', 'Export data (CSV & Excel)', PlanEntitlement.TYPE_UNLIMITED if export_rows_val is None else PlanEntitlement.TYPE_NUMERIC, export_rows_val, export_rows_val is None),
+            ('crawler_rescan', 'On-demand crawler rescan requests', PlanEntitlement.TYPE_BOOLEAN, refresh_req, False),
+            ('data_refresh_requests', 'On-demand company data refresh', PlanEntitlement.TYPE_BOOLEAN, refresh_req, False),
             ('company_comparison', 'Company comparison tool', PlanEntitlement.TYPE_TEXT, (f"Up to {compare_companies_val} Companies" if compare_companies_val else "Advanced Comparison") if compare_companies_val != 0 else False, False),
             ('alert_notifications', 'Matching & alert notifications', PlanEntitlement.TYPE_TEXT, f"{alert_freq.title()} Alerts", False),
             ('search_filters', 'Search & filter capabilities', PlanEntitlement.TYPE_TEXT, 'Advanced Filters' if adv_filters else 'Basic Filters', False),
-            ('data_refresh_requests', 'On-demand company data refresh', PlanEntitlement.TYPE_BOOLEAN, refresh_req, False),
             ('support_level', 'Customer support', PlanEntitlement.TYPE_TEXT, 'Priority Dedicated Support' if prio_support else 'Standard Email Support', False),
             ('team_members', 'Team members / account seats', PlanEntitlement.TYPE_TEXT, f"Up to {seats} Team Members" if seats > 1 else "1 Member", False),
+            ('trial_period', 'Trial period', PlanEntitlement.TYPE_TEXT, f"{trial_days} Days Free Trial" if trial_days > 0 else "No Trial", False),
         ]
 
         for k, dname, etype, val, is_unlim in entitlements_spec:

@@ -37,7 +37,6 @@ class AdminRoleMiddleware:
                 ):
                     from django.http import JsonResponse
                     return JsonResponse({'success': False, 'error': 'Access denied: Administrative privileges required.'}, status=403)
-                messages.error(request, "Access denied: Administrative privileges required.")
                 return redirect('/')
 
         response = self.get_response(request)

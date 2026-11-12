@@ -1,23 +1,19 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}All Jobs — Job Market Intelligence{% endblock %}
-{% block page_title %}Job Intelligence Management Catalog ({{ total_count }} Openings){% endblock %}
+{% block title %}Jobs Catalog &amp; Discovery — Job Market Intelligence{% endblock %}
+{% block page_title %}Jobs Catalog &amp; Discovery ({{ total_count }} Openings){% endblock %}
 
 {% block content %}
 <!-- Jobs Sub-navigation Pills -->
-<div class="jobs-nav-pills">
+<div class="jobs-nav-pills" style="margin-bottom:20px;">
     <a href="{% url 'admin_jobs:list' %}" class="jobs-nav-pill active">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-        <span>All Jobs (Table)</span>
-        <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">Active</span>
+        <span>Jobs Catalog &amp; Discovery</span>
+        <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">{{ total_count }} Openings</span>
     </a>
     <a href="{% url 'admin_jobs:link_quality' %}" class="jobs-nav-pill">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <span>Link Quality Dashboard</span>
-    </a>
-    <a href="{% url 'admin_jobs:find' %}" class="jobs-nav-pill">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span>Find Jobs (Discovery)</span>
     </a>
     <a href="{% url 'admin_jobs:companies' %}" class="jobs-nav-pill">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -25,55 +21,222 @@
     </a>
 </div>
 
-<div class="admin-card">
-    <!-- Filter and Toolbar Row -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:980px; flex-wrap:wrap;">
-            <input type="text" name="q" value="{{ q }}" placeholder="Search title, company, skills, location..." class="search-input" style="flex:2; min-width:180px; height:40px;">
-            
-            <select name="work_mode" class="select-filter" style="flex:1; min-width:120px; height:40px;">
-                <option value="all">Work Mode</option>
-                <option value="Hybrid" {% if selected_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
-                <option value="On-site" {% if selected_mode == "On-site" %}selected{% endif %}>On-site</option>
-                <option value="Remote" {% if selected_mode == "Remote" %}selected{% endif %}>Remote</option>
-            </select>
+<!-- Unified Search, Filter & View Controls -->
+<div class="admin-card" style="padding:20px; margin-bottom:20px;">
+    <form method="GET" action="{% url 'admin_jobs:list' %}">
+        <input type="hidden" name="view" value="{{ view_mode }}">
 
-            <select name="link_quality" class="select-filter" style="flex:1; min-width:140px; height:40px;">
-                <option value="all">Link Quality (All)</option>
-                <option value="DIRECT" {% if selected_link_quality == "DIRECT" %}selected{% endif %}>Direct URL</option>
-                <option value="LISTING_FALLBACK" {% if selected_link_quality == "LISTING_FALLBACK" %}selected{% endif %}>Listing Fallback</option>
-                <option value="UNVERIFIED" {% if selected_link_quality == "UNVERIFIED" %}selected{% endif %}>Unverified</option>
-            </select>
+        <!-- Top Search Bar & View Mode Switcher -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px;">
+            <div style="position:relative; flex:1; min-width:260px;">
+                <svg style="position:absolute; left:14px; top:50%; transform:translateY(-50%); width:17px; height:17px; color:var(--text-muted);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search job title, skills keywords, location, or company..." style="width:100%; box-sizing:border-box; height:42px; padding:0 16px 0 42px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+            </div>
 
-            <select name="link_status" class="select-filter" style="flex:1; min-width:130px; height:40px;">
-                <option value="all">Link Status</option>
-                <option value="SOURCE_CONFIRMED" {% if selected_link_status == "SOURCE_CONFIRMED" %}selected{% endif %}>Source Confirmed</option>
-                <option value="PUBLISHED" {% if selected_link_status == "PUBLISHED" %}selected{% endif %}>Published</option>
-                <option value="PENDING" {% if selected_link_status == "PENDING" %}selected{% endif %}>Pending</option>
-                <option value="DEAD_LINK" {% if selected_link_status == "DEAD_LINK" %}selected{% endif %}>Dead Link</option>
-            </select>
+            <!-- View Mode Switcher + Export Toolbar -->
+            <div style="display:flex; gap:10px; align-items:center;">
+                <!-- View Mode Segmented Switcher -->
+                <div style="display:inline-flex; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; padding:3px; gap:3px;">
+                    <a href="?view=table&q={{ q|urlencode }}&location={{ location|urlencode }}&work_mode={{ work_mode|urlencode }}&experience={{ experience|urlencode }}&department={{ department|urlencode }}&link_quality={{ link_quality|urlencode }}&link_status={{ link_status|urlencode }}&details_status={{ details_status|urlencode }}&sort={{ sort|urlencode }}"
+                       class="btn-admin {% if view_mode == 'table' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}"
+                       style="padding:6px 14px; font-size:12.5px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; {% if view_mode != 'table' %}border:none; background:transparent; color:var(--text-secondary);{% endif %}"
+                       title="Table View (Full Columns & Actions)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        <span>Table View</span>
+                    </a>
+                    <a href="?view=cards&q={{ q|urlencode }}&location={{ location|urlencode }}&work_mode={{ work_mode|urlencode }}&experience={{ experience|urlencode }}&department={{ department|urlencode }}&link_quality={{ link_quality|urlencode }}&link_status={{ link_status|urlencode }}&details_status={{ details_status|urlencode }}&sort={{ sort|urlencode }}"
+                       class="btn-admin {% if view_mode == 'cards' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}"
+                       style="padding:6px 14px; font-size:12.5px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; {% if view_mode != 'cards' %}border:none; background:transparent; color:var(--text-secondary);{% endif %}"
+                       title="Card Discovery View (Interactive Job Cards)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        <span>Discovery Cards</span>
+                    </a>
+                </div>
 
-            <select name="details_status" class="select-filter" style="flex:1; min-width:130px; height:40px;">
-                <option value="all">Details (All)</option>
-                <option value="COMPLETE" {% if selected_details_status == "COMPLETE" %}selected{% endif %}>Complete</option>
-                <option value="PARTIAL" {% if selected_details_status == "PARTIAL" %}selected{% endif %}>Partial</option>
-                <option value="MISSING" {% if selected_details_status == "MISSING" %}selected{% endif %}>Missing</option>
-                <option value="FAILED" {% if selected_details_status == "FAILED" %}selected{% endif %}>Failed</option>
-            </select>
+                {% include "admin/components/exchange_toolbar.html" with entity="jobs" title="Jobs" %}
+            </div>
+        </div>
 
-            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
-            <a href="{% url 'admin_jobs:list' %}?duplicates=1" class="btn-secondary" style="height:40px; padding:0 12px; display:inline-flex; align-items:center; {% if show_duplicates %}background:#FEF3C7; color:#92400E; font-weight:700; border-color:#F59E0B;{% endif %}" title="Show potential duplicate postings">
-                🔍 {% if show_duplicates %}Showing Duplicates{% else %}Show Duplicates{% endif %}
-            </a>
-            {% if q or selected_mode != 'all' and selected_mode or selected_link_status != 'all' and selected_link_status or selected_link_quality != 'all' and selected_link_quality or selected_details_status != 'all' and selected_details_status or show_duplicates %}
-            <a href="{% url 'admin_jobs:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
-            {% endif %}
-        </form>
+        <!-- Faceted Filters Row -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; align-items:center;">
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Location</label>
+                <select name="location" class="select-filter" style="width:100%; height:38px;">
+                    <option value="all">All Locations</option>
+                    {% for loc in top_locations %}
+                    <option value="{{ loc }}" {% if location == loc %}selected{% endif %}>{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        {% include "admin/components/exchange_toolbar.html" with entity="jobs" title="Jobs" %}
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Work Mode</label>
+                <select name="work_mode" class="select-filter" style="width:100%; height:38px;">
+                    <option value="all">All Work Modes</option>
+                    <option value="Hybrid" {% if work_mode == "Hybrid" or selected_mode == "Hybrid" %}selected{% endif %}>Hybrid</option>
+                    <option value="On-site" {% if work_mode == "On-site" or selected_mode == "On-site" %}selected{% endif %}>On-site</option>
+                    <option value="Remote" {% if work_mode == "Remote" or selected_mode == "Remote" %}selected{% endif %}>Remote</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Experience</label>
+                <select name="experience" class="select-filter" style="width:100%; height:38px;">
+                    <option value="all">All Experience</option>
+                    <option value="entry" {% if experience == "entry" %}selected{% endif %}>Entry Level (0-2 Yrs)</option>
+                    <option value="mid" {% if experience == "mid" %}selected{% endif %}>Mid Level (3-5 Yrs)</option>
+                    <option value="senior" {% if experience == "senior" %}selected{% endif %}>Senior (6-9 Yrs)</option>
+                    <option value="lead" {% if experience == "lead" %}selected{% endif %}>Lead / Exec (10+ Yrs)</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Department</label>
+                <select name="department" class="select-filter" style="width:100%; height:38px;">
+                    <option value="all">All Departments</option>
+                    {% for d in top_departments %}
+                    <option value="{{ d }}" {% if department == d or selected_dept == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Link Quality</label>
+                <select name="link_quality" class="select-filter" style="width:100%; height:38px;">
+                    <option value="all">All Link Qualities</option>
+                    <option value="DIRECT" {% if link_quality == "DIRECT" or selected_link_quality == "DIRECT" %}selected{% endif %}>Direct URL</option>
+                    <option value="LISTING_FALLBACK" {% if link_quality == "LISTING_FALLBACK" or selected_link_quality == "LISTING_FALLBACK" %}selected{% endif %}>Listing Fallback</option>
+                    <option value="UNVERIFIED" {% if link_quality == "UNVERIFIED" or selected_link_quality == "UNVERIFIED" %}selected{% endif %}>Unverified</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px;">Sort By</label>
+                <select name="sort" class="select-filter" style="width:100%; height:38px;">
+                    <option value="newest" {% if sort == "newest" or selected_sort == "newest" or selected_sort == "recent" %}selected{% endif %}>Newest First</option>
+                    <option value="title" {% if sort == "title" or selected_sort == "title" %}selected{% endif %}>Job Title (A-Z)</option>
+                    <option value="company" {% if sort == "company" or selected_sort == "company" %}selected{% endif %}>Company Name</option>
+                    <option value="oldest" {% if sort == "oldest" or selected_sort == "oldest" %}selected{% endif %}>Oldest First</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:6px; align-items:flex-end; padding-top:19px;">
+                <button type="submit" class="btn-primary" style="height:38px; padding:0 14px; flex:1;">Filter</button>
+                {% if q or location or work_mode and work_mode != 'all' or experience and experience != 'all' or department and department != 'all' or link_quality and link_quality != 'all' or show_duplicates %}
+                <a href="{% url 'admin_jobs:list' %}?view={{ view_mode }}" class="btn-secondary" style="height:38px; padding:0 10px; display:inline-flex; align-items:center;" title="Reset Filters">Reset</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Results Counter -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding:0 4px;">
+    <div style="font-size:13.5px; color:var(--text-secondary); font-weight:500;">
+        Showing <strong style="color:var(--text-primary);">{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong style="color:var(--text-primary);">{{ total_count }}</strong> openings
+        {% if q %}for query "<em>{{ q }}</em>"{% endif %}
+        &bull; Mode: <strong>{% if view_mode == 'cards' %}Discovery Cards{% else %}Management Table{% endif %}</strong>
     </div>
+    <div>
+        <a href="{% url 'admin_jobs:list' %}?view={{ view_mode }}&duplicates=1" class="btn-secondary" style="height:32px; padding:0 10px; font-size:12px; display:inline-flex; align-items:center; {% if show_duplicates %}background:#FEF3C7; color:#92400E; font-weight:700; border-color:#F59E0B;{% endif %}" title="Filter potential duplicate postings">
+            🔍 {% if show_duplicates %}Showing Duplicates{% else %}Duplicates{% endif %}
+        </a>
+    </div>
+</div>
 
-    <!-- Data Table -->
+{% if view_mode == 'cards' %}
+<!-- ================= CARD DISCOVERY VIEW ================= -->
+<div class="job-card-grid">
+    {% for j in page_obj %}
+    <div class="job-discovery-card">
+        <div>
+            <div class="job-header-row">
+                <div>
+                    <h3 class="job-card-title">
+                        <a href="{% url 'admin_jobs:detail' j.job_row_id %}">{{ j.job_title }}</a>
+                    </h3>
+                </div>
+                <span class="badge-status {% if j.status == 'ACTIVE' %}badge-active{% else %}badge-pending{% endif %}">
+                    {{ j.status|default:"ACTIVE" }}
+                </span>
+            </div>
+
+            <!-- Clickable Company link -> Company Jobs Dashboard -->
+            <a href="{% url 'admin_jobs:company_jobs' j.company.company_id %}" class="job-company-badge" title="View all jobs for {{ j.company.company_name }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span>{{ j.company.company_name }}</span>
+            </a>
+
+            <!-- Meta Chips -->
+            <div class="job-meta-chips">
+                <span class="job-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>{{ j.location|default:"India" }}</span>
+                </span>
+                <span class="job-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>
+                    <span>{{ j.work_mode|default:"On-site" }}</span>
+                </span>
+                {% if j.experience %}
+                <span class="job-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ j.experience }}</span>
+                </span>
+                {% endif %}
+                {% if j.department %}
+                <span class="job-chip">
+                    <span>{{ j.department }}</span>
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Skills Chips -->
+            {% if j.skills %}
+            <div class="job-skills-chips" style="margin-top:10px;">
+                <span class="skill-pill">{{ j.skills|truncatechars:65 }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="job-card-footer">
+            <div class="job-post-date">
+                {% if j.last_checked_date %}
+                <span>Updated {{ j.last_checked_date|slice:":10" }}</span>
+                {% else %}
+                <span>Verified Active</span>
+                {% endif %}
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+                <a href="{% url 'admin_jobs:detail' j.job_row_id %}" class="btn-admin btn-admin-primary" style="padding:5px 12px; font-size:12px;">
+                    <span>View</span>
+                </a>
+                <a href="{% url 'admin_jobs:edit' j.job_row_id %}" class="btn-admin btn-admin-secondary" style="padding:5px 10px; font-size:12px;">
+                    <span>Edit</span>
+                </a>
+                {% if j.application_url %}
+                <a href="{% if j.link_quality == 'DIRECT' %}{{ j.canonical_url|default:j.application_url }}{% else %}{{ j.application_url }}{% endif %}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:5px 8px; font-size:12px;" title="Official Portal Link">
+                    <span>↗</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1;">
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <h3 class="empty-state-title">No Job Openings Found</h3>
+            <p class="empty-state-text">No job postings matched your current search filters. Try adjusting your search query, location, or experience criteria.</p>
+            <a href="{% url 'admin_jobs:list' %}?view=cards" class="btn-primary">Reset Filters &amp; View All Jobs</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<!-- ================= TABLE VIEW ================= -->
+<div class="admin-card" style="padding:0; overflow:hidden;">
     <div class="table-responsive">
         <table class="admin-table">
             <thead>
@@ -101,7 +264,6 @@
                     </td>
                     <td>
                         {% if j.company %}
-                        <!-- Clickable Company Name -> Company Jobs Dashboard -->
                         <a href="{% url 'admin_jobs:company_jobs' j.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;" title="View all jobs for {{ j.company.company_name }}">
                             {{ j.company.company_name }}
                         </a>
@@ -140,7 +302,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">
+                    <td colspan="8" style="text-align:center; padding:32px; color:var(--text-secondary);">
                         No job records match the selected filters. Try broadening your search.
                     </td>
                 </tr>
@@ -148,21 +310,24 @@
             </tbody>
         </table>
     </div>
-
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div class="pagination-bar">
-        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total openings)</div>
-        <div class="pagination-links">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&work_mode={{ selected_mode }}&link_status={{ selected_link_status }}" class="page-link-btn">&larr; Prev</a>
-            {% endif %}
-            <span class="page-link-btn active">{{ page_obj.number }}</span>
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&work_mode={{ selected_mode }}&link_status={{ selected_link_status }}" class="page-link-btn">Next &rarr;</a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
 </div>
+{% endif %}
+
+<!-- Pagination Bar -->
+{% if page_obj.has_other_pages %}
+<div class="pagination-bar" style="margin-top:20px;">
+    <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total openings)</div>
+    <div class="pagination-links">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&view={{ view_mode }}&q={{ q|urlencode }}&location={{ location|urlencode }}&work_mode={{ work_mode|urlencode }}&experience={{ experience|urlencode }}&department={{ department|urlencode }}&link_quality={{ link_quality|urlencode }}&link_status={{ link_status|urlencode }}&details_status={{ details_status|urlencode }}&sort={{ sort|urlencode }}" class="page-link-btn">&larr; Prev</a>
+        {% endif %}
+
+        <span class="page-link-btn active">{{ page_obj.number }}</span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&view={{ view_mode }}&q={{ q|urlencode }}&location={{ location|urlencode }}&work_mode={{ work_mode|urlencode }}&experience={{ experience|urlencode }}&department={{ department|urlencode }}&link_quality={{ link_quality|urlencode }}&link_status={{ link_status|urlencode }}&details_status={{ details_status|urlencode }}&sort={{ sort|urlencode }}" class="page-link-btn">Next &rarr;</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

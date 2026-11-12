@@ -8,13 +8,21 @@ from modules.admin_panel.models import Job, Company
 
 @login_required
 def job_list_view(request):
-    """All Jobs: Enterprise management table view."""
+    """Unified Jobs Management & Discovery Catalog."""
+    view_mode = request.GET.get('view', 'table').strip().lower()
+    if view_mode not in ('table', 'cards'):
+        view_mode = 'table'
+
     q = request.GET.get('q', '').strip()
+    location = request.GET.get('location', '').strip()
     work_mode = request.GET.get('work_mode', '').strip()
+    experience = request.GET.get('experience', '').strip()
     link_status = request.GET.get('link_status', '').strip()
+    link_quality = request.GET.get('link_quality', '').strip()
     company_id = request.GET.get('company_id', '').strip()
     department = request.GET.get('department', '').strip()
-    sort = request.GET.get('sort', 'recent')
+    details_status = request.GET.get('details_status', '').strip()
+    sort = request.GET.get('sort', 'newest' if view_mode == 'cards' else 'recent')
     page_num = request.GET.get('page', 1)
 
     show_historical = request.GET.get('historical', '').lower() in ('true', '1')
@@ -25,79 +33,6 @@ def job_list_view(request):
             status='ACTIVE',
             verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
         ).exclude(job_id__startswith='REQ')
-    if q:
-        qs = qs.filter(
-            Q(job_title__icontains=q) |
-            Q(company__company_name__icontains=q) |
-            Q(department__icontains=q) |
-            Q(skills__icontains=q) |
-            Q(location__icontains=q)
-        )
-    if company_id:
-        qs = qs.filter(company_id=company_id)
-    if work_mode and work_mode != 'all':
-        qs = qs.filter(work_mode=work_mode)
-    if department and department != 'all':
-        qs = qs.filter(department__icontains=department)
-    if link_status and link_status != 'all':
-        qs = qs.filter(link_status=link_status)
-    link_quality = request.GET.get('link_quality', '').strip()
-    if link_quality and link_quality != 'all':
-        qs = qs.filter(link_quality=link_quality)
-
-    details_status = request.GET.get('details_status', '').strip()
-    show_duplicates = request.GET.get('duplicates', '').strip().lower() in ('1', 'true', 'yes')
-
-    if details_status and details_status != 'all':
-        qs = qs.filter(details_status=details_status)
-
-    if show_duplicates:
-        dup_hashes = Job.objects.values('canonical_url_hash').annotate(cnt=Count('job_row_id')).filter(cnt__gt=1, canonical_url_hash__isnull=False).values_list('canonical_url_hash', flat=True)
-        dup_fps = Job.objects.values('fingerprint').annotate(cnt=Count('job_row_id')).filter(cnt__gt=1, fingerprint__isnull=False).values_list('fingerprint', flat=True)
-        qs = qs.filter(Q(canonical_url_hash__in=dup_hashes) | Q(fingerprint__in=dup_fps))
-
-    if sort == 'title':
-        qs = qs.order_by('job_title')
-    elif sort == 'company':
-        qs = qs.order_by('company__company_name', 'job_title')
-    else:
-        qs = qs.order_by('-last_checked_date', '-job_row_id')
-
-    paginator = Paginator(qs, 20)
-    page_obj = paginator.get_page(page_num)
-
-    all_departments = Job.objects.exclude(department__isnull=True).exclude(department='').values_list('department', flat=True).distinct()[:25]
-
-    return render(request, 'admin/jobs/list.html', {
-        'page_obj': page_obj,
-        'q': q,
-        'selected_mode': work_mode,
-        'selected_link_status': link_status,
-        'selected_link_quality': link_quality,
-        'selected_dept': department,
-        'selected_sort': sort,
-        'selected_details_status': details_status,
-        'show_duplicates': show_duplicates,
-        'all_departments': sorted(list(set(all_departments))),
-        'total_count': paginator.count
-    })
-
-
-@login_required
-def job_find_view(request):
-    """Find Jobs: Dedicated job-discovery and search experience with cards."""
-    q = request.GET.get('q', '').strip()
-    location = request.GET.get('location', '').strip()
-    work_mode = request.GET.get('work_mode', '').strip()
-    experience = request.GET.get('experience', '').strip()
-    department = request.GET.get('department', '').strip()
-    sort = request.GET.get('sort', 'newest')
-    page_num = request.GET.get('page', 1)
-
-    qs = Job.objects.select_related('company').filter(
-        status='ACTIVE',
-        verification_status__in=['PUBLISHED', 'SOURCE_CONFIRMED']
-    ).exclude(job_id__startswith='REQ')
 
     if q:
         qs = qs.filter(
@@ -108,6 +43,8 @@ def job_find_view(request):
             Q(location__icontains=q) |
             Q(job_description__icontains=q)
         )
+    if company_id:
+        qs = qs.filter(company_id=company_id)
     if location and location != 'all':
         qs = qs.filter(Q(location__icontains=location) | Q(state__icontains=location))
     if work_mode and work_mode != 'all':
@@ -137,35 +74,71 @@ def job_find_view(request):
                 Q(experience__icontains='10-') | Q(job_title__icontains='Lead') |
                 Q(job_title__icontains='Head') | Q(job_title__icontains='Director')
             )
+    if link_status and link_status != 'all':
+        qs = qs.filter(link_status=link_status)
+    if link_quality and link_quality != 'all':
+        qs = qs.filter(link_quality=link_quality)
+    if details_status and details_status != 'all':
+        qs = qs.filter(details_status=details_status)
+
+    show_duplicates = request.GET.get('duplicates', '').strip().lower() in ('1', 'true', 'yes')
+    if show_duplicates:
+        dup_hashes = Job.objects.values('canonical_url_hash').annotate(cnt=Count('job_row_id')).filter(cnt__gt=1, canonical_url_hash__isnull=False).values_list('canonical_url_hash', flat=True)
+        dup_fps = Job.objects.values('fingerprint').annotate(cnt=Count('job_row_id')).filter(cnt__gt=1, fingerprint__isnull=False).values_list('fingerprint', flat=True)
+        qs = qs.filter(Q(canonical_url_hash__in=dup_hashes) | Q(fingerprint__in=dup_fps))
 
     if sort == 'title':
         qs = qs.order_by('job_title')
     elif sort == 'company':
-        qs = qs.order_by('company__company_name')
+        qs = qs.order_by('company__company_name', 'job_title')
     elif sort == 'oldest':
         qs = qs.order_by('job_row_id')
-    else:  # newest / default
+    else:  # 'newest' or 'recent'
         qs = qs.order_by('-last_checked_date', '-job_row_id')
 
-    paginator = Paginator(qs, 12)
+    page_size = 12 if view_mode == 'cards' else 20
+    paginator = Paginator(qs, page_size)
     page_obj = paginator.get_page(page_num)
 
-    # Aggregations for filter facets
     top_locations = ['Mumbai', 'Bengaluru', 'Delhi NCR', 'Pune', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad']
-    top_departments = ['Software Engineering', 'IT & Digital', 'Finance & Accounts', 'Operations', 'CSR & Sustainability', 'Human Resources', 'Sales & Marketing', 'Engineering']
+    top_departments = [
+        'Software Engineering', 'IT & Digital', 'Finance & Accounts', 'Operations',
+        'CSR & Sustainability', 'Human Resources', 'Sales & Marketing', 'Engineering'
+    ]
 
-    return render(request, 'admin/jobs/find.html', {
+    return render(request, 'admin/jobs/list.html', {
         'page_obj': page_obj,
+        'view_mode': view_mode,
         'q': q,
         'location': location,
+        'selected_mode': work_mode,
         'work_mode': work_mode,
         'experience': experience,
+        'selected_link_status': link_status,
+        'link_status': link_status,
+        'selected_link_quality': link_quality,
+        'link_quality': link_quality,
+        'selected_dept': department,
         'department': department,
+        'selected_sort': sort,
         'sort': sort,
+        'selected_details_status': details_status,
+        'details_status': details_status,
+        'show_duplicates': show_duplicates,
         'top_locations': top_locations,
         'top_departments': top_departments,
         'total_count': paginator.count
     })
+
+
+@login_required
+def job_find_view(request):
+    """Find Jobs: Backward compatible redirect to unified Jobs Catalog & Discovery in card view."""
+    params = request.GET.copy()
+    if 'view' not in params:
+        params['view'] = 'cards'
+    query_string = params.urlencode()
+    return redirect(f"/admin-portal/jobs/?{query_string}" if query_string else "/admin-portal/jobs/?view=cards")
 
 
 @login_required

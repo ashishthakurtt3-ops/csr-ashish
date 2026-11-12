@@ -16,3 +16,4 @@ for root, dirs, files in os.walk('.'):
                 pass
 
 print("Files containing hallucinated strings:", found)
+

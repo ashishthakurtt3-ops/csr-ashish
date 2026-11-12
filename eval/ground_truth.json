@@ -1,0 +1,202 @@
+[
+  {
+    "company_name": "HCLTech",
+    "homepage_url": "https://www.hcltech.com",
+    "true_careers_url": "https://careers.hcltech.com/",
+    "true_csr_url": "https://www.hcltech.com/sustainability",
+    "true_jobs": [
+      {
+        "title": "Senior Developer",
+        "url": "https://careers.hcltech.com/job/Senior-Developer/175329-en_US",
+        "requisition_id": "175329"
+      },
+      {
+        "title": "Domain Architect - ServiceNow,JavaScript",
+        "url": "https://careers.hcltech.com/job/Domain-Architect-ServiceNow%2CJavaScript/146739-en_US",
+        "requisition_id": "146739"
+      },
+      {
+        "title": "Project Lead",
+        "url": "https://careers.hcltech.com/job/Project-Lead/151634-en_US",
+        "requisition_id": "151634"
+      }
+    ]
+  },
+  {
+    "company_name": "Samsung Electronics",
+    "homepage_url": "https://www.samsung.com",
+    "true_careers_url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers",
+    "true_csr_url": "https://www.samsung.com/in/sustainability/",
+    "true_jobs": [
+      {
+        "title": "Physical Design Engineer - Foundry Team",
+        "url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers/job/SSIR-Goldstone-Bangalore-India/Physical-Design---Foundry-Team_R55611-3",
+        "requisition_id": "R55611-3"
+      },
+      {
+        "title": "Storage Firmware Engineer (Samsung Memory)",
+        "url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers/job/SSIR-Goldstone-Bangalore-India/Software---Embedded--Firmware-Storage-----Memory-Team_R55619-2",
+        "requisition_id": "R55619-2"
+      },
+      {
+        "title": "STA Synthesis Engineer",
+        "url": "https://sec.wd3.myworkdayjobs.com/Samsung_Careers/job/SSIR-Goldstone-Bangalore-India/STA-Synthesis-Engineer_R114597",
+        "requisition_id": "R114597"
+      }
+    ]
+  },
+  {
+    "company_name": "Pfizer",
+    "homepage_url": "https://www.pfizer.com",
+    "true_careers_url": "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers",
+    "true_csr_url": "https://www.pfizer.com/about/responsibility",
+    "true_jobs": [
+      {
+        "title": "Manager - Manufacturing Intelligence",
+        "url": "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers/job/India---Chennai/Manager---Manufacturing-Intelligence_4966608",
+        "requisition_id": "4966608"
+      },
+      {
+        "title": "Assistant Manager, Regulatory Sciences (Evergreen Position)",
+        "url": "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers/job/India---Delhi/Assistant-Manager--Regulatory-Sciences--Evergreen-Position-_4966412",
+        "requisition_id": "4966412"
+      },
+      {
+        "title": "Payor Business Manager",
+        "url": "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers/job/India---Mumbai/Payor-Business-Manager_4965858-1",
+        "requisition_id": "4965858-1"
+      }
+    ]
+  },
+  {
+    "company_name": "JPMorgan Chase",
+    "homepage_url": "https://www.jpmorganchase.com",
+    "true_careers_url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/requisitions?keyword=India",
+    "true_csr_url": "https://www.jpmorganchase.com/impact",
+    "true_jobs": [
+      {
+        "title": "Commercial & Investment Bank and Firmwide Strategy Head (India)",
+        "url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/210785227",
+        "requisition_id": "210785227"
+      },
+      {
+        "title": "India Branch - Senior FX & Derivatives Operations – Associate",
+        "url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/210772330",
+        "requisition_id": "210772330"
+      },
+      {
+        "title": "Analytics Solutions Associate FRRA INDIA",
+        "url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/210788940",
+        "requisition_id": "210788940"
+      }
+    ]
+  },
+  {
+    "company_name": "Tata Motors",
+    "homepage_url": "https://www.tatamotors.com",
+    "true_careers_url": "https://careers.tatamotors.com/go/View-All-Opportunities/3505801/",
+    "true_csr_url": "https://www.tatamotors.com/corporate-social-responsibility/",
+    "true_jobs": [
+      {
+        "title": "Lead- FPIG(80002799)",
+        "url": "https://careers.tatamotors.com/job/Sanand-Lead-FPIG%2880002799%29/938323101/",
+        "requisition_id": "938323101"
+      },
+      {
+        "title": "Senior Manager (L5) - Engineer C&C - Vehicle Engineering",
+        "url": "https://careers.tatamotors.com/job/Pune-Senior-Manager-%28L5%29-Engineer-C&C-Vehicle-Engineering/938410301/",
+        "requisition_id": "938410301"
+      },
+      {
+        "title": "Senior Manager-Advance Quality",
+        "url": "https://careers.tatamotors.com/job/Pune-Senior-Manager-Advance-Quality/1015011401/",
+        "requisition_id": "1015011401"
+      }
+    ]
+  },
+  {
+    "company_name": "HSBC",
+    "homepage_url": "https://www.hsbc.com",
+    "true_careers_url": "https://mycareer.hsbc.com/en_GB/external",
+    "true_csr_url": "https://www.hsbc.com/who-we-are/hsbc-and-sustainability",
+    "true_jobs": [
+      {
+        "title": "GSC: Senior Developer Relations Engineer",
+        "url": "https://mycareer.hsbc.com/en_GB/external/PipelineDetail/GSC-Senior-Developer-Relations-Engineer/288707",
+        "requisition_id": "288707"
+      }
+    ]
+  },
+  {
+    "company_name": "Maruti Suzuki India",
+    "homepage_url": "https://www.marutisuzuki.com",
+    "true_careers_url": "https://maruti.app.param.ai/jobs/",
+    "true_csr_url": "https://www.marutisuzuki.com/corporate/investors/company-updates",
+    "true_jobs": [
+      {
+        "title": "Team Lead/Group Lead -Market Research",
+        "url": "https://maruti.app.param.ai/jobs/team-leadgroup-lead-market-research",
+        "requisition_id": "team-leadgroup-lead-market-research"
+      },
+      {
+        "title": "DM/MGR- Land Acquisition & Liasion",
+        "url": "https://maruti.app.param.ai/jobs/dmmgr-land-acquisition-liasion",
+        "requisition_id": "dmmgr-land-acquisition-liasion"
+      },
+      {
+        "title": "Regional Accountant",
+        "url": "https://maruti.app.param.ai/jobs/regional-accountant-786",
+        "requisition_id": "regional-accountant-786"
+      }
+    ]
+  },
+  {
+    "company_name": "SAP",
+    "homepage_url": "https://www.sap.com",
+    "true_careers_url": "https://jobs.sap.com/",
+    "true_csr_url": "https://www.sap.com/corporate/en/company/sustainability-csr.html",
+    "true_jobs": [
+      {
+        "title": "Sales Development Executive - Fluent Italian - 6 Month Contract",
+        "url": "https://jobs.sap.com/en/jobs/744000160272239/sales-development-executive-fluent-italian-6-month-contract/",
+        "requisition_id": "744000160272239"
+      },
+      {
+        "title": "SAP Program Manager - US Public Services Market Unit",
+        "url": "https://jobs.sap.com/en/jobs/744000160293934/sap-program-manager-us-public-services-market-unit/",
+        "requisition_id": "744000160293934"
+      },
+      {
+        "title": "SAP NS2 AI Consultant Specialist",
+        "url": "https://jobs.sap.com/en/jobs/744000160297265/sap-ns2-ai-consultant-specialist/",
+        "requisition_id": "744000160297265"
+      }
+    ]
+  },
+  {
+    "company_name": "Tata Steel",
+    "homepage_url": "https://www.tatasteel.com",
+    "true_careers_url": "https://www.tatasteel.com/careers/",
+    "true_csr_url": "https://www.tatasteel.com/sustainability/",
+    "true_jobs": []
+  },
+  {
+    "company_name": "Reliance Industries",
+    "homepage_url": "https://www.ril.com",
+    "true_careers_url": "https://careers.ril.com/rilcareers/frmjobsearch.Aspx",
+    "true_csr_url": "https://www.ril.com/about/corporate-social-responsibility",
+    "true_jobs": [
+      {
+        "title": "Research Scientist",
+        "url": "https://careers.ril.com/rilcareers/frmJobSearch.aspx?JBTITLE=7tMgV5CE9/+OUxnLm9XTZg==&jbID=NdpuTJ0Fz4cjEcS4R5TNKA==",
+        "requisition_id": ""
+      },
+      {
+        "title": "Lab Analyst",
+        "url": "https://careers.ril.com/rilcareers/frmJobSearch.aspx?JBTITLE=FvDIPSfAEvyq8Vv5kdONiA==&jbID=jUnl/72quDdwEeo7dylq6A==",
+        "requisition_id": ""
+      }
+    ]
+  }
+]
+

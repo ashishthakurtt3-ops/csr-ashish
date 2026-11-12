@@ -9,3 +9,4 @@ try:
     print('curl_cffi is installed')
 except ImportError:
     print('curl_cffi NOT installed')
+

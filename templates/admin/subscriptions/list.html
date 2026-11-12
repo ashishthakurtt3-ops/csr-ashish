@@ -1,39 +1,97 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Enterprise Subscriptions{% endblock %}
+{% block title %}Enterprise Subscriptions — Billing &amp; Revenue{% endblock %}
 {% block page_title %}Corporate &amp; NGO Subscriptions ({{ total_count }}){% endblock %}
 
 {% block content %}
-{% include "admin/subscriptions/components/sub_nav.html" with active_tab="subscriptions" %}
+<!-- Top Operational & Engine Status Strip -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:12px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.12); color:#10B981; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700;">
+            <span style="width:7px; height:7px; border-radius:50%; background:#10B981;"></span>
+            Billing Engine: Active
+        </span>
+        <span style="font-size:12.5px; color:var(--text-secondary);">&bull; Three-Tier Plan Architecture (FREE / PRO / ULTRA) &bull; 18% GST Compliant</span>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-primary" style="font-size:12.5px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px;">
+            <span>Configure Pricing Plans</span> &rarr;
+        </a>
+    </div>
+</div>
 
+<!-- Executive Financial KPI Metric Deck -->
+<div class="billing-kpi-deck" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:20px;">
+    <div class="billing-kpi-card" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:16px 18px; border-left:4px solid #0A6CFF; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+            <span>💳</span> <span>Active Paying Accounts</span>
+        </div>
+        <div style="font-size:26px; font-weight:800; color:var(--text-primary); margin:8px 0 2px 0;">{{ kpis.active_subscribers|default:"0" }}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">Of {{ total_count }} registered tenant entities</div>
+    </div>
+
+    <div class="billing-kpi-card" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:16px 18px; border-left:4px solid #10B981; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+            <span>💰</span> <span>Settled Transaction Volume</span>
+        </div>
+        <div style="font-size:26px; font-weight:800; color:#10B981; margin:8px 0 2px 0;">{{ kpis.total_revenue_display|default:"₹ 0" }}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">Cumulative successful platform billing</div>
+    </div>
+
+    <div class="billing-kpi-card" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:16px 18px; border-left:4px solid #8B5CF6; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+            <span>🔄</span> <span>Auto-Renewing Accounts</span>
+        </div>
+        <div style="font-size:26px; font-weight:800; color:var(--text-primary); margin:8px 0 2px 0;">{{ kpis.auto_renew_count|default:"0" }}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">Automated cycle recurring debits</div>
+    </div>
+</div>
+
+<!-- Main Subscriptions Management Card -->
 <div class="admin-card">
+    <!-- Filter and Toolbar Row -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:650px; flex-wrap:wrap;">
-            <select name="plan" class="select-filter" style="height:40px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:760px; flex-wrap:wrap; align-items:center;">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Search username, email, or tenant ID..." class="input-search" style="height:38px; min-width:200px; flex:2; padding:0 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
+
+            <select name="plan" class="select-filter" style="height:38px; min-width:130px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
                 <option value="all">All Plans</option>
-                <option value="starter" {% if selected_plan == "starter" %}selected{% endif %}>Starter</option>
-                <option value="pro" {% if selected_plan == "pro" %}selected{% endif %}>Pro</option>
-                <option value="enterprise" {% if selected_plan == "enterprise" %}selected{% endif %}>Enterprise</option>
-                <option value="foundation" {% if selected_plan == "foundation" %}selected{% endif %}>Foundation</option>
+                {% if plans_list %}
+                    {% for p in plans_list %}
+                    <option value="{{ p.code }}" {% if selected_plan == p.code %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                {% else %}
+                    <option value="starter" {% if selected_plan == "starter" %}selected{% endif %}>Free / Starter</option>
+                    <option value="pro" {% if selected_plan == "pro" %}selected{% endif %}>Pro</option>
+                    <option value="ultra" {% if selected_plan == "ultra" %}selected{% endif %}>Ultra</option>
+                    <option value="enterprise" {% if selected_plan == "enterprise" %}selected{% endif %}>Enterprise</option>
+                {% endif %}
             </select>
-            <select name="status" class="select-filter" style="height:40px;">
+
+            <select name="status" class="select-filter" style="height:38px; min-width:120px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
                 <option value="all">All Status</option>
                 <option value="ACTIVE" {% if selected_status == "ACTIVE" %}selected{% endif %}>Active</option>
+                <option value="TRIALING" {% if selected_status == "TRIALING" %}selected{% endif %}>Trialing</option>
+                <option value="PAST_DUE" {% if selected_status == "PAST_DUE" %}selected{% endif %}>Past Due</option>
                 <option value="CANCELLED" {% if selected_status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
                 <option value="EXPIRED" {% if selected_status == "EXPIRED" %}selected{% endif %}>Expired</option>
             </select>
-            <button type="submit" class="btn-primary" style="height:40px; padding:0 14px;">Filter</button>
-            {% if selected_plan != "all" or selected_status != "all" %}
-            <a href="{% url 'admin_subscriptions:list' %}" class="btn-secondary" style="height:40px; padding:0 12px;">Reset</a>
+
+            <button type="submit" class="btn-primary" style="height:38px; padding:0 16px; font-size:13px;">Filter</button>
+            {% if selected_plan != "all" and selected_plan or selected_status != "all" and selected_status or search_query %}
+            <a href="{% url 'admin_subscriptions:list' %}" class="btn-secondary" style="height:38px; padding:0 12px; display:inline-flex; align-items:center; font-size:13px;">Reset</a>
             {% endif %}
         </form>
 
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
             {% include "admin/components/exchange_toolbar.html" with entity="subscriptions" title="Subscriptions" %}
-            <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-primary">Manage Plans</a>
+            <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-primary" style="font-size:12.5px; padding:6px 14px;">
+                <span>Manage Plans &rarr;</span>
+            </a>
         </div>
     </div>
 
+    <!-- Subscriber Directory Table -->
     <div class="table-responsive">
         <table class="admin-table">
             <thead>
@@ -52,37 +110,64 @@
                 {% for s in page_obj %}
                 <tr>
                     <td>
-                        <strong style="color:var(--text-primary);">{{ s.user.username|default:s.tenant_id }}</strong>
-                        <div style="font-size:11px; color:var(--text-secondary);">{{ s.user.email }}</div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:34px; height:34px; border-radius:50%; background:var(--bg-surface-subtle); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:var(--primary-brand); flex-shrink:0;">
+                                {{ s.user.username|default:s.tenant_id|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <strong style="color:var(--text-primary); font-size:13.5px;">{{ s.user.username|default:s.tenant_id }}</strong>
+                                {% if s.user.email %}
+                                <div style="font-size:11.5px; color:var(--text-secondary); margin-top:1px;">{{ s.user.email }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </td>
                     <td>
-                        <span class="badge-status badge-active" style="font-size:11px;">
-                            {{ s.plan.name|default:s.plan_id|upper }}
-                        </span>
+                        {% with p_code=s.plan_id|default:s.plan.code|lower %}
+                            {% if "free" in p_code or "starter" in p_code %}
+                            <span class="badge-status badge-pending" style="font-size:11px; font-weight:700; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;">FREE</span>
+                            {% elif "pro" in p_code %}
+                            <span class="badge-status" style="font-size:11px; font-weight:700; background:rgba(10,108,255,0.1); color:#0A6CFF; border:1px solid rgba(10,108,255,0.25);">PRO</span>
+                            {% elif "ultra" in p_code %}
+                            <span class="badge-status" style="font-size:11px; font-weight:700; background:rgba(139,92,246,0.1); color:#8B5CF6; border:1px solid rgba(139,92,246,0.25);">ULTRA</span>
+                            {% elif "enterprise" in p_code %}
+                            <span class="badge-status" style="font-size:11px; font-weight:700; background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.25);">ENTERPRISE</span>
+                            {% else %}
+                            <span class="badge-status badge-active" style="font-size:11px; font-weight:700;">{{ s.plan.name|default:s.plan_id|upper }}</span>
+                            {% endif %}
+                        {% endwith %}
+
                         {% if s.pending_change_plan %}
                         <div style="font-size:10px; color:var(--warning); margin-top:2px;">
                             &rarr; {{ s.pending_change_plan|upper }} pending
                         </div>
                         {% endif %}
                     </td>
-                    <td>{{ s.billing_interval|default:"Monthly" }}</td>
+                    <td>{{ s.billing_interval|default:"Monthly"|capfirst }}</td>
                     <td>
                         {% if s.status == "ACTIVE" %}
                         <span class="badge-status badge-active">Active</span>
+                        {% elif s.status == "TRIALING" %}
+                        <span class="badge-status badge-pending" style="background:#FEF3C7; color:#92400E; border:1px solid #FCD34D;">Trialing</span>
                         {% elif s.status == "CANCELLED" %}
                         <span class="badge-status badge-rejected">Cancelled</span>
+                        {% elif s.status == "PAST_DUE" %}
+                        <span class="badge-status badge-rejected" style="background:#FEE2E2; color:#B91C1C;">Past Due</span>
                         {% else %}
-                        <span class="badge-status badge-rejected">{{ s.status }}</span>
+                        <span class="badge-status badge-pending">{{ s.status }}</span>
                         {% endif %}
+
                         {% if s.cancel_at_period_end %}
-                        <div style="font-size:10px; color:var(--error); margin-top:2px;">Cancels at end</div>
+                        <div style="font-size:10px; color:#DC2626; margin-top:2px; font-weight:600;">Cancels at period end</div>
                         {% endif %}
                     </td>
                     <td>
                         {% if s.auto_renew %}
-                        <span style="color:var(--success); font-weight:600;">Yes</span>
+                        <span style="color:#059669; font-weight:600; display:inline-flex; align-items:center; gap:4px; font-size:12.5px;">
+                            <span>✓</span> <span>Yes</span>
+                        </span>
                         {% else %}
-                        <span style="color:var(--text-secondary);">No</span>
+                        <span style="color:var(--text-secondary); font-size:12.5px;">No</span>
                         {% endif %}
                     </td>
                     <td style="font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);">{{ s.created_at|date:"M d, Y" }}</td>
@@ -96,22 +181,26 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-secondary);">No subscription records match filters.</td></tr>
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:36px; color:var(--text-secondary);">
+                        No subscription records match your search criteria. Try resetting filters.
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
     {% if page_obj.has_other_pages %}
-    <div class="pagination-bar">
-        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+    <div class="pagination-bar" style="margin-top:20px;">
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total accounts)</div>
         <div class="pagination-links">
             {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}&plan={{ selected_plan }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ search_query|urlencode }}&plan={{ selected_plan }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
             {% endif %}
             <span class="page-link-btn active">{{ page_obj.number }}</span>
             {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}&plan={{ selected_plan }}&status={{ selected_status }}" class="page-link-btn">Next &rarr;</a>
+            <a href="?page={{ page_obj.next_page_number }}&q={{ search_query|urlencode }}&plan={{ selected_plan }}&status={{ selected_status }}" class="page-link-btn">Next &rarr;</a>
             {% endif %}
         </div>
     </div>

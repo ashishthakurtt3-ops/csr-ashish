@@ -11,3 +11,4 @@ for a in soup.find_all('a', href=True):
     if not h.startswith(('#', 'javascript:', 'mailto:')) and len(t) > 3:
         if any(k in h.lower() or k in t.lower() for k in ['developer', 'engineer', 'lead', 'manager', 'consultant', 'analyst', 'specialist', 'architect', 'executive']):
             print(f"Role: '{t}' -> '{h}'")
+

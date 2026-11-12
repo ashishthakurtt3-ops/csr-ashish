@@ -11,3 +11,4 @@ for comp in Company.objects.filter(company_name__icontains='infosys'):
         print(f"  Job: {j.job_title} | URL: {j.application_url}")
     for c in CSRProject.objects.filter(company=comp)[:5]:
         print(f"  CSR: {c.project_name} | URL: {c.source_url}")
+

@@ -389,7 +389,7 @@
             <a href="{{ s.template_csv_url }}" class="btn-download-aux" title="Download blank CSV schema template">
                 <span>📋</span>
             </a>
-            <a href="{{ s.quick_sync_url }}" class="btn-download-aux" onclick="return confirm('Sync {{ s.title }} from master backup?');" title="1-Click restore/sync from master backup">
+            <a href="{{ s.quick_sync_url }}" class="btn-download-aux" onclick="event.preventDefault(); const targetHref = this.href; EnterpriseConfirm.show({ title: 'Sync {{ s.title|escapejs }}?', subtitle: 'Master Backup Restoration', severity: 'warning', alert: 'Sync {{ s.title|escapejs }} from master backup? Current changes will be updated.', confirmText: 'Sync Now', onConfirm: function() { window.location.href = targetHref; } }); return false;" title="1-Click restore/sync from master backup">
                 <span>⚡</span>
             </a>
             <button type="button" class="btn-download-aux" onclick="openImportModal('{{ s.key }}', '{{ s.title }}');" title="Import data into {{ s.title }}">

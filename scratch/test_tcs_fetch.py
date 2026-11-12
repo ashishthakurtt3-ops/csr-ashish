@@ -17,3 +17,4 @@ for u in urls:
         print(f"  Headings: {headings}")
     except Exception as e:
         print(f"URL: {u} -> Error: {e}")
+

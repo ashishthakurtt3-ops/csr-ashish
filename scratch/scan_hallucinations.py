@@ -60,3 +60,4 @@ for c in companies:
 print(f"Companies with hallucinated/defective records: {len(companies_needing_fix)} out of 50")
 for c, bj_cnt, j_cnt, bc_cnt, c_cnt in companies_needing_fix:
     print(f"- {c.company_name} ({c.company_id}): {bj_cnt}/{j_cnt} bad jobs, {bc_cnt}/{c_cnt} bad CSR")
+

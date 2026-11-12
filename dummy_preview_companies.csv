@@ -1,0 +1,6 @@
+﻿Company ID,Company Name,NSE Symbol,Sector,Headquarters,Website URL,Careers URL,CSR Portal URL,Job Count,CSR Count
+DUMMY_COMP_001,Tata Consultancy Services Limited,TCS,Information Technology & Digital Solutions,"Mumbai, Maharashtra",https://www.tcs.com,https://www.tcs.com/careers/india,https://www.tcs.com/who-we-are/corporate-social-responsibility,18,7
+DUMMY_COMP_002,Reliance Industries Limited,RELIANCE,"Energy, Petrochemicals, Retail & Digital Services","Mumbai, Maharashtra",https://www.ril.com,https://careers.ril.com/rilcareers/frmjobsearch.Aspx,https://www.ril.com/sustainability,24,8
+DUMMY_COMP_003,Infosys Limited,INFY,"IT Consulting, Software & Cloud Platforms","Bengaluru, Karnataka",https://www.infosys.com,https://career.infosys.com,https://www.infosys.com/infosys-foundation.html,22,6
+DUMMY_COMP_004,HDFC Bank Limited,HDFCBANK,Banking & Financial Services,"Mumbai, Maharashtra",https://www.hdfcbank.com,https://www.hdfcbank.com/personal/about-us/careers,https://www.hdfcbank.com/personal/about-us/corporate-governance/csr,19,5
+DUMMY_COMP_005,Tata Motors Limited,TATAMOTORS,Automotive & Electric Mobility,"Mumbai, Maharashtra",https://www.tatamotors.com,https://careers.tatamotors.com,https://www.tatamotors.com/corporate-social-responsibility/,15,6

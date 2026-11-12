@@ -1,18 +1,45 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Verification Queue{% endblock %}
-{% block page_title %}CSR Project Verification Queue (Confidence: 0.60 – 0.95){% endblock %}
+{% block title %}Verification &amp; Document Hub — Project Queue{% endblock %}
+{% block page_title %}Verification &amp; Document Hub{% endblock %}
 
 {% block content %}
+<!-- Unified Verification & Document Hub Sub-navigation -->
+<div class="jobs-nav-pills" style="margin-bottom:20px;">
+    <a href="{% url 'admin_documents:list' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Statutory Document Filings</span>
+        {% if total_doc_count %}
+        <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">{{ total_doc_count }} Docs</span>
+        {% endif %}
+    </a>
+    <a href="{% url 'admin_verification:queue' %}" class="jobs-nav-pill active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Project Verification Queue</span>
+        {% if pending_queue_count %}
+        <span class="badge-status badge-pending" style="font-size:10px; padding:1px 6px;">{{ pending_queue_count }} Pending</span>
+        {% endif %}
+    </a>
+    <a href="{% url 'admin_verification:crawler_status' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>Crawler Telemetry</span>
+    </a>
+    <a href="{% url 'admin_verification:audit_trail' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Audit Logs</span>
+    </a>
+</div>
+
 <div class="admin-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <p style="margin:0; font-size:13px; color:var(--text-secondary);">
-            Human-in-the-loop review queue for discovered CSR initiatives with borderline confidence metrics. Verify to promote confidence to 0.99.
+            Human-in-the-loop review queue for discovered CSR initiatives with borderline confidence metrics. Verify initiatives against statutory documents to promote confidence to 0.99.
         </p>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
             {% include "admin/components/exchange_toolbar.html" with entity="queue" title="Verification Queue" %}
-            <a href="{% url 'admin_verification:audit_trail' %}" class="btn-admin btn-admin-secondary">Audit Trail</a>
-            <a href="{% url 'admin_verification:crawler_status' %}" class="btn-admin btn-admin-secondary">Crawler Telemetry</a>
+            <a href="{% url 'admin_documents:upload' %}" class="btn-admin btn-admin-primary" style="display:inline-flex; align-items:center; gap:6px;">
+                <span>+</span> <span>Upload Proof</span>
+            </a>
         </div>
     </div>
 

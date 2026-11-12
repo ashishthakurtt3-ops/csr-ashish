@@ -203,6 +203,13 @@ class PreviewDummyCompany(models.Model):
     website_url = models.CharField(max_length=500, blank=True, null=True, help_text="Official website URL")
     careers_url = models.CharField(max_length=500, blank=True, null=True, help_text="Careers portal link")
     csr_portal_url = models.CharField(max_length=500, blank=True, null=True, help_text="CSR / Sustainability portal link")
+    legal_name = models.CharField(max_length=255, blank=True, null=True, help_text="Statutory legal entity name")
+    cin = models.CharField(max_length=50, blank=True, null=True, help_text="Corporate Identity Number (CIN)")
+    isin = models.CharField(max_length=50, blank=True, null=True, help_text="ISIN security code")
+    operating_locations = models.TextField(blank=True, null=True, help_text="Documented operating locations & facilities (semicolon or comma separated)")
+    annual_report_url = models.CharField(max_length=500, blank=True, null=True, help_text="Annual report link")
+    brsr_url = models.CharField(max_length=500, blank=True, null=True, help_text="SEBI BRSR disclosures link")
+    sustainability_url = models.CharField(max_length=500, blank=True, null=True, help_text="Sustainability portal link")
     verification_status = models.CharField(max_length=50, default='VERIFIED')
     job_count = models.IntegerField(default=5, help_text="Simulated active vacancies count")
     csr_count = models.IntegerField(default=3, help_text="Simulated Section 135 CSR projects count")
@@ -221,18 +228,36 @@ class PreviewDummyCompany(models.Model):
         return f"{self.company_name} ({self.company_id})"
 
     def as_preview_dict(self):
+        domain = ""
+        if self.website_url:
+            from urllib.parse import urlparse
+            try:
+                parsed = urlparse(self.website_url)
+                domain = parsed.netloc.lower().replace('www.', '')
+            except Exception:
+                domain = ""
         return {
             'company_id': self.company_id,
             'company_name': self.company_name,
+            'legal_name': self.legal_name or self.company_name,
+            'cin': self.cin or '',
+            'isin': self.isin or '',
             'nse_symbol': self.nse_symbol or None,
             'sector': self.sector or 'Corporate Enterprise',
             'headquarters': self.headquarters or 'India',
             'website_url': self.website_url or None,
             'careers_url': self.careers_url or None,
             'csr_portal_url': self.csr_portal_url or None,
+            'sustainability_url': self.sustainability_url or self.csr_portal_url or None,
+            'annual_report_url': self.annual_report_url or None,
+            'brsr_url': self.brsr_url or None,
+            'operating_locations': self.operating_locations or '',
+            'official_domain': domain,
             'verification_status': self.verification_status or 'VERIFIED',
             'job_count': self.job_count,
+            'verified_jobs_count': self.job_count,
             'csr_count': self.csr_count,
+            'published_csr_count': self.csr_count,
             'is_preview': True,
         }
 
@@ -251,6 +276,8 @@ class PreviewDummyJob(models.Model):
     experience = models.CharField(max_length=100, default='3-5 Years', help_text="Experience requirements")
     application_url = models.CharField(max_length=500, blank=True, null=True, help_text="Application / careers link")
     posted_date = models.CharField(max_length=50, blank=True, null=True, default='2026-11-01', help_text="Posting date")
+    description = models.TextField(blank=True, null=True, help_text="Full role description and responsibilities")
+    skills = models.CharField(max_length=300, blank=True, null=True, help_text="Required technologies and core competencies")
     is_active = models.BooleanField(default=True, help_text="Enable or disable from preview")
     display_order = models.IntegerField(default=0, help_text="Sort order priority")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -268,15 +295,21 @@ class PreviewDummyJob(models.Model):
     def as_preview_dict(self):
         return {
             'job_row_id': self.job_row_id,
+            'job_id': self.job_row_id,
             'job_title': self.job_title,
             'company_name': self.company_name,
+            'company_id': f"DUMMY_COMP_{self.nse_symbol.upper()}" if self.nse_symbol else 'DUMMY_COMP_001',
             'nse_symbol': self.nse_symbol or None,
             'location': self.location or 'India',
             'work_mode': self.work_mode or 'On-site / Hybrid',
             'department': self.department or 'General',
             'experience': self.experience or 'Not specified',
             'application_url': self.application_url or None,
+            'apply_url': self.application_url or None,
             'posted_date': str(self.posted_date) if self.posted_date else '2026-11-01',
+            'description': self.description or f"We are seeking an experienced {self.job_title} to join {self.company_name}. This role will lead key initiatives across {self.department}.",
+            'skills': self.skills or 'Enterprise Architecture, Agile, Cloud Delivery, Python, SQL',
+            'verification_status': 'VERIFIED',
             'is_preview': True,
         }
 
@@ -292,6 +325,9 @@ class PreviewDummyCSRProject(models.Model):
     state = models.CharField(max_length=150, default='Maharashtra', help_text="Geographical operational state")
     budget = models.CharField(max_length=100, default='₹ 12.50 Cr', help_text="Allocated statutory budget")
     source_url = models.CharField(max_length=500, blank=True, null=True, help_text="Reference filing / PDF link")
+    summary = models.TextField(blank=True, null=True, help_text="Full project objective and impact metric")
+    target_districts = models.CharField(max_length=300, blank=True, null=True, help_text="Operating districts and aspirational regions")
+    implementing_partner = models.CharField(max_length=255, blank=True, null=True, help_text="Registered NGO or direct partner")
     verification_status = models.CharField(max_length=50, default='PUBLISHED')
     is_active = models.BooleanField(default=True, help_text="Enable or disable from preview")
     display_order = models.IntegerField(default=0, help_text="Sort order priority")
@@ -312,10 +348,15 @@ class PreviewDummyCSRProject(models.Model):
             'csr_id': self.csr_id,
             'project_name': self.project_name,
             'company_name': self.company_name,
+            'company_id': f"DUMMY_COMP_{self.company_name.split()[0].upper()}",
             'sector': self.category or 'Education & Healthcare',
+            'category': self.category or 'Education & Healthcare',
             'state': self.state or 'Pan-India',
+            'target_districts': self.target_districts or 'Pan-India Aspirational Districts',
             'budget': self.budget or 'Statutory Section 135 Allocation',
             'source_url': self.source_url or None,
+            'summary': self.summary or f"Statutory corporate social responsibility initiative under Section 135 of Companies Act, 2013 by {self.company_name}.",
+            'implementing_partner': self.implementing_partner or 'Registered Section 8 / NGO Implementing Agency',
             'verification_status': self.verification_status or 'PUBLISHED',
             'is_preview': True,
         }

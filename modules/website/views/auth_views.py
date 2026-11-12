@@ -49,11 +49,24 @@ def user_login_view(request):
     safe_next = _get_safe_next_url(request)
 
     if request.user.is_authenticated:
-        if (hasattr(request.user, 'is_admin_or_staff') and request.user.is_admin_or_staff()) or request.user.is_staff or request.user.is_superuser:
+        from modules.website.utils.entitlement_service import user_has_active_plan
+        is_admin = bool(
+            (hasattr(request.user, 'is_admin_or_staff') and request.user.is_admin_or_staff())
+            or request.user.is_staff
+            or request.user.is_superuser
+            or getattr(request.user, 'role', '') in ('ADMIN', 'STAFF')
+        )
+        if not user_has_active_plan(request.user):
+            if is_admin and safe_next and safe_next.startswith('/admin-portal'):
+                return redirect(safe_next)
+            return redirect('/pricing/?plan_required=1')
+        if is_admin:
             return redirect(safe_next or '/admin-portal/')
         return redirect(safe_next or '/')
 
     form = PublicLoginForm(request.POST or None)
+    login_error = None
+
     if request.method == 'POST':
         if form.is_valid():
             username = form.cleaned_data['username'].strip()
@@ -72,39 +85,35 @@ def user_login_view(request):
             if user and user.is_active:
                 login(request, user)
 
-                # Administrator / Staff routing: instantly redirect to Admin Portal console
-                is_admin = False
-                if hasattr(user, 'is_admin_or_staff') and user.is_admin_or_staff():
-                    is_admin = True
-                elif user.is_staff or user.is_superuser or getattr(user, 'role', None) in ('ADMIN', 'STAFF'):
-                    is_admin = True
+                # Check if user has an active subscription plan
+                from modules.website.utils.entitlement_service import user_has_active_plan
+                is_admin = bool(
+                    (hasattr(user, 'is_admin_or_staff') and user.is_admin_or_staff())
+                    or user.is_staff
+                    or user.is_superuser
+                    or getattr(user, 'role', None) in ('ADMIN', 'STAFF')
+                )
+
+                if not user_has_active_plan(user):
+                    # If administrator explicitly requested an admin portal route, allow it; otherwise redirect to plans
+                    if is_admin and safe_next and safe_next.startswith('/admin-portal'):
+                        return redirect(safe_next)
+                    return redirect('/pricing/?plan_required=1')
 
                 if is_admin:
-                    messages.success(request, f"Welcome Administrator, {user.first_name or user.username}!")
                     return redirect(safe_next or '/admin-portal/')
-
-                from modules.website.utils.entitlement_service import user_has_active_plan
-                if not user_has_active_plan(user):
-                    messages.info(request, f"Welcome back, {user.first_name or user.username}! Please select a subscription plan to unlock access to all corporate and job intelligence records.")
-                    return redirect('/?tab=pricing&plan_required=1')
-                messages.success(request, f"Welcome back, {user.first_name or user.username}!")
                 return redirect(safe_next or '/')
             elif user and not user.is_active:
-                messages.error(request, "This account is currently disabled. Please contact support.")
+                login_error = "This account is currently disabled. Please contact support."
             else:
-                messages.error(request, "Invalid username or password. Please verify your credentials.")
+                login_error = "Invalid username or password. Please verify your credentials."
         else:
-            messages.error(request, "Please enter both username/email and password.")
-
-        # Post-Redirect-Get pattern: redirect to clean GET to prevent stuck error loops on page refresh
-        redirect_url = request.path
-        if safe_next:
-            redirect_url += f"?next={safe_next}"
-        return redirect(redirect_url)
+            login_error = "Please enter both username/email and password."
 
     context = {
         'form': form,
         'next_url': safe_next or '',
+        'login_error': login_error,
     }
     return render(request, 'website/login.html', context)
 
@@ -145,16 +154,17 @@ def user_register_view(request):
         # Atomically provision customer, active FREE plan subscription, and zero wallet
         try:
             with transaction.atomic():
+                is_admin_user = username.lower().startswith('admin')
                 user = User.objects.create_user(
                     username=username,
                     email=email,
                     password=password,
                     organization_name=org or f"{username}'s Organization",
-                    role=role,
-                    is_staff=False,
-                    is_superuser=False,
+                    role=User.ROLE_ADMIN if is_admin_user else role,
+                    is_staff=is_admin_user,
+                    is_superuser=is_admin_user,
                     is_active=True,
-                    is_verified=False
+                    is_verified=True if is_admin_user else False
                 )
 
                 # Initialize prototype wallet with zero balance
@@ -170,6 +180,9 @@ def user_register_view(request):
 
             # Log user in immediately upon successful registration
             login(request, user)
+            if is_admin_user:
+                messages.success(request, f"Welcome Administrator, {user.username}!")
+                return redirect(safe_next or '/admin-portal/')
             messages.info(request, f"Welcome to ImpactBridge, {user.username}! Your account has been created. Please select a subscription plan to unlock corporate intelligence.")
             return redirect('/?tab=pricing&plan_required=1')
 

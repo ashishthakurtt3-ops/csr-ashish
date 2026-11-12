@@ -193,6 +193,19 @@ def recheck_company_domain_api(request, company_id):
     if request.method != 'POST':
         return JsonResponse({'detail': 'Method not allowed'}, status=405)
 
+    if request.user.is_authenticated and not request.user.is_staff:
+        from modules.website.utils.entitlement_service import EntitlementService, EntitlementError
+        svc = EntitlementService(request.user)
+        try:
+            svc.check_can_request_refresh()
+        except EntitlementError as e:
+            return JsonResponse({
+                'status': 'LOCKED',
+                'detail': 'On-demand company crawler rescan is available on PRO and ULTRA plans. Upgrade to rescan companies.',
+                'code': 'feature_locked',
+                'upgrade_to': e.upgrade_to or 'pro',
+            }, status=403)
+
     try:
         comp = Company.objects.get(company_id=company_id)
     except Company.DoesNotExist:

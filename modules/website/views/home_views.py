@@ -63,6 +63,7 @@ def index_view(request, default_tab='companies'):
     plan_tier_label = "No Active Plan"
     is_sub_active = False
     sub_status = "NONE"
+    trial_days_remaining = None
 
     has_active_plan = False
     if request.user.is_authenticated:
@@ -74,26 +75,44 @@ def index_view(request, default_tab='companies'):
         from modules.website.utils.entitlement_service import user_has_active_plan
         has_active_plan = user_has_active_plan(request.user)
 
+        trial_days_remaining = None
         if user_sub:
+            if user_sub.current_period_end:
+                from datetime import datetime, timezone
+                try:
+                    text = str(user_sub.current_period_end).replace('Z', '+00:00')
+                    end_dt = datetime.fromisoformat(text)
+                    if not end_dt.tzinfo:
+                        end_dt = end_dt.replace(tzinfo=timezone.utc)
+                    now_utc = datetime.now(timezone.utc)
+                    if now_utc >= end_dt:
+                        if user_sub.status != 'EXPIRED':
+                            user_sub.status = 'EXPIRED'
+                            user_sub.save(update_fields=['status'])
+                    else:
+                        trial_days_remaining = max(0, (end_dt - now_utc).days)
+                except Exception:
+                    pass
+
             sub_status = (user_sub.status or 'INACTIVE').upper()
             is_sub_active = sub_status in ('ACTIVE', 'TRIALING')
             plan_tier = (user_sub.plan_id or 'free').upper()
             if is_sub_active:
-                plan_tier_label = f"{plan_tier} Active"
+                if sub_status == 'TRIALING':
+                    days_text = f"{trial_days_remaining}d remaining" if trial_days_remaining is not None else "14d remaining"
+                    plan_tier_label = f"14-Day Free Trial ({days_text})"
+                else:
+                    plan_tier_label = f"{plan_tier} Active"
             elif sub_status == 'EXPIRED':
                 plan_tier_label = f"{plan_tier} Expired"
             elif sub_status in ('CANCELED', 'CANCELLED'):
                 plan_tier_label = f"{plan_tier} Cancelled"
             else:
                 plan_tier_label = f"{plan_tier} ({sub_status})"
-        elif request.user.is_staff or request.user.is_superuser:
-            sub_status = "ACTIVE"
-            is_sub_active = True
-            plan_tier = "ADMIN"
-            plan_tier_label = "Admin Access"
         else:
             sub_status = "NONE"
-            plan_tier = "FREE"
+            is_sub_active = False
+            plan_tier = "NONE"
             plan_tier_label = "No Active Plan"
 
         user_wallet = get_or_create_wallet(request.user)
@@ -104,17 +123,28 @@ def index_view(request, default_tab='companies'):
     is_preview_mode = not has_active_plan
 
     tab_param = request.GET.get('tab')
-    if tab_param in ('companies', 'jobs', 'csr', 'matching', 'prospects', 'pricing'):
-        default_tab = tab_param
-    elif request.GET.get('plan_required') or (plan_required and not request.GET.get('tab')):
+    if plan_required:
         default_tab = 'pricing'
+        total_companies_ctx = 0
+        verified_companies_ctx = 0
+        csr_projects_ctx = 0
+        jobs_tracked_ctx = 0
+        active_opportunities_ctx = 0
+    else:
+        if tab_param in ('companies', 'jobs', 'csr', 'matching', 'prospects', 'pricing'):
+            default_tab = tab_param
+        total_companies_ctx = data.get('total_companies', 0)
+        verified_companies_ctx = data.get('verified_companies', 0)
+        csr_projects_ctx = data.get('csr_projects', 0)
+        jobs_tracked_ctx = data.get('jobs_tracked', 0)
+        active_opportunities_ctx = data.get('active_opportunities', 0)
 
     context = {
-        'total_companies': data.get('total_companies', 0),
-        'verified_companies': data.get('verified_companies', 0),
-        'csr_projects': data.get('csr_projects', 0),
-        'jobs_tracked': data.get('jobs_tracked', 0),
-        'active_opportunities': data.get('active_opportunities', 0),
+        'total_companies': total_companies_ctx,
+        'verified_companies': verified_companies_ctx,
+        'csr_projects': csr_projects_ctx,
+        'jobs_tracked': jobs_tracked_ctx,
+        'active_opportunities': active_opportunities_ctx,
         'last_live_fetch': data.get('last_live_fetch', 'Recently'),
         'data_as_of': data_as_of,
         'user_subscription': user_sub,
@@ -122,6 +152,7 @@ def index_view(request, default_tab='companies'):
         'wallet_balance_inr': wallet_balance_inr,
         'plan_tier': plan_tier,
         'plan_tier_label': plan_tier_label,
+        'trial_days_remaining': trial_days_remaining,
         'is_sub_active': is_sub_active,
         'sub_status': sub_status,
         'default_tab': default_tab,

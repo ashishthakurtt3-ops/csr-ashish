@@ -313,6 +313,19 @@ def serialize_project_item(p: CSRProject, is_detail: bool = False):
 
 
 def csr_project_detail_api(request, csr_id):
+    from modules.admin_panel.models import PreviewDummyCSRProject
+    is_dummy = str(csr_id).startswith('DUMMY_') or str(csr_id).startswith('dummy_')
+    dummy_p = None
+    if is_dummy:
+        dummy_p = PreviewDummyCSRProject.objects.filter(csr_id=csr_id).first()
+    if not dummy_p and PreviewDummyCSRProject.objects.filter(csr_id=csr_id).exists():
+        dummy_p = PreviewDummyCSRProject.objects.filter(csr_id=csr_id).first()
+        is_dummy = True
+    if is_dummy:
+        if not dummy_p:
+            dummy_p = PreviewDummyCSRProject.objects.first()
+        if dummy_p:
+            return JsonResponse(dummy_p.as_preview_dict())
     if not request.user.is_authenticated:
         return JsonResponse({
             'error': 'Authentication required. Please sign in or register for a free account to view complete project records and CSR dossiers.',

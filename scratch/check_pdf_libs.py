@@ -4,3 +4,4 @@ for mod in ['pypdf', 'pdfplumber', 'fitz', 'pypdf2']:
         print(f"{mod} is installed")
     except ImportError:
         print(f"{mod} NOT installed")
+

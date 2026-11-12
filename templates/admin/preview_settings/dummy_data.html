@@ -32,7 +32,7 @@
                 <span>Open Public Portal</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             </a>
-            <form method="POST" action="{% url 'admin_preview_settings:dummy_reset_defaults' %}" onsubmit="return confirm('Seed and restore the official 5 Flagship Indian Enterprise Showcase (TCS, Reliance, Infosys, HDFC Bank, Tata Motors)? This will replace current preview dummy data.');">
+            <form method="POST" action="{% url 'admin_preview_settings:dummy_reset_defaults' %}" onsubmit="return EnterpriseConfirm.handleForm(event, { title: 'Seed Real Showcase?', subtitle: 'Restore Flagship Indian Enterprises', severity: 'finance', alert: 'Seed and restore the official 5 Flagship Indian Enterprise Showcase (TCS, Reliance, Infosys, HDFC Bank, Tata Motors)? This will replace current preview dummy data.', confirmText: 'Seed Real Showcase' });">
                 {% csrf_token %}
                 <button type="submit" class="admin-btn" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #059669; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -117,67 +117,193 @@
     </div>
 
     <!-- EXCEL / CSV UPLOAD & TEMPLATE DOWNLOAD CARD -->
-    <div class="admin-card" style="margin-bottom: 24px; border: 1px solid rgba(10,108,255,0.25); background: linear-gradient(180deg, rgba(10,108,255,0.02) 0%, rgba(255,255,255,0) 100%);">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+    <div class="admin-card" style="margin-bottom: 24px; border: 1.5px solid rgba(10,108,255,0.25); background: linear-gradient(180deg, rgba(10,108,255,0.03) 0%, rgba(255,255,255,0) 100%); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 14px;">
             <div>
-                <h2 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-flex; width: 26px; height: 26px; border-radius: 6px; background: rgba(10,108,255,0.12); color: #0A6CFF; align-items: center; justify-content: center; font-size: 13px; font-weight: 800;">1</span>
-                    Upload Custom Preview Dataset (Multi-Sheet Excel or CSV)
+                <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                    <span style="display: inline-flex; width: 28px; height: 28px; border-radius: 7px; background: rgba(10,108,255,0.12); color: #0A6CFF; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;">1</span>
+                    Upload &amp; Manage Public Preview Datasets (CSV or Excel)
                 </h2>
-                <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
-                    Deploy your own enterprise catalog into the public preview. Upload an Excel workbook (.xlsx) containing sheets for <strong>Companies</strong>, <strong>Jobs</strong>, and <strong>CSR</strong>, or upload individual CSV files.
+                <p style="margin: 6px 0 0 0; font-size: 13.5px; color: var(--text-secondary); max-width: 820px; line-height: 1.5;">
+                    Populate the unauthenticated visitor preview with realistic corporate profiles, authentic vacancies, and statutory Section 135 CSR projects. 
+                    Upload an <strong>All-in-One Master CSV</strong>, individual category CSVs, or a multi-sheet Excel (.xlsx) workbook.
                 </p>
             </div>
-            <!-- Download Template Buttons -->
+            <!-- Download Pre-Populated Master Templates -->
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <a href="{% url 'admin_preview_settings:download_template' %}?format=xlsx" class="admin-btn" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10B981; padding: 7px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    <span>Download All-in-One Excel (.xlsx)</span>
+                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=unified" class="admin-btn" style="background: rgba(16,185,129,0.12); border: 1.5px solid rgba(16,185,129,0.35); color: #059669; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 8px rgba(16,185,129,0.15);">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Download 5 Companies Master CSV (.csv)</span>
                 </a>
-                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=companies" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
-                    <span>Companies .csv</span>
+                <a href="{% url 'admin_preview_settings:download_template' %}?format=xlsx" class="admin-btn" style="background: rgba(10,108,255,0.08); border: 1px solid rgba(10,108,255,0.25); color: #0A6CFF; padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span>Excel Template (.xlsx)</span>
                 </a>
-                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=jobs" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
-                    <span>Jobs .csv</span>
-                </a>
-                <a href="{% url 'admin_preview_settings:download_template' %}?format=csv&category=csr" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
-                    <span>CSR .csv</span>
-                </a>
+                <button type="button" onclick="toggleFormatGuide()" class="admin-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                    <span>ℹ️ CSV Format Guide</span>
+                </button>
             </div>
         </div>
 
-        <form method="POST" action="{% url 'admin_preview_settings:dummy_upload' %}" enctype="multipart/form-data" style="margin-top: 14px;">
-            {% csrf_token %}
-            <div style="display: grid; grid-template-columns: 2fr 1.1fr 1fr; gap: 16px; align-items: end; flex-wrap: wrap;">
-                <div>
-                    <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Select File (.xlsx, .xls, .csv)</label>
-                    <input type="file" name="file" required accept=".xlsx,.xls,.csv" class="search-input" style="height: 44px; width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1.5px dashed rgba(10,108,255,0.4); background: var(--bg-primary);">
+        <!-- COLLAPSIBLE CSV SPECIFICATION & FORMAT GUIDE -->
+        <div id="dummy-format-guide" style="display: none; margin-bottom: 20px; padding: 18px 20px; border-radius: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="font-weight: 800; font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                    <span>📋 All-in-One Master CSV Column Specifications</span>
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(10,108,255,0.1); color: #0A6CFF; font-weight: 700;">Exact Format</span>
                 </div>
+                <button type="button" onclick="toggleFormatGuide()" style="background: none; border: none; font-size: 16px; color: var(--text-secondary); cursor: pointer;">✕</button>
+            </div>
+            <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                In the <strong>Unified CSV format</strong>, each row associates an enterprise with its active job vacancy and Section 135 CSR initiative. You can upload 1 row per vacancy/project pair (e.g. 10 rows for 5 companies with 2 jobs &amp; 2 CSR projects each).
+            </p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background: rgba(10,108,255,0.06); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11px; font-weight: 800; text-transform: uppercase;">
+                            <th style="padding: 8px 12px;">Field Group</th>
+                            <th style="padding: 8px 12px;">CSV Column Header</th>
+                            <th style="padding: 8px 12px;">Requirement</th>
+                            <th style="padding: 8px 12px;">Sample Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #0A6CFF;">🏢 Company</td>
+                            <td style="padding: 8px 12px; font-family: monospace; font-weight: 700;">Company Name</td>
+                            <td style="padding: 8px 12px; color: #059669; font-weight: 700;">Required</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Tata Consultancy Services Limited</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #0A6CFF;">🏢 Company</td>
+                            <td style="padding: 8px 12px; font-family: monospace;">NSE Symbol, Sector, Headquarters</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Optional</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">TCS | IT &amp; Digital Solutions | Mumbai, MH</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #0A6CFF;">🏢 Company</td>
+                            <td style="padding: 8px 12px; font-family: monospace;">Website URL, Careers URL, CSR Portal URL</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Optional</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">https://www.tcs.com | https://www.tcs.com/careers</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #10B981;">💼 Job</td>
+                            <td style="padding: 8px 12px; font-family: monospace; font-weight: 700;">Job Title</td>
+                            <td style="padding: 8px 12px; color: #059669; font-weight: 700;">Required for Job</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Senior Cloud Infrastructure Architect</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #10B981;">💼 Job</td>
+                            <td style="padding: 8px 12px; font-family: monospace;">Job Location, Work Mode, Department, Experience</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Optional</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Bengaluru, Karnataka | Hybrid | Cloud | 5-9 Years</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #10B981;">💼 Job</td>
+                            <td style="padding: 8px 12px; font-family: monospace;">Job Apply URL</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Optional</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">https://ibegin.tcsapps.com/candidate/#job-991</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 8px 12px; font-weight: 700; color: #8B5CF6;">🌱 CSR</td>
+                            <td style="padding: 8px 12px; font-family: monospace; font-weight: 700;">CSR Project Name</td>
+                            <td style="padding: 8px 12px; color: #059669; font-weight: 700;">Required for CSR</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">TCS Adult Literacy &amp; Rural Digital Empowerment</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 12px; font-weight: 700; color: #8B5CF6;">🌱 CSR</td>
+                            <td style="padding: 8px 12px; font-family: monospace;">CSR Category, CSR State, CSR Budget, CSR Source URL</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Optional</td>
+                            <td style="padding: 8px 12px; color: var(--text-secondary);">Education &amp; Skill Dev | Pan-India | ₹ 38.50 Cr</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'admin_preview_settings:dummy_upload' %}" enctype="multipart/form-data" id="dummy-upload-form" style="margin-top: 10px;">
+            {% csrf_token %}
+            
+            <!-- Modern Drag & Drop Zone -->
+            <div id="drop-zone-container" style="border: 2px dashed rgba(10,108,255,0.35); background: var(--bg-primary); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 16px;" onclick="document.getElementById('file-upload-input').click()">
+                <div id="drop-zone-idle">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(10,108,255,0.1); color: #0A6CFF; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+                        Click to browse or drag &amp; drop your CSV or Excel file here
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">
+                        Supports <strong>.csv</strong> (Unified Master or Category-specific) and <strong>.xlsx / .xls</strong> (Multi-sheet workbooks)
+                    </div>
+                </div>
+                <div id="drop-zone-selected" style="display: none; align-items: center; justify-content: center; gap: 12px;">
+                    <span style="font-size: 26px;">📄</span>
+                    <div style="text-align: left;">
+                        <div id="selected-file-name" style="font-size: 14px; font-weight: 800; color: #0A6CFF;"></div>
+                        <div id="selected-file-size" style="font-size: 11.5px; color: var(--text-secondary);"></div>
+                    </div>
+                    <span style="padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.12); color: #059669; font-weight: 700; font-size: 11.5px; margin-left: 10px;">Ready to Deploy</span>
+                </div>
+                <input type="file" name="file" id="file-upload-input" required accept=".xlsx,.xls,.csv" onchange="handleFileSelected(this)" style="display: none;">
+            </div>
+
+            <!-- Parameters Grid -->
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 16px; align-items: end; flex-wrap: wrap;">
                 <div>
-                    <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Target Category</label>
-                    <select name="target_category" class="search-input" style="height: 44px; width: 100%; font-size: 13px; border-radius: 8px; font-weight: 600;">
-                        <option value="AUTO">✨ Auto-Detect (Multi-sheet Excel / Headers)</option>
-                        <option value="COMPANIES">🏢 Companies Dataset</option>
-                        <option value="JOBS">💼 Career Vacancies Dataset</option>
-                        <option value="CSR">🌱 Section 135 CSR Initiatives</option>
+                    <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Target Dataset Category</label>
+                    <select name="target_category" class="search-input" style="height: 42px; width: 100%; font-size: 13px; border-radius: 8px; font-weight: 600;">
+                        <option value="AUTO">✨ Auto-Detect (Unified Master CSV, Multi-Sheet Excel, or Headers)</option>
+                        <option value="UNIFIED">🏢 All-in-One Master CSV (Companies + Careers + CSR)</option>
+                        <option value="COMPANIES">🏢 Companies Catalog Only</option>
+                        <option value="JOBS">💼 Career Vacancies Only</option>
+                        <option value="CSR">🌱 Section 135 CSR Initiatives Only</option>
                     </select>
                 </div>
                 <div>
                     <label style="display: block; font-size: 11.5px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;">Import Mode</label>
-                    <select name="import_mode" class="search-input" style="height: 44px; width: 100%; font-size: 13px; border-radius: 8px; font-weight: 600;">
-                        <option value="REPLACE">🔄 Replace Existing Records</option>
-                        <option value="APPEND">➕ Append / Update by ID</option>
+                    <select name="import_mode" class="search-input" style="height: 42px; width: 100%; font-size: 13px; border-radius: 8px; font-weight: 600;">
+                        <option value="REPLACE">🔄 Replace Existing Preview Records</option>
+                        <option value="APPEND">➕ Append / Update Existing by ID</option>
                     </select>
                 </div>
-            </div>
-            <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
-                <button type="submit" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color: #FFFFFF; font-size: 13.5px; font-weight: 700; padding: 11px 26px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(10,108,255,0.28); display: inline-flex; align-items: center; gap: 8px; transition: transform 0.15s ease;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    <span>Deploy Dataset to Public Preview</span>
-                </button>
+                <div>
+                    <button type="submit" class="admin-btn" style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%); color: #FFFFFF; font-size: 13.5px; font-weight: 700; padding: 11px 24px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(10,108,255,0.28); display: inline-flex; align-items: center; gap: 8px; transition: transform 0.15s ease; height: 42px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Deploy Dataset to Public Preview</span>
+                    </button>
+                </div>
             </div>
         </form>
     </div>
+
+    <script>
+    function toggleFormatGuide() {
+        const guide = document.getElementById('dummy-format-guide');
+        if (guide) {
+            guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    function handleFileSelected(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        const idle = document.getElementById('drop-zone-idle');
+        const selected = document.getElementById('drop-zone-selected');
+        const nameEl = document.getElementById('selected-file-name');
+        const sizeEl = document.getElementById('selected-file-size');
+        const container = document.getElementById('drop-zone-container');
+
+        if (nameEl) nameEl.textContent = file.name;
+        if (sizeEl) sizeEl.textContent = `${(file.size / 1024).toFixed(1)} KB • Click to choose a different file`;
+        if (idle) idle.style.display = 'none';
+        if (selected) selected.style.display = 'flex';
+        if (container) {
+            container.style.borderColor = '#10B981';
+            container.style.background = 'rgba(16,185,129,0.04)';
+        }
+    }
+    </script>
 
     <!-- DATASET TABLES SECTION -->
     <div class="admin-card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
@@ -269,7 +395,7 @@
                                 </span>
                             </td>
                             <td style="padding: 14px 18px; text-align: right;">
-                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'company' c.company_id %}" style="display: inline;" onsubmit="return confirm('Remove dummy showcase company \'{{ c.company_name }}\'?');">
+                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'company' c.company_id %}" style="display: inline;" onsubmit="return EnterpriseConfirm.handleForm(event, { title: 'Remove Showcase Company?', subtitle: '{{ c.company_name|escapejs }}', severity: 'danger', alert: 'Remove dummy showcase company \'{{ c.company_name|escapejs }}\' from preview database?', confirmText: 'Delete Company' });">
                                     {% csrf_token %}
                                     <button type="submit" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px 8px; font-size: 12px; font-weight: 600; border-radius: 4px;" title="Delete Record">
                                         ✕ Delete
@@ -338,7 +464,7 @@
                                 {% endif %}
                             </td>
                             <td style="padding: 14px 18px; text-align: right;">
-                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'job' j.job_row_id %}" style="display: inline;" onsubmit="return confirm('Remove dummy job \'{{ j.job_title }}\'?');">
+                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'job' j.job_row_id %}" style="display: inline;" onsubmit="return EnterpriseConfirm.handleForm(event, { title: 'Remove Showcase Job?', subtitle: '{{ j.job_title|escapejs }}', severity: 'danger', alert: 'Remove dummy job \'{{ j.job_title|escapejs }}\'?', confirmText: 'Delete Job' });">
                                     {% csrf_token %}
                                     <button type="submit" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px 8px; font-size: 12px; font-weight: 600;" title="Delete Record">
                                         ✕ Delete
@@ -410,7 +536,7 @@
                                 {% endif %}
                             </td>
                             <td style="padding: 14px 18px; text-align: right;">
-                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'csr' p.csr_id %}" style="display: inline;" onsubmit="return confirm('Remove dummy CSR project \'{{ p.project_name }}\'?');">
+                                <form method="POST" action="{% url 'admin_preview_settings:dummy_delete_item' 'csr' p.csr_id %}" style="display: inline;" onsubmit="return EnterpriseConfirm.handleForm(event, { title: 'Remove CSR Project?', subtitle: '{{ p.project_name|escapejs }}', severity: 'danger', alert: 'Remove dummy CSR project \'{{ p.project_name|escapejs }}\'?', confirmText: 'Delete Project' });">
                                     {% csrf_token %}
                                     <button type="submit" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 5px 8px; font-size: 12px; font-weight: 600;" title="Delete Record">
                                         ✕ Delete

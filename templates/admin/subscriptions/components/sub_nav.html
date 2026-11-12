@@ -1,33 +1,16 @@
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; background:var(--admin-surface); border:1px solid var(--admin-border); border-radius:12px; padding:12px 16px;">
-    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-        <a href="{% url 'admin_subscriptions:list' %}" class="btn-admin {% if active_tab == 'subscriptions' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Subscriptions
-        </a>
-        <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin {% if active_tab == 'plans' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            Pricing Plans
-        </a>
-        <a href="{% url 'admin_subscriptions:payments_list' %}" class="btn-admin {% if active_tab == 'payments' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            Payments
-        </a>
-        <a href="{% url 'admin_subscriptions:wallets_list' %}" class="btn-admin {% if active_tab == 'wallets' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="2"/></svg>
-            Wallets
-        </a>
-        <a href="{% url 'admin_subscriptions:invoices' %}" class="btn-admin {% if active_tab == 'invoices' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Invoices &amp; GST
-        </a>
-        <a href="{% url 'admin_subscriptions:promos' %}" class="btn-admin {% if active_tab == 'promos' %}btn-admin-primary{% else %}btn-admin-secondary{% endif %}" style="font-size:12.5px; padding:6px 12px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-            Promo Codes
-        </a>
+<!-- Enterprise Billing & Revenue Control Bar -->
+<div class="billing-header-control" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span style="display:inline-flex; align-items:center; gap:6px; background:rgba(16, 185, 129, 0.1); color:#059669; border:1px solid rgba(16, 185, 129, 0.2); padding:4px 10px; border-radius:20px; font-size:11.5px; font-weight:700; letter-spacing:0.3px;">
+            <span style="width:7px; height:7px; border-radius:50%; background:#10B981; display:inline-block; animation: pulseGlow 2s infinite;"></span>
+            <span>Billing Engine: Active</span>
+        </span>
+        <span style="font-size:12px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px;">
+            &bull; Automated Recurring Settlement &bull; 18% GST Compliant
+        </span>
     </div>
 
     <div style="display:flex; gap:10px; align-items:center;">
-        <span class="badge-status badge-pending" style="font-size:11px; font-weight:600;">Billing Engine</span>
         <form method="POST" action="{% url 'admin_subscriptions:run_renewals' %}" style="margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
             title: 'Authorize Scheduled Renewals Execution',
             subtitle: 'Initiate batch billing cycle verification and automated wallet settlement.',
@@ -47,10 +30,69 @@
             confirmText: 'Execute Renewals Run'
         });">
             {% csrf_token %}
-            <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                Run Renewals
+            <button type="submit" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <span>Run Renewals</span>
             </button>
         </form>
     </div>
 </div>
+
+<!-- Modern Enterprise Underline Navigation Tabs -->
+<div class="billing-nav-tabs" style="display:flex; gap:4px; border-bottom:1px solid var(--border-color); margin-bottom:22px; overflow-x:auto; padding-bottom:0;">
+    <a href="{% url 'admin_subscriptions:list' %}" class="billing-tab-link {% if active_tab == 'subscriptions' %}active{% endif %}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Subscriptions</span>
+    </a>
+    <a href="{% url 'admin_subscriptions:plans_list' %}" class="billing-tab-link {% if active_tab == 'plans' %}active{% endif %}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>Pricing Plans</span>
+    </a>
+    <a href="{% url 'admin_subscriptions:payments_list' %}" class="billing-tab-link {% if active_tab == 'payments' %}active{% endif %}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span>Payments &amp; Ledger</span>
+    </a>
+    <a href="{% url 'admin_subscriptions:invoices' %}" class="billing-tab-link {% if active_tab == 'invoices' %}active{% endif %}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Invoices &amp; GST</span>
+    </a>
+    <a href="{% url 'admin_subscriptions:wallets_list' %}" class="billing-tab-link {% if active_tab == 'wallets' %}active{% endif %}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="16" cy="14" r="2"/></svg>
+        <span>User Wallets</span>
+    </a>
+    <a href="{% url 'admin_subscriptions:promos' %}" class="billing-tab-link {% if active_tab == 'promos' %}active{% endif %}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+        <span>Promo Codes</span>
+    </a>
+</div>
+
+<style>
+.billing-tab-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    margin-bottom: -1px;
+}
+.billing-tab-link:hover {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-color);
+}
+.billing-tab-link.active {
+    color: var(--primary-brand);
+    font-weight: 600;
+    border-bottom: 2px solid var(--primary-brand);
+}
+@keyframes pulseGlow {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+</style>

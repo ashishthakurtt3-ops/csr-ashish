@@ -1,12 +1,90 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Enterprise Document Repository{% endblock %}
-{% block page_title %}CSR Document Verification &amp; Proposals ({{ total_count }}){% endblock %}
+{% block title %}Verification &amp; Document Hub — Corporate Filings{% endblock %}
+{% block page_title %}Verification &amp; Document Hub{% endblock %}
 
 {% block content %}
+<!-- Unified Verification & Document Hub Sub-navigation -->
+<div class="jobs-nav-pills" style="margin-bottom:20px;">
+    <a href="{% url 'admin_documents:list' %}" class="jobs-nav-pill active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Statutory Document Filings</span>
+        <span class="badge-status badge-active" style="font-size:10px; padding:1px 6px;">{{ total_doc_count|default:total_count }} Docs</span>
+    </a>
+    <a href="{% url 'admin_verification:queue' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Project Verification Queue</span>
+        {% if pending_queue_count %}
+        <span class="badge-status badge-pending" style="font-size:10px; padding:1px 6px;">{{ pending_queue_count }} Pending</span>
+        {% endif %}
+    </a>
+    <a href="{% url 'admin_verification:crawler_status' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>Crawler Telemetry</span>
+    </a>
+    <a href="{% url 'admin_verification:audit_trail' %}" class="jobs-nav-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Audit Logs</span>
+    </a>
+</div>
+
+<!-- Onboarding & Purpose Hero Banner for New Admins -->
+<div class="admin-card" id="docHubHeroBanner" style="margin-bottom:20px; border-left:4px solid var(--primary-brand); background:linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-surface-subtle) 100%); position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:280px;">
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(10,108,255,0.1); color:var(--primary-brand); padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+                <span>🛡️</span> <span>Official System of Record</span>
+            </div>
+            <h2 style="margin:0 0 6px 0; font-size:18px; font-weight:800; color:var(--text-primary);">
+                Statutory CSR Filings &amp; Evidence Repository
+            </h2>
+            <p style="margin:0 0 14px 0; font-size:13px; color:var(--text-secondary); line-height:1.55; max-width:900px;">
+                <strong>What is this Hub for?</strong> The Document Hub is your central vault for official statutory compliance filings, Section 135 MCA CSR Annual Disclosures, Board resolutions, and audited NGO proposals. Uploaded documents serve as authoritative ground-truth evidence to verify borderline project data in the <em>Verification Queue</em> and enable public disclosure exports.
+            </p>
+        </div>
+        <button type="button" onclick="toggleDocHubGuide()" id="toggleGuideBtn" class="btn-admin btn-admin-secondary" style="font-size:12px; padding:6px 12px; white-space:nowrap;">
+            <span id="toggleGuideText">Collapse Guide ▴</span>
+        </button>
+    </div>
+
+    <!-- 3-Step Workflow Grid -->
+    <div id="docHubGuideContent" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:12px; padding-top:14px; border-top:1px solid var(--border-color);">
+        <div style="background:var(--bg-surface); padding:14px 16px; border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="width:24px; height:24px; border-radius:50%; background:var(--primary-brand); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">1</span>
+                <strong style="font-size:13px; color:var(--text-primary);">Ingest &amp; Upload</strong>
+            </div>
+            <p style="margin:0; font-size:12px; color:var(--text-secondary); line-height:1.45;">
+                Upload MCA filings, CSR annual reports, Form 12A/80G certificates, or partner proposals linked to corporate entities.
+            </p>
+        </div>
+
+        <div style="background:var(--bg-surface); padding:14px 16px; border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="width:24px; height:24px; border-radius:50%; background:#059669; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">2</span>
+                <strong style="font-size:13px; color:var(--text-primary);">Audit &amp; Cross-Examine</strong>
+            </div>
+            <p style="margin:0; font-size:12px; color:var(--text-secondary); line-height:1.45;">
+                Compare extracted project budgets and initiatives in the Verification Queue against statutory figures in the uploaded documents.
+            </p>
+        </div>
+
+        <div style="background:var(--bg-surface); padding:14px 16px; border-radius:10px; border:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="width:24px; height:24px; border-radius:50%; background:#7C3AED; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">3</span>
+                <strong style="font-size:13px; color:var(--text-primary);">Approve &amp; Endorse</strong>
+            </div>
+            <p style="margin:0; font-size:12px; color:var(--text-secondary); line-height:1.45;">
+                Approve verified documents to promote compliance scores to 0.99, publish company records, and power verified public dossiers.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Repository Table Card -->
 <div class="admin-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:600px;">
+        <form method="GET" style="display:flex; gap:10px; flex:1; max-width:680px; flex-wrap:wrap;">
             <select name="type" style="padding:8px 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-size:13px;">
                 <option value="all">All Document Types</option>
                 {% for t_code, t_label in doc_types %}
@@ -20,11 +98,14 @@
                 {% endfor %}
             </select>
             <button type="submit" class="btn-admin btn-admin-secondary">Filter</button>
+            {% if selected_type and selected_type != 'all' or selected_status and selected_status != 'all' %}
+            <a href="{% url 'admin_documents:list' %}" class="btn-admin btn-admin-secondary">Reset</a>
+            {% endif %}
         </form>
 
         <div style="display:flex; gap:10px; align-items:center;">
             {% include "admin/components/exchange_toolbar.html" with entity="documents" title="Documents" %}
-            <a href="{% url 'admin_documents:upload' %}" class="btn-admin btn-admin-primary">
+            <a href="{% url 'admin_documents:upload' %}" class="btn-admin btn-admin-primary" style="display:inline-flex; align-items:center; gap:6px;">
                 <span>+</span> <span>Upload Document</span>
             </a>
         </div>
@@ -36,7 +117,7 @@
                 <tr>
                     <th>Document Title</th>
                     <th>Type</th>
-                    <th>Company</th>
+                    <th>Associated Corporate Partner</th>
                     <th>Uploaded By</th>
                     <th>Format &amp; Size</th>
                     <th>Status</th>
@@ -47,16 +128,20 @@
                 {% for doc in page_obj %}
                 <tr>
                     <td>
-                        <strong style="color:var(--text-primary);">{{ doc.title }}</strong>
+                        <strong style="color:var(--text-primary); font-size:13.5px;">{{ doc.title }}</strong>
                         {% if doc.notes %}
-                        <div style="font-size:11px; color:var(--text-secondary);">{{ doc.notes }}</div>
+                        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">{{ doc.notes }}</div>
                         {% endif %}
                     </td>
-                    <td><span class="badge-status badge-pending">{{ doc.get_document_type_display }}</span></td>
+                    <td>
+                        <span class="badge-status badge-pending" style="font-size:11px;">{{ doc.get_document_type_display }}</span>
+                    </td>
                     <td>
                         {% if doc.company %}
                         <a href="{% url 'admin_companies:detail' doc.company.company_id %}" style="color:var(--primary-brand); font-weight:600; text-decoration:none;">{{ doc.company.company_name }}</a>
-                        {% else %}—{% endif %}
+                        {% else %}
+                        <span style="color:var(--text-secondary);">—</span>
+                        {% endif %}
                     </td>
                     <td>{{ doc.uploaded_by.username|default:"System" }}</td>
                     <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">
@@ -71,28 +156,39 @@
                         <span class="badge-status badge-rejected">{{ doc.status }}</span>
                         {% endif %}
                     </td>
-                    <td style="text-align:right;">
-                        <div style="display:flex; justify-content:flex-end; gap:6px;">
+                    <td style="text-align:right; white-space:nowrap;">
+                        <div style="display:inline-flex; justify-content:flex-end; gap:6px; align-items:center;">
                             {% if doc.file %}
-                            <a href="{{ doc.file.url }}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11px;">View</a>
+                            <a href="{{ doc.file.url }}" target="_blank" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" title="View / Download File">View</a>
                             {% endif %}
+                            
+                            <a href="{% url 'admin_documents:edit' doc.document_id %}" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px;" title="Edit Metadata or Replace File">Edit</a>
+
                             {% if doc.status == "PENDING" %}
                             <form method="POST" action="{% url 'admin_documents:action' doc.document_id %}" style="display:inline;">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="VERIFY">
-                                <button type="submit" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11px;">Approve</button>
+                                <button type="submit" class="btn-admin btn-admin-primary" style="padding:4px 8px; font-size:11.5px;" title="Approve Filing">Approve</button>
                             </form>
                             <form method="POST" action="{% url 'admin_documents:action' doc.document_id %}" style="display:inline;">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="REJECT">
-                                <button type="submit" class="btn-admin btn-admin-danger" style="padding:4px 8px; font-size:11px;">Reject</button>
+                                <button type="submit" class="btn-admin btn-admin-secondary" style="padding:4px 8px; font-size:11.5px; color:#DC2626;" title="Reject Filing">Reject</button>
                             </form>
                             {% endif %}
+
+                            <button type="button" onclick="openDeleteRowModal('{{ doc.document_id }}', '{{ doc.title|escapejs }}')" class="btn-admin btn-admin-danger" style="padding:4px 8px; font-size:11.5px;" title="Delete Document">
+                                &times;
+                            </button>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--admin-muted);">No documents in repository.</td></tr>
+                <tr>
+                    <td colspan="7" style="text-align:center; padding:32px; color:var(--text-secondary);">
+                        No documents found in repository. Click "Upload Document" to add official Section 135 CSR reports or proposals.
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -100,7 +196,7 @@
 
     {% if page_obj.has_other_pages %}
     <div class="pagination-bar">
-        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total)</div>
+        <div>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total filings)</div>
         <div class="pagination-links">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}&type={{ selected_type }}&status={{ selected_status }}" class="page-link-btn">&larr; Prev</a>
@@ -113,4 +209,68 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Global Row Delete Confirmation Modal -->
+<div id="rowDeleteModal" style="display:none; position:fixed; inset:0; background:rgba(11,31,51,0.6); backdrop-filter:blur(3px); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; width:100%; max-width:440px; padding:24px; box-shadow:var(--shadow-modal);">
+        <h4 style="margin:0 0 10px 0; font-size:16px; color:#DC2626; font-weight:700; display:flex; align-items:center; gap:8px;">
+            <span>⚠️</span> <span>Delete Document</span>
+        </h4>
+        <p style="margin:0 0 18px 0; font-size:13px; color:var(--text-secondary); line-height:1.5;">
+            Are you sure you want to delete <strong id="deleteModalDocTitle" style="color:var(--text-primary);">this document</strong>?
+            The file will be permanently removed from disk storage and repository records.
+        </p>
+        <form id="rowDeleteForm" method="POST" action="" style="display:flex; justify-content:flex-end; gap:10px;">
+            {% csrf_token %}
+            <button type="button" onclick="closeDeleteRowModal()" class="btn-admin btn-admin-secondary">Cancel</button>
+            <button type="submit" class="btn-admin btn-admin-danger">Yes, Delete</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleDocHubGuide() {
+    const guide = document.getElementById('docHubGuideContent');
+    const btnText = document.getElementById('toggleGuideText');
+    if (!guide || !btnText) return;
+    
+    if (guide.style.display === 'none') {
+        guide.style.display = 'grid';
+        btnText.innerText = 'Collapse Guide ▴';
+        localStorage.setItem('dochub_guide_collapsed', 'false');
+    } else {
+        guide.style.display = 'none';
+        btnText.innerText = 'Expand Guide ▾';
+        localStorage.setItem('dochub_guide_collapsed', 'true');
+    }
+}
+
+// Restore user guide preference
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('dochub_guide_collapsed') === 'true') {
+        const guide = document.getElementById('docHubGuideContent');
+        const btnText = document.getElementById('toggleGuideText');
+        if (guide && btnText) {
+            guide.style.display = 'none';
+            btnText.innerText = 'Expand Guide ▾';
+        }
+    }
+});
+
+function openDeleteRowModal(docId, docTitle) {
+    const modal = document.getElementById('rowDeleteModal');
+    const form = document.getElementById('rowDeleteForm');
+    const titleEl = document.getElementById('deleteModalDocTitle');
+    if (modal && form) {
+        form.action = '/admin-portal/documents/' + docId + '/delete/';
+        if (titleEl) titleEl.innerText = '"' + docTitle + '"';
+        modal.style.display = 'flex';
+    }
+}
+
+function closeDeleteRowModal() {
+    const modal = document.getElementById('rowDeleteModal');
+    if (modal) modal.style.display = 'none';
+}
+</script>
 {% endblock %}

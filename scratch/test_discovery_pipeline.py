@@ -46,3 +46,4 @@ for name in test_comps:
         print("  Recent Logs:")
         for l in res.get('logs', [])[-4:]:
             print(f"    {l}")
+

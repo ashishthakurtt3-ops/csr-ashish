@@ -518,6 +518,10 @@ def company_detail_view(request, company_id):
     jobs_qs = jobs_qs.order_by('-last_checked_date', '-job_row_id')
     jobs_paginator = Paginator(jobs_qs, 20)
     jobs_page_obj = jobs_paginator.get_page(job_page_num)
+    try:
+        jobs_page_range = list(jobs_paginator.get_elided_page_range(jobs_page_obj.number, on_each_side=2, on_ends=1))
+    except Exception:
+        jobs_page_range = list(jobs_paginator.page_range)
 
     total_company_jobs = company.jobs.count()
     active_jobs_count = company.jobs.filter(status='ACTIVE').count()
@@ -546,6 +550,10 @@ def company_detail_view(request, company_id):
     csr_qs = csr_qs.order_by('-confidence', '-csr_id')
     csr_paginator = Paginator(csr_qs, 20)
     csr_page_obj = csr_paginator.get_page(csr_page_num)
+    try:
+        csr_page_range = list(csr_paginator.get_elided_page_range(csr_page_obj.number, on_each_side=2, on_ends=1))
+    except Exception:
+        csr_page_range = list(csr_paginator.page_range)
 
     total_csr_projects = company.csr_projects.count()
     active_csr_projects = company.csr_projects.filter(status='ACTIVE').count()
@@ -590,6 +598,7 @@ def company_detail_view(request, company_id):
 
         # Jobs Management
         'jobs_page_obj': jobs_page_obj,
+        'jobs_page_range': jobs_page_range,
         'total_company_jobs': total_company_jobs,
         'active_jobs_count': active_jobs_count,
         'archived_jobs_count': archived_jobs_count,
@@ -601,6 +610,7 @@ def company_detail_view(request, company_id):
 
         # CSR Projects Management
         'csr_page_obj': csr_page_obj,
+        'csr_page_range': csr_page_range,
         'total_csr_projects': total_csr_projects,
         'active_csr_projects': active_csr_projects,
         'csr_q': csr_q,

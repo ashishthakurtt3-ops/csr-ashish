@@ -51,7 +51,6 @@
 {% endblock %}
 
 {% block content %}
-{% include "admin/subscriptions/components/sub_nav.html" with active_tab="plans" %}
 
 <form id="plan-admin-form" method="POST" onsubmit="return handlePlanFormSubmit(event)" style="display:flex; flex-direction:column; gap:24px;">
     {% csrf_token %}
@@ -171,13 +170,6 @@
                 <input type="number" step="0.01" id="field-renewal_price_inr" name="renewal_price_inr" value="{{ plan.price_renewal|default:plan.price_monthly|default:'0' }}"
                        style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace;">
                 <span style="font-size:11px; color:var(--admin-muted);">Defaults to monthly price</span>
-            </div>
-
-            <div>
-                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Wallet Deduction</label>
-                <input type="number" step="0.01" id="field-wallet_deduction_inr" name="wallet_deduction_inr" value="{{ plan.price_wallet_deduction|default:plan.price_monthly|default:'0' }}"
-                       style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:14px; font-family:'JetBrains Mono',monospace;">
-                <span style="font-size:11px; color:var(--admin-muted);">Amount charged to wallet</span>
             </div>
         </div>
 
@@ -302,8 +294,15 @@
 
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
             <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Browse Verified Companies Limit</label>
+                <input type="text" id="field-limit_browse_companies" name="limit_browse_companies" value="{{ limits.browse_companies_limit|default:'' }}" placeholder="e.g. 20, 100 or unlimited"
+                       style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
+                <span style="font-size:11px; color:var(--admin-muted);">Leave empty or 'unlimited' for full directory access</span>
+            </div>
+
+            <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Saved Jobs &amp; CSR Projects</label>
-                <input type="text" id="field-limit_saved_records" name="limit_saved_records" value="{{ limits.saved_records_limit|default:'' }}" placeholder="e.g. 10, 100 or unlimited"
+                <input type="text" id="field-limit_saved_records" name="limit_saved_records" value="{{ limits.saved_records_limit|default:'' }}" placeholder="e.g. 20, 100 or unlimited"
                        style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
             </div>
 
@@ -315,7 +314,7 @@
 
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Monthly Export Quota (Rows)</label>
-                <input type="text" id="field-limit_export_rows" name="limit_export_rows" value="{{ limits.export_rows_per_month|default:'' }}" placeholder="e.g. 0, 200 or 2000"
+                <input type="text" id="field-limit_export_rows" name="limit_export_rows" value="{{ limits.export_rows_per_month|default:'' }}" placeholder="e.g. 20, 100 or unlimited"
                        style="width:100%; box-sizing:border-box; padding:9px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13px;">
             </div>
 
@@ -352,7 +351,7 @@
             </label>
             <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#fff; cursor:pointer;">
                 <input type="checkbox" id="field-limit_request_company_refresh" name="limit_request_company_refresh" {% if limits.request_company_refresh %}checked{% endif %} style="width:16px; height:16px;">
-                <span>On-Demand Company Data Refresh</span>
+                <span><strong>On-Demand Company Crawler Rescan (Refresh)</strong></span>
             </label>
         </div>
 
@@ -480,7 +479,7 @@ const fieldLabels = {
     'monthly_price_inr': 'Monthly Price',
     'yearly_price_inr': 'Yearly Price',
     'renewal_price_inr': 'Renewal Price',
-    'wallet_deduction_inr': 'Wallet Deduction',
+    'limit_browse_companies': 'Browse Companies Limit',
     'discount_percent': 'Discount (%)',
     'savings_text': 'Savings Text',
     'trial_days': 'Trial Days',
@@ -613,6 +612,7 @@ function syncBulletsFromLimits(force = false) {
     const autoSyncEl = document.getElementById('field-auto_sync_features');
     if (!force && autoSyncEl && !autoSyncEl.checked) return;
 
+    const browseComp = document.getElementById('field-limit_browse_companies') ? document.getElementById('field-limit_browse_companies').value.trim() : '';
     const savedRec = document.getElementById('field-limit_saved_records') ? document.getElementById('field-limit_saved_records').value.trim() : '';
     const savedSrch = document.getElementById('field-limit_saved_searches') ? document.getElementById('field-limit_saved_searches').value.trim() : '';
     const expRows = document.getElementById('field-limit_export_rows') ? document.getElementById('field-limit_export_rows').value.trim() : '';
@@ -623,30 +623,45 @@ function syncBulletsFromLimits(force = false) {
     const refreshReq = document.getElementById('field-limit_request_company_refresh') ? document.getElementById('field-limit_request_company_refresh').checked : false;
     const seats = parseInt(document.getElementById('field-limit_seats') ? document.getElementById('field-limit_seats').value : 1) || 1;
 
-    const bullets = [
-        "Browse verified companies & CSR profiles",
-        "Search active corporate vacancies & Section 135 projects",
-        "View verified job & CSR details and original portal links",
-    ];
+    const bullets = [];
 
-    if (!savedRec || savedRec.toLowerCase() === 'unlimited' || savedRec.toLowerCase() === 'none') {
-        bullets.push("Unlimited saved jobs & CSR projects");
+    // 1. Browse Verified Companies & Portals
+    if (!browseComp || browseComp.toLowerCase() === 'unlimited' || browseComp.toLowerCase() === 'none' || browseComp.toLowerCase() === 'all') {
+        bullets.push("Browse full directory of all verified companies & corporate portals");
     } else {
-        bullets.push(`Save up to ${savedRec} combined jobs & CSR projects`);
+        bullets.push(`Browse up to ${browseComp} verified companies & portals`);
     }
 
+    bullets.push("Search active corporate vacancies & Section 135 projects");
+    bullets.push("View verified job & CSR details and original portal links");
+
+    // 2. Saved Records
+    if (!savedRec || savedRec.toLowerCase() === 'unlimited' || savedRec.toLowerCase() === 'none') {
+        bullets.push("Unlimited saved companies, jobs & CSR projects");
+    } else {
+        bullets.push(`Save up to ${savedRec} combined companies, jobs & CSR projects`);
+    }
+
+    // 3. Saved Searches
     if (!savedSrch || savedSrch.toLowerCase() === 'unlimited' || savedSrch.toLowerCase() === 'none') {
         bullets.push("Unlimited saved search queries");
     } else {
         bullets.push(`Save up to ${savedSrch} custom search ${parseInt(savedSrch) > 1 ? 'queries' : 'query'}`);
     }
 
+    // 4. Monthly CSV Exports
     if (!expRows || expRows.toLowerCase() === 'unlimited' || expRows.toLowerCase() === 'none') {
         bullets.push("Unlimited bulk data exports (CSV & Excel)");
     } else if (parseInt(expRows) > 0) {
         bullets.push(`Export up to ${parseInt(expRows).toLocaleString('en-IN')} records / month (CSV & Excel)`);
     }
 
+    // 5. Crawler Rescan
+    if (refreshReq) {
+        bullets.push("On-demand company crawler rescan requests");
+    }
+
+    // 6. Company Comparison
     if (!compComp || compComp.toLowerCase() === 'unlimited' || parseInt(compComp) > 15) {
         bullets.push("Comprehensive multi-company comparison tool");
     } else if (parseInt(compComp) > 0) {
@@ -656,10 +671,6 @@ function syncBulletsFromLimits(force = false) {
     const freqName = (alertFreq === 'custom' || alertFreq === 'instant') ? 'Instant Real-Time' : (alertFreq === 'daily' ? 'Daily' : 'Weekly');
     bullets.push(`${freqName} job & CSR alert notifications`);
     bullets.push(advFilters ? "Advanced multi-dimensional search filters" : "Standard search filters");
-
-    if (refreshReq) {
-        bullets.push("On-demand company data refresh requests");
-    }
 
     if (seats > 1) {
         bullets.push(`Up to ${seats} team member accounts`);
@@ -677,6 +688,7 @@ function syncBulletsFromLimits(force = false) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const limitInputs = [
+        'field-limit_browse_companies',
         'field-limit_saved_records', 'field-limit_saved_searches', 'field-limit_export_rows',
         'field-limit_compare_companies', 'field-limit_seats', 'field-limit_alert_frequency',
         'field-limit_advanced_filters', 'field-limit_priority_support', 'field-limit_request_company_refresh'

@@ -86,3 +86,4 @@ for c in CSRProject.objects.all():
 print(f"Purged {bad_csr_count} hallucinated/templated CSR projects.")
 print(f"Fixed {fixed_csr_urls} CSR URLs.")
 print("=== PURGE COMPLETE ===")
+

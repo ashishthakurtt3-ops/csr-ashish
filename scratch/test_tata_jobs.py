@@ -10,3 +10,4 @@ for a in soup.find_all('a', href=True):
     t = a.get_text(' ', strip=True)
     if '/job/' in h or 'jobid' in h.lower() or 'opportunity' in h.lower():
         print(f"  {t} -> {h}")
+

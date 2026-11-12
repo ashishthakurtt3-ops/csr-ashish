@@ -1,3 +1,15 @@
+// Helper to identify Dummy Preview entities
+window.isDummyRecordId = function(id) {
+    if (!id) return false;
+    const s = String(id).trim();
+    if (s.startsWith('DUMMY_') || s.startsWith('dummy_')) return true;
+    if (window.PREVIEW_COMPANY_IDS && window.PREVIEW_COMPANY_IDS.includes(s)) return true;
+    return false;
+};
+function isDummyRecordId(id) {
+    return window.isDummyRecordId(id);
+}
+
 /**
  * ImpactBridge: CSR & Enterprise Job Intelligence OS
  * Production Client Controller & Modern UX Engine 3.0
@@ -46,25 +58,26 @@ let activeTab = 'companies';
 let companyViewMode = 'cards'; // 'cards' | 'table'
 let activeJobCategory = 'all';
 let currentSubscription = {
-    tier: 'free',
-    plan_id: 'free',
-    plan_name: 'Community Free',
-    organization_name: 'Institutional Non-Profit Access',
+    tier: null,
+    plan_id: null,
+    plan_name: 'No Active Plan',
+    organization_name: 'No Subscription Active',
     contact_email: '',
-    status: 'ACTIVE',
-    is_free: true,
+    status: 'NONE',
+    is_free: false,
+    is_active: false,
     limits: {
-        daily_matches: 5,
+        daily_matches: 0,
         view_contacts: false,
         live_reprobe: false,
-        export_rows_per_month: 25,
+        export_rows_per_month: 0,
         seats: 1,
         api_access: false,
         audit_packs: false
     },
     quota: {
         used: 0,
-        limit: 5,
+        limit: 0,
         unlimited: false
     }
 };
@@ -214,6 +227,16 @@ async function initApp() {
             setJobViewMode('cards');
         }
     }, 200));
+
+    // STRICT SUBSCRIPTION ENFORCEMENT ON LOGIN:
+    // If user is authenticated but has no active plan, strictly lock them to pricing.
+    // Absolutely NO company, job, or CSR data must be fetched or displayed.
+    if (window.PLAN_REQUIRED) {
+        await switchTab('pricing');
+        await loadSubscriptionState();
+        await loadAndRenderPricingPlans();
+        return;
+    }
 
     // Check if initial URL or server context requests a specific default tab (e.g. /pricing/)
     if ((window.DEFAULT_TAB && window.DEFAULT_TAB !== 'companies') || window.location.pathname.startsWith('/pricing')) {
@@ -417,7 +440,19 @@ function toggleMobileGuide() {
 }
 
 async function switchTab(tab) {
-    if (window.IS_PREVIEW_MODE) {
+    if (window.PLAN_REQUIRED) {
+        if (tab !== 'pricing') {
+            tab = 'pricing';
+            if (typeof showInAppNotification === 'function') {
+                showInAppNotification({
+                    title: 'Subscription Plan Required',
+                    message: 'Please choose an active plan to access verified corporate and CSR intelligence data.',
+                    type: 'warning',
+                    duration: 5000
+                });
+            }
+        }
+    } else if (window.IS_PREVIEW_MODE) {
         const restrictedTabs = {
             'matching': { type: 'matching', title: 'AI Grant Matchmaker' },
             'prospects': { type: 'crm', title: 'Outreach CRM Pipeline' },
@@ -540,9 +575,10 @@ function getCompanyCsrWebpageUrl(company) {
 
 function openCompanyCsr(companyId) {
     if (!companyId) return;
-    if (window.IS_PREVIEW_MODE) {
+    const isDummy = isDummyRecordId(companyId);
+    if (!isDummy && (window.IS_PREVIEW_MODE || window.PLAN_REQUIRED)) {
         if (typeof openAuthGateModal === 'function') {
-            openAuthGateModal('csr', companyId, `/companies/${companyId}/csr`);
+            openAuthGateModal('csr', companyId, window.PLAN_REQUIRED ? '/?tab=pricing' : `/companies/${companyId}/csr`);
         }
         return;
     }
@@ -1060,6 +1096,10 @@ function renderCompanyViews(list, total) {
 
 async function fetchCompanyLiveData(companyId, btnElement) {
     if (!companyId) return;
+    if (isDummyRecordId(companyId)) {
+        if (typeof showLiveToast === 'function') showLiveToast('Statutory live verification refreshed for ' + companyId, 'success');
+        return;
+    }
     if (window.IS_PREVIEW_MODE) {
         if (typeof openAuthGateModal === 'function') {
             openAuthGateModal('company', companyId, `/companies/${companyId}`);
@@ -2499,9 +2539,14 @@ function filterCompanyDirectory() {
 
 async function openCompanyJobs(companyId) {
     if (!companyId) return;
-    if (window.IS_PREVIEW_MODE) {
+    const isDummy = isDummyRecordId(companyId);
+    if (isDummy) {
+        openCompanyDossier(companyId, 'jobs');
+        return;
+    }
+    if (window.IS_PREVIEW_MODE || window.PLAN_REQUIRED) {
         if (typeof openAuthGateModal === 'function') {
-            openAuthGateModal('job', companyId, `/companies/${companyId}/jobs`);
+            openAuthGateModal('job', companyId, window.PLAN_REQUIRED ? '/?tab=pricing' : `/companies/${companyId}/jobs`);
         }
         return;
     }
@@ -2780,6 +2825,13 @@ function getMissingFieldNotice(job, isDetailPageField = true) {
 }
 
 async function openJobDetailsModal(jobId, forceRefresh = false) {
+    const isDummy = isDummyRecordId(jobId);
+    if (!isDummy && (window.IS_PREVIEW_MODE || window.PLAN_REQUIRED)) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('job', 'Job Vacancy Specifications', window.PLAN_REQUIRED ? '/?tab=pricing' : `/jobs/${jobId}`);
+        }
+        return;
+    }
     const modal = document.getElementById('modal-job-details');
     const modalBody = document.getElementById('modal-job-body');
     const modalTitle = document.getElementById('modal-job-title');
@@ -2799,13 +2851,15 @@ async function openJobDetailsModal(jobId, forceRefresh = false) {
     try {
         const url = `${API_BASE}/jobs/${jobId}${forceRefresh ? '?refresh=1' : ''}`;
         const res = await fetch(url);
-        if (res.status === 401) {
-            if (modal) modal.style.display = 'none';
-            document.body.style.overflow = '';
-            if (typeof openAuthGateModal === 'function') {
-                openAuthGateModal('job', 'Job Specifications', `/jobs/${jobId}`);
+        if (res.status === 401 || res.status === 403) {
+            if (!isDummy) {
+                if (modal) modal.style.display = 'none';
+                document.body.style.overflow = '';
+                if (typeof openAuthGateModal === 'function') {
+                    openAuthGateModal('job', 'Job Vacancy Specifications', window.PLAN_REQUIRED ? '/?tab=pricing' : `/jobs/${jobId}`);
+                }
+                return;
             }
-            return;
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const job = await res.json();
@@ -3531,6 +3585,13 @@ function renderCsrProjects(items) {
 // UNIVERSAL CSR VIEW SECTION (Part 6: Sections A to I + Company CSR Webpage Link)
 // ===========================================================================
 async function openCsrDetailsModal(csrId) {
+    const isDummy = isDummyRecordId(csrId);
+    if (!isDummy && (window.IS_PREVIEW_MODE || window.PLAN_REQUIRED)) {
+        if (typeof openAuthGateModal === 'function') {
+            openAuthGateModal('csr', 'Section 135 CSR Dossier', window.PLAN_REQUIRED ? '/?tab=pricing' : `/csr/projects/${csrId}`);
+        }
+        return;
+    }
     const modal = document.getElementById('modal-csr-details');
     const modalBody = document.getElementById('modal-csr-body');
     const modalTitle = document.getElementById('modal-csr-title');
@@ -3550,13 +3611,15 @@ async function openCsrDetailsModal(csrId) {
 
     try {
         const res = await fetch(`${API_BASE}/csr/projects/${csrId}`);
-        if (res.status === 401) {
-            if (modal) modal.style.display = 'none';
-            document.body.style.overflow = '';
-            if (typeof openAuthGateModal === 'function') {
-                openAuthGateModal('csr', 'Section 135 CSR Dossier', `/csr/projects/${csrId}`);
+        if (res.status === 401 || res.status === 403) {
+            if (!isDummy) {
+                if (modal) modal.style.display = 'none';
+                document.body.style.overflow = '';
+                if (typeof openAuthGateModal === 'function') {
+                    openAuthGateModal('csr', 'Section 135 CSR Dossier', window.PLAN_REQUIRED ? '/?tab=pricing' : `/csr/projects/${csrId}`);
+                }
+                return;
             }
-            return;
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const p = await res.json();
@@ -4432,6 +4495,12 @@ function renderPipeline(prospects) {
 }
 
 async function quickSaveToPipeline(companyId, companyName, sector) {
+    if (typeof isDummyRecordId === 'function' && isDummyRecordId(companyId)) {
+        if (typeof showLiveToast === 'function') {
+            showLiveToast(`[Demo Mode] ${companyName || companyId} bookmarked in preview pipeline.`, 'success');
+        }
+        return;
+    }
     if (window.IS_PREVIEW_MODE) {
         if (typeof openAuthGateModal === 'function') {
             openAuthGateModal('save', companyName || companyId, '/prospects');
@@ -4497,9 +4566,10 @@ async function removeProspect(companyId) {
 let currentDossierData = null;
 
 async function openCompanyDossier(companyId, initialTab = 'overview') {
-    if (window.IS_PREVIEW_MODE) {
+    const isDummy = isDummyRecordId(companyId);
+    if (!isDummy && (window.IS_PREVIEW_MODE || window.PLAN_REQUIRED)) {
         if (typeof openAuthGateModal === 'function') {
-            openAuthGateModal('company', companyId, `/companies/${companyId}`);
+            openAuthGateModal('company', companyId, window.PLAN_REQUIRED ? '/?tab=pricing' : `/companies/${companyId}`);
         }
         return;
     }
@@ -4525,12 +4595,14 @@ async function openCompanyDossier(companyId, initialTab = 'overview') {
     try {
         const res = await fetch(`${API_BASE}/companies/${companyId}/dossier`);
         if (res.status === 401 || res.status === 403) {
-            if (modal) modal.style.display = 'none';
-            document.body.style.overflow = '';
-            if (typeof openAuthGateModal === 'function') {
-                openAuthGateModal('company', companyId, `/companies/${companyId}/dossier`);
+            if (!isDummy) {
+                if (modal) modal.style.display = 'none';
+                document.body.style.overflow = '';
+                if (typeof openAuthGateModal === 'function') {
+                    openAuthGateModal('company', companyId, `/companies/${companyId}/dossier`);
+                }
+                return;
             }
-            return;
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -4668,12 +4740,14 @@ function switchDossierTab(tab) {
     // TAB 1: OVERVIEW (SECTION 2: COMPANY OVERVIEW)
     // -----------------------------------------------------------------------
     if (tab === 'overview') {
-        // Collect distinct locations from jobs & CSR projects
+        // Collect distinct locations from company master, jobs & CSR projects
         const rawLocations = [
+            ...(currentDossierData.operating_locations || []),
+            ...(comp.operating_locations ? comp.operating_locations.replace(/;/g, ',').split(',') : []),
             ...jobs.map(j => j.location).filter(Boolean),
             ...projects.map(p => p.state).filter(Boolean)
         ];
-        const uniqueLocations = [...new Set(rawLocations)].slice(0, 6);
+        const uniqueLocations = [...new Set(rawLocations.map(s => String(s).trim()).filter(Boolean))].slice(0, 8);
         const locationsDisplay = uniqueLocations.length > 0 
             ? uniqueLocations.map(l => `<span class="job-chip">📍 ${escapeHtml(l)}</span>`).join(' ') 
             : '<span style="color:var(--text-muted); font-size:12.5px;">' + NOT_AVAILABLE_TEXT + '</span>';
@@ -5363,8 +5437,9 @@ let checkoutSelectedCycle = 'monthly';
 let checkoutCurrentQuote = null;
 
 function normalizeSubscriptionTier(tierOrPlan) {
-    if (!tierOrPlan) return 'free';
+    if (!tierOrPlan) return null;
     const s = String(tierOrPlan).trim().toLowerCase();
+    if (s === 'none' || s === 'null' || s === 'undefined') return null;
     if (s === 'starter' || s === 'free' || s === 'community_free') return 'free';
     if (s === 'pro') return 'pro';
     if (s === 'enterprise' || s === 'ultra' || s === 'foundation' || s === 'api') return 'ultra';
@@ -5632,8 +5707,12 @@ function renderPricingGrid() {
             buttonClass = 'btn-secondary';
         } else if (plan.is_contact_sales) {
             buttonText = 'Contact Sales Team ↗';
+        } else if (plan.is_free && (currentSubscription.status === 'EXPIRED' || (currentSubscription.plan_id === 'free' && !hasActiveSub))) {
+            buttonText = 'Trial Expired';
+            buttonDisabled = true;
+            buttonClass = 'btn-secondary';
         } else if (!hasActiveSub) {
-            buttonText = plan.is_free ? 'Select Free Plan' : `Select ${plan.name}`;
+            buttonText = plan.is_free ? 'Start 14-Day Free Trial' : `Select ${plan.name}`;
             buttonClass = 'btn-primary';
             buttonDisabled = false;
         } else {
@@ -5663,8 +5742,9 @@ function renderPricingGrid() {
             </li>
         `).join('');
 
+        const isCardSelected = (window.selectedComparisonPlan || 'pro').toLowerCase() === planCode;
         html += `
-            <div class="pricing-card ${isFeatured ? 'featured' : ''}" id="card-plan-${planCode}" style="${isCurrentActive ? 'border: 2px solid var(--primary-brand);' : ''}">
+            <div class="pricing-card ${isFeatured ? 'featured' : ''} ${isCardSelected ? 'plan-card-selected' : ''}" id="card-plan-${planCode}" onclick="selectComparisonPlan('${planCode}', false)" style="cursor:pointer; ${isCurrentActive ? 'border: 2px solid var(--primary-brand);' : ''}">
                 ${isFeatured ? `<div class="featured-badge">${plan.badge || 'RECOMMENDED'}</div>` : ((plan.badge && !plan.is_popular) ? `<div style="font-size:11px; font-weight:700; color:var(--primary-brand); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">${escapeHtml(plan.badge)}</div>` : '')}
                 <div class="plan-header">
                     <h3 class="plan-name">${escapeHtml(plan.name)}</h3>
@@ -5679,7 +5759,7 @@ function renderPricingGrid() {
                 <ul class="plan-features">
                     ${featuresHtml}
                 </ul>
-                <button class="${buttonClass}" style="width:100%;" ${buttonDisabled ? 'disabled style="opacity:0.75; cursor:default;"' : ''} onclick="${plan.is_free && !hasActiveSub ? 'handleFreePlanSelect()' : `openSubscriptionModal('${planCode}')`}">
+                <button class="${buttonClass}" style="width:100%;" ${buttonDisabled ? 'disabled style="opacity:0.75; cursor:default;"' : ''} onclick="event.stopPropagation(); selectComparisonPlan('${planCode}', true);">
                     ${buttonText}
                 </button>
             </div>
@@ -5698,19 +5778,20 @@ async function loadSubscriptionState() {
         const data = await res.json();
         if (data && data.subscription) {
             const sub = data.subscription;
-            const normTier = normalizeSubscriptionTier(sub.plan_id || sub.tier);
+            const isSubActive = !!(sub && sub.is_active && sub.status !== 'NONE' && sub.status !== 'INACTIVE' && sub.status !== 'EXPIRED' && sub.plan_id);
+            const normTier = isSubActive ? normalizeSubscriptionTier(sub.plan_id || sub.tier) : null;
             currentSubscription = {
                 tier: normTier,
-                plan_id: sub.plan_id || normTier,
-                plan_name: sub.plan_name || (normTier === 'foundation' ? 'Foundation Master' : (normTier === 'enterprise' ? 'Corporate Enterprise' : (normTier === 'pro' ? 'Impact Pro' : 'Community Starter'))),
-                organization_name: sub.organization_name || 'Institutional Non-Profit Access',
+                plan_id: isSubActive ? (sub.plan_id || normTier) : null,
+                plan_name: isSubActive ? (sub.plan_name || (normTier === 'foundation' ? 'Foundation Master' : (normTier === 'enterprise' ? 'Corporate Enterprise' : (normTier === 'pro' ? 'Impact Pro' : 'Community Starter')))) : 'No Active Plan',
+                organization_name: sub.organization_name || 'No Subscription Active',
                 contact_email: sub.contact_email || '',
-                status: sub.status || 'INACTIVE',
-                is_active: sub.is_active !== undefined ? !!sub.is_active : (sub.status === 'ACTIVE' || sub.status === 'TRIALING'),
+                status: sub.status || 'NONE',
+                is_active: isSubActive,
                 auto_renew: !!sub.auto_renew,
                 pending_change_plan: sub.pending_change_plan,
                 current_period_end: sub.current_period_end,
-                is_free: normTier === 'starter',
+                is_free: false,
                 limits: sub.limits || {
                     daily_matches: normTier === 'starter' ? 5 : null,
                     view_contacts: normTier !== 'starter',
@@ -5766,23 +5847,14 @@ function applySubscriptionToUI() {
             if (normTier === 'foundation') headerLabel.textContent = '👑 Foundation Master';
             else if (normTier === 'enterprise') headerLabel.textContent = '🚀 Corporate Enterprise';
             else if (normTier === 'pro') headerLabel.textContent = '⚡ Impact Pro';
-            else headerLabel.textContent = 'Community Free (Active)';
+            else if (subStatus === 'TRIALING') headerLabel.textContent = '⏳ 14-Day Free Trial';
+            else headerLabel.textContent = '14-Day Free Trial (Active)';
         }
     }
     if (headerPill) {
-        if (!isActive) {
-            headerPill.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-            headerPill.style.background = 'rgba(239, 68, 68, 0.08)';
-        } else if (normTier === 'foundation' || normTier === 'enterprise') {
-            headerPill.style.borderColor = 'rgba(168, 85, 247, 0.6)';
-            headerPill.style.background = 'rgba(168, 85, 247, 0.15)';
-        } else if (normTier === 'pro') {
-            headerPill.style.borderColor = 'rgba(99, 102, 241, 0.6)';
-            headerPill.style.background = 'rgba(99, 102, 241, 0.15)';
-        } else {
-            headerPill.style.borderColor = '';
-            headerPill.style.background = '';
-        }
+        // Clean Google style: no red borders or alarm backgrounds
+        headerPill.style.borderColor = '';
+        headerPill.style.background = '';
     }
     if (headerBtn) {
         headerBtn.textContent = isActive ? (normTier === 'starter' ? 'Plans ⚡' : 'Active Plan ✓') : 'Select Plan ⚡';
@@ -5798,7 +5870,7 @@ function applySubscriptionToUI() {
     if (badgeName) {
         if (!isActive) {
             if (subStatus === 'EXPIRED') {
-                badgeName.textContent = `${planName.toUpperCase()} (EXPIRED)`;
+                badgeName.textContent = `${normTier === 'starter' || normTier === 'free' ? '14-DAY FREE TRIAL' : planName.toUpperCase()} (EXPIRED)`;
                 badgeName.style.color = '#ef4444';
             } else if (subStatus === 'CANCELED' || subStatus === 'CANCELLED') {
                 badgeName.textContent = `${planName.toUpperCase()} (CANCELLED)`;
@@ -5807,6 +5879,9 @@ function applySubscriptionToUI() {
                 badgeName.textContent = 'NO ACTIVE PLAN';
                 badgeName.style.color = 'var(--text-secondary)';
             }
+        } else if (subStatus === 'TRIALING') {
+            badgeName.textContent = '14-DAY FREE TRIAL (ACTIVE)';
+            badgeName.style.color = '#10B981';
         } else {
             badgeName.textContent = `${planName.toUpperCase()} (ACTIVE)`;
             badgeName.style.color = 'var(--accent-cyan)';
@@ -5815,12 +5890,14 @@ function applySubscriptionToUI() {
     if (orgTitle) {
         if (!isActive) {
             if (subStatus === 'EXPIRED') {
-                orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • Subscription Expired`;
+                orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • 14-Day Free Trial Expired`;
             } else if (subStatus === 'CANCELED' || subStatus === 'CANCELLED') {
                 orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • Subscription Cancelled`;
             } else {
                 orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • No Subscription Active`;
             }
+        } else if (subStatus === 'TRIALING') {
+            orgTitle.textContent = `${currentSubscription.organization_name || 'Account'} • 14-Day Free Trial Active`;
         } else {
             orgTitle.textContent = `${currentSubscription.organization_name || 'Institutional Non-Profit Access'} • ${planName} Active`;
         }
@@ -5878,18 +5955,26 @@ async function openSubscriptionModal(tier = 'pro') {
     const title = document.getElementById('modal-sub-title');
     if (!modal || !body) return;
 
-    modal.style.display = 'flex';
-    if (title) title.textContent = 'Change Plan';
-
-    const normTier = normalizeSubscriptionTier(tier);
+    const hasActiveSub = !!(currentSubscription && currentSubscription.is_active && currentSubscription.status !== 'NONE' && currentSubscription.status !== 'INACTIVE' && currentSubscription.status !== 'EXPIRED' && currentSubscription.status !== 'none' && currentSubscription.plan_id);
+    const normTier = normalizeSubscriptionTier(tier) || 'pro';
     const plan = dbPlansCatalog.find(p => p.code.toLowerCase() === normTier) || {
         code: normTier,
         name: normTier.toUpperCase(),
-        monthly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 999 : 1999),
-        yearly_price: normTier === 'starter' ? 0 : (normTier === 'pro' ? 9990 : 19990),
-        display_order: normTier === 'starter' ? 1 : (normTier === 'pro' ? 2 : 3),
-        features: []
+        monthly_price: (normTier === 'starter' || normTier === 'free') ? 0 : (normTier === 'pro' ? 999 : 1999),
+        yearly_price: (normTier === 'starter' || normTier === 'free') ? 0 : (normTier === 'pro' ? 9990 : 19990),
+        display_order: (normTier === 'starter' || normTier === 'free') ? 1 : (normTier === 'pro' ? 2 : 3),
+        features: [],
+        is_free: (normTier === 'starter' || normTier === 'free')
     };
+
+    modal.style.display = 'flex';
+    if (title) {
+        if (!hasActiveSub) {
+            title.textContent = (plan.is_free || normTier === 'free') ? 'Start 14-Day Free Trial' : `Subscribe to ${plan.name}`;
+        } else {
+            title.textContent = 'Confirm Plan Change';
+        }
+    }
 
     checkoutSelectedPlan = plan;
     checkoutSelectedCycle = 'monthly';
@@ -5916,7 +6001,6 @@ async function openSubscriptionModal(tier = 'pro') {
     }
 
     // Determine whether higher-priced or lower-priced
-    const hasActiveSub = !!currentSubscription && !!currentSubscription.is_active;
     const currPlanObj = dbPlansCatalog.find(p => p.code.toLowerCase() === currTier);
     const currentPrice = (currPlanObj && hasActiveSub) ? Number(currPlanObj.monthly_price || 0) : 0;
     const targetPrice = Number(plan.monthly_price || 0);
@@ -6037,7 +6121,14 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
     const title = document.getElementById('modal-sub-title');
     if (!body || !checkoutSelectedPlan) return;
 
-    if (title) title.textContent = 'Confirm Plan Change';
+    const hasActiveSub = !!(currentSubscription && currentSubscription.is_active && currentSubscription.status !== 'NONE' && currentSubscription.status !== 'INACTIVE' && currentSubscription.status !== 'EXPIRED' && currentSubscription.status !== 'none' && currentSubscription.plan_id);
+    if (title) {
+        if (!hasActiveSub) {
+            title.textContent = checkoutSelectedPlan.is_free ? 'Start 14-Day Free Trial' : `Subscribe to ${checkoutSelectedPlan.name}`;
+        } else {
+            title.textContent = 'Confirm Plan Change';
+        }
+    }
 
     // Show loading spinner
     body.innerHTML = `
@@ -6135,6 +6226,16 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
             </div>
         </div>
 
+        ${checkoutSelectedPlan.is_free ? `
+        <!-- Free Trial Banner -->
+        <div style="background:rgba(26,115,232,0.06); border:1px solid rgba(26,115,232,0.2); border-radius:10px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:var(--text-primary); display:flex; align-items:center; gap:10px;">
+            <span style="font-size:20px;">⚡</span>
+            <div>
+                <strong>14-Day Free Evaluation Access:</strong>
+                <div style="color:var(--text-secondary); font-size:12px; margin-top:2px;">Full access to corporate profiles, active jobs, and CSR projects with zero commitment.</div>
+            </div>
+        </div>
+        ` : `
         <!-- Cycle & Promo -->
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
             <div style="display:flex; gap:6px;">
@@ -6153,6 +6254,7 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
                 </button>
             </div>
         </div>
+        `}
 
         ${!hasSufficientWallet ? `
         <div style="padding:14px 16px; background:var(--error-bg); border:1.5px solid var(--error-border); border-radius:10px; font-size:12.5px; color:var(--error); margin-bottom:16px;">
@@ -6170,7 +6272,15 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
                     </button>
                 </div>
             </div>
-        </div>` : `
+        </div>` : (finalAmount === 0 ? `
+        <div style="padding:12px 14px; background:rgba(26,115,232,0.06); border:1.5px solid rgba(26,115,232,0.25); border-radius:10px; font-size:12.5px; color:#1a73e8; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px;">✓</span>
+            <div>
+                <strong style="color:var(--text-primary);">14-Day Free Trial Ready:</strong>
+                <span style="color:var(--text-secondary);">₹0.00 total due. Instant account activation with 14 days of access.</span>
+            </div>
+        </div>
+        ` : `
         <div style="padding:12px 14px; background:var(--success-bg); border:1.5px solid var(--success-border); border-radius:10px; font-size:12.5px; color:var(--success); margin-bottom:16px; display:flex; align-items:center; gap:10px;">
             <span style="font-size:18px;">💰</span>
             <div>
@@ -6178,12 +6288,12 @@ async function renderCheckoutStep(step = 1, promoCode = '') {
                 <span>₹${userWalletBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})} available. Settlement will be processed instantly from your wallet balance.</span>
             </div>
         </div>
-        `}
+        `)}
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:4px;">
             <button type="button" class="btn-secondary" onclick="closeModal('modal-subscription')">Cancel</button>
-            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()" style="${hasSufficientWallet ? 'background:linear-gradient(135deg, #10b981, #059669); border:none; box-shadow:var(--shadow-sm); font-weight:700;' : ''}">
-                ${hasSufficientWallet ? (finalAmount === 0 ? 'Confirm &amp; Activate Free Plan' : `Confirm &amp; Subscribe — ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`) : 'Insufficient Funds — Add Money Above'}
+            <button type="button" class="btn-primary" id="btn-submit-checkout" ${hasSufficientWallet ? '' : 'disabled style="opacity:0.6; cursor:not-allowed;"'} onclick="executeCheckout()" style="${hasSufficientWallet ? 'background:#1a73e8; border:none; box-shadow:var(--shadow-sm); font-weight:700;' : ''}">
+                ${hasSufficientWallet ? (finalAmount === 0 ? 'Confirm &amp; Start 14-Day Free Trial' : `Confirm &amp; Subscribe — ₹${finalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`) : 'Insufficient Funds — Add Money Above'}
             </button>
         </div>
 
@@ -6285,8 +6395,8 @@ function renderCheckoutSuccessScreen(data) {
             <a href="/profile/" class="btn-secondary" style="flex:1; text-align:center; padding:9px 16px;">
                 View Billing Dashboard &nearr;
             </a>
-            <button type="button" class="btn-primary" style="flex:1; padding:9px 16px;" onclick="closeModal('modal-subscription')">
-                Done &bull; Return to Platform
+            <button type="button" class="btn-primary" style="flex:1; padding:9px 16px;" onclick="closeModal('modal-subscription'); window.location.href = '/?tab=companies';">
+                Done &bull; Explore Platform &rarr;
             </button>
         </div>
     `;
@@ -7495,6 +7605,12 @@ function renderLoginRequiredCompaniesSection(list) {
 // ===========================================================================
 async function fetchCompanyLiveData(companyId, btnEl) {
     if (!companyId) return;
+    if (typeof isDummyRecordId === 'function' && isDummyRecordId(companyId)) {
+        if (typeof showLiveToast === 'function') {
+            showLiveToast('Statutory live verification refreshed for ' + companyId, 'success');
+        }
+        return;
+    }
     if (window.IS_PREVIEW_MODE) {
         if (typeof openAuthGateModal === 'function') {
             openAuthGateModal('company', companyId, /companies/);
@@ -7584,7 +7700,7 @@ async function renderUserQuotaWidget() {
                     <div>
                         <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">Account Quotas</span>
                         <h4 style="margin:3px 0 0; font-size:16px; color:var(--text-primary); font-weight:800;">
-                            Active Tier: <span style="color:var(--primary-brand);">${escapeHtml(q.plan_name)}</span>
+                            Active Tier: ${q.has_active_subscription && q.plan_name && q.plan_name.toUpperCase() !== 'NO ACTIVE PLAN' && q.plan_name.toUpperCase() !== 'NONE' ? `<span style="color:var(--primary-brand);">${escapeHtml(q.plan_name)}</span>` : `<span style="color:var(--text-secondary); font-weight:600;">No Active Plan</span>`}
                         </h4>
                     </div>
                     <div style="font-size:12px; color:var(--text-secondary);">
@@ -7627,123 +7743,204 @@ async function renderUserQuotaWidget() {
     }
 }
 
-// ── DYNAMIC THREE-TIER PLAN COMPARISON TABLE ──────────────────────────────────
+// ── DYNAMIC THREE-TIER PLAN COMPARISON TABLE & INTERACTIVE SELECTION ─────────
+window.selectedComparisonPlan = window.selectedComparisonPlan || 'pro';
+window.cachedComparisonData = null;
+
+function selectComparisonPlan(planCode, openModal = false) {
+    if (!planCode) return;
+    const code = String(planCode).toLowerCase();
+    window.selectedComparisonPlan = code;
+
+    // Immediately re-render comparison table with zero network latency
+    if (window.cachedComparisonData) {
+        renderPlanComparisonTableFromData(window.cachedComparisonData);
+    } else {
+        renderPlanComparisonTable();
+    }
+
+    // Keep top pricing cards in perfect sync
+    document.querySelectorAll('.pricing-card').forEach(c => {
+        c.classList.remove('plan-card-selected');
+    });
+    const targetCard = document.getElementById(`card-plan-${code}`);
+    if (targetCard) {
+        targetCard.classList.add('plan-card-selected');
+    }
+
+    if (openModal) {
+        if (code === 'free' || code === 'starter') {
+            handleFreePlanSelect();
+        } else {
+            openSubscriptionModal(code);
+        }
+    }
+}
+window.selectComparisonPlan = selectComparisonPlan;
+
+async function handleFreePlanSelect() {
+    const hasActiveSub = !!(currentSubscription && currentSubscription.is_active && currentSubscription.status !== 'NONE' && currentSubscription.status !== 'INACTIVE' && currentSubscription.status !== 'EXPIRED' && currentSubscription.status !== 'none' && currentSubscription.plan_id);
+    if (hasActiveSub) {
+        openSubscriptionModal('free');
+        return;
+    }
+    // Launch free subscription flow
+    openSubscriptionModal('free');
+}
+
+function renderPlanComparisonTableFromData(data) {
+    const container = document.getElementById('pricing-comparison-container');
+    if (!container || !data || !data.plans || !data.features) return;
+
+    window.cachedComparisonData = data;
+    const plans = data.plans;
+    const features = data.features;
+    const hasActiveSub = !!(currentSubscription && currentSubscription.is_active && currentSubscription.status !== 'NONE' && currentSubscription.status !== 'INACTIVE' && currentSubscription.status !== 'EXPIRED' && currentSubscription.status !== 'none' && currentSubscription.plan_id);
+    const currentNormTier = hasActiveSub ? normalizeSubscriptionTier(currentSubscription.plan_id || currentSubscription.tier) : null;
+    const currentPlanObj = currentNormTier ? plans.find(x => x.code.toLowerCase() === currentNormTier) : null;
+    const currentOrder = currentPlanObj ? (currentPlanObj.display_order || (currentNormTier === 'free' ? 1 : (currentNormTier === 'pro' ? 2 : 3))) : 0;
+
+    const selectedCode = (window.selectedComparisonPlan || 'pro').toLowerCase();
+
+    let tableHtml = `
+        <div style="margin-top:64px; border-top:1px solid var(--border-color); padding-top:48px;">
+            <div style="text-align:center; margin-bottom:36px;">
+                <span class="pricing-pill-tag">Complete Capability Matrix</span>
+                <h3 class="pricing-headline" style="font-size:32px !important; margin:6px 0 12px !important;">Compare Plan Features, <em>Side by Side</em></h3>
+                <p style="font-size:15px; color:var(--text-secondary); max-width:640px; margin:0 auto; line-height:1.5;">
+                    Every feature and quota is dynamically synchronized with our authoritative subscription engine.
+                </p>
+            </div>
+
+            <div style="overflow-x:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:24px; box-shadow:var(--shadow-card);">
+                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
+                    <thead>
+                        <tr style="background:var(--bg-surface-subtle); border-bottom:2px solid var(--border-color);">
+                            <th style="padding:22px 24px; font-weight:700; color:var(--text-primary); width:34%;">Feature &amp; Quota</th>
+                            ${plans.map(p => {
+                                const pCode = p.code.toLowerCase();
+                                const isSelected = (pCode === selectedCode);
+                                return `
+                                <th class="comparison-plan-col ${isSelected ? 'comparison-selected' : ''}" 
+                                    onclick="selectComparisonPlan('${pCode}', false)"
+                                    title="Click to select ${escapeHtml(p.name)} plan"
+                                    style="padding:22px 18px; text-align:center; width:22%; cursor:pointer; user-select:none;">
+                                    <div style="font-size:17px; font-weight:800; color:${isSelected ? '#1a73e8' : 'var(--text-primary)'}; letter-spacing:-0.3px;">${escapeHtml(p.name)}</div>
+                                    ${isSelected
+                                        ? `<span style="display:inline-block; font-size:11px; font-weight:800; padding:3px 12px; border-radius:999px; background:#1a73e8; color:#ffffff; margin-top:5px; box-shadow:0 2px 6px rgba(26,115,232,0.35); letter-spacing:0.5px;">SELECTED</span>`
+                                        : (p.badge ? `<span style="display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; background:rgba(26,115,232,0.08); color:var(--primary-brand); margin-top:5px;">${escapeHtml(p.badge)}</span>` : '')
+                                    }
+                                </th>
+                            `;}).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${features.map((f, idx) => {
+                            const isEven = idx % 2 === 0;
+                            return `
+                                <tr style="border-bottom:1px solid var(--border-color); background:${isEven ? 'transparent' : 'rgba(0,0,0,0.012)'};">
+                                    <td style="padding:14px 22px; font-weight:600; color:var(--text-primary);">
+                                        ${escapeHtml(f.display_name || f.feature_key)}
+                                    </td>
+                                    ${plans.map(p => {
+                                        const pCode = p.code.toLowerCase();
+                                        const isSelected = (pCode === selectedCode);
+                                        const val = f.values[p.code];
+                                        let cellContent = '—';
+                                        if (val) {
+                                            if (val.type === 'boolean') {
+                                                cellContent = val.value
+                                                    ? '<span class="daanveda-check-badge sm" style="background:#1a73e8;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
+                                                    : '<span style="color:var(--text-muted); opacity:0.35; font-size:16px;">—</span>';
+                                            } else if (val.type === 'unlimited') {
+                                                cellContent = '<span style="color:#1a73e8; font-weight:700; font-size:13.5px;">Unlimited</span>';
+                                            } else {
+                                                cellContent = `<span style="color:var(--text-primary); font-weight:600;">${escapeHtml(val.display)}</span>`;
+                                            }
+                                        }
+                                        return `
+                                            <td class="comparison-plan-col ${isSelected ? 'comparison-selected' : ''}" 
+                                                onclick="selectComparisonPlan('${pCode}', false)"
+                                                title="Click to select ${escapeHtml(p.name)} plan"
+                                                style="padding:14px 16px; text-align:center; cursor:pointer;">
+                                                ${cellContent}
+                                            </td>
+                                        `;
+                                    }).join('')}
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:var(--bg-surface-subtle); border-top:2px solid var(--border-color);">
+                            <td style="padding:18px 22px; font-weight:700; color:var(--text-secondary);">Select Plan</td>
+                            ${plans.map(p => {
+                                const pCode = p.code.toLowerCase();
+                                const isSelected = (pCode === selectedCode);
+                                const isCurrent = hasActiveSub && (currentNormTier === pCode);
+                                const pOrder = pCode === 'free' ? 1 : (pCode === 'pro' ? 2 : 3);
+
+                                let btnLabel = `Select ${p.name}`;
+                                let btnDis = false;
+                                let btnAction = `selectComparisonPlan('${pCode}', true)`;
+
+                                if (isCurrent) {
+                                    btnLabel = 'Current Plan';
+                                    btnDis = true;
+                                    btnAction = '';
+                                } else if (hasActiveSub && pOrder < currentOrder) {
+                                    btnLabel = 'Included';
+                                    btnDis = true;
+                                    btnAction = '';
+                                } else if (!hasActiveSub) {
+                                    if (pCode === 'free') {
+                                        btnLabel = 'Start 14-Day Free Trial';
+                                    } else {
+                                        btnLabel = `Select ${p.name}`;
+                                    }
+                                } else {
+                                    btnLabel = `Upgrade to ${p.name}`;
+                                }
+
+                                const btnClass = isSelected ? 'comparison-btn-selected' : 'comparison-btn-unselected';
+
+                                return `
+                                    <td class="comparison-plan-col ${isSelected ? 'comparison-selected' : ''}" 
+                                        style="padding:16px; text-align:center;">
+                                        <button class="${btnClass}" 
+                                                style="padding:10px 18px; font-size:12.5px; width:92%; cursor:pointer; border-radius:24px; transition:all 0.2s ease;" 
+                                                ${btnDis ? 'disabled style="opacity:0.6; cursor:default; background:#f1f3f4 !important; color:#70757a !important; border:1px solid #dadce0 !important;"' : ''} 
+                                                onclick="${btnAction}">
+                                            ${btnLabel}
+                                        </button>
+                                    </td>
+                                `;
+                            }).join('')}
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = tableHtml;
+}
+
 async function renderPlanComparisonTable() {
     const container = document.getElementById('pricing-comparison-container');
     if (!container) return;
 
     try {
+        if (window.cachedComparisonData) {
+            renderPlanComparisonTableFromData(window.cachedComparisonData);
+            return;
+        }
         const res = await fetch(`${API_BASE}/api/subscription/comparison`);
         if (!res.ok) return;
         const data = await res.json();
         if (!data || !data.plans || !data.features) return;
-
-        const plans = data.plans;
-        const features = data.features;
-        const currentNormTier = normalizeSubscriptionTier(currentSubscription.plan_id || currentSubscription.tier);
-        const currentPlanObj = plans.find(x => x.code.toLowerCase() === currentNormTier);
-        const currentOrder = currentPlanObj ? (currentPlanObj.display_order || (currentNormTier === 'free' ? 1 : (currentNormTier === 'pro' ? 2 : 3))) : 1;
-
-        let tableHtml = `
-            <div style="margin-top:64px; border-top:1px solid var(--border-color); padding-top:48px;">
-                <div style="text-align:center; margin-bottom:36px;">
-                    <span class="pricing-pill-tag">Complete Capability Matrix</span>
-                    <h3 class="pricing-headline" style="font-size:32px !important; margin:6px 0 12px !important;">Compare Plan Features, <em>Side by Side</em></h3>
-                    <p style="font-size:15px; color:var(--text-secondary); max-width:640px; margin:0 auto; line-height:1.5;">
-                        Every feature and quota is dynamically synchronized with our authoritative subscription engine.
-                    </p>
-                </div>
-
-                <div style="overflow-x:auto; background:var(--bg-card); border:1px solid var(--border-color); border-radius:24px; box-shadow:var(--shadow-card);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
-                        <thead>
-                            <tr style="background:var(--bg-surface-subtle); border-bottom:2px solid var(--border-color);">
-                                <th style="padding:22px 24px; font-weight:700; color:var(--text-primary); width:35%;">Feature &amp; Quota</th>
-                                ${plans.map(p => {
-                                    const pCode = p.code.toLowerCase();
-                                    const pOrder = pCode === 'free' || pCode === 'starter' ? 1 : (pCode === 'pro' ? 2 : 3);
-                                    const isHighlight = p.is_recommended && (pOrder > currentOrder);
-                                    return `
-                                    <th style="padding:22px 18px; text-align:center; width:21%; ${isHighlight ? 'background:rgba(10,108,255,0.035);' : ''}">
-                                        <div style="font-size:17px; font-weight:800; color:var(--text-primary); letter-spacing:-0.3px;">${escapeHtml(p.name)}</div>
-                                        ${(p.badge && (!p.is_recommended || pOrder > currentOrder)) ? `<span style="display:inline-block; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; background:rgba(10,108,255,0.08); color:var(--primary-brand); margin-top:4px;">${escapeHtml(p.badge)}</span>` : ''}
-                                    </th>
-                                `;}).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${features.map((f, idx) => {
-                                const isEven = idx % 2 === 0;
-                                return `
-                                    <tr style="border-bottom:1px solid var(--border-color); background:${isEven ? 'transparent' : 'rgba(255,255,255,0.015)'};">
-                                        <td style="padding:14px 22px; font-weight:600; color:var(--text-primary);">
-                                            ${escapeHtml(f.display_name || f.feature_key)}
-                                        </td>
-                                        ${plans.map(p => {
-                                            const pCode = p.code.toLowerCase();
-                                            const pOrder = pCode === 'free' || pCode === 'starter' ? 1 : (pCode === 'pro' ? 2 : 3);
-                                            const val = f.values[p.code];
-                                            let cellContent = '—';
-                                            if (val) {
-                                                if (val.type === 'boolean') {
-                                                    cellContent = val.value
-                                                        ? '<span class="daanveda-check-badge sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
-                                                        : '<span style="color:var(--text-muted); opacity:0.35; font-size:16px;">—</span>';
-                                                } else if (val.type === 'unlimited') {
-                                                    cellContent = '<span style="color:var(--primary-brand); font-weight:700; font-size:13.5px;">Unlimited</span>';
-                                                } else {
-                                                    cellContent = `<span style="color:var(--text-primary); font-weight:600;">${escapeHtml(val.display)}</span>`;
-                                                }
-                                            }
-                                            return `
-                                                <td style="padding:14px 16px; text-align:center; ${(p.is_recommended && pOrder > currentOrder) ? 'background:rgba(15,118,110,0.04);' : ''}">
-                                                    ${cellContent}
-                                                </td>
-                                            `;
-                                        }).join('')}
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                        <tfoot>
-                            <tr style="background:var(--bg-surface-subtle); border-top:2px solid var(--border-color);">
-                                <td style="padding:18px 22px; font-weight:700; color:var(--text-secondary);">Select Plan</td>
-                                ${plans.map(p => {
-                                    const isCurrent = currentNormTier === p.code.toLowerCase();
-                                    const currentPlanObj = plans.find(x => x.code.toLowerCase() === currentNormTier);
-                                    const currentOrder = currentPlanObj ? (currentPlanObj.display_order || (currentNormTier==='free'?1:(currentNormTier==='pro'?2:3))) : 1;
-                                    const pOrder = p.code.toLowerCase() === 'free' ? 1 : (p.code.toLowerCase() === 'pro' ? 2 : 3);
-
-                                    let btnLabel = `Upgrade to ${p.name}`;
-                                    let btnDis = false;
-                                    let btnCls = (p.is_recommended && pOrder > currentOrder) ? 'btn-primary' : 'btn-secondary';
-
-                                    if (isCurrent) {
-                                        btnLabel = 'Current Plan';
-                                        btnDis = true;
-                                        btnCls = 'btn-secondary';
-                                    } else if (pOrder < currentOrder) {
-                                        btnLabel = 'Included';
-                                        btnDis = true;
-                                        btnCls = 'btn-secondary';
-                                    }
-
-                                    return `
-                                        <td style="padding:16px; text-align:center; ${(p.is_recommended && pOrder > currentOrder) ? 'background:rgba(15,118,110,0.08);' : ''}">
-                                            <button class="${btnCls}" style="padding:8px 16px; font-size:12px; width:90%;" ${btnDis ? 'disabled style="opacity:0.6; cursor:default;"' : ''} onclick="openSubscriptionModal('${p.code.toLowerCase()}')">
-                                                ${btnLabel}
-                                            </button>
-                                        </td>
-                                    `;
-                                }).join('')}
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-
-        container.innerHTML = tableHtml;
+        window.cachedComparisonData = data;
+        renderPlanComparisonTableFromData(data);
     } catch (e) {
         console.warn('Could not render dynamic comparison table:', e);
     }

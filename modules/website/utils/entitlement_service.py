@@ -65,13 +65,27 @@ class EntitlementService:
                 q |= Q(tenant_id=f"user_{self.user.id}")
             if getattr(self.user, 'username', None):
                 q |= Q(tenant_id=f"user_{self.user.username}")
-            self._subscription = (
+            sub = (
                 Subscription.objects
                 .filter(q, Q(status='ACTIVE') | Q(status='TRIALING'))
                 .select_related('plan_record')
                 .order_by('-created_at')
                 .first()
             )
+            if sub and sub.current_period_end:
+                from datetime import datetime, timezone
+                try:
+                    text = str(sub.current_period_end).replace('Z', '+00:00')
+                    end_dt = datetime.fromisoformat(text)
+                    if not end_dt.tzinfo:
+                        end_dt = end_dt.replace(tzinfo=timezone.utc)
+                    if datetime.now(timezone.utc) >= end_dt:
+                        sub.status = 'EXPIRED'
+                        sub.save(update_fields=['status'])
+                        sub = None
+                except Exception:
+                    pass
+            self._subscription = sub
         return self._subscription
 
     @property
@@ -132,6 +146,25 @@ class EntitlementService:
             return sub.tenant_id
         return f"user_{self.user.id}"
 
+    # ── Browse Companies & Portals Limit ──────────────────────────────
+
+    @property
+    def browse_companies_limit(self) -> Optional[int]:
+        """None = unlimited (Ultra). 20 for Free, 100 for Pro (or admin configured)."""
+        val = self.get_limit('browse_companies_limit')
+        if val is None:
+            if self.tier == 'free':
+                return 20
+            elif self.tier == 'pro':
+                return 100
+            return None  # Ultra is unlimited
+        if isinstance(val, str) and val.lower() in ('unlimited', 'all', 'none', 'null', ''):
+            return None
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return None
+
     # ── Saved Records (combined jobs + CSR) ───────────────────────────
 
     @property
@@ -140,8 +173,20 @@ class EntitlementService:
 
     @property
     def saved_records_limit(self) -> Optional[int]:
-        """None = unlimited (Ultra)."""
-        return self.get_limit('saved_records_limit', 10)
+        """None = unlimited (Ultra). 20 for Free, 100 for Pro (or admin configured)."""
+        val = self.get_limit('saved_records_limit')
+        if val is None:
+            if self.tier == 'free':
+                return 20
+            elif self.tier == 'pro':
+                return 100
+            return None
+        if isinstance(val, str) and val.lower() in ('unlimited', 'all', 'none', 'null', ''):
+            return None
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return None
 
     def check_can_save_record(self) -> None:
         limit = self.saved_records_limit
@@ -187,9 +232,21 @@ class EntitlementService:
     # ── Monthly Export Quota ──────────────────────────────────────────
 
     @property
-    def monthly_export_limit(self) -> int:
-        val = self.get_limit('export_rows_per_month', 0)
-        return int(val) if val is not None else 2000
+    def monthly_export_limit(self) -> Optional[int]:
+        """None = unlimited (Ultra). 20 for Free, 100 for Pro (or admin configured)."""
+        val = self.get_limit('export_rows_per_month')
+        if val is None:
+            if self.tier == 'free':
+                return 20
+            elif self.tier == 'pro':
+                return 100
+            return None
+        if isinstance(val, str) and val.lower() in ('unlimited', 'all', 'none', 'null', ''):
+            return None
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return None
 
     @property
     def current_month_period(self) -> str:
@@ -207,9 +264,11 @@ class EntitlementService:
     def check_export_quota(self, count: int = 1) -> None:
         """Raises EntitlementError if exporting `count` records exceeds monthly limit."""
         limit = self.monthly_export_limit
+        if limit is None:
+            return  # Unlimited on Ultra
         if limit == 0:
             raise EntitlementError(
-                "Export is not available on the FREE plan. Upgrade to PRO.",
+                "Export is not enabled on this plan. Upgrade to PRO or ULTRA.",
                 feature='export',
                 limit=0,
                 current=0,
@@ -220,7 +279,7 @@ class EntitlementService:
             remaining = max(0, limit - used)
             upgrade = 'ultra' if self.tier == 'pro' else 'pro'
             raise EntitlementError(
-                f"Monthly export limit: {used}/{limit} used. "
+                f"Monthly export limit: {used}/{limit} rows used. "
                 f"Cannot export {count} more records ({remaining} remaining). "
                 f"Upgrade to {upgrade.upper()} for higher limits.",
                 feature='export',
@@ -310,9 +369,9 @@ class EntitlementService:
     def check_can_request_refresh(self) -> None:
         if not self.has_feature('request_company_refresh'):
             raise EntitlementError(
-                "On-demand company data refresh is an ULTRA-exclusive feature.",
+                "On-demand company crawler rescan is available on PRO and ULTRA plans.",
                 feature='company_refresh',
-                upgrade_to='ultra',
+                upgrade_to='pro',
             )
 
     # ── Alert Frequency ───────────────────────────────────────────────
@@ -342,15 +401,26 @@ class EntitlementService:
 
     def quota_summary(self) -> dict:
         """Full quota snapshot for the frontend quota progress indicators."""
+        bc_limit = self.browse_companies_limit
         sr_limit = self.saved_records_limit
         ss_limit = self.saved_searches_limit
         ex_limit = self.monthly_export_limit
         tm_limit = self.team_members_limit
 
+        has_sub = self.subscription is not None
+        plan_name = self.subscription.plan_record.name if (self.subscription and self.subscription.plan_record) else (self.plan.name if (has_sub and self.plan) else 'No Active Plan')
+        plan_code = self.plan_code if has_sub else None
+        tier = self.tier if has_sub else None
+
         return {
-            'plan_code': self.plan_code,
-            'plan_name': self.plan.name if self.plan else 'FREE',
-            'tier': self.tier,
+            'has_active_subscription': has_sub,
+            'plan_code': plan_code,
+            'plan_name': plan_name,
+            'tier': tier,
+            'browse_companies': {
+                'limit': bc_limit,
+                'unlimited': bc_limit is None,
+            },
             'saved_records': {
                 'used': self.saved_records_count,
                 'limit': sr_limit,
@@ -363,6 +433,7 @@ class EntitlementService:
             'monthly_exports': {
                 'used': self.monthly_exports_used,
                 'limit': ex_limit,
+                'unlimited': ex_limit is None,
                 'period': self.current_month_period,
             },
             'team_members': {
@@ -379,23 +450,38 @@ class EntitlementService:
         }
 
 
-
 def user_has_active_plan(user) -> bool:
     """
-    Check whether a user has an active, selected subscription plan.
-    - Staff/superusers always return True (admin bypass).
+    Check whether a user has an active, selected subscription plan in the database.
     - Unauthenticated users return False.
-    - Regular users return True ONLY if they have an active/trialing subscription.
+    - Regular users and staff return True ONLY if they have an active/trialing subscription that has not expired.
     """
     if not user or not getattr(user, 'is_authenticated', False):
         return False
-    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
-        return True
 
     from modules.admin_panel.models import Subscription
     from django.db.models import Q
+    from datetime import datetime, timezone
 
-    return Subscription.objects.filter(
+    subs = Subscription.objects.filter(
         Q(user=user) | Q(tenant_id=f"user_{user.id}") | Q(tenant_id=f"user_{getattr(user, 'username', '')}"),
         status__in=['ACTIVE', 'TRIALING']
-    ).exclude(plan_id__isnull=True).exclude(plan_id__exact='').exists()
+    ).exclude(plan_id__isnull=True).exclude(plan_id__exact='').order_by('-created_at')
+
+    now = datetime.now(timezone.utc)
+    for sub in subs:
+        if sub.current_period_end:
+            try:
+                text = str(sub.current_period_end).replace('Z', '+00:00')
+                end_dt = datetime.fromisoformat(text)
+                if not end_dt.tzinfo:
+                    end_dt = end_dt.replace(tzinfo=timezone.utc)
+                if now >= end_dt:
+                    sub.status = 'EXPIRED'
+                    sub.save(update_fields=['status'])
+                    continue
+            except Exception:
+                pass
+        return True
+
+    return False

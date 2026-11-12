@@ -10,3 +10,4 @@ for tag in soup.find_all(['h2', 'h3', 'h4', 'h5', 'p', 'li']):
     if any(k in txt.lower() for k in ['hiring', 'role', 'experience', 'skill', 'apply', 'track', 'opening', 'specialist', 'engineer', 'developer']):
         if len(txt) < 150:
             print("FOUND:", txt)
+

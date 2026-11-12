@@ -10,3 +10,4 @@ if r.status_code == 200:
     print("Num pages:", len(reader.pages))
     t = reader.pages[0].extract_text()
     print("Page 1 text excerpt:", t[:200])
+

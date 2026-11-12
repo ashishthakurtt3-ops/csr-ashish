@@ -27,3 +27,4 @@ async def check_rendered_jobs(url):
 
 asyncio.run(check_rendered_jobs("https://careers.tatamotors.com/"))
 asyncio.run(check_rendered_jobs("https://careers.wipro.com/"))
+

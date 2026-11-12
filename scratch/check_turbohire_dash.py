@@ -15,3 +15,4 @@ anchors = soup.find_all('a')
 print("Total anchors:", len(anchors))
 for a in anchors[:15]:
     print(a.get_text(strip=True), "->", a.get('href'))
+

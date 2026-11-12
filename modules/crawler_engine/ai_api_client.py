@@ -790,7 +790,7 @@ class OpenRouterApiClient(BaseAIClient):
         super().__init__()
         try:
             from modules.admin_panel.services.ai_config_service import get_active_ai_config
-            _act = get_active_ai_config()
+            _act = get_active_ai_config(force_refresh=True)
             db_or = _act.get("providers", {}).get("openrouter", {})
         except Exception:
             _act = {}
@@ -799,6 +799,7 @@ class OpenRouterApiClient(BaseAIClient):
         self.model = (
             model
             or (_act.get("primary_model") if _act.get("primary_provider") == "openrouter" else None)
+            or (_act.get("fallback_model") if _act.get("fallback_provider") == "openrouter" else None)
             or db_or.get("selected_model")
             or os.environ.get("OPENROUTER_MODEL", "").strip()
             or cfg.OPENROUTER_MODEL
@@ -919,7 +920,7 @@ class OpenAICompatibleApiClient(BaseAIClient):
         self.provider_name = (provider_name or "openai").lower().strip()
         try:
             from modules.admin_panel.services.ai_config_service import get_active_ai_config
-            _act = get_active_ai_config()
+            _act = get_active_ai_config(force_refresh=True)
             db_p = _act.get("providers", {}).get(self.provider_name, {})
         except Exception:
             _act = {}
@@ -950,6 +951,7 @@ class OpenAICompatibleApiClient(BaseAIClient):
         self.model = (
             model
             or (_act.get("primary_model") if _act.get("primary_provider") == self.provider_name else None)
+            or (_act.get("fallback_model") if _act.get("fallback_provider") == self.provider_name else None)
             or db_p.get("selected_model")
             or default_models.get(self.provider_name, "default")
         )
@@ -1010,8 +1012,8 @@ class OpenAICompatibleApiClient(BaseAIClient):
                         msg = choices[0].get("message", {})
                         content = msg.get("content", "")
 
-                    actual_model = data.get("model", self.model)
-                    parsed_json = self._extract_json_payload(content)
+                    actual_model = data.get("model") or self.model
+                    parsed_json = self._clean_json_text(content)
                     return parsed_json, actual_model
 
                 elif resp.status_code in (429, 402):
@@ -1055,7 +1057,7 @@ class AnthropicApiClient(BaseAIClient):
         super().__init__()
         try:
             from modules.admin_panel.services.ai_config_service import get_active_ai_config
-            _act = get_active_ai_config()
+            _act = get_active_ai_config(force_refresh=True)
             db_p = _act.get("providers", {}).get("anthropic", {})
         except Exception:
             _act = {}
@@ -1064,6 +1066,7 @@ class AnthropicApiClient(BaseAIClient):
         self.model = (
             model
             or (_act.get("primary_model") if _act.get("primary_provider") == "anthropic" else None)
+            or (_act.get("fallback_model") if _act.get("fallback_provider") == "anthropic" else None)
             or db_p.get("selected_model")
             or os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-latest").strip()
         )
@@ -1112,8 +1115,8 @@ class AnthropicApiClient(BaseAIClient):
                         if block.get("type") == "text":
                             content += block.get("text", "")
 
-                    actual_model = data.get("model", self.model)
-                    parsed_json = self._extract_json_payload(content)
+                    actual_model = data.get("model") or self.model
+                    parsed_json = self._clean_json_text(content)
                     return parsed_json, actual_model
 
                 elif resp.status_code in (429, 529):
@@ -1156,7 +1159,7 @@ class GeminiApiClient(BaseAIClient):
         super().__init__()
         try:
             from modules.admin_panel.services.ai_config_service import get_active_ai_config
-            _act = get_active_ai_config()
+            _act = get_active_ai_config(force_refresh=True)
             db_gemini = _act.get("providers", {}).get("gemini", {})
         except Exception:
             _act = {}
@@ -1165,6 +1168,7 @@ class GeminiApiClient(BaseAIClient):
         self.model = (
             model
             or (_act.get("primary_model") if _act.get("primary_provider") == "gemini" else None)
+            or (_act.get("fallback_model") if _act.get("fallback_provider") == "gemini" else None)
             or db_gemini.get("selected_model")
             or os.environ.get("GEMINI_MODEL", "").strip()
             or cfg.GEMINI_MODEL
@@ -1328,7 +1332,7 @@ class GrokApiClient(BaseAIClient):
         super().__init__()
         try:
             from modules.admin_panel.services.ai_config_service import get_active_ai_config
-            _act = get_active_ai_config()
+            _act = get_active_ai_config(force_refresh=True)
             db_grok = _act.get("providers", {}).get("grok", {})
         except Exception:
             _act = {}
@@ -1336,6 +1340,7 @@ class GrokApiClient(BaseAIClient):
 
         self.model = (
             model
+            or (_act.get("primary_model") if _act.get("primary_provider") == "grok" else None)
             or (_act.get("fallback_model") if _act.get("fallback_provider") == "grok" else None)
             or db_grok.get("selected_model")
             or os.environ.get("GROK_MODEL", "").strip()
@@ -1741,7 +1746,7 @@ AIProviderRegistry.register("mock", MockAIClient)
 AIProviderRegistry.register("fallback", PrimaryFallbackAIClient)
 
 
-def get_ai_client(provider: Optional[str] = None) -> AIClient:
+def get_ai_client(provider: Optional[str] = None, model: Optional[str] = None) -> AIClient:
     """
     Factory function retrieving the configured AI client instance via AIProviderRegistry.
     When no provider is explicitly specified:
@@ -1754,14 +1759,24 @@ def get_ai_client(provider: Optional[str] = None) -> AIClient:
     """
     try:
         from modules.admin_panel.services.ai_config_service import get_active_ai_config
-        active_cfg = get_active_ai_config()
+        active_cfg = get_active_ai_config(force_refresh=True)
     except Exception:
         active_cfg = {}
 
     if provider:
         p_name = provider.lower().strip()
+        if p_name == "mock":
+            return AIProviderRegistry.get("mock")
         p_info = active_cfg.get("providers", {}).get(p_name, {})
-        p_model = p_info.get("selected_model") or getattr(cfg, "AI_MODEL", "")
+        primary_name = str(active_cfg.get("primary_provider") or "").lower().strip()
+        fallback_name = str(active_cfg.get("fallback_provider") or "").lower().strip()
+        p_model = (
+            model
+            or (active_cfg.get("primary_model") if p_name == primary_name else None)
+            or (active_cfg.get("fallback_model") if p_name == fallback_name else None)
+            or p_info.get("selected_model")
+            or getattr(cfg, "AI_MODEL", "")
+        )
         p_key = p_info.get("_api_key") or ""
         p_base = p_info.get("base_url") or ""
         return AIProviderRegistry.get(p_name, model=p_model, api_key=p_key, base_url=p_base)
@@ -1770,7 +1785,7 @@ def get_ai_client(provider: Optional[str] = None) -> AIClient:
     if primary_name == "mock":
         return AIProviderRegistry.get("mock")
 
-    primary_model = active_cfg.get("primary_model") or getattr(cfg, "AI_MODEL", "")
+    primary_model = model or active_cfg.get("primary_model") or getattr(cfg, "AI_MODEL", "")
     primary_key = active_cfg.get("primary_api_key") or ""
     primary_base = active_cfg.get("primary_base_url") or ""
 

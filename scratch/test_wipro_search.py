@@ -10,3 +10,4 @@ for a in soup.find_all('a', href=True):
     t = a.get_text(' ', strip=True)
     if '/job/' in h or 'job' in h.lower() and len(t) > 3:
         print(f"  Wipro job link: {t[:50]} -> {h}")
+

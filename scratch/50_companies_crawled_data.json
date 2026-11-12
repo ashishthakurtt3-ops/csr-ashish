@@ -8,19 +8,19 @@
     "headquarters": "3rd Floor, Maker Chambers IV, 222, Nariman Point, Mumbai - 400021, Maharashtra, India",
     "cin": "L17110MH1973PLC019786",
     "website": "https://www.ril.com",
-    "careers_url": "https://careers.ril.com/rilcareers/frmJobSearch.aspx",
+    "careers_url": "https://www.ril.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 6,
+    "verified_jobs_count": 4,
     "sample_jobs": [
       "Lab Analyst",
-      "Full Stack Software Engineer - React & Node.js",
-      "Supply Chain Operations Specialist"
+      "Research Scientist",
+      "Lab Analyst"
     ],
-    "csr_projects_count": 11,
+    "csr_projects_count": 22,
     "sample_csr_projects": [
-      "Net-Zero Carbon Initiative",
-      "Partnership with The Est\u00e9e Lauder Companies Charitable Foundation"
+      "Women Empowerment",
+      "Sports for Development"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 1
@@ -37,17 +37,10 @@
     "careers_url": "https://hdfcbank.taleo.net/careersection/ex/jobsearch.ftl",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 11,
-    "sample_jobs": [
-      "Product Manager - Digital Lending",
-      "Senior Talent Acquisition Specialist - Tech",
-      "Operations Lead - Trade Finance & Remittances"
-    ],
-    "csr_projects_count": 9,
-    "sample_csr_projects": [
-      "Financial Literacy and Inclusion Program (FLIP)",
-      "Water Conservation and Sustainable Agriculture Project"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 2
   },
@@ -63,13 +56,9 @@
     "careers_url": "https://www.icicicareers.com/CareerApplicant/Career/SearchJob",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Senior Treasury Risk Analyst",
-      "DevSecOps Engineering Lead",
-      "Head - Corporate & Institutional Sales"
-    ],
-    "csr_projects_count": 10,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 7,
     "sample_csr_projects": [
       "Water Conservation Initiatives in Meghalaya",
       "ICICI Digital Health Stack and RT-BARP"
@@ -95,11 +84,8 @@
       "DEPUTY MANAGER (CHARTERED ACCOUNTANT-INTERNAL AUDIT) (302 KB)",
       "DEPUTY MANAGER ( IS AUDIT) - LIST OF CANDIDATES PROVISIONALLY SELECTED ANNOUNCED"
     ],
-    "csr_projects_count": 11,
-    "sample_csr_projects": [
-      "Sanitation and Safe Drinking Water in Schools",
-      "Socio-Economic Empowerment of Women and Artisans"
-    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -112,19 +98,19 @@
     "headquarters": "9th Floor, Nirmal Building, Nariman Point, Mumbai - 400021, Maharashtra, India",
     "cin": "L22210MH1995PLC084781",
     "website": "https://www.tcs.com",
-    "careers_url": "https://ibegin.tcs.com/iBegin/jobs/search",
+    "careers_url": "https://www.tcs.com/careers/india",
     "ats": "Direct/HTML",
     "crawl_status": "BLOCKED",
-    "verified_jobs_count": 19,
+    "verified_jobs_count": 24,
     "sample_jobs": [
-      "Key Accounts Sales Manager",
-      "Global Operations & Supply Chain Analyst",
-      "Corporate Finance & FP&A Manager"
+      "Sitecore Senior Developer",
+      "Sitecore Architect",
+      "AEM Senior Developer"
     ],
-    "csr_projects_count": 23,
+    "csr_projects_count": 6,
     "sample_csr_projects": [
-      "Bridge IT",
-      "TCS Ignite My Future"
+      "TCS Ignite My Future",
+      "TCS goIT"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -138,20 +124,13 @@
     "headquarters": "Akrudi, Pune - 411035, Maharashtra, India",
     "cin": "L65910MH1987PLC042961",
     "website": "https://www.aboutbajajfinserv.com/finance-about-us",
-    "careers_url": "https://www.bajajfinserv.in/bajaj-finance",
+    "careers_url": "https://www.bajajauto.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 3,
-    "sample_jobs": [
-      "Bajaj Finance Limited Operations & Strategy Manager",
-      "Bajaj Finance Limited Senior Sustainability Officer",
-      "Bajaj Finance Limited CSR & ESG Lead"
-    ],
-    "csr_projects_count": 3,
-    "sample_csr_projects": [
-      "Bajaj Finance Limited Environmental Stewardship & Clean Energy Mission",
-      "Bajaj Finance Limited Skill Development & Livelihood Mission"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -164,19 +143,17 @@
     "headquarters": "L&T House, Ballard Estate, Mumbai - 400001, Maharashtra, India",
     "cin": "L99999MH1946PLC004768",
     "website": "https://www.larsentoubro.com",
-    "careers_url": "https://www.larsentoubro.com/careers",
+    "careers_url": "https://www.larsentoubro.com/corporate/careers/",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 11,
+    "verified_jobs_count": 1,
     "sample_jobs": [
-      "Enterprise Sales & Account Manager",
-      "Senior Talent Acquisition Specialist",
-      "Supply Chain Operations Manager"
+      "Development Lead"
     ],
-    "csr_projects_count": 11,
+    "csr_projects_count": 2,
     "sample_csr_projects": [
-      "L&T Construction Skills Training Institute (CSTI)",
-      "L&T Child Care and Education Support (Pragati)"
+      "L&T has committed to achieve Carbon Neutrality by 2040 and Water Neutrality by 2035",
+      "L&T has committed to achieve Carbon Neutrality by 2040 and Water Neutrality by 2035"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 2
@@ -198,7 +175,7 @@
       "AAO Generalists Specialists Assistant Engineers",
       "AAO/Generalist/Specialist/Assistant Engineer"
     ],
-    "csr_projects_count": 10,
+    "csr_projects_count": 7,
     "sample_csr_projects": [
       "Medical Relief",
       "Advancement of Education"
@@ -224,10 +201,10 @@
       "Content Creator, Writer & Editor (Contractual) Mumbai, India",
       "Logistics Europe Transportation Lead & Asia/Africa Hub Engagement Lead Bengaluru, India"
     ],
-    "csr_projects_count": 11,
+    "csr_projects_count": 3,
     "sample_csr_projects": [
-      "Plastic Waste Management and Recycling Initiative",
-      "Hindustan Unilever Foundation (HUF) Water Conservation Project"
+      "Across rural India, local markets are evolving alongside rising aspirations and changing c",
+      "Education & Skill Development Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -244,16 +221,12 @@
     "careers_url": "https://career.infosys.com/",
     "ats": "Direct/HTML",
     "crawl_status": "BLOCKED",
-    "verified_jobs_count": 4,
-    "sample_jobs": [
-      "Infosys Limited Operations & Strategy Manager",
-      "Infosys Limited Senior Sustainability Officer",
-      "Infosys Limited Management Executive"
-    ],
-    "csr_projects_count": 4,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 2,
     "sample_csr_projects": [
-      "Infosys Limited Environmental Stewardship & Clean Energy Mission",
-      "Infosys Limited Skill Development & Livelihood Mission"
+      "Women Empowerment",
+      "Healthcare"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -267,19 +240,18 @@
     "headquarters": "Gateway Building, Apollo Bunder, Colaba, Mumbai - 400001, Maharashtra, India",
     "cin": "L65990MH1945PLC004558",
     "website": "https://www.mahindra.com",
-    "careers_url": "https://jobs.mahindra.com/",
+    "careers_url": "https://www.mahindra.com/careers",
     "ats": "SUCCESSFACTORS",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 267,
+    "verified_jobs_count": 260,
     "sample_jobs": [
       "Senior Engineer-PTD Delivery",
       "Manager Maintenance - Foundry",
       "Sr.Engineer - Vehicle Dynamics"
     ],
-    "csr_projects_count": 8,
+    "csr_projects_count": 1,
     "sample_csr_projects": [
-      "Vasundhara - Environmental Sustainability & Afforestation",
-      "Arogya - Community Healthcare and Sanitation"
+      "Water management"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -296,12 +268,8 @@
     "careers_url": "https://careers.adani.com/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 8,
-    "sample_jobs": [
-      "Head of Operations & Supply Chain",
-      "General Manager - Corporate Finance & FP&A",
-      "Senior QA Automation Engineer"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 5,
     "sample_csr_projects": [
       "Tiroda Green Belt Development Project",
@@ -319,15 +287,11 @@
     "headquarters": "Adani Corporate House, Shantigram, Near Vaishno Devi Circle, SG Highway, Ahmedabad - 382421, Gujarat, India",
     "cin": "L63090GJ1998PLC034182",
     "website": "https://www.adaniports.com",
-    "careers_url": "https://careers.adani.com/#Culture",
+    "careers_url": "https://careers.adani.com/",
     "ats": "ORACLE_TALEO",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Strategic Accounts & Sales Director",
-      "Senior Talent Acquisition Manager",
-      "Head of Maritime Operations & Supply Chain"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 7,
     "sample_csr_projects": [
       "Sustainable Supply Chain and Local Economic Development",
@@ -348,13 +312,9 @@
     "careers_url": "https://www.hcltech.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 13,
-    "sample_jobs": [
-      "Senior SAP FI/CO Consultant",
-      "Cybersecurity Operations Analyst - SIEM & SOC",
-      "Lead Data Engineer - Databricks & Snowflake"
-    ],
-    "csr_projects_count": 17,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 13,
     "sample_csr_projects": [
       "Employee Blood Donation Drive",
       "Animal Shelter Caregiving"
@@ -374,17 +334,14 @@
     "careers_url": "https://www.itcportal.com/careers/",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 48,
+    "verified_jobs_count": 39,
     "sample_jobs": [
       "Associate Manager / Manager - BD & Sales / Trading (Wheat)",
       "Associate Manager - Finance (Audit)",
       "Junior Research Associate - Consumer And Sensory Sciences"
     ],
-    "csr_projects_count": 8,
-    "sample_csr_projects": [
-      "ITC Mission Sunehra Kal - Watershed Development",
-      "ITC e-Choupal Initiative"
-    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -397,19 +354,15 @@
     "headquarters": "B-Wing, Ahura Centre, 2nd Floor, Mahakali Caves Road, Andheri (East), Mumbai - 400093, Maharashtra, India",
     "cin": "L26940MH2000PLC128420",
     "website": "https://www.ultratechcement.com",
-    "careers_url": "https://www.ultratechcement.com/about-us/careers",
+    "careers_url": "https://www.ultratechcement.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 13,
-    "sample_jobs": [
-      "Operations Data Analyst",
-      "SAP Basis & HANA Administrator",
-      "DevOps Engineer"
-    ],
-    "csr_projects_count": 12,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 4,
     "sample_csr_projects": [
-      "Safe Drinking Water and Total Sanitation Drive",
-      "Rural Infrastructure Development"
+      "Committed to No Net Loss of Biodiversity in line with our Group Biodiversity Policy by 205",
+      "The SDGs address issues critical for the survival of the planet and society such as climat"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -423,10 +376,10 @@
     "headquarters": "Adani Corporate House, Shantigram, SG Highway, Ahmedabad - 382421, Gujarat, India",
     "cin": "L51100GJ1993PLC019067",
     "website": "https://www.adanienterprises.com",
-    "careers_url": "https://careers.adani.com/#Culture",
+    "careers_url": "https://careers.adani.com/",
     "ats": "ORACLE_TALEO",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 33,
+    "verified_jobs_count": 21,
     "sample_jobs": [
       "Construction Fab shop Lead (Quality)",
       "Lead - Quality",
@@ -449,10 +402,10 @@
     "headquarters": "NTPC Bhawan, Scope Complex, 7, Institutional Area, Lodhi Road, New Delhi - 110003, Delhi, India",
     "cin": "L40101DL1975GOI007966",
     "website": "https://www.ntpc.co.in",
-    "careers_url": "https://careers.ntpc.co.in/",
+    "careers_url": "https://careers.ntpc.co.in/recruitment/",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 14,
+    "verified_jobs_count": 5,
     "sample_jobs": [
       "Post of Director (Finance) in NTPC limited",
       "Post of Director (Fuel)",
@@ -478,17 +431,10 @@
     "careers_url": "https://hal-india.co.in/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "Senior Talent Acquisition Specialist - Executive Search",
-      "Senior Supply Chain & Procurement Manager",
-      "Lead QA & Embedded Automation Engineer"
-    ],
-    "csr_projects_count": 4,
-    "sample_csr_projects": [
-      "Environmental Sustainability and Afforestation",
-      "Rural Development and Infrastructure Enhancement"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -504,16 +450,12 @@
     "careers_url": "https://www.bajajauto.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Product Manager - Connected Vehicles",
-      "HR Business Partner - R&D and Tech",
-      "Supply Chain Operations Lead"
-    ],
-    "csr_projects_count": 13,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 8,
     "sample_csr_projects": [
-      "Support for COVID-19 Relief and Healthcare Infrastructure",
-      "Healthcare and Mobile Medical Units"
+      "Our various programs include STEM Education Support Program, through which we provide educ",
+      "Bajaj Manufacturing Systems (BMS) a flagship CSR initiative, is an e"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -527,20 +469,13 @@
     "headquarters": "Bajaj Auto Complex, Mumbai - Pune Road, Akurdi, Pune - 411035, Maharashtra, India",
     "cin": "L65923PN2007PLC130075",
     "website": "https://www.bajajfinserv.in",
-    "careers_url": "https://www.bajajfinserv.in/careers",
+    "careers_url": "https://www.bajajauto.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "Product Manager - Lending Platforms",
-      "Senior Talent Acquisition Specialist",
-      "Manager Corporate Finance & FP&A"
-    ],
-    "csr_projects_count": 6,
-    "sample_csr_projects": [
-      "Rural Community Development and Infrastructure Support",
-      "Community Health and Mobile Medical Units"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -556,7 +491,7 @@
     "careers_url": "https://www.jsw.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 25,
+    "verified_jobs_count": 14,
     "sample_jobs": [
       "Frontline Executive",
       "Area Manager",
@@ -582,17 +517,14 @@
     "careers_url": "https://ongcindia.com/web/eng/career",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 59,
+    "verified_jobs_count": 48,
     "sample_jobs": [
       "Results - Recruitment of Assistant Technician (Electronics) for Delhi (Advt No. 3/2013)",
       "Result for the posts of Assistant Legal Advisor in ONGC against Advt.2/2015",
       "Result GT Part-IV for the posts of Assistant Executive Engineer (Mechanical) Advt.No.5/2016(R&P)"
     ],
-    "csr_projects_count": 7,
-    "sample_csr_projects": [
-      "Holistic Rural Development Program (HRDP)",
-      "ONGC-CSIR Joint Solar Energy and Rural Electrification"
-    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -608,17 +540,10 @@
     "careers_url": "https://www.nestle.in/jobs",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "SAP Financials (FI/CO) Principal Consultant",
-      "DevOps & SRE Engineering Lead",
-      "Supply Chain Operations Lead"
-    ],
-    "csr_projects_count": 7,
-    "sample_csr_projects": [
-      "Youth Skill Development and Vocational Training",
-      "Rural Water Stewardship and Conservation"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -634,16 +559,12 @@
     "careers_url": "https://www.eternal.com/jobs",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Enterprise Key Account Director",
-      "Supply Chain Operations Excellence Manager",
-      "Director of Corporate Finance & FP&A"
-    ],
-    "csr_projects_count": 12,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 7,
     "sample_csr_projects": [
-      "Rural Infrastructure & Community Development",
-      "Watershed Management & Water Conservation"
+      "Education & Skill Development Initiative",
+      "Education & Skill Development Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -660,17 +581,10 @@
     "careers_url": "https://bel-india.in/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 8,
-    "sample_jobs": [
-      "Supply Chain & Logistics Head",
-      "Manager Corporate Finance & FP&A",
-      "QA Automation Lead"
-    ],
-    "csr_projects_count": 5,
-    "sample_csr_projects": [
-      "Afforestation and Green Belt Development",
-      "Swachh Bharat Rural Sanitation Initiative"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -709,20 +623,17 @@
     "headquarters": "Coal Bhawan, Premise No. 04 MAR, Plot No. AF-III, Action Area 1A, Newtown, Rajarhat, Kolkata - 700156, West Bengal, India",
     "cin": "L23109WB1973GOI028844",
     "website": "https://www.coalindia.in",
-    "careers_url": "https://www.coalindia.in/career-at-coal-india/",
+    "careers_url": "https://www.coalindia.in/career-cil/",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 12,
+    "verified_jobs_count": 3,
     "sample_jobs": [
       "Notification for appointment of CS Practical Trainee (Professional Qualified)",
       "Detailed advertisement/notification for engagement of INDUSTRIAL TRAINEE (CA/CMA) 2025",
       "Notice Dated 17-07-26 for cancellation of candidature of Industrial Trainee"
     ],
-    "csr_projects_count": 6,
-    "sample_csr_projects": [
-      "Construction of Smart Classrooms and Rural School Infrastructure",
-      "Sports Promotion and Rural Sports Infrastructure Development"
-    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -738,17 +649,10 @@
     "careers_url": "https://careers.dmartindia.com/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 12,
-    "sample_jobs": [
-      "Warehouse Automation Engineer",
-      "SAP Retail (IS-RETAIL) Consultant",
-      "DevOps & Infrastructure Lead"
-    ],
-    "csr_projects_count": 5,
-    "sample_csr_projects": [
-      "Rural Infrastructure and Community Development",
-      "Environmental Sustainability and Tree Plantation"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -764,12 +668,8 @@
     "careers_url": "https://www.powergrid.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "Key Account Sales Manager",
-      "Supply Chain & Operations Manager",
-      "Manager Corporate Finance & FP&A"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 24,
     "sample_csr_projects": [
       "Supply of Desk Benches to Government School in Salem",
@@ -787,15 +687,11 @@
     "headquarters": "Ahura Centre, 1st Floor, B-Wing, Mahakali Caves Road, Andheri (East), Mumbai - 400093, Maharashtra, India",
     "cin": "L27020MH1958PLC011238",
     "website": "https://www.hindalco.com",
-    "careers_url": "https://www.hindalco.com/work-with-us",
+    "careers_url": "https://www.hindalco.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "SAP ABAP / Fiori Technical Consultant",
-      "Head of Operations & Global Supply Chain",
-      "Senior Manager - Corporate Finance & FP&A"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 5,
     "sample_csr_projects": [
       "Waste Recycling and Zero Waste to Landfill Initiative",
@@ -816,16 +712,16 @@
     "careers_url": "https://tslhr.tatasteel.co.in/recruit/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 22,
+    "verified_jobs_count": 4,
     "sample_jobs": [
       "AGM Showcase",
       "Schedule of Analyst/Institutional Investor Meet",
       "Analyst Call Recording"
     ],
-    "csr_projects_count": 23,
+    "csr_projects_count": 4,
     "sample_csr_projects": [
-      "Tata Steel Skill Development Centre (TSSDC)",
-      "Drinking Water and Sanitation Infrastructure"
+      "Tata Steel Europe\u2019s Community Partnership Programme \u2018Future Generations\u2019, with sub",
+      "Balancing economic prosperity, environmental responsibility and social benefits for the co"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -839,15 +735,11 @@
     "headquarters": "Adani Corporate House, Shantigram, Near Vaishno Devi Circle, SG Highway, Ahmedabad - 382421, Gujarat, India",
     "cin": "L40106GJ2015PLC082007",
     "website": "https://www.adanigreenenergy.com",
-    "careers_url": "https://www.adanigreenenergy.com/careers",
+    "careers_url": "https://careers.adani.com/",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Director of Strategic Sales & Key Accounts",
-      "Senior Manager - Talent Acquisition & Executive Search",
-      "Head of Operations & Supply Chain - Renewable Assets"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 7,
     "sample_csr_projects": [
       "Renewable Energy Decarbonization and Green Infrastructure Project - Jaisalmer",
@@ -868,12 +760,8 @@
     "careers_url": "https://www.grasim.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "DevOps Engineer",
-      "Supply Chain Operations Manager",
-      "Manager - Corporate Finance & FP&A"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 12,
     "sample_csr_projects": [
       "Sustainable Water Management and Pulp & Fibre Reduction",
@@ -894,16 +782,12 @@
     "careers_url": "https://www.eicher.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Product Manager - Connected Vehicle Ecosystem",
-      "National Key Account Manager - Domestic Sales",
-      "Head of Global Supply Chain Operations"
-    ],
-    "csr_projects_count": 11,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 4,
     "sample_csr_projects": [
-      "Support for Education and School Infrastructure",
-      "Water Conservation and Watershed Management"
+      "Education & Skill Development Initiative",
+      "The work of the Foundation has, as its focus, interventions for improvement in quality of "
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -920,12 +804,8 @@
     "careers_url": "https://www.goindigo.in/careers.html?linkNav=careers_footer",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 11,
-    "sample_jobs": [
-      "Network and Security Engineer",
-      "Product Manager - Digital Channels",
-      "DevOps & Infrastructure Engineer"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 5,
     "sample_csr_projects": [
       "Heritage Conservation",
@@ -946,17 +826,10 @@
     "careers_url": "https://iocl.com/latest-job-opening",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "DevOps & SRE Engineer",
-      "Key Accounts Sales Manager - B2B Aviation & Marine",
-      "Supply Chain Operations Strategist"
-    ],
-    "csr_projects_count": 9,
-    "sample_csr_projects": [
-      "IndianOil Cheetah Introduction and Habitat Restoration Project",
-      "Swachh Bharat Abhiyan School Sanitation Support"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -969,19 +842,15 @@
     "headquarters": "Doddakannelli, Sarjapur Road, Bengaluru - 560035, Karnataka, India",
     "cin": "L32102KA1945PLC020800",
     "website": "https://www.wipro.com",
-    "careers_url": "https://careers.wipro.com/careers-home/",
+    "careers_url": "https://careers.wipro.com/search",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "Global Operations & Supply Chain Analyst",
-      "Corporate Finance & FP&A Manager",
-      "Senior QA Automation Engineer"
-    ],
-    "csr_projects_count": 18,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 14,
     "sample_csr_projects": [
-      "Arogya Darpan Community Engagement",
-      "Wipro STEM Program"
+      "Disaster Response and Rehabilitation",
+      "Primary Healthcare Initiatives"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 4
@@ -998,12 +867,8 @@
     "careers_url": "https://careers.adani.com/",
     "ats": "Direct/HTML",
     "crawl_status": "CRAWLED",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Grid Operations Control Center Engineer",
-      "Senior Talent Acquisition Manager - Executive Search",
-      "Head of Supply Chain & Vendor Development"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 5,
     "sample_csr_projects": [
       "Compensatory Afforestation and Forest Diversion Mitigation",
@@ -1021,15 +886,11 @@
     "headquarters": "Natraj, M.V. Road & Western Express Highway Junction, Andheri (East), Mumbai - 400069, Maharashtra, India",
     "cin": "L99999MH2000PLC129113",
     "website": "https://www.sbilife.co.in",
-    "careers_url": "https://www.sbilife.co.in/about-us/careers",
+    "careers_url": "https://sbi.co.in/web/careers/current-openings",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 12,
-    "sample_jobs": [
-      "Actuarial Analyst",
-      "DevOps Engineer",
-      "Senior Regional Sales Manager"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 9,
     "sample_csr_projects": [
       "Onyva Trust Impact Assessment",
@@ -1050,12 +911,8 @@
     "careers_url": "https://www.hyundai.com/in/en/hyundai-story/career",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "Regional Sales Head - National Accounts",
-      "Senior Manager - Operations & Supply Chain",
-      "Manager - Corporate Finance & FP&A"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 22,
     "sample_csr_projects": [
       "Apprenticeship and Driver Training Program (Drive4Progress)",
@@ -1082,11 +939,8 @@
       "Process Engineer- Electrical",
       "Manufacturing Process Engineer- Mechanical"
     ],
-    "csr_projects_count": 5,
-    "sample_csr_projects": [
-      "Motherson Rural Infrastructure & Community Development",
-      "Motherson Environmental Sustainability & Afforestation Drive"
-    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -1102,17 +956,10 @@
     "careers_url": "https://www.jfs.in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 11,
-    "sample_jobs": [
-      "Compliance & Regulatory Affairs Specialist",
-      "Product Manager - Digital Lending",
-      "DevOps & SRE Engineer"
-    ],
-    "csr_projects_count": 4,
-    "sample_csr_projects": [
-      "Environmental Sustainability and Green Cover Initiative",
-      "Digital Skilling and Livelihood Enhancement"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -1128,12 +975,8 @@
     "careers_url": "https://careers.solargroup.com",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 11,
-    "sample_jobs": [
-      "Plant Instrumentation & Automation Engineer",
-      "Global Key Account Manager - Defence Sector",
-      "Head of Talent Acquisition - Corporate & Tech"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 5,
     "sample_csr_projects": [
       "Skill Development",
@@ -1154,12 +997,8 @@
     "careers_url": "https://www.torrentpharma.com/careers/join-us",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 11,
-    "sample_jobs": [
-      "Regulatory Affairs Senior Manager",
-      "National Key Account Manager - Institutional Sales",
-      "Lead Talent Acquisition Partner - Tech & Digital"
-    ],
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
     "csr_projects_count": 5,
     "sample_csr_projects": [
       "Education & Knowledge Enhancement",
@@ -1180,16 +1019,12 @@
     "careers_url": "https://trentlimited.com/pages/careers",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 9,
-    "sample_jobs": [
-      "Key Accounts & Retail Partnerships Manager",
-      "Supply Chain & Logistics Operations Manager",
-      "Manager Corporate Finance & FP&A"
-    ],
-    "csr_projects_count": 5,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 2,
     "sample_csr_projects": [
-      "Trent Environmental Sustainability and Resource Conservation",
-      "Trent Education and Healthcare Support Programs"
+      "Corporate Social Responsibility (CSR) is an integral part of our culture",
+      "Corporate Social Responsibility (CSR) is an integral part of our culture"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1206,16 +1041,12 @@
     "careers_url": "https://www.cholamandalam.com/careers",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 10,
-    "sample_jobs": [
-      "Product Manager - Digital Lending",
-      "DevOps & SRE Engineering Lead",
-      "Head of Lending Operations & Process Excellence"
-    ],
-    "csr_projects_count": 25,
+    "verified_jobs_count": 0,
+    "sample_jobs": [],
+    "csr_projects_count": 20,
     "sample_csr_projects": [
-      "Chola Rural Development and Community Infrastructure",
-      "Chola Environmental Sustainability and Afforestation Drive"
+      "Education & Skill Development Initiative",
+      "Rural Development & Livelihood Initiative"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1232,16 +1063,13 @@
     "careers_url": "https://www.cummins.com/en-in/careers",
     "ats": "Direct/HTML",
     "crawl_status": "SUSPECT_DROP",
-    "verified_jobs_count": 4,
+    "verified_jobs_count": 1,
     "sample_jobs": [
-      "Service Technician",
-      "Cummins India Limited Operations & Strategy Manager",
-      "Cummins India Limited Senior Sustainability Officer"
+      "Service Technician"
     ],
-    "csr_projects_count": 4,
+    "csr_projects_count": 1,
     "sample_csr_projects": [
-      "Cummins India Limited Environmental Stewardship & Clean Energy Mission",
-      "Cummins India Limited Skill Development & Livelihood Mission"
+      "Cummins\u2019 Risk Management program is essential to navigating a dynamic environment, managin"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0
@@ -1255,7 +1083,7 @@
     "headquarters": "F-2/7, Okhla Industrial Area, Phase-I, New Delhi - 110020, Delhi, India",
     "cin": "L74899DL1995PLC069839",
     "website": "https://www.varunbeverages.com",
-    "careers_url": "https://rjcorphcm-iacbiz.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+    "careers_url": "https://www.varunbeverages.com/careers",
     "ats": "Oracle_Cloud",
     "crawl_status": "PENDING",
     "verified_jobs_count": 90,
@@ -1264,11 +1092,8 @@
       "Senior Customer Executive",
       "Customer Executive"
     ],
-    "csr_projects_count": 3,
-    "sample_csr_projects": [
-      "Varun Beverages Limited Environmental Stewardship & Clean Energy Mission",
-      "Varun Beverages Limited Skill Development & Livelihood Mission"
-    ],
+    "csr_projects_count": 0,
+    "sample_csr_projects": [],
     "total_csr_spend_inr": null,
     "contacts_count": 0
   },
@@ -1281,19 +1106,19 @@
     "headquarters": "8th Floor, Brigade Opus, 70/401, Kodigehalli Main Road, Bengaluru - 560092, Karnataka, India",
     "cin": "L31904KA2019PLC121597",
     "website": "https://www.hitachienergy.com/in/en",
-    "careers_url": "https://www.hitachienergy.com/in/en/careers",
+    "careers_url": "https://www.hitachienergy.com/search?q=jobs",
     "ats": "Direct/HTML",
     "crawl_status": "PENDING",
-    "verified_jobs_count": 12,
+    "verified_jobs_count": 13,
     "sample_jobs": [
-      "DevOps & SRE Engineer",
-      "Senior Key Account Manager - Power Grid",
-      "Lead Talent Acquisition Partner"
+      "Machine Operator",
+      "Site Administrator",
+      "Service Project Manager (F/M/D)"
     ],
-    "csr_projects_count": 8,
+    "csr_projects_count": 5,
     "sample_csr_projects": [
       "Energizing Education",
-      "Hitachi Energy India Limited Environmental Stewardship & Clean Energy Mission"
+      "Our DNA strands for action mirror sustainability\u2019s approach to environmental, social and g"
     ],
     "total_csr_spend_inr": null,
     "contacts_count": 0

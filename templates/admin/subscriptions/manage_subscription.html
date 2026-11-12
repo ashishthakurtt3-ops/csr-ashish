@@ -4,8 +4,6 @@
 {% block page_title %}Subscription Manager &bull; {{ sub.user.username|default:sub.tenant_id }}{% endblock %}
 
 {% block content %}
-{% include "admin/subscriptions/components/sub_nav.html" with active_tab="subscriptions" %}
-
 <div style="margin-bottom:20px;">
     <a href="{% url 'admin_subscriptions:list' %}" class="btn-admin btn-admin-secondary">
         &larr; Back to Subscriptions List

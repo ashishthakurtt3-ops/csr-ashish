@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.db.models import Count, Q
 from modules.admin_panel.models import (
-    CSRProject, AuditTrail, PageRecord, Company, Job, CompanyCrawlSummary
+    CSRProject, AuditTrail, PageRecord, Company, Job, CompanyCrawlSummary, Document
 )
 from modules.crawler_engine.state import CRAWL_TASK_STATE
 from modules.crawler_engine.verification_service import VerificationService
@@ -17,7 +17,15 @@ def verification_queue_view(request):
     pending_records = CSRProject.objects.filter(
         verification_status__in=['UNVERIFIED', 'EXTRACTED', 'VALIDATED']
     ).order_by('confidence', '-csr_id')[:50]
-    return render(request, 'admin/verification/queue.html', {'pending_records': pending_records})
+    total_doc_count = Document.objects.count()
+    pending_queue_count = CSRProject.objects.filter(
+        verification_status__in=['UNVERIFIED', 'EXTRACTED', 'VALIDATED']
+    ).count()
+    return render(request, 'admin/verification/queue.html', {
+        'pending_records': pending_records,
+        'total_doc_count': total_doc_count,
+        'pending_queue_count': pending_queue_count,
+    })
 
 
 @login_required

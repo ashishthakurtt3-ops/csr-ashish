@@ -542,14 +542,31 @@
 
     <!-- Jobs Pagination -->
     {% if jobs_page_obj.has_other_pages %}
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; font-size:12px;">
-        <span style="color:var(--text-secondary);">Page {{ jobs_page_obj.number }} of {{ jobs_page_obj.paginator.num_pages }}</span>
-        <div style="display:flex; gap:6px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; padding-top:14px; border-top:1px solid var(--border-color); font-size:12.5px; flex-wrap:wrap; gap:10px;">
+        <span style="color:var(--text-secondary);">
+            Showing <strong>{{ jobs_page_obj.start_index }}</strong> to <strong>{{ jobs_page_obj.end_index }}</strong> of <strong>{{ jobs_page_obj.paginator.count }}</strong> jobs
+        </span>
+        <div style="display:flex; align-items:center; gap:5px;">
             {% if jobs_page_obj.has_previous %}
-            <a href="?tab=jobs&job_page={{ jobs_page_obj.previous_page_number }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}&job_status={{ job_status }}" class="btn-admin btn-admin-secondary" style="padding:3px 8px;">&larr; Prev</a>
+            <a href="?tab=jobs&job_page={{ jobs_page_obj.previous_page_number }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}&job_status={{ job_status }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; text-decoration:none;">‹ Prev</a>
+            {% else %}
+            <button class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; opacity:0.4; cursor:not-allowed;" disabled>‹ Prev</button>
             {% endif %}
+
+            {% for p in jobs_page_range %}
+                {% if p == jobs_page_obj.paginator.ELLIPSIS %}
+                    <span style="padding:0 6px; color:var(--text-secondary);">…</span>
+                {% elif p == jobs_page_obj.number %}
+                    <span class="btn-admin btn-admin-primary" style="padding:4px 10px; font-size:12px; font-weight:700;">{{ p }}</span>
+                {% else %}
+                    <a href="?tab=jobs&job_page={{ p }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}&job_status={{ job_status }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; text-decoration:none;">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
             {% if jobs_page_obj.has_next %}
-            <a href="?tab=jobs&job_page={{ jobs_page_obj.next_page_number }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}&job_status={{ job_status }}" class="btn-admin btn-admin-secondary" style="padding:3px 8px;">Next &rarr;</a>
+            <a href="?tab=jobs&job_page={{ jobs_page_obj.next_page_number }}&job_q={{ job_q }}&job_dept={{ job_dept }}&job_mode={{ job_mode }}&job_status={{ job_status }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; text-decoration:none;">Next ›</a>
+            {% else %}
+            <button class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; opacity:0.4; cursor:not-allowed;" disabled>Next ›</button>
             {% endif %}
         </div>
     </div>
@@ -674,14 +691,31 @@
 
     <!-- CSR Pagination -->
     {% if csr_page_obj.has_other_pages %}
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; font-size:12px;">
-        <span style="color:var(--text-secondary);">Page {{ csr_page_obj.number }} of {{ csr_page_obj.paginator.num_pages }}</span>
-        <div style="display:flex; gap:6px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; padding-top:14px; border-top:1px solid var(--border-color); font-size:12.5px; flex-wrap:wrap; gap:10px;">
+        <span style="color:var(--text-secondary);">
+            Showing <strong>{{ csr_page_obj.start_index }}</strong> to <strong>{{ csr_page_obj.end_index }}</strong> of <strong>{{ csr_page_obj.paginator.count }}</strong> CSR projects
+        </span>
+        <div style="display:flex; align-items:center; gap:5px;">
             {% if csr_page_obj.has_previous %}
-            <a href="?tab=csr&csr_page={{ csr_page_obj.previous_page_number }}&csr_q={{ csr_q }}&csr_category={{ csr_category }}&csr_status={{ csr_status }}" class="btn-admin btn-admin-secondary" style="padding:3px 8px;">&larr; Prev</a>
+            <a href="?tab=csr&csr_page={{ csr_page_obj.previous_page_number }}&csr_q={{ csr_q }}&csr_category={{ csr_category }}&csr_status={{ csr_status }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; text-decoration:none;">‹ Prev</a>
+            {% else %}
+            <button class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; opacity:0.4; cursor:not-allowed;" disabled>‹ Prev</button>
             {% endif %}
+
+            {% for p in csr_page_range %}
+                {% if p == csr_page_obj.paginator.ELLIPSIS %}
+                    <span style="padding:0 6px; color:var(--text-secondary);">…</span>
+                {% elif p == csr_page_obj.number %}
+                    <span class="btn-admin btn-admin-primary" style="padding:4px 10px; font-size:12px; font-weight:700;">{{ p }}</span>
+                {% else %}
+                    <a href="?tab=csr&csr_page={{ p }}&csr_q={{ csr_q }}&csr_category={{ csr_category }}&csr_status={{ csr_status }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; text-decoration:none;">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
             {% if csr_page_obj.has_next %}
-            <a href="?tab=csr&csr_page={{ csr_page_obj.next_page_number }}&csr_q={{ csr_q }}&csr_category={{ csr_category }}&csr_status={{ csr_status }}" class="btn-admin btn-admin-secondary" style="padding:3px 8px;">Next &rarr;</a>
+            <a href="?tab=csr&csr_page={{ csr_page_obj.next_page_number }}&csr_q={{ csr_q }}&csr_category={{ csr_category }}&csr_status={{ csr_status }}" class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; text-decoration:none;">Next ›</a>
+            {% else %}
+            <button class="btn-admin btn-admin-secondary" style="padding:4px 10px; font-size:12px; opacity:0.4; cursor:not-allowed;" disabled>Next ›</button>
             {% endif %}
         </div>
     </div>

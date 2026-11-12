@@ -132,6 +132,7 @@ _CACHE_TTL_SECONDS: float = 10.0
 # Confirmed Free-Tier Models per Provider
 FREE_TIER_MODELS_CATALOG: Dict[str, Tuple[str, ...]] = {
     "gemini": (
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
         "gemini-3.8-flash",
         "gemini-2.5-flash",
@@ -370,9 +371,9 @@ def bootstrap_default_configs():
                 cfg_obj.available_models = pdata["available_models"]
                 cfg_obj.save(update_fields=["available_models"])
 
-        # 2. Bootstrap System Settings
-        settings_obj = AISystemSettings.get_solo()
-        if not settings_obj.primary_model:
+        # 2. Bootstrap System Settings (only on initial creation or uninitialized v1)
+        settings_obj, settings_created = AISystemSettings.objects.get_or_create(id=1)
+        if settings_created or (not settings_obj.primary_provider and not settings_obj.primary_model and settings_obj.version <= 1):
             settings_obj.primary_provider = os.environ.get("AI_PROVIDER", "gemini").lower().strip()
             settings_obj.primary_model = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite").strip()
             settings_obj.fallback_provider = os.environ.get("AI_FALLBACK_PROVIDER", "grok").lower().strip()
@@ -385,7 +386,7 @@ def bootstrap_default_configs():
         logger.warning("AI configuration bootstrap skipped or deferred: %s", e)
 
 
-def get_active_ai_config() -> Dict[str, Any]:
+def get_active_ai_config(force_refresh: bool = False) -> Dict[str, Any]:
     """
     Returns the currently active AI configuration dictionary, backed by in-memory caching.
     Ensures that modifications made in the Admin Panel immediately reflect across all callers
@@ -393,7 +394,7 @@ def get_active_ai_config() -> Dict[str, Any]:
     """
     global _CACHED_CONFIG, _CACHE_TIMESTAMP
     now = time.time()
-    if _CACHED_CONFIG is not None and (now - _CACHE_TIMESTAMP) < _CACHE_TTL_SECONDS:
+    if not force_refresh and _CACHED_CONFIG is not None and (now - _CACHE_TIMESTAMP) < _CACHE_TTL_SECONDS:
         return _CACHED_CONFIG
 
     try:
@@ -417,6 +418,7 @@ def get_active_ai_config() -> Dict[str, Any]:
             providers_dict[p.provider] = {
                 "display_name": p.display_name,
                 "is_enabled": p.is_enabled,
+                "allow_paid_calls": p.allow_paid_calls,
                 "base_url": p.base_url,
                 "selected_model": p.effective_model,
                 "masked_key": p.api_key_masked or mask_api_key(decrypted_key),
@@ -428,25 +430,33 @@ def get_active_ai_config() -> Dict[str, Any]:
                 "_api_key": decrypted_key,  # For internal server-side API clients only; NEVER serialized to frontend
             }
 
-        primary_prov = settings_obj.primary_provider
-        primary_info = providers_dict.get(primary_prov, {})
-        primary_model = settings_obj.primary_model or primary_info.get("selected_model", "gemini-3.1-flash-lite")
+        primary_prov = (settings_obj.primary_provider or "").lower().strip()
+        primary_info = providers_dict.get(primary_prov, {}) if primary_prov else {}
+        if primary_prov:
+            primary_model = (settings_obj.primary_model or primary_info.get("selected_model") or "").strip()
+        else:
+            primary_model = ""
         primary_key = primary_info.get("_api_key", "")
         primary_base_url = primary_info.get("base_url", "")
 
-        fallback_prov = settings_obj.fallback_provider
-        fallback_info = providers_dict.get(fallback_prov, {})
-        fallback_model = settings_obj.fallback_model or fallback_info.get("selected_model", "grok-2-latest")
+        fallback_prov = (settings_obj.fallback_provider or "").lower().strip()
+        fallback_info = providers_dict.get(fallback_prov, {}) if fallback_prov else {}
+        if fallback_prov:
+            fallback_model = (settings_obj.fallback_model or fallback_info.get("selected_model") or "").strip()
+        else:
+            fallback_model = ""
         fallback_key = fallback_info.get("_api_key", "")
         fallback_base_url = fallback_info.get("base_url", "")
 
         config_snapshot = {
             "primary_provider": primary_prov,
+            "primary_provider_display": primary_info.get("display_name") or (primary_prov.title() if primary_prov else ""),
             "primary_model": primary_model,
             "primary_api_key": primary_key,
             "primary_base_url": primary_base_url,
             "fallback_enabled": settings_obj.fallback_enabled,
             "fallback_provider": fallback_prov,
+            "fallback_provider_display": fallback_info.get("display_name") or (fallback_prov.title() if fallback_prov else ""),
             "fallback_model": fallback_model,
             "fallback_api_key": fallback_key,
             "fallback_base_url": fallback_base_url,
@@ -469,11 +479,13 @@ def get_active_ai_config() -> Dict[str, Any]:
         key = os.environ.get("GEMINI_API_KEY", "").strip() if prov == "gemini" else ""
         return {
             "primary_provider": prov,
+            "primary_provider_display": prov.title() if prov else "",
             "primary_model": model,
             "primary_api_key": key,
             "primary_base_url": "https://generativelanguage.googleapis.com/v1beta" if prov == "gemini" else "",
             "fallback_enabled": os.environ.get("AI_FALLBACK_ENABLED", "true").lower() in ("true", "1"),
             "fallback_provider": os.environ.get("AI_FALLBACK_PROVIDER", "grok").lower().strip(),
+            "fallback_provider_display": os.environ.get("AI_FALLBACK_PROVIDER", "grok").strip().title(),
             "fallback_model": os.environ.get("GROK_MODEL", "grok-2-latest").strip(),
             "fallback_api_key": os.environ.get("GROK_API_KEY", "").strip(),
             "fallback_base_url": "https://api.x.ai/v1",
@@ -483,6 +495,150 @@ def get_active_ai_config() -> Dict[str, Any]:
             "max_api_calls_per_run": 50,
             "providers": {},
         }
+
+
+def resolve_active_ai_summary(force_refresh: bool = True) -> Dict[str, Any]:
+    """
+    Resolves the exact active AI provider and model currently configured for AI Bulk Discovery
+    and crawler inference. Never invents or falls back to arbitrary placeholder model names.
+    """
+    active_cfg = get_active_ai_config(force_refresh=force_refresh)
+    providers = active_cfg.get("providers", {}) or {}
+
+    primary_prov = (active_cfg.get("primary_provider") or "").lower().strip()
+    primary_info = providers.get(primary_prov, {}) if primary_prov else {}
+    primary_model = (active_cfg.get("primary_model") or primary_info.get("selected_model") or "").strip()
+
+    fallback_enabled = bool(active_cfg.get("fallback_enabled", False))
+    fallback_prov = (active_cfg.get("fallback_provider") or "").lower().strip()
+    fallback_info = providers.get(fallback_prov, {}) if fallback_prov else {}
+    fallback_model = (active_cfg.get("fallback_model") or fallback_info.get("selected_model") or "").strip()
+
+    free_tier_only = bool(active_cfg.get("free_tier_only", True))
+
+    def _is_cost_blocked(prov_id: str, model_id: str, p_info: Dict[str, Any]) -> bool:
+        if not free_tier_only or not prov_id or prov_id in ("mock", "ollama", "local"):
+            return False
+        if prov_id == "grok":
+            return os.environ.get("GROK_FREE_CREDITS_CONFIRMED", "false").lower() not in ("true", "1", "yes")
+        if prov_id == "gemini" and model_id:
+            return not is_model_free_tier("gemini", model_id) and not p_info.get("allow_paid_calls", False)
+        return False
+
+    def _is_usable(prov_id: str, p_info: Dict[str, Any], raw_key_fallback: str = "", model_id: str = "") -> bool:
+        if not prov_id:
+            return False
+        if _is_cost_blocked(prov_id, model_id, p_info):
+            return False
+        if prov_id in ("mock", "ollama", "local"):
+            return p_info.get("is_enabled", True) if p_info else True
+        is_enabled = p_info.get("is_enabled", True) if p_info else True
+        has_key = bool(p_info.get("has_key", False) or raw_key_fallback)
+        return bool(is_enabled and has_key)
+
+    if primary_prov == "mock":
+        return {
+            "provider_id": "mock",
+            "provider_display": "Mock AI",
+            "model": "mock",
+            "status": "ACTIVE",
+            "is_ready": True,
+            "is_configured": True,
+            "using_failover": False,
+            "badge_label": "mock (Mock AI)",
+            "fallback_enabled": fallback_enabled,
+            "fallback_provider": fallback_prov,
+            "fallback_model": fallback_model,
+        }
+
+    primary_usable = _is_usable(primary_prov, primary_info, active_cfg.get("primary_api_key", ""), primary_model) and bool(primary_model)
+    fallback_usable = fallback_enabled and _is_usable(fallback_prov, fallback_info, active_cfg.get("fallback_api_key", ""), fallback_model) and bool(fallback_model)
+
+    if primary_prov and primary_model:
+        p_display = primary_info.get("display_name") or active_cfg.get("primary_provider_display") or primary_prov.title()
+        if primary_usable:
+            return {
+                "provider_id": primary_prov,
+                "provider_display": p_display,
+                "model": primary_model,
+                "status": primary_info.get("status") or "ACTIVE",
+                "is_ready": True,
+                "is_configured": True,
+                "using_failover": False,
+                "badge_label": f"{primary_model} ({p_display})",
+                "fallback_enabled": fallback_enabled,
+                "fallback_provider": fallback_prov,
+                "fallback_model": fallback_model,
+            }
+        if fallback_usable:
+            fb_display = fallback_info.get("display_name") or active_cfg.get("fallback_provider_display") or fallback_prov.title()
+            return {
+                "provider_id": fallback_prov,
+                "provider_display": fb_display,
+                "model": fallback_model,
+                "status": fallback_info.get("status") or "ACTIVE",
+                "is_ready": True,
+                "is_configured": True,
+                "using_failover": True,
+                "badge_label": f"{fallback_model} ({fb_display} · Failover)",
+                "primary_provider_id": primary_prov,
+                "primary_model": primary_model,
+                "fallback_enabled": fallback_enabled,
+                "fallback_provider": fallback_prov,
+                "fallback_model": fallback_model,
+            }
+        if _is_cost_blocked(primary_prov, primary_model, primary_info):
+            reason = "Zero-Cost Guard Blocked"
+            status_val = "COST_BLOCKED"
+        elif not primary_info.get("is_enabled", True):
+            reason = "Disabled"
+            status_val = "DISABLED"
+        else:
+            reason = "Needs API Key"
+            status_val = "NEEDS_KEY"
+        return {
+            "provider_id": primary_prov,
+            "provider_display": p_display,
+            "model": primary_model,
+            "status": status_val,
+            "is_ready": False,
+            "is_configured": True,
+            "using_failover": False,
+            "badge_label": f"{primary_model} ({p_display} · {reason})",
+            "fallback_enabled": fallback_enabled,
+            "fallback_provider": fallback_prov,
+            "fallback_model": fallback_model,
+        }
+
+    if fallback_usable:
+        fb_display = fallback_info.get("display_name") or active_cfg.get("fallback_provider_display") or fallback_prov.title()
+        return {
+            "provider_id": fallback_prov,
+            "provider_display": fb_display,
+            "model": fallback_model,
+            "status": fallback_info.get("status") or "ACTIVE",
+            "is_ready": True,
+            "is_configured": True,
+            "using_failover": True,
+            "badge_label": f"{fallback_model} ({fb_display} · Failover)",
+            "fallback_enabled": fallback_enabled,
+            "fallback_provider": fallback_prov,
+            "fallback_model": fallback_model,
+        }
+
+    return {
+        "provider_id": "",
+        "provider_display": "Not Configured",
+        "model": "",
+        "status": "UNCONFIGURED",
+        "is_ready": False,
+        "is_configured": False,
+        "using_failover": False,
+        "badge_label": "No AI Model Configured",
+        "fallback_enabled": fallback_enabled,
+        "fallback_provider": fallback_prov,
+        "fallback_model": fallback_model,
+    }
 
 
 def update_system_settings(data: Dict[str, Any], user=None, ip_address: str = "") -> Tuple[bool, str, int]:
@@ -540,6 +696,21 @@ def update_system_settings(data: Dict[str, Any], user=None, ip_address: str = ""
             if user:
                 settings_obj.updated_by = user
             settings_obj.save()
+
+            # Keep corresponding AIProviderConfig selected_model synchronized with system settings
+            if new_primary_prov and new_primary_model:
+                prim_cfg_sync = AIProviderConfig.objects.filter(provider=new_primary_prov).first()
+                if prim_cfg_sync and prim_cfg_sync.effective_model != new_primary_model:
+                    prim_cfg_sync.selected_model = new_primary_model
+                    prim_cfg_sync.custom_model = ""
+                    prim_cfg_sync.save(update_fields=["selected_model", "custom_model", "updated_at"])
+
+            if new_fallback_enabled and new_fallback_prov and new_fallback_model:
+                fall_cfg_sync = AIProviderConfig.objects.filter(provider=new_fallback_prov).first()
+                if fall_cfg_sync and fall_cfg_sync.effective_model != new_fallback_model:
+                    fall_cfg_sync.selected_model = new_fallback_model
+                    fall_cfg_sync.custom_model = ""
+                    fall_cfg_sync.save(update_fields=["selected_model", "custom_model", "updated_at"])
 
             # Record sanitized audit log
             audit_msg = sanitize_secrets_text(
@@ -623,6 +794,8 @@ def save_provider_config(
                 cfg_obj.is_enabled = bool(data["is_enabled"])
             if "selected_model" in data and data["selected_model"]:
                 cfg_obj.selected_model = str(data["selected_model"]).strip()
+                if "custom_model" not in data:
+                    cfg_obj.custom_model = ""
             if "custom_model" in data:
                 cfg_obj.custom_model = str(data["custom_model"]).strip()
             if "allow_paid_calls" in data:
@@ -637,10 +810,13 @@ def save_provider_config(
                 settings_obj = AISystemSettings.get_solo()
                 if settings_obj.primary_provider == prov_name:
                     settings_obj.primary_provider = ""
+                    settings_obj.primary_model = ""
                     settings_obj.version += 1
                     settings_obj.save()
-                if settings_obj.fallback_provider == prov_name and settings_obj.fallback_enabled:
+                if settings_obj.fallback_provider == prov_name:
                     settings_obj.fallback_enabled = False
+                    settings_obj.fallback_provider = ""
+                    settings_obj.fallback_model = ""
                     settings_obj.version += 1
                     settings_obj.save()
             elif "api_key" in data and str(data["api_key"]).strip():
@@ -662,6 +838,8 @@ def save_provider_config(
                     # If this was previously failover, clear failover
                     if settings_obj.fallback_provider == prov_name:
                         settings_obj.fallback_provider = ""
+                        settings_obj.fallback_model = ""
+                        settings_obj.fallback_enabled = False
                     settings_obj.version += 1
                     settings_obj.save()
 
@@ -675,18 +853,35 @@ def save_provider_config(
                     # If this was previously primary, clear primary
                     if settings_obj.primary_provider == prov_name:
                         settings_obj.primary_provider = ""
+                        settings_obj.primary_model = ""
                     settings_obj.version += 1
                     settings_obj.save()
 
                 elif requested_role == "not_used":
                     if settings_obj.primary_provider == prov_name:
                         settings_obj.primary_provider = ""
+                        settings_obj.primary_model = ""
                         settings_obj.version += 1
                         settings_obj.save()
-                    if settings_obj.fallback_provider == prov_name and settings_obj.fallback_enabled:
+                    if settings_obj.fallback_provider == prov_name:
                         settings_obj.fallback_enabled = False
+                        settings_obj.fallback_provider = ""
+                        settings_obj.fallback_model = ""
                         settings_obj.version += 1
                         settings_obj.save()
+            elif not data.get("clear_api_key") and cfg_obj.effective_model:
+                # If provider is already assigned as Primary or Failover, keep AISystemSettings model in sync
+                settings_obj = AISystemSettings.get_solo()
+                settings_changed = False
+                if settings_obj.primary_provider == prov_name and settings_obj.primary_model != cfg_obj.effective_model:
+                    settings_obj.primary_model = cfg_obj.effective_model
+                    settings_changed = True
+                if settings_obj.fallback_provider == prov_name and settings_obj.fallback_model != cfg_obj.effective_model:
+                    settings_obj.fallback_model = cfg_obj.effective_model
+                    settings_changed = True
+                if settings_changed:
+                    settings_obj.version += 1
+                    settings_obj.save()
 
             # Increment provider version monotonically
             cfg_obj.version += 1

@@ -9,3 +9,4 @@ jobs = try_fetch_workday_json("https://hitachi.wd1.myworkdayjobs.com/en-US/hitac
 print("Total jobs fetched from Workday:", len(jobs))
 for j in jobs[:5]:
     print("Job:", j.get('title'), "| Loc:", j.get('location'), "| URL:", j.get('apply_url'))
+

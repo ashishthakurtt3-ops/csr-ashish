@@ -10,3 +10,4 @@ for a in soup.find_all('a', href=True):
     h = a['href']
     if any(k in t.lower() or k in h.lower() for k in ['job', 'career', 'opening', 'search', 'portal']):
         print(f"Hitachi Link: '{t}' -> '{h}'")
+

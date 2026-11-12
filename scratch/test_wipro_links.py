@@ -11,3 +11,4 @@ for a in soup.find_all('a', href=True):
     if any(k in h.lower() or k in t.lower() for k in ['opportunity', 'search', 'job', 'openings', 'explore', 'find', 'apply']):
         if len(t) < 80:
             print(f"Wipro: '{t}' -> '{h}'")
+

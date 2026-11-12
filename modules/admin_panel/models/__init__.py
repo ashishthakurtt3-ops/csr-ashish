@@ -18,12 +18,14 @@ from .source_registry import CompanySource
 from .ai_config import AIProviderConfig, AISystemSettings, AIConfigurationAuditLog
 from .preview_config import GuestPreviewSettings, PreviewDummyCompany, PreviewDummyJob, PreviewDummyCSRProject
 from .snapshot import AuditRun, StatsSnapshot, JobSummarySnapshot, CompanyMetrics
+from .dropped_candidate import DroppedCandidate
 
 __all__ = [
     'AuditRun',
     'StatsSnapshot',
     'JobSummarySnapshot',
     'CompanyMetrics',
+    'DroppedCandidate',
     'CompanyCompletenessRegister',
     'User',
     'VerifiableModel',

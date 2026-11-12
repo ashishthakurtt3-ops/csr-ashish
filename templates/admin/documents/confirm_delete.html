@@ -1,0 +1,24 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Confirm Delete — {{ doc.title }}{% endblock %}
+{% block page_title %}Confirm Document Deletion{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 560px; margin: 40px auto; padding: 28px; text-align: center;">
+    <div style="width: 54px; height: 54px; border-radius: 50%; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 26px;">
+        ⚠️
+    </div>
+    <h3 style="margin: 0 0 10px 0; font-size: 20px; color: var(--text-primary); font-weight: 700;">Permanently Delete Document?</h3>
+    <p style="margin: 0 0 20px 0; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
+        You are about to delete <strong>"{{ doc.title }}"</strong> ({{ doc.get_document_type_display }}).
+        This will erase the uploaded file and remove it from all audit trails and company associations.
+    </p>
+
+    <form method="POST" action="{% url 'admin_documents:delete' doc.document_id %}" style="display: flex; justify-content: center; gap: 14px;">
+        {% csrf_token %}
+        <a href="{% url 'admin_documents:list' %}" class="btn-admin btn-admin-secondary" style="padding: 10px 20px;">Cancel</a>
+        <button type="submit" class="btn-admin btn-admin-danger" style="padding: 10px 20px;">Yes, Delete Permanently</button>
+    </form>
+</div>
+{% endblock %}
+

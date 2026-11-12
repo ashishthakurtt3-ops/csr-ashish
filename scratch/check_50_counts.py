@@ -34,3 +34,4 @@ for c in companies:
 print("-" * 60)
 print(f"Total companies with 0 jobs: {len(zero_jobs)}")
 print(f"Total companies with 0 CSR: {len(zero_csr)}")
+

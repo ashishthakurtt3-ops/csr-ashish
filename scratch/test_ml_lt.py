@@ -6,3 +6,4 @@ for name, url in [('Mahindra', 'https://www.mahindra.com/careers'), ('L&T', 'htt
         print(f"[{r.status_code}] {name}: {url}")
     except Exception as e:
         print(f"[ERR] {name}: {e}")
+

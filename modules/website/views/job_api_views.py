@@ -710,6 +710,19 @@ def jobs_summary_api(request):
 
 
 def job_detail_api(request, job_id):
+    from modules.admin_panel.models import PreviewDummyJob
+    is_dummy = str(job_id).startswith('DUMMY_') or str(job_id).startswith('dummy_')
+    dummy_j = None
+    if is_dummy:
+        dummy_j = PreviewDummyJob.objects.filter(job_row_id=job_id).first()
+    if not dummy_j and PreviewDummyJob.objects.filter(job_row_id=job_id).exists():
+        dummy_j = PreviewDummyJob.objects.filter(job_row_id=job_id).first()
+        is_dummy = True
+    if is_dummy:
+        if not dummy_j:
+            dummy_j = PreviewDummyJob.objects.first()
+        if dummy_j:
+            return JsonResponse(dummy_j.as_preview_dict())
     if not request.user.is_authenticated:
         return JsonResponse({
             'error': 'Authentication required. Please sign in or register for a free account to view complete job descriptions and application links.',

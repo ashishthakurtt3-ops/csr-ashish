@@ -28,6 +28,7 @@ from modules.admin_panel.services.preview_dummy_service import (
     get_dummy_preview_summary,
     parse_and_import_dummy_file,
     build_sample_excel_template,
+    build_sample_unified_csv,
     DEFAULT_DUMMY_COMPANIES,
     DEFAULT_DUMMY_JOBS,
     DEFAULT_DUMMY_CSR
@@ -211,8 +212,11 @@ def preview_download_template_view(request):
         filename = "dummy_preview_csr_template.csv"
 
     else:
-        # Default all in one CSV is not ideal, redirect to xlsx
-        return redirect('admin_preview_settings:download_template?format=xlsx')
+        # Unified 5-Companies All-in-One Master CSV
+        csv_data = build_sample_unified_csv()
+        response = HttpResponse(csv_data, content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="dummy_preview_5_companies.csv"'
+        return response
 
     response = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'

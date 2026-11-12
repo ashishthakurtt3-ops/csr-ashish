@@ -644,11 +644,11 @@ def detect_repeating_dom_job_cards(soup: BeautifulSoup, page_url: str) -> List[D
                 if is_static_asset_url(apply_url):
                     continue
                 if not apply_url or apply_url.startswith(("javascript:", "mailto:", "tel:", "#")):
-                    continue
+                    apply_url = ""
 
-                # Ensure apply_url looks like a job posting rather than a generic top-level service
-                p_app = urlparse(apply_url)
-                if p_app.path.strip("/") in ("", "careers", "career", "home"):
+                # Ensure apply_url looks like a real job posting rather than a root home or landing page
+                p_app = urlparse(apply_url) if apply_url else None
+                if not apply_url or (p_app and p_app.path.strip("/").lower() in ("", "home", "careers", "career", "jobs", "job")):
                     continue
 
                 card_text = card.get_text(" ", strip=True).lower()

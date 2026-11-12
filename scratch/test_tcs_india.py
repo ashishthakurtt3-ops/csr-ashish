@@ -17,3 +17,4 @@ for a in soup.find_all('a', href=True):
 print(f"Total relevant links found: {len(links)}")
 for txt, href in links[:20]:
     print(f"  {txt} -> {href}")
+

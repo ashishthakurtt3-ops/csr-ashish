@@ -73,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'modules.admin_panel.middleware.AdminRoleMiddleware',
+    'modules.website.middleware.StrictSubscriptionEnforcementMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -201,7 +202,7 @@ if (BASE_DIR / 'static_admin').exists():
     STATICFILES_DIRS.append(BASE_DIR / 'static_admin')
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_VERSION = '4.0.3'
+STATIC_VERSION = '4.3.0'
 
 # Media / Uploaded files
 MEDIA_URL = '/media/'

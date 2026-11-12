@@ -9,3 +9,4 @@ for a in soup.find_all('a', href=True):
     t = a.get_text(' ', strip=True)
     if any(k in h.lower() or k in t.lower() for k in ['job', 'apply', 'openings', 'explore', 'search', 'view', 'opportunities']):
         print(f"  Link: '{t}' -> '{h}'")
+

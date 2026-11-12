@@ -1,0 +1,121 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Edit Document — {{ doc.title }}{% endblock %}
+{% block page_title %}Edit Compliance &amp; Proposal Document{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 820px; margin: 0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border-color);">
+        <div>
+            <h3 style="margin:0 0 4px 0; font-size:18px; color:var(--text-primary); font-weight:700;">Edit Document Information</h3>
+            <p style="margin:0; font-size:13px; color:var(--text-secondary);">Update metadata, corporate association, audit status, or replace the attached filing.</p>
+        </div>
+        <a href="{% url 'admin_documents:list' %}" class="btn-admin btn-admin-secondary" style="padding:6px 14px; font-size:12px;">&larr; Back to Repository</a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
+        {% csrf_token %}
+
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Document Title *</label>
+            <input type="text" name="title" required value="{{ doc.title }}" placeholder="e.g. FY2025 CSR Annual Compliance Audit Report" style="width:100%; box-sizing:border-box; height:42px; padding:0 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Document Type *</label>
+                <select name="document_type" required style="width:100%; box-sizing:border-box; height:42px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+                    {% for t_code, t_label in doc_types %}
+                    <option value="{{ t_code }}" {% if doc.document_type == t_code %}selected{% endif %}>{{ t_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Associated Corporate Partner</label>
+                <select name="company_id" style="width:100%; box-sizing:border-box; height:42px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+                    <option value="">None / General Documentation</option>
+                    {% for comp in companies %}
+                    <option value="{{ comp.company_id }}" {% if doc.company_id == comp.company_id %}selected{% endif %}>{{ comp.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Audit Verification Status *</label>
+                <select name="status" required style="width:100%; box-sizing:border-box; height:42px; padding:0 12px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:14px;">
+                    {% for s_code, s_label in status_choices %}
+                    <option value="{{ s_code }}" {% if doc.status == s_code %}selected{% endif %}>{{ s_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Current Attached File</label>
+                <div style="height:42px; display:flex; align-items:center; gap:10px; padding:0 12px; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:10px; font-size:13px;">
+                    {% if doc.file %}
+                    <a href="{{ doc.file.url }}" target="_blank" style="color:var(--primary-brand); font-weight:600; text-decoration:none; display:flex; align-items:center; gap:6px;">
+                        <span>📎</span> <span>Download File</span> ({{ doc.file_format|upper }}, {{ doc.file_size|filesizeformat }})
+                    </a>
+                    {% else %}
+                    <span style="color:var(--text-secondary);">No physical file attached</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Replace File (Optional)</label>
+            <input type="file" name="file" style="width:100%; box-sizing:border-box; padding:10px 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:13.5px;">
+            <p style="margin:4px 0 0 0; font-size:11.5px; color:var(--text-secondary);">Leave blank to keep the current file attached.</p>
+        </div>
+
+        <div>
+            <label style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Administrative Notes</label>
+            <textarea name="notes" rows="3" placeholder="Context, purpose of update, audit findings, or specific instructions..." style="width:100%; box-sizing:border-box; padding:10px 14px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:10px; color:var(--text-primary); font-size:13.5px; font-family:inherit;">{{ doc.notes|default_if_none:'' }}</textarea>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px solid var(--border-color); padding-top:18px;">
+            <button type="button" onclick="confirmDeleteModal()" class="btn-admin btn-admin-danger" style="display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Delete Document</span>
+            </button>
+
+            <div style="display:flex; gap:12px;">
+                <a href="{% url 'admin_documents:list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+                <button type="submit" class="btn-admin btn-admin-primary">Save Changes</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal for Delete Confirmation -->
+<div id="deleteModal" style="display:none; position:fixed; inset:0; background:rgba(11,31,51,0.6); backdrop-filter:blur(3px); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:14px; width:100%; max-width:440px; padding:24px; box-shadow:var(--shadow-modal);">
+        <h4 style="margin:0 0 10px 0; font-size:16px; color:#DC2626; font-weight:700; display:flex; align-items:center; gap:8px;">
+            <span>⚠️</span> <span>Delete Document</span>
+        </h4>
+        <p style="margin:0 0 18px 0; font-size:13px; color:var(--text-secondary); line-height:1.5;">
+            Are you sure you want to permanently delete <strong>"{{ doc.title }}"</strong>?
+            This will remove the file from storage and remove the record from the repository. This action cannot be undone.
+        </p>
+        <form method="POST" action="{% url 'admin_documents:delete' doc.document_id %}" style="display:flex; justify-content:flex-end; gap:10px;">
+            {% csrf_token %}
+            <button type="button" onclick="closeDeleteModal()" class="btn-admin btn-admin-secondary">Cancel</button>
+            <button type="submit" class="btn-admin btn-admin-danger">Yes, Delete Permanently</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function confirmDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) modal.style.display = 'flex';
+}
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) modal.style.display = 'none';
+}
+</script>
+{% endblock %}
+

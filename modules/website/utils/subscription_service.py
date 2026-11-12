@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone as dtz
 
 from modules.admin_panel.models import (
@@ -160,13 +161,13 @@ def _plan_model_to_dict(plan: Plan) -> Dict[str, Any]:
         'code': plan.code,
         'name': plan.name,
         'slug': plan.slug,
-        'badge': plan.badge or ('Free Forever' if monthly_paise == 0 else ''),
+        'badge': plan.badge or ('14-Day Free Trial' if monthly_paise == 0 else ''),
         'description': plan.description or '',
-        'cta_text': getattr(plan, 'button_text', None) or plan.cta_text or ('Start Free' if monthly_paise == 0 else f'Switch to {plan.name}'),
-        'button_text': getattr(plan, 'button_text', None) or ('Start Free' if monthly_paise == 0 else 'Change Plan'),
+        'cta_text': getattr(plan, 'button_text', None) or plan.cta_text or ('Start 14-Day Free Trial' if monthly_paise == 0 else f'Switch to {plan.name}'),
+        'button_text': getattr(plan, 'button_text', None) or ('Start 14-Day Free Trial' if monthly_paise == 0 else 'Change Plan'),
         'button_visible': bool(getattr(plan, 'button_visible', True)),
         'button_order': int(getattr(plan, 'button_order', 1) or 1),
-        'billing_note': plan.billing_note or ('No credit card required' if monthly_paise == 0 else 'Billed monthly or annually (+18% GST)'),
+        'billing_note': plan.billing_note or ('14-Day Free Trial • No credit card required' if monthly_paise == 0 else 'Billed monthly or annually (+18% GST)'),
         'is_recommended': bool(getattr(plan, 'is_recommended', False)),
         'discount_percent': int(getattr(plan, 'discount_percent', 0) or 0),
         'savings_text': getattr(plan, 'savings_text', None) or (f'Save {format_inr(savings_paise)}' if savings_paise else ''),
@@ -416,17 +417,9 @@ def evaluate_promo(code: Optional[str], plan_id: str, base_paise: int) -> Dict[s
 # ── User and Tenant Resolution ───────────────────────────────────────────────
 def resolve_user_and_tenant(user=None, tenant_id: Optional[str] = None) -> Tuple[Optional[User], str]:
     if user and getattr(user, 'is_authenticated', False):
-        existing_sub = Subscription.objects.filter(user=user).first()
+        existing_sub = Subscription.objects.filter(user=user).order_by('-created_at').first()
         if existing_sub:
             return user, existing_sub.tenant_id
-        # Fallback to check if a subscription exists for username or default if admin
-        if user.is_superuser or user.role == 'ADMIN':
-            default_sub = Subscription.objects.filter(tenant_id=DEFAULT_TENANT_ID).first()
-            if default_sub:
-                if not default_sub.user:
-                    default_sub.user = user
-                    default_sub.save(update_fields=['user'])
-                return user, DEFAULT_TENANT_ID
         return user, f"user_{user.id}"
     tenant = normalise_tenant(tenant_id)
     return None, tenant
@@ -673,11 +666,6 @@ def _sub_to_dict(s: Subscription) -> Dict[str, Any]:
 
 
 def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] = None) -> Dict[str, Any]:
-    starter = get_plan('starter') or {
-        'id': 'starter', 'name': 'Community Starter', 'badge': 'Free Forever',
-        'is_free': True, 'features': [], 'highlight_features': [],
-        'limits': {'seats': 1, 'daily_matches': 5, 'api_access': False, 'live_reprobe': False, 'view_contacts': False, 'audit_packs': False}
-    }
     org_name = user.organization_name if user and user.organization_name else 'Unregistered Organisation'
     email = user.email if user and user.email else None
     ts = datetime.now(timezone.utc).isoformat()
@@ -685,10 +673,10 @@ def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] 
         'subscription_id': f'SUB_NONE_{tenant_id}'.upper()[:48],
         'tenant_id': tenant_id,
         'user_id': user.id if user else None,
-        'plan_id': 'starter',
-        'plan_code': 'starter',
-        'plan_name': starter['name'],
-        'tier': 'starter',
+        'plan_id': None,
+        'plan_code': None,
+        'plan_name': 'No Active Plan',
+        'tier': None,
         'status': 'NONE',
         'billing_cycle': 'none',
         'organization_name': org_name,
@@ -702,17 +690,19 @@ def empty_subscription(tenant_id: str = DEFAULT_TENANT_ID, user: Optional[User] 
         'cgst_paise': 0, 'sgst_paise': 0, 'igst_paise': 0, 'total_paise': 0,
         'currency': CURRENCY, 'payment_method': None, 'transaction_id': None,
         'gstin': None, 'place_of_supply': SUPPLIER_STATE_CODE, 'supply_type': 'INTRA_STATE',
-        'seats': starter['limits'].get('seats') or 1,
-        'daily_match_quota': starter['limits'].get('daily_matches'),
+        'seats': 1,
+        'daily_match_quota': 0,
         'api_key_hash': None, 'api_key_prefix': None, 'api_key_last4': None,
         'request_id': None, 'created_at': ts, 'updated_at': ts,
+        'is_active': False,
+        'is_free': False,
     }
 
 
 def _refresh_status(row: Dict[str, Any]) -> Dict[str, Any]:
     """Auto-expire or apply scheduled downgrade if billing period lapsed."""
     pid = str(row.get('plan_id') or '').lower()
-    if pid in ('starter', 'free') or not row.get('current_period_end'):
+    if not row.get('current_period_end'):
         return row
     end = _parse_iso(row.get('current_period_end'))
     if not end or datetime.now(timezone.utc) < end:
@@ -748,17 +738,17 @@ def _refresh_status(row: Dict[str, Any]) -> Dict[str, Any]:
         updated['pending_downgrade_plan'] = None
         return updated
 
-    if not auto_renew and row.get('status') != _STATUS_EXPIRED:
+    if (not auto_renew or row.get('status') == _STATUS_TRIALING or pid in ('starter', 'free')) and row.get('status') != _STATUS_EXPIRED:
         Subscription.objects.filter(tenant_id=tenant).update(
             status=_STATUS_EXPIRED, updated_at=_now()
         )
         SubscriptionEvent.objects.create(
             subscription_id=row['subscription_id'],
             tenant_id=tenant,
-            event_type='SUBSCRIPTION_EXPIRED',
-            from_plan=row.get('plan_id'), to_plan='starter',
+            event_type='TRIAL_EXPIRED' if row.get('status') == _STATUS_TRIALING else 'SUBSCRIPTION_EXPIRED',
+            from_plan=row.get('plan_id'), to_plan=row.get('plan_id'),
             amount_paise=0,
-            notes=f"Billing period ended on {row.get('current_period_end')}.",
+            notes=f"14-Day Free Trial / Billing period ended on {row.get('current_period_end')}.",
             actor='System', created_at=_now(),
         )
         expired = dict(row)
@@ -774,13 +764,16 @@ def _load(tenant_id: str, user: Optional[User] = None) -> Dict[str, Any]:
         s = qs.filter(user=user).order_by('-created_at').first()
         if s:
             return _refresh_status(_sub_to_dict(s))
-    s = qs.filter(tenant_id=tenant_id).order_by('-created_at').first()
-    if s:
-        if user and not s.user:
-            s.user = user
-            s.save(update_fields=['user'])
-        return _refresh_status(_sub_to_dict(s))
-    return empty_subscription(tenant_id, user)
+        # Only check tenant_id if it matches user's specific tenant or has no other user
+        if tenant_id and tenant_id != DEFAULT_TENANT_ID:
+            s = qs.filter(tenant_id=tenant_id).order_by('-created_at').first()
+            if s and (not s.user or s.user == user):
+                if not s.user:
+                    s.user = user
+                    s.save(update_fields=['user'])
+                return _refresh_status(_sub_to_dict(s))
+        return empty_subscription(tenant_id, user)
+    return empty_subscription(tenant_id, None)
 
 
 def _entitlement(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -794,8 +787,30 @@ def effective_plan_id(row: Dict[str, Any]) -> str:
 
 
 def serialize(row: Dict[str, Any]) -> Dict[str, Any]:
-    plan = get_plan(row.get('plan_id')) or get_plan('starter')
+    has_sub = row.get('status') in (_STATUS_ACTIVE, _STATUS_TRIALING) and row.get('plan_id')
     out = dict(row)
+    if not has_sub:
+        out['plan_id'] = None
+        out['plan_code'] = None
+        out['plan_name'] = 'No Active Plan'
+        out['tier'] = None
+        out['is_active'] = False
+        out['is_free'] = False
+        out['status'] = row.get('status') or 'NONE'
+        out['limits'] = {'seats': 1, 'daily_matches': 0, 'api_access': False, 'live_reprobe': False, 'view_contacts': False, 'audit_packs': False}
+        out['features'] = []
+        out['highlight_features'] = []
+        out['plan_badge'] = None
+        out['currency_symbol'] = '₹'
+        out['cancel_at_period_end'] = 0
+        out['auto_renew'] = False
+        out['total_amount'] = 0
+        out['has_api_key'] = False
+        out['days_remaining'] = None
+        out['renews_on'] = None
+        return out
+
+    plan = get_plan(row.get('plan_id')) or get_plan('starter')
     out['plan_name'] = plan['name']
     out['tier'] = plan['id']
     out['plan_badge'] = plan['badge']
@@ -813,7 +828,11 @@ def serialize(row: Dict[str, Any]) -> Dict[str, Any]:
     end = _parse_iso(row.get('current_period_end'))
     now_dt = datetime.now(timezone.utc)
     out['days_remaining'] = max(0, (end - now_dt).days) if end else None
-    out['is_active'] = row.get('status') in (_STATUS_ACTIVE, _STATUS_TRIALING)
+    if (row.get('status') == _STATUS_TRIALING or str(row.get('plan_id') or '').lower() in ('starter', 'free')) and end and now_dt >= end:
+        out['is_active'] = False
+        out['status'] = _STATUS_EXPIRED
+    else:
+        out['is_active'] = row.get('status') in (_STATUS_ACTIVE, _STATUS_TRIALING)
     out['renews_on'] = row.get('current_period_end')
     return out
 
@@ -1200,15 +1219,44 @@ def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: 
     promo = evaluate_promo(promo_code, plan['id'], base_price_paise(plan, cycle))
     bd = _breakdown(plan, cycle, promo, state_code, credit)
 
+    plan_trial_days = int(plan.get('trial_days') or 0)
     if want_trial:
+        if plan_trial_days <= 0:
+            raise SubscriptionError(
+                f"Free trial is not available for the {plan['name']} plan. Only the FREE evaluation plan includes a trial period.",
+                400, 'trial_not_available'
+            )
         period_start_dt = now_dt
-        period_end_dt = now_dt + timedelta(days=plan.get('trial_days', TRIAL_DAYS) or TRIAL_DAYS)
+        period_end_dt = now_dt + timedelta(days=plan_trial_days)
         status = _STATUS_TRIALING
         charged_paise = 0
     elif plan['is_free']:
+        # Free plan is strictly a 14-Day Free Trial
+        past_trial = Subscription.objects.filter(
+            Q(user=user_obj) | Q(tenant_id=resolved_tenant),
+            plan_id__in=['free', 'starter']
+        ).first()
+        if past_trial:
+            p_end = _parse_iso(past_trial.current_period_end)
+            if past_trial.status == _STATUS_EXPIRED or (p_end and now_dt >= p_end):
+                if past_trial.status != _STATUS_EXPIRED:
+                    past_trial.status = _STATUS_EXPIRED
+                    past_trial.save(update_fields=['status'])
+                raise SubscriptionError(
+                    'Your 14-day free trial has expired. Please select a subscription plan (Pro or Ultra) to unlock full access.',
+                    400, 'trial_already_expired'
+                )
+            if past_trial.status == _STATUS_TRIALING:
+                days_left = max(0, (p_end - now_dt).days) if p_end else 14
+                raise SubscriptionError(
+                    f'You are currently on an active 14-Day Free Trial ({days_left} days remaining).',
+                    400, 'trial_already_active'
+                )
+
+        trial_days = plan.get('trial_days', 14) or 14
         period_start_dt = now_dt
-        period_end_dt = None
-        status = _STATUS_ACTIVE
+        period_end_dt = now_dt + timedelta(days=trial_days)
+        status = _STATUS_TRIALING
         charged_paise = 0
     else:
         period_start_dt = now_dt
@@ -1360,7 +1408,7 @@ def checkout(payload: Dict[str, Any], tenant_id: str = DEFAULT_TENANT_ID, user: 
                 'cancel_at_period_end': False,
                 'canceled_at': None,
                 'cancel_reason': None,
-                'auto_renew': bool(plan.get('auto_renew_default', True)),
+                'auto_renew': False if plan.get('is_free') else bool(plan.get('auto_renew_default', True)),
                 'pending_downgrade_plan': None,
                 'pending_downgrade_cycle': None,
                 'pending_downgrade_date': None,

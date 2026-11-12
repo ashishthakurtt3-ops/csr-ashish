@@ -35,3 +35,4 @@ def fetch_rendered_page(url: str, timeout: int = 15):
 
 c, t, s = fetch_rendered_page("https://careers.tatamotors.com/viewalljobs/")
 print("Status:", s, "Text len:", len(t))
+
