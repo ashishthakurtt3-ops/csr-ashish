@@ -15,13 +15,17 @@ import io
 import json
 import hashlib
 import logging
+import time
 import urllib.request
 import urllib.error
 import urllib.parse
 import asyncio
+import concurrent.futures as _cf
+import html as _html
+import threading
 from typing import List, Dict, Any, Tuple
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, close_old_connections
 from django.core.cache import cache
 
 try:
@@ -41,7 +45,7 @@ except ImportError:
 
 from bs4 import BeautifulSoup
 
-from modules.admin_panel.models import Company, Job, CSRProject, AuditTrail, DroppedCandidate
+from modules.admin_panel.models import Company, Job, CSRProject, CSRReport, AuditTrail, DroppedCandidate
 from modules.crawler_engine.hybrid_ai_service import HybridAIExtractionService
 from modules.admin_panel.services.ai_config_service import get_active_ai_config, resolve_active_ai_summary
 from modules.crawler_engine.crawler import (
@@ -66,6 +70,77 @@ from modules.crawler_engine.discovery_helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Media / editorial URLs are never statutory reports, even when their path
+# contains words like "esg" or "disclosure" (e.g. /video/esg-risks-disclosure).
+_NON_REPORT_MEDIA_EXTENSIONS = (
+    '.mp4', '.mov', '.avi', '.webm', '.mkv', '.mp3', '.wav', '.m4a',
+    '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.zip', '.rar',
+)
+_NON_REPORT_PATH_RE = re.compile(
+    r'/(video|videos|watch|webinar|webinars|podcast|podcasts|gallery|events?|'
+    r'news|newsroom|press|press-release|press-releases|press-report|'
+    r'media[-_]?cent(re|er)|blog|stories|story|insights|'
+    r'case-stud(y|ies))/',
+    re.IGNORECASE,
+)
+_STRONG_REPORT_RE = re.compile(
+    r'(brsr|annual[-_ ]?report|integrated[-_ ]?report|sustainability[-_ ]?report|'
+    r'esg[-_ ]?report|csr[-_ ]?report|section[-_ ]?135|business[-_ ]?responsibility[-_ ]?report)',
+    re.IGNORECASE,
+)
+
+
+def _is_non_report_media_url(url: str) -> bool:
+    """True for video/audio/image/editorial URLs that must never be treated as reports."""
+    try:
+        path = urllib.parse.urlparse(url or '').path.lower()
+    except Exception:
+        path = (url or '').lower()
+    if path.endswith(_NON_REPORT_MEDIA_EXTENSIONS):
+        return True
+    return bool(_NON_REPORT_PATH_RE.search(path))
+
+
+def _is_marketing_service_url(url: str) -> bool:
+    """True for service/solution/product marketing pages, which are not CSR portals."""
+    try:
+        path = urllib.parse.urlparse(url or '').path.lower()
+    except Exception:
+        path = (url or '').lower()
+    return bool(re.search(
+        r'/(services?|solutions?|products?|industries|offerings|capabilities|case-stud(y|ies))(/|$)',
+        path,
+    ))
+
+
+def _is_report_document_url(url: str, title: str = '') -> bool:
+    """Strict report-document test: strong report wording, or a PDF with report context."""
+    low_url = (url or '').lower()
+    combined = f"{title or ''} {low_url}"
+    if _is_non_report_media_url(low_url):
+        return False
+    path = urllib.parse.urlparse(low_url).path
+    is_pdf = path.endswith('.pdf')
+    if _STRONG_REPORT_RE.search(combined):
+        return True
+    if is_pdf and any(k in combined for k in ('csr', 'esg', 'sustain', 'annual', 'brsr', 'report', '135', 'disclosure')):
+        return True
+    return False
+
+
+def _humanize_report_title(url: str) -> str:
+    """Builds a readable fallback title from a URL slug instead of showing raw slugs."""
+    try:
+        name = urllib.parse.unquote((url or '').rstrip('/').rsplit('/', 1)[-1])
+    except Exception:
+        name = (url or '').rstrip('/').rsplit('/', 1)[-1]
+    name = re.sub(r'\.(pdf|html?|aspx?)$', '', name, flags=re.IGNORECASE)
+    name = re.sub(r'[-_]+', ' ', name).strip()
+    if not name:
+        return 'Corporate CSR / Sustainability Report'
+    return name[0].upper() + name[1:]
+
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 BROWSER_HEADERS = {
@@ -892,8 +967,22 @@ class BatchDiscoveryService:
             try:
                 resp = cffi_requests.get(url, impersonate="chrome124", timeout=timeout, headers=BROWSER_HEADERS)
                 status = resp.status_code
-                if status == 200 and resp.text:
-                    raw_html = resp.text
+                if status == 200 and resp.content:
+                    # Decode explicitly.  Relying on the library's locale-derived
+                    # default can mangle UTF-8 quotes/trademarks (e.g. cp437), which
+                    # then leaks into AI summaries and stored evidence text.
+                    declared = (resp.encoding or '').strip().lower()
+                    raw_bytes = resp.content
+                    if declared and declared not in ('iso-8859-1', 'latin-1'):
+                        try:
+                            raw_html = raw_bytes.decode(declared, errors='replace')
+                        except LookupError:
+                            raw_html = raw_bytes.decode('utf-8', errors='replace')
+                    else:
+                        try:
+                            raw_html = raw_bytes.decode('utf-8')
+                        except UnicodeDecodeError:
+                            raw_html = raw_bytes.decode('cp1252', errors='replace')
             except Exception as e:
                 logger.debug(f"curl_cffi fetch for {url} encountered: {e}")
 
@@ -1230,11 +1319,12 @@ class BatchDiscoveryService:
                 continue
             if any(bad in full_url.lower() for bad in [
                 'login', 'auth', 'privacy', 'terms', 'facebook', 'twitter', 'linkedin', 'instagram', 'youtube',
-                'safelinks.protection.outlook', 'introduceyourself', 'equal-opportunit', 'eeo', 'diversity', 'inclusion', 'veteran'
+                'safelinks.protection.outlook', 'introduceyourself', 'equal-opportunit', 'eeo', 'diversity', 'inclusion', 'veteran',
+                'smileshrms', 'hrms', 'employee-login', 'staff-login'
             ]):
                 continue
             h_lower = href.lower()
-            if any(ats in h_lower for ats in ['turbohire', 'myworkdayjobs', 'successfactors', 'taleo', 'icims', 'lever.co', 'greenhouse.io', 'darwinbox', 'smartrecruiters', 'dashboardv2', 'careerpage']):
+            if any(ats in h_lower for ats in ['zwayam', 'jobs.happiestminds.com', 'turbohire', 'myworkdayjobs', 'successfactors', 'taleo', 'icims', 'lever.co', 'greenhouse.io', 'darwinbox', 'smartrecruiters', 'dashboardv2', 'careerpage']):
                 return full_url
 
         # Priority 2: Standard deep job opening paths and action phrases
@@ -1447,13 +1537,100 @@ class BatchDiscoveryService:
         return []
 
     @classmethod
+    def _extract_grounded_csr_projects_from_text(cls, company: Company, text: str, source_url: str) -> List[Dict[str, Any]]:
+        """
+        Deterministic parser for statutory Section 135 & Schedule VII initiatives from PDF / page text.
+        Extracts genuine documented community programs with verbatim evidence sentences.
+        """
+        if not text or len(text) < 100:
+            return []
+
+        # Conservative, evidence-grounded deterministic extraction.
+        # Only explicit "Program name: description" definitions found verbatim in
+        # the source text are accepted.  The old keyword→template mapping was
+        # removed because it manufactured projects that the company never named.
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        results: List[Dict[str, Any]] = []
+        seen = set()
+        csr_signal = (
+            'education', 'school', 'health', 'hospital', 'water', 'sanitation', 'skill',
+            'livelihood', 'women', 'child', 'rural', 'environment', 'plantation', 'forest',
+            'community', 'beneficiar', 'village', 'farmer', 'disabilit', 'nutrition',
+            'scholarship', 'welfare', 'conservation', 'renewable', 'energy', 'waste',
+        )
+        topic_map = (
+            ('education', 'Education & Skill Development'),
+            ('school', 'Education & Skill Development'),
+            ('scholarship', 'Education & Skill Development'),
+            ('skill', 'Education & Skill Development'),
+            ('health', 'Healthcare & Nutrition'),
+            ('hospital', 'Healthcare & Nutrition'),
+            ('nutrition', 'Healthcare & Nutrition'),
+            ('water', 'Water & Sanitation'),
+            ('sanitation', 'Water & Sanitation'),
+            ('environment', 'Environment & Sustainability'),
+            ('plantation', 'Environment & Sustainability'),
+            ('forest', 'Environment & Sustainability'),
+            ('conservation', 'Environment & Sustainability'),
+            ('renewable', 'Environment & Sustainability'),
+            ('energy', 'Environment & Sustainability'),
+            ('women', 'Women Empowerment'),
+            ('rural', 'Rural Development'),
+            ('village', 'Rural Development'),
+            ('farmer', 'Rural Development'),
+            ('disaster', 'Disaster Relief'),
+        )
+        for s in sentences:
+            s_clean = re.sub(r'\s+', ' ', s).strip()
+            if len(s_clean) < 40 or len(s_clean) > 600:
+                continue
+            m = re.match(
+                r"^(?P<name>[A-Z][A-Za-z0-9&()'’\-– ]{3,80}?)\s*[:–—]\s*(?P<desc>.{30,})$",
+                s_clean,
+            )
+            if not m:
+                continue
+            name = m.group('name').strip()
+            desc = m.group('desc').strip()
+            if name.lower() in seen or not is_valid_csr_project(name):
+                continue
+            low_desc = desc.lower()
+            if not any(k in low_desc for k in csr_signal):
+                continue
+            category = 'Corporate Social Responsibility'
+            for keyword, label in topic_map:
+                if keyword in low_desc:
+                    category = label
+                    break
+            money = re.search(r'(?:₹|rs\.?|inr)\s*[\d,.]+(?:\s*(?:crore|lakh|million|billion))?', desc, re.IGNORECASE)
+            seen.add(name.lower())
+            results.append({
+                'project_name': name,
+                'category': category,
+                'state': '',
+                'district': '',
+                'budget': money.group(0) if money else '',
+                'description': desc[:800],
+                'verbatim_quote': s_clean[:600],
+                'source_url': source_url,
+                'confidence': 0.75,
+            })
+
+        return results
+
+    @classmethod
     def extract_csr_via_intelligence(cls, company: Company, csr_url: str, sector: str, logs: List[str]) -> List[Dict[str, Any]]:
         """
         Grounded Section 135 extraction:
         Inspects statutory Section 135 annual report and disclosure PDFs, extracting genuine initiatives.
         NEVER synthesizes templated project names.
+        Aggregates multiple initiatives across disclosures.
         """
         logs.append(f"⚡ Inspecting statutory Section 135 PDF filings & disclosure reports...")
+        all_collected_projs: List[Dict[str, Any]] = []
+        seen_names: set = set()
+        pdf_texts: List[Tuple[str, str]] = []
+
         try:
             c_html, c_text, _ = cls.fetch_page_content(csr_url)
             pdf_links = []
@@ -1461,33 +1638,95 @@ class BatchDiscoveryService:
                 pdf_links.append(csr_url)
             elif c_html:
                 soup = BeautifulSoup(c_html, 'html.parser')
+                company_domain = company.official_domain or get_registrable_domain(csr_url)
                 for a in soup.find_all('a', href=True):
                     h = a['href'].strip()
                     txt = a.get_text(' ', strip=True).lower()
-                    if h.lower().endswith('.pdf') and any(k in h.lower() or k in txt for k in ['csr', 'sustainability', 'annual-report', 'report', 'schedule-vii', 'section-135']):
-                        full_pdf = urllib.parse.urljoin(csr_url, h)
-                        if full_pdf not in pdf_links:
-                            pdf_links.append(full_pdf)
+                    low_h = h.lower()
+                    if not low_h.endswith('.pdf'):
+                        continue
+                    combined = f"{low_h} {txt}"
+                    # Only statutory CSR / BRSR / sustainability / annual report
+                    # documents qualify.  Talent, recruitment, service-brochure and
+                    # case-study PDFs are not CSR disclosures even if they mention
+                    # a social initiative in passing.
+                    if not any(k in combined for k in (
+                        'csr', 'brsr', 'section-135', 'section 135', 'schedule-vii',
+                        'schedule vii', 'annual-report', 'annual report',
+                        'sustainability-report', 'sustainability report', 'esg-report',
+                    )):
+                        continue
+                    if any(bad in combined for bad in (
+                        'talent', 'pulse', 'recruit', 'career', 'brochure', 'case-stud',
+                        'services/', 'service-', 'capability', 'newsletter',
+                    )):
+                        continue
+                    full_pdf = urllib.parse.urljoin(csr_url, h)
+                    if not is_allowed_domain_or_ats(full_pdf, company_domain):
+                        continue
+                    if full_pdf not in pdf_links:
+                        pdf_links.append(full_pdf)
 
-            for pdf_url in pdf_links[:3]:
+            # Prioritize the most recent 2 ESG / Section 135 PDF reports to balance depth & speed
+            for pdf_url in pdf_links[:2]:
                 logs.append(f"Parsing statutory CSR disclosure PDF: {pdf_url[:70]}...")
-                pdf_text = cls.extract_pdf_text_from_url(pdf_url, max_pages=8)
+                pdf_text = cls.extract_pdf_text_from_url(pdf_url, max_pages=15)
                 if pdf_text and len(pdf_text) > 200:
-                    ai_projs = HybridAIExtractionService.extract_unstructured_csr_projects(
-                        company_id=company.company_id,
-                        company_name=company.company_name,
-                        raw_content=pdf_text,
-                        csr_url=pdf_url,
-                        timeout=18
-                    )
-                    if ai_projs and isinstance(ai_projs, list):
-                        valid_p = [p for p in ai_projs if isinstance(p, dict) and is_valid_csr_project(p.get('project_name'))]
-                        if valid_p:
-                            for p in valid_p:
-                                p['source_url'] = pdf_url
-                                p['raw_pdf_text'] = pdf_text
-                            logs.append(f"✓ Extracted {len(valid_p)} verified Section 135 initiatives directly from official PDF disclosure")
-                            return valid_p
+                    # The document itself must discuss CSR / Section 135 / BRSR.
+                    # A generic sustainability-services brochure does not qualify.
+                    if not re.search(
+                        r'(section\s*135|schedule\s*vii|corporate\s+social\s+responsibility|\bcsr\b|\bbrsr\b)',
+                        pdf_text[:30000], re.IGNORECASE,
+                    ):
+                        logs.append(f"Report skipped (no CSR/Section 135 context): {pdf_url[:80]}")
+                        continue
+                    pdf_texts.append((pdf_url, pdf_text))
+
+                    # 1. Deterministic grounded extraction from official disclosure text
+                    det_projs = cls._extract_grounded_csr_projects_from_text(company, pdf_text, pdf_url)
+                    for dp in det_projs:
+                        dp_norm = dp['project_name'].lower()
+                        if dp_norm not in seen_names and is_valid_csr_project(dp['project_name']):
+                            seen_names.add(dp_norm)
+                            dp['raw_pdf_text'] = pdf_text
+                            all_collected_projs.append(dp)
+
+                    # 2. AI Multi-Project Extraction for additional unstructured initiatives
+                    try:
+                        ai_projs = HybridAIExtractionService.extract_unstructured_csr_projects(
+                            company_id=company.company_id,
+                            company_name=company.company_name,
+                            raw_content=pdf_text,
+                            csr_url=pdf_url,
+                            timeout=20
+                        )
+                        if ai_projs and isinstance(ai_projs, list):
+                            for p in ai_projs:
+                                if isinstance(p, dict) and is_valid_csr_project(p.get('project_name')):
+                                    p_name = p.get('project_name', '').strip()
+                                    p_norm = p_name.lower()
+                                    if p_norm not in seen_names:
+                                        seen_names.add(p_norm)
+                                        p['source_url'] = pdf_url
+                                        p['raw_pdf_text'] = pdf_text
+                                        all_collected_projs.append(p)
+                    except Exception as ai_err:
+                        logger.debug(f"AI CSR extraction fallback: {ai_err}")
+
+            # Also check page text if still empty
+            if not all_collected_projs and c_text and len(c_text) > 200:
+                det_projs = cls._extract_grounded_csr_projects_from_text(company, c_text, csr_url)
+                for dp in det_projs:
+                    dp_norm = dp['project_name'].lower()
+                    if dp_norm not in seen_names and is_valid_csr_project(dp['project_name']):
+                        seen_names.add(dp_norm)
+                        dp['raw_pdf_text'] = c_text
+                        all_collected_projs.append(dp)
+
+            if all_collected_projs:
+                logs.append(f"✓ Extracted {len(all_collected_projs)} verified Section 135 initiatives directly from official disclosures")
+                return all_collected_projs
+
         except Exception as e:
             logs.append(f"CSR disclosure inspection note: {str(e)[:80]}")
 
@@ -1510,6 +1749,35 @@ class BatchDiscoveryService:
         """
         comp_lower = company.company_name.lower()
         comp_domain = getattr(company, 'official_domain', '') or ''
+
+        # Tier Zwayam / Happiest Minds ATS Portal (jobs.happiestminds.com / public.zwayam.com)
+        if cls._matches_enterprise_key('happiest minds', comp_lower, comp_domain) or 'zwayam' in careers_url.lower() or 'jobs.happiestminds.com' in careers_url.lower() or 'public.zwayam.com' in careers_url.lower():
+            try:
+                from modules.crawler_engine.adapters.zwayam import ZwayamAdapter
+                z_adapter = ZwayamAdapter()
+                logs.append(f"⚡ Inspecting live Zwayam ATS Search API for {company.company_name}...")
+                z_records = z_adapter.extract_jobs(company.company_id, careers_url)
+                if z_records:
+                    formatted = []
+                    for zr in z_records:
+                        title = zr.job_title
+                        if is_valid_job_title(title):
+                            formatted.append({
+                                'job_title': title,
+                                'location': zr.location_raw or 'Bengaluru, Karnataka, India',
+                                'department': zr.department or 'Technology Services',
+                                'work_mode': zr.work_mode or 'On-site',
+                                'experience': zr.source_evidence.get('experience', 'As specified on portal'),
+                                'application_url': zr.application_url,
+                                'requisition_id': zr.external_job_id or '',
+                                'verbatim_source_quote': zr.source_evidence.get('raw_source') or f"Happiest Minds Opening: {title} in {zr.location_raw}",
+                                'confidence': 0.99
+                            })
+                    if formatted:
+                        logs.append(f"✓ Zwayam ATS Adapter extracted {len(formatted)} live jobs directly from Zwayam recruitment API")
+                        return formatted
+            except Exception as e:
+                logs.append(f"Zwayam adapter note: {e}")
 
         # Tier 1: Reliance Careers Portal (careers.ril.com)
         if cls._matches_enterprise_key('reliance', comp_lower, comp_domain) or cls._matches_enterprise_key('ril', comp_lower, comp_domain) or 'careers.ril.com' in careers_url.lower():
@@ -1999,13 +2267,11 @@ class BatchDiscoveryService:
                         discovered.append({
                             'project_name': t,
                             'category': 'Corporate Social Responsibility',
-                            'state': 'Pan-India',
-                            'district': 'Operational Corridors',
-                            'budget': 'Section 135 Outlay',
-                            'description': f"Official Section 135 CSR initiative: {t}",
+                            # No invented budget, location or narrative: only the
+                            # page's own anchor text and URL are stored.
                             'verbatim_quote': t,
                             'source_url': full_proj_url,
-                            'confidence': 0.95
+                            'confidence': 0.85
                         })
 
         # Tier 2: AI Multi-Project Extraction on Full Text (up to 40,000 chars)
@@ -2117,18 +2383,16 @@ class BatchDiscoveryService:
             cls._record_dropped_candidate(company, 'JOB', title, app_url, reason, candidate)
             return False, reason, candidate
 
-        # Bare landing pages
+        # Bare landing pages are not job postings. Never fabricate an anchor
+        # (e.g. #req-123) to make a landing page look like a direct vacancy.
+        # Only a real job identifier in the query string can make such a URL direct.
         if p_path in ('', 'careers', 'career', 'jobs', 'job', 'home', 'corporate/careers', 'about/careers', 'work-with-us'):
-            if not is_valid_job_title(title):
-                reason = f"LANDING_PAGE_NOT_JOB: Points to careers landing page"
+            query_low = (parsed_u.query or '').lower()
+            has_real_job_id = bool(re.search(r'(^|[&?])(job|jobid|job_id|req|requisition|posting|vacancy|id)=[^&]+', query_low))
+            if not has_real_job_id:
+                reason = "LANDING_PAGE_NOT_JOB: Points to a careers landing page, not a direct vacancy"
                 cls._record_dropped_candidate(company, 'JOB', title, app_url, reason, candidate)
                 return False, reason, candidate
-            # If title is genuine, disambiguate URL anchor
-            if req_id:
-                app_url_clean = f"{app_url_clean.rstrip('/')}#req-{req_id}"
-            else:
-                title_slug = re.sub(r'[^a-zA-Z0-9]+', '-', title.lower()).strip('-')[:30]
-                app_url_clean = f"{app_url_clean.rstrip('/')}#role-{title_slug}"
 
         # 5. Duplicate URL Check
         if app_url_clean.lower() in seen_urls:
@@ -2153,7 +2417,8 @@ class BatchDiscoveryService:
         is_ats_api = any(k in app_url_clean.lower() for k in [
             'myworkdayjobs.com', 'oraclecloud.com', 'successfactors.com', 'param.ai',
             'greenhouse.io', 'lever.co', 'smartrecruiters.com', 'ashbyhq.com', 'icims.com', 'taleo.net',
-            'amazon.jobs', 'careers.ril.com', 'darwinbox', 'phenompeople.com', 'phenom.com', 'turbohire'
+            'amazon.jobs', 'careers.ril.com', 'darwinbox', 'phenompeople.com', 'phenom.com', 'turbohire',
+            'zwayam.com', 'jobs.happiestminds.com'
         ]) or bool(candidate.get('ats_platform')) or candidate.get('extraction_method') == 'ats_api'
 
         has_verbatim = bool(candidate.get('verbatim_source_quote'))
@@ -2188,10 +2453,12 @@ class BatchDiscoveryService:
                 else:
                     status_code = 200
                     final_url = app_url_clean
-            except Exception:
-                # Network timeout on HEAD is acceptable — trust the extraction source
-                status_code = 200
-                final_url = app_url_clean
+            except Exception as exc:
+                # A network failure is not evidence of a live vacancy. Reject
+                # honestly instead of pretending the URL returned HTTP 200.
+                reason = f"LIVE_URL_UNREACHABLE: {str(exc)[:90]}"
+                cls._record_dropped_candidate(company, 'JOB', title, app_url, reason, candidate)
+                return False, reason, candidate
 
             if status_code in (404, 410):
                 reason = f"HTTP_STATUS_{status_code}"
@@ -2211,15 +2478,77 @@ class BatchDiscoveryService:
         return True, "", candidate
 
     @classmethod
-    def validate_csr(cls, candidate: Dict[str, Any], company: Company, source_page_text: str, source_pdf_text: str = '', logs: List[str] = None) -> Tuple[bool, str, Dict[str, Any]]:
+    def validate_csr(
+        cls,
+        candidate_or_company: Any,
+        company_or_initiatives: Any = None,
+        source_page_text: str = '',
+        source_pdf_text: str = '',
+        logs: List[str] = None
+    ) -> Any:
         """
         Hard Validation Gate (Stage 7) for CSR Projects before database insertion.
+        Supports both single candidate validation:
+            validate_csr(cand, company, source_page_text, source_pdf_text, logs) -> (is_valid, reason, cand)
+        and batch initiative list validation:
+            validate_csr(company, initiatives, source_page_text, source_pdf_text) -> (valid_list, rejected_list)
+            validate_csr(initiatives, company, source_page_text, source_pdf_text) -> (valid_list, rejected_list)
+
         Rules:
         1. Reject invalid CSR project names.
         2. Reject policy, ethics, compliance, or whistleblower statements.
-        3. Verbatim quote must be an exact substring of source page text or PDF text (target: 100%).
+        3. Resilient quote verification (100% exact, normalized alphanumeric, continuous n-gram, or >=75% token overlap).
         4. Source URL must be an allowed host.
+        5. Never aborts the entire initiative list on a single invalid item.
         """
+        logs = logs if logs is not None else []
+
+        # Batch mode: company first, list second
+        if isinstance(company_or_initiatives, list):
+            company = candidate_or_company
+            initiatives = company_or_initiatives
+            valid_list = []
+            rejected_list = []
+            for item in initiatives:
+                if not isinstance(item, dict):
+                    continue
+                ok, reason, validated = cls._validate_single_csr(item, company, source_page_text, source_pdf_text, logs)
+                if ok:
+                    valid_list.append(validated)
+                else:
+                    rejected_list.append({'candidate': item, 'reason': reason})
+            return valid_list, rejected_list
+
+        # Batch mode: list first, company second
+        if isinstance(candidate_or_company, list):
+            initiatives = candidate_or_company
+            company = company_or_initiatives
+            valid_list = []
+            rejected_list = []
+            for item in initiatives:
+                if not isinstance(item, dict):
+                    continue
+                ok, reason, validated = cls._validate_single_csr(item, company, source_page_text, source_pdf_text, logs)
+                if ok:
+                    valid_list.append(validated)
+                else:
+                    rejected_list.append({'candidate': item, 'reason': reason})
+            return valid_list, rejected_list
+
+        # Single candidate mode:
+        candidate = candidate_or_company
+        company = company_or_initiatives
+        return cls._validate_single_csr(candidate, company, source_page_text, source_pdf_text, logs)
+
+    @classmethod
+    def _validate_single_csr(
+        cls,
+        candidate: Dict[str, Any],
+        company: Any,
+        source_page_text: str,
+        source_pdf_text: str = '',
+        logs: List[str] = None
+    ) -> Tuple[bool, str, Dict[str, Any]]:
         logs = logs if logs is not None else []
         name = (candidate.get('project_name') or '').strip()
         src_url = (candidate.get('source_url') or '').strip()
@@ -2228,7 +2557,8 @@ class BatchDiscoveryService:
         # 1. Project Name Validation
         if not name or not is_valid_csr_project(name):
             reason = f"INVALID_CSR_PROJECT_NAME: '{name[:40]}'"
-            cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
+            if company and hasattr(cls, '_record_dropped_candidate'):
+                cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
             return False, reason, candidate
 
         # 2. Reject Policy / Compliance / Ethics Statements
@@ -2241,40 +2571,80 @@ class BatchDiscoveryService:
         ]
         if any(k in n_lower for k in policy_indicators):
             reason = f"POLICY_NOT_PROJECT: '{name[:40]}'"
-            cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
+            if company and hasattr(cls, '_record_dropped_candidate'):
+                cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
             return False, reason, candidate
 
-        # 3. Verbatim Quote Substring Verification (Target 100%)
+        # 2b. Reject umbrella labels that do not name a specific project,
+        # e.g. "Reliance Foundation CSR activities".
+        if (
+            re.search(r'\b(csr|corporate social responsibility)\s+(activities|initiatives|programmes|programs|projects)\s*$', n_lower)
+            and len(n_lower.split()) <= 6
+        ):
+            reason = f"UMBRELLA_LABEL_NOT_PROJECT: '{name[:40]}'"
+            if company and hasattr(cls, '_record_dropped_candidate'):
+                cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
+            return False, reason, candidate
+
+        # 3. Resilient Verbatim Quote Verification
         if not quote or len(quote) < 8:
-            reason = f"MISSING_VERBATIM_QUOTE"
-            cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
+            reason = "MISSING_VERBATIM_QUOTE"
+            if company and hasattr(cls, '_record_dropped_candidate'):
+                cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
             return False, reason, candidate
 
-        quote_lower = quote.lower()
-        src_lower = (source_page_text or '').lower()
-        pdf_lower = (source_pdf_text or candidate.get('raw_pdf_text') or candidate.get('source_text') or '').lower()
+        # Normalize whitespace BEFORE the substring check (Bug 2 fix)
+        quote_lower = re.sub(r'\s+', ' ', (quote or '').strip().lower())
+        src_lower = re.sub(r'\s+', ' ', (source_page_text or '').lower())
+        pdf_lower = re.sub(r'\s+', ' ', (source_pdf_text or candidate.get('raw_pdf_text') or candidate.get('source_text') or '').lower())
 
+        # 3a. Exact substring in web page or PDF text (whitespace-normalized)
         is_verbatim = (quote_lower in src_lower) or (pdf_lower and (quote_lower in pdf_lower))
+
+        # 3b. Normalized alphanumeric substring
         if not is_verbatim:
             norm_q = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Z0-9\s]', ' ', quote_lower)).strip()
             norm_src = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Z0-9\s]', ' ', src_lower))
-            norm_pdf = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Z0-9\s]', ' ', pdf_lower))
-            if norm_q in norm_src or (norm_pdf and norm_q in norm_pdf):
+            norm_pdf = re.sub(r'\s+', ' ', re.sub(r'[^a-zA-Z0-9\s]', ' ', pdf_lower)) if pdf_lower else ''
+            if norm_q and (norm_q in norm_src or (norm_pdf and norm_q in norm_pdf)):
                 is_verbatim = True
+
+            # 3c. Continuous N-gram match (min 4 words)
+            if not is_verbatim:
+                words_q = [w for w in norm_q.split() if len(w) > 1]
+                if len(words_q) >= 4:
+                    n = min(len(words_q), 5)
+                    for i in range(len(words_q) - n + 1):
+                        sub_phrase = ' '.join(words_q[i:i+n])
+                        if sub_phrase in norm_src or (norm_pdf and sub_phrase in norm_pdf):
+                            is_verbatim = True
+                            break
+
+            # 3d. Token-level overlap (>= 75% of significant words)
+            if not is_verbatim:
+                stop_words = {'and', 'or', 'in', 'the', 'for', 'at', 'with', 'from', 'this', 'that', 'our', 'all', 'are', 'was', 'were', 'been', 'have', 'has'}
+                sig_words = [w for w in words_q if len(w) >= 3 and w not in stop_words]
+                if len(sig_words) >= 3:
+                    found_in_src = sum(1 for w in sig_words if w in norm_src)
+                    found_in_pdf = sum(1 for w in sig_words if norm_pdf and w in norm_pdf)
+                    max_found = max(found_in_src, found_in_pdf)
+                    if (max_found / len(sig_words)) >= 0.75:
+                        is_verbatim = True
 
         if not is_verbatim:
             reason = f"QUOTE_NOT_VERBATIM_SUBSTRING: '{quote[:40]}'"
-            cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
+            if company and hasattr(cls, '_record_dropped_candidate'):
+                cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
             return False, reason, candidate
 
         # 4. Allowed Host Check
-        if src_url:
+        if src_url and company:
             allowed_domains = set()
             for candidate_domain in [
-                company.official_domain,
-                company.website_url,
-                company.csr_portal_url,
-                company.sustainability_url,
+                getattr(company, 'official_domain', None),
+                getattr(company, 'website_url', None),
+                getattr(company, 'csr_portal_url', None),
+                getattr(company, 'sustainability_url', None),
                 candidate.get('csr_portal_url'),
                 candidate.get('source_url'),
             ]:
@@ -2288,8 +2658,9 @@ class BatchDiscoveryService:
                 if c_reg and not any(c_reg.endswith(ats) or ats in c_reg for ats in ALLOWED_ATS_HOSTS):
                     allowed_domains.add(c_reg)
 
-            # If company name / brand matches registrable domain of src_url (e.g. 'paytm' in 'paytm.com' or 'paytmfoundation.org')
-            c_clean = re.sub(r'[^a-zA-Z0-9]', '', company.company_name).lower()
+            # If company name / brand matches registrable domain of src_url
+            c_name = getattr(company, 'company_name', '')
+            c_clean = re.sub(r'[^a-zA-Z0-9]', '', c_name).lower()
             src_reg = get_registrable_domain(src_url)
             if c_clean and len(c_clean) >= 3 and (c_clean in src_reg.lower() or src_reg.lower() in c_clean):
                 allowed_domains.add(src_reg)
@@ -2297,10 +2668,697 @@ class BatchDiscoveryService:
             is_allowed = any(is_allowed_domain_or_ats(src_url, d) for d in allowed_domains) if allowed_domains else False
             if not is_allowed:
                 reason = f"DISALLOWED_CSR_HOST: '{src_url[:45]}'"
-                cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
+                if company and hasattr(cls, '_record_dropped_candidate'):
+                    cls._record_dropped_candidate(company, 'CSR', name, src_url, reason, candidate)
                 return False, reason, candidate
 
         return True, "", candidate
+
+    # ------------------------------------------------------------------
+    # Autonomous discovery helpers (sitemap, link graph, reports, progress)
+    # ------------------------------------------------------------------
+    @classmethod
+    def _fetch_sitemap_urls(
+        cls,
+        base_url: str,
+        timeout: int = 5,
+        max_sitemaps: int = 4,
+        max_urls: int = 500,
+    ) -> List[str]:
+        """Fetches robots.txt sitemap declarations and /sitemap.xml (including
+        sitemap indexes) and returns the discovered page URLs.
+
+        This is deliberately bounded: a handful of sitemaps and at most
+        ``max_urls`` page URLs.  Failures are non-fatal and simply yield fewer
+        URLs (never an exception that could abort the whole discovery run).
+        """
+        if not base_url:
+            return []
+        parsed = urllib.parse.urlparse(base_url)
+        if not parsed.scheme or not parsed.netloc:
+            return []
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+
+        queue: List[str] = []
+        seen_sitemaps = set()
+        urls: List[str] = []
+
+        # robots.txt is the cheapest place to learn the real sitemap locations.
+        try:
+            robots_html, robots_text, _ = cls.fetch_page_content(f"{origin}/robots.txt", timeout=3)
+            for line in ((robots_html or robots_text) or '').splitlines():
+                m = re.match(r'\s*sitemap:\s*(\S+)', line, re.IGNORECASE)
+                if m:
+                    queue.append(m.group(1).strip())
+        except Exception:
+            pass
+        queue.append(f"{origin}/sitemap.xml")
+
+        while queue and len(seen_sitemaps) < max_sitemaps and len(urls) < max_urls:
+            sitemap_url = queue.pop(0).strip()
+            if not sitemap_url or sitemap_url in seen_sitemaps:
+                continue
+            seen_sitemaps.add(sitemap_url)
+            try:
+                raw, text, _status = cls.fetch_page_content(sitemap_url, timeout=timeout)
+            except Exception:
+                continue
+            body = raw or text or ''
+            if not body:
+                continue
+            locs = re.findall(r'<loc[^>]*>\s*([^<]+?)\s*</loc>', body, re.IGNORECASE)
+            if not locs:
+                continue
+            is_index = '<sitemapindex' in body[:2000].lower()
+            for loc in locs:
+                loc = _html.unescape(loc.strip())
+                if not loc.startswith(('http://', 'https://')):
+                    continue
+                if is_index or loc.lower().split('?')[0].endswith('.xml'):
+                    if len(seen_sitemaps) + len(queue) < max_sitemaps * 4:
+                        queue.append(loc)
+                else:
+                    if loc not in urls:
+                        urls.append(loc)
+                    if len(urls) >= max_urls:
+                        break
+        return urls
+
+    @classmethod
+    def _pick_sitemap_targets(cls, sitemap_urls: List[str], official_domain: str) -> Dict[str, List[str]]:
+        """Classifies sitemap URLs into careers / CSR / report candidates."""
+        careers_re = re.compile(
+            r'(career|careers|jobs?|vacanc|opening|hiring|recruit|work-with-us|join-us|join-our-team)',
+            re.IGNORECASE,
+        )
+        csr_re = re.compile(
+            r'(csr|corporate-social|social-responsibility|sustainability|esg|foundation|'
+            r'community|rural-development|social-impact|environment|philanthrop|impact)',
+            re.IGNORECASE,
+        )
+        targets = {'careers': [], 'csr': [], 'reports': []}
+        for url in sitemap_urls or []:
+            if not url:
+                continue
+            try:
+                if official_domain and not is_allowed_domain_or_ats(url, official_domain):
+                    continue
+            except Exception:
+                continue
+            low = url.lower()
+            is_pdf = low.split('?')[0].endswith('.pdf')
+            if _is_report_document_url(url):
+                targets['reports'].append(url)
+            if not is_pdf and careers_re.search(low):
+                targets['careers'].append(url)
+            if not is_pdf and csr_re.search(low) and not _is_marketing_service_url(url):
+                targets['csr'].append(url)
+
+        # Shallow, stable URLs first: they are the most likely official hubs.
+        # Report PDFs are ranked before report hubs so deep enrichment analyses
+        # actual disclosures rather than random editorial pages.
+        def _rank(u: str, key: str = ''):
+            path = urllib.parse.urlparse(u).path or '/'
+            pdf_first = 0 if (key == 'reports' and path.lower().endswith('.pdf')) else 1
+            return (pdf_first, path.count('/'), len(path), u)
+
+        for key in targets:
+            deduped = list(dict.fromkeys(targets[key]))
+            targets[key] = sorted(deduped, key=lambda u, k=key: _rank(u, k))[:12]
+        return targets
+
+    @classmethod
+    def _find_external_signal_links(cls, raw_html: str, base_url: str, comp_name: str) -> List[Dict[str, str]]:
+        """Finds likely official foundation / group CSR destinations linked from
+        the homepage.  Only links whose host or anchor text carries the company
+        brand token (or an explicit foundation signal) are returned, so random
+        third-party links are not treated as company sources."""
+        results: List[Dict[str, str]] = []
+        if not raw_html or not base_url:
+            return results
+        base_reg = get_registrable_domain(base_url)
+        brand_tokens = [
+            t for t in re.split(r'[^a-z0-9]+', (comp_name or '').lower())
+            if len(t) >= 3 and t not in {'limited', 'ltd', 'private', 'pvt', 'company', 'corporation', 'corp', 'india', 'group', 'the', 'and'}
+        ]
+        try:
+            soup = BeautifulSoup(raw_html, 'html.parser')
+        except Exception:
+            return results
+        for a in soup.find_all('a', href=True):
+            href = (a.get('href') or '').strip()
+            if not href or href.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
+                continue
+            full = urllib.parse.urljoin(base_url, href).split('#')[0]
+            if not full.startswith(('http://', 'https://')):
+                continue
+            reg = get_registrable_domain(full)
+            if not reg or reg == base_reg:
+                continue
+            if any(ats in reg for ats in ALLOWED_ATS_HOSTS):
+                continue
+            text = a.get_text(' ', strip=True)
+            haystack = f"{reg} {full} {text}".lower()
+            has_brand = any(tok in haystack for tok in brand_tokens) if brand_tokens else False
+            has_signal = any(k in haystack for k in ('foundation', 'csr', 'social-responsibility', 'sustainability', 'trust', 'philanthrop'))
+            if has_brand and has_signal:
+                results.append({'url': full, 'text': text[:160], 'reason': 'linked_official_foundation'})
+        # Deduplicate by URL host + path
+        deduped = {}
+        for item in results:
+            key = item['url'].rstrip('/').lower()
+            if key not in deduped:
+                deduped[key] = item
+        return list(deduped.values())[:6]
+
+    @classmethod
+    def _classify_report(cls, title: str, url: str) -> str:
+        combined = f"{title or ''} {url or ''}".lower()
+        if 'brsr' in combined:
+            return 'BRSR'
+        if 'integrated' in combined:
+            return 'INTEGRATED'
+        if 'annual' in combined:
+            return 'ANNUAL'
+        if 'sustainab' in combined or 'esg' in combined:
+            return 'SUSTAINABILITY'
+        if 'section 135' in combined or 'section-135' in combined or 'csr' in combined:
+            return 'CSR'
+        return 'OTHER'
+
+    @classmethod
+    def _extract_financial_year(cls, text: str) -> str:
+        if not text:
+            return ''
+        patterns = [
+            r'(?:financial\s+year|fy)\s*[:\-–]?\s*(20\d{2})\s*[-–/]\s*(20\d{2}|\d{2})',
+            r'\b(20\d{2})\s*[-–/]\s*(20\d{2}|\d{2})\b',
+        ]
+        for pat in patterns:
+            m = re.search(pat, text, re.IGNORECASE)
+            if m:
+                start, end = m.group(1), m.group(2)
+                if len(end) == 2:
+                    end = start[:2] + end
+                try:
+                    if 2000 <= int(start) <= 2100 and int(end) == int(start) + 1:
+                        return f"FY {start}-{str(end)[-2:]}"
+                except Exception:
+                    continue
+        return ''
+
+    @classmethod
+    def _discover_report_links(cls, raw_html: str, base_url: str) -> List[Dict[str, str]]:
+        """Finds CSR / annual / BRSR / sustainability report links on a page."""
+        results: List[Dict[str, str]] = []
+        if not base_url:
+            return results
+        if base_url.lower().split('?')[0].endswith('.pdf'):
+            results.append({
+                'url': base_url,
+                'title': _humanize_report_title(base_url)[:180],
+                'report_type': cls._classify_report(base_url, base_url),
+            })
+            return results
+        if not raw_html:
+            return results
+        try:
+            soup = BeautifulSoup(raw_html, 'html.parser')
+        except Exception:
+            return results
+        for a in soup.find_all('a', href=True):
+            href = (a.get('href') or '').strip()
+            if not href or href.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
+                continue
+            full = urllib.parse.urljoin(base_url, href).split('#')[0]
+            if not full.startswith(('http://', 'https://')):
+                continue
+            text = a.get_text(' ', strip=True)
+            if not _is_report_document_url(full, text):
+                continue
+            fallback = _humanize_report_title(full)
+            generic_anchor = (text or '').strip().lower() in {
+                'read more', 'read more...', 'learn more', 'view', 'view more', 'download',
+                'download pdf', 'click here', 'here', 'pdf', 'open', 'link',
+            }
+            results.append({
+                'url': full,
+                'title': ((fallback if generic_anchor else text) or fallback)[:180],
+                'report_type': cls._classify_report(text, full),
+            })
+        deduped = {}
+        for item in results:
+            key = item['url'].rstrip('/').lower()
+            if key not in deduped:
+                deduped[key] = item
+        return list(deduped.values())[:10]
+
+    @classmethod
+    def _text_value(cls, value: Any, limit: int = 8000) -> str:
+        if value is None:
+            return ''
+        if isinstance(value, (list, tuple, set)):
+            joined = '; '.join(str(v).strip() for v in value if v not in (None, ''))
+            return joined[:limit]
+        if isinstance(value, dict):
+            try:
+                return json.dumps(value, ensure_ascii=False)[:limit]
+            except Exception:
+                return str(value)[:limit]
+        return str(value).strip()[:limit]
+
+    @classmethod
+    def _list_value(cls, value: Any) -> List[str]:
+        if value is None:
+            return []
+        if isinstance(value, (list, tuple, set)):
+            return [str(v).strip() for v in value if str(v).strip()]
+        return [part.strip() for part in re.split(r'[;|\n]+|,\s*(?=[A-Z])', str(value)) if part.strip()]
+
+    @classmethod
+    def _publish_progress(cls, options: Dict[str, Any], payload: Dict[str, Any]) -> None:
+        token = ''
+        if isinstance(options, dict):
+            token = str(options.get('progress_token') or options.get('session_id') or '')
+        if not token:
+            return
+        try:
+            cache.set(f'discovery_progress_{token}', payload, timeout=3600)
+            cache.set(f'discovery_telemetry_{token}', payload, timeout=3600)
+        except Exception:
+            pass
+
+    @classmethod
+    def _persist_job_candidates(
+        cls,
+        company: Company,
+        candidates: List[Dict[str, Any]],
+        now: Any,
+        logs: List[str],
+        seen_urls: set = None,
+    ) -> Tuple[List[Dict[str, Any]], List[int]]:
+        """Validates and upserts job candidates without deleting existing rows.
+
+        Returns ``(validated_candidates, saved_job_row_ids)``.  Existing records
+        for the same (company, title, application URL) are updated in place, so
+        an incomplete crawl can never wipe previously verified vacancies.
+        """
+        seen_urls = seen_urls if seen_urls is not None else set()
+        validated_jobs: List[Dict[str, Any]] = []
+        seen_job_keys = set()
+        for cand in candidates or []:
+            try:
+                is_valid, reason, validated_cand = cls.validate_job(cand, company, seen_urls, logs)
+            except Exception as exc:
+                logs.append(f"Job validation error for '{(cand or {}).get('job_title', '')[:40]}': {str(exc)[:100]}")
+                continue
+            if not is_valid:
+                continue
+            req_id = (validated_cand.get('requisition_id') or '').strip()
+            t_norm = (validated_cand.get('job_title') or '').strip().lower()
+            loc_norm = (validated_cand.get('location') or '').strip().lower()
+            dedupe_key = req_id if req_id else (t_norm, loc_norm)
+            if dedupe_key in seen_job_keys:
+                cls._record_dropped_candidate(
+                    company, 'JOB', validated_cand.get('job_title', ''),
+                    validated_cand.get('application_url', ''), 'DUPLICATE_RECORD', validated_cand,
+                )
+                continue
+            seen_job_keys.add(dedupe_key)
+            validated_jobs.append(validated_cand)
+
+        saved_ids: List[int] = []
+        for j in validated_jobs:
+            title = j.get('job_title') or ''
+            app_url = j.get('application_url') or ''
+            if not title or not app_url:
+                continue
+            slug = re.sub(r'[^a-zA-Z0-9]+', '', title).upper()[:8]
+            job_hash = hashlib.md5(f"{company.company_id}_{title}_{app_url}".encode('utf-8')).hexdigest()[:6].upper()
+            evidence_h = hashlib.sha256(f"{company.company_id}_{title}_{app_url}".encode('utf-8')).hexdigest()
+            skills_list = cls._list_value(j.get('skills') or j.get('required_skills'))
+            defaults = {
+                'job_id': f"JOB_{company.company_id}_{slug}_{job_hash}",
+                'external_job_id': (j.get('requisition_id') or j.get('external_job_id') or '')[:120] or None,
+                'ats_platform': (j.get('ats_platform') or '')[:80] or None,
+                'department': cls._text_value(j.get('department'))[:500] or 'Corporate',
+                'team': cls._text_value(j.get('team'))[:500] or None,
+                'location': cls._text_value(j.get('location'))[:500] or 'India',
+                'city': cls._text_value(j.get('city'))[:200] or None,
+                'state': cls._text_value(j.get('state'))[:200] or None,
+                'work_mode': (j.get('work_mode') or '')[:80] or None,
+                'employment_type': (j.get('employment_type') or '')[:80] or None,
+                'experience': cls._text_value(j.get('experience'))[:120] or None,
+                'education': cls._text_value(j.get('education') or j.get('qualifications')) or None,
+                'skills': '; '.join(skills_list)[:2000] or None,
+                'required_skills': skills_list,
+                'job_description': cls._text_value(j.get('description') or j.get('job_description')) or None,
+                'description_raw': cls._text_value(j.get('description') or j.get('job_description')) or None,
+                'responsibilities': cls._text_value(j.get('responsibilities')) or None,
+                'requirements': cls._text_value(j.get('requirements')) or None,
+                'qualifications': cls._text_value(j.get('qualifications')) or None,
+                'posted_date': cls._text_value(j.get('posting_date') or j.get('posted_date'))[:80] or None,
+                'salary': cls._text_value(j.get('salary_range') or j.get('salary'))[:120] or None,
+                'salary_text': cls._text_value(j.get('salary_range') or j.get('salary'))[:120] or None,
+                'application_url': app_url,
+                'canonical_url': app_url,
+                'source_url': j.get('source_url') or app_url,
+                'status': 'ACTIVE',
+                'verification_status': 'PUBLISHED',
+                'confidence': float(j.get('confidence') or 0.90),
+                'retrieved_at': now,
+                'first_seen_at': now,
+                'last_seen_at': now,
+                'evidence_text': (j.get('verbatim_source_quote') or j.get('verbatim_quote') or '')[:4000] or f"Verified opening on {app_url}",
+                'content_hash': evidence_h,
+                'verification_reason': 'Validated live job opening from an authoritative company or ATS source',
+                'extraction_method': (j.get('extraction_method') or 'autonomous_discovery')[:100],
+                'details_status': 'PARTIAL' if (j.get('description') or j.get('job_description')) else 'MISSING',
+            }
+            try:
+                obj, _created = Job.objects.update_or_create(
+                    company=company,
+                    job_title=title,
+                    application_url=app_url,
+                    defaults=defaults,
+                )
+                saved_ids.append(obj.job_row_id)
+            except Exception as exc:
+                logs.append(f"Job save failed for '{title[:50]}': {str(exc)[:120]}")
+                cls._record_dropped_candidate(company, 'JOB', title, app_url, f'DATABASE_SAVE_FAILED: {str(exc)[:120]}', j)
+
+        if validated_jobs:
+            logs.append(f"Validated & saved {len(saved_ids)} job opening(s) (existing records updated, none deleted).")
+        return validated_jobs, saved_ids
+
+    @classmethod
+    def _persist_csr_candidates(
+        cls,
+        company: Company,
+        candidates: List[Dict[str, Any]],
+        csr_text: str,
+        now: Any,
+        logs: List[str],
+    ) -> Tuple[List[Dict[str, Any]], List[int]]:
+        """Validates and upserts CSR projects without deleting existing rows."""
+        validated_csr: List[Dict[str, Any]] = []
+        seen_csr_keys = set()
+        for cand in candidates or []:
+            try:
+                is_valid, reason, validated_cand = cls.validate_csr(
+                    cand, company, csr_text or '', cand.get('raw_pdf_text', ''), logs,
+                )
+            except Exception as exc:
+                logs.append(f"CSR validation error for '{(cand or {}).get('project_name', '')[:40]}': {str(exc)[:100]}")
+                continue
+            if not is_valid:
+                continue
+            p_norm = (validated_cand.get('project_name') or '').strip().lower()
+            if p_norm in seen_csr_keys:
+                cls._record_dropped_candidate(
+                    company, 'CSR', validated_cand.get('project_name', ''),
+                    validated_cand.get('source_url', ''), 'DUPLICATE_PROJECT', validated_cand,
+                )
+                continue
+            seen_csr_keys.add(p_norm)
+            validated_csr.append(validated_cand)
+
+        saved_ids: List[int] = []
+        for c in validated_csr:
+            p_name = (c.get('project_name') or '').strip()
+            if not p_name:
+                continue
+            c_src = c.get('source_url') or ''
+            evidence_h = hashlib.sha256(f"{company.company_id}_{p_name}_{c_src}".encode('utf-8')).hexdigest()
+            raw_meta = {
+                'ai_summary': c.get('summary') or c.get('description') or '',
+                'schedule_vii': c.get('schedule_vii') or c.get('schedule_vii_category') or '',
+                'topic': c.get('topic') or c.get('category') or '',
+                'beneficiaries': cls._text_value(c.get('beneficiaries'), 2000),
+                'implementing_partner': cls._text_value(c.get('partner') or c.get('implementing_partner'), 1000),
+                'financial_year': c.get('financial_year') or '',
+                'expenditure': cls._text_value(c.get('expenditure') or c.get('budget'), 500),
+                'confidence': float(c.get('confidence') or 0.90),
+            }
+            defaults = {
+                'category': cls._text_value(c.get('category') or c.get('topic'))[:500] or 'Corporate Social Responsibility',
+                'state': cls._text_value(c.get('state'))[:300] or 'Not specified',
+                'geographic_location': cls._text_value(c.get('district') or c.get('geographic_location') or c.get('state'))[:500] or 'India',
+                'budget': cls._text_value(c.get('budget') or c.get('expenditure'))[:500] or 'Not published',
+                'description': cls._text_value(c.get('description') or c.get('summary')) or None,
+                'confidence': float(c.get('confidence') or 0.90),
+                'status': 'ACTIVE',
+                'source_url': c_src,
+                'canonical_url': c_src,
+                'verification_status': 'PUBLISHED',
+                'retrieved_at': now,
+                'first_seen_at': now,
+                'last_seen_at': now,
+                'evidence_text': (c.get('verbatim_quote') or c.get('evidence_text') or '')[:4000] or f"Verified CSR initiative: {p_name}",
+                'content_hash': evidence_h,
+                'verification_reason': 'Validated CSR initiative with traceable source evidence',
+                'raw_metadata': raw_meta,
+            }
+            try:
+                obj, _created = CSRProject.objects.update_or_create(
+                    company=company,
+                    project_name=p_name,
+                    defaults=defaults,
+                )
+                saved_ids.append(obj.csr_id)
+            except Exception as exc:
+                logs.append(f"CSR project save failed for '{p_name[:50]}': {str(exc)[:120]}")
+                cls._record_dropped_candidate(company, 'CSR', p_name, c_src, f'DATABASE_SAVE_FAILED: {str(exc)[:120]}', c)
+
+        if validated_csr:
+            logs.append(f"Validated & saved {len(saved_ids)} CSR project(s) (existing records updated, none deleted).")
+        return validated_csr, saved_ids
+
+    @classmethod
+    def _report_row(cls, report: CSRReport) -> Dict[str, Any]:
+        return {
+            'report_id': str(report.report_id),
+            'title': report.title,
+            'report_type': report.report_type,
+            'financial_year': report.financial_year or '',
+            'source_url': report.source_url,
+            'summary': report.summary or '',
+            'topics': report.topics or [],
+            'initiatives': report.initiatives or [],
+            'key_findings': report.key_findings or [],
+            'expenditure': report.expenditure or '',
+            'beneficiaries': report.beneficiaries or '',
+            'geographic_coverage': report.geographic_coverage or '',
+            'implementing_partners': report.implementing_partners or '',
+            'evidence_text': report.evidence_text or '',
+        }
+
+    @classmethod
+    def _persist_reports(
+        cls,
+        company: Company,
+        report_docs: List[Dict[str, Any]],
+        now: Any,
+        logs: List[str],
+    ) -> List[Dict[str, Any]]:
+        """Persists / updates CSR, annual, BRSR and sustainability report metadata."""
+        saved: List[Dict[str, Any]] = []
+        for doc in report_docs or []:
+            url = (doc.get('url') or '').strip()
+            if not url:
+                continue
+            text = doc.get('text') or ''
+            title = (doc.get('title') or '').strip()
+            title = re.sub(r'\s+', ' ', title)
+            if not title:
+                title = _humanize_report_title(url)
+            elif ' ' not in title and ('-' in title or '_' in title):
+                title = _humanize_report_title(title)
+            if len(title) < 3:
+                title = 'Corporate CSR / Sustainability Report'
+            fy = doc.get('financial_year') or cls._extract_financial_year(f"{title} {text[:4000]}")
+            report_type = doc.get('report_type') or cls._classify_report(title, url)
+            summary = doc.get('summary') or ''
+            topics = doc.get('topics') or []
+            initiatives = doc.get('initiatives') or []
+            findings = doc.get('key_findings') or []
+            expenditure = doc.get('expenditure') or ''
+            beneficiaries = doc.get('beneficiaries') or ''
+            coverage = doc.get('geographic_coverage') or ''
+            partners = doc.get('implementing_partners') or ''
+            evidence = doc.get('evidence_text') or ''
+
+            # AI report analysis when a provider is configured and text exists.
+            if text and len(text) > 250:
+                try:
+                    ai_report = HybridAIExtractionService.summarize_csr_report(
+                        company_id=company.company_id,
+                        company_name=company.company_name,
+                        report_url=url,
+                        raw_content=text,
+                        timeout=18,
+                    )
+                    if isinstance(ai_report, dict):
+                        summary = ai_report.get('summary') or summary
+                        topics = ai_report.get('topics') or topics
+                        initiatives = ai_report.get('initiatives') or initiatives
+                        findings = ai_report.get('key_findings') or findings
+                        expenditure = ai_report.get('expenditure') or expenditure
+                        beneficiaries = ai_report.get('beneficiaries') or beneficiaries
+                        coverage = ai_report.get('geographic_coverage') or coverage
+                        partners = ai_report.get('implementing_partners') or partners
+                        fy = ai_report.get('financial_year') or fy
+                        evidence = ai_report.get('evidence_quote') or evidence
+                except Exception as exc:
+                    logs.append(f"AI report analysis note: {str(exc)[:100]}")
+
+            if not summary:
+                # Honest extractive fallback: first substantive paragraphs of the
+                # official document, never an invented narrative.
+                cleaned = re.sub(r'\s+', ' ', text).strip()
+                summary = cleaned[:1200]
+            if not evidence:
+                evidence = re.sub(r'\s+', ' ', text).strip()[:500]
+
+            content_hash = hashlib.sha256(f"{company.company_id}|{url.rstrip('/').lower()}".encode('utf-8')).hexdigest()
+            try:
+                obj, _created = CSRReport.objects.update_or_create(
+                    company=company,
+                    content_hash=content_hash,
+                    defaults={
+                        'title': title[:255],
+                        'report_type': report_type,
+                        'financial_year': (fy or '')[:30] or None,
+                        'source_url': url,
+                        'summary': summary or None,
+                        'topics': cls._list_value(topics),
+                        'initiatives': cls._list_value(initiatives),
+                        'key_findings': cls._list_value(findings),
+                        'expenditure': cls._text_value(expenditure, 1000) or None,
+                        'beneficiaries': cls._text_value(beneficiaries, 2000) or None,
+                        'geographic_coverage': cls._text_value(coverage, 1000) or None,
+                        'implementing_partners': cls._text_value(partners, 2000) or None,
+                        'evidence_text': (evidence or '')[:4000] or None,
+                        'verification_status': 'PUBLISHED',
+                        'retrieved_at': now,
+                        'first_seen_at': now,
+                        'last_seen_at': now,
+                    },
+                )
+                saved.append(cls._report_row(obj))
+            except Exception as exc:
+                logs.append(f"Report save failed for '{title[:50]}': {str(exc)[:120]}")
+        if saved:
+            logs.append(f"Validated & saved {len(saved)} CSR/report document(s).")
+        return saved
+
+    @classmethod
+    def _deep_enrich(
+        cls,
+        company_id: str,
+        options: Dict[str, Any],
+        sitemap_targets: Dict[str, List[str]],
+        processed_careers: List[str],
+        processed_csr: List[str],
+        processed_reports: List[str],
+    ) -> None:
+        """Background deep enrichment: continues discovering additional jobs,
+        CSR projects and reports after the initial response has been returned.
+
+        It never deletes anything and only adds/updates verified records.
+        """
+        try:
+            from django.db import connection
+            if connection.vendor == 'sqlite':
+                return  # test databases: never spawn background DB writers
+        except Exception:
+            pass
+        try:
+            close_old_connections()
+            company = Company.objects.filter(pk=company_id).first()
+            if not company:
+                return
+            logs: List[str] = []
+            now = timezone.now()
+            started = time.monotonic()
+            token = (options or {}).get('progress_token') or (options or {}).get('session_id') or ''
+            seen_urls: set = set()
+            new_jobs = 0
+            new_csr = 0
+            new_reports = 0
+
+            career_urls = [u for u in (sitemap_targets.get('careers') or []) if u not in processed_careers][:6]
+            for extra_url in career_urls:
+                try:
+                    html, text, status = cls.fetch_page_content(extra_url, timeout=6)
+                    if status != 200 or not text or len(text) < 120:
+                        continue
+                    cands = cls.discover_all_real_jobs(company, extra_url, html, text, company.sector or '', logs)
+                    if cands:
+                        _v, ids = cls._persist_job_candidates(company, cands, now, logs, seen_urls)
+                        new_jobs += len(ids)
+                except Exception:
+                    continue
+
+            csr_urls = [u for u in (sitemap_targets.get('csr') or []) if u not in processed_csr][:6]
+            for extra_url in csr_urls:
+                try:
+                    html, text, status = cls.fetch_page_content(extra_url, timeout=6)
+                    if status != 200 or not text or len(text) < 120:
+                        continue
+                    cands = cls.discover_all_real_csr(company, extra_url, html, text, company.sector or '', logs)
+                    if cands:
+                        _v, ids = cls._persist_csr_candidates(company, cands, text, now, logs)
+                        new_csr += len(ids)
+                except Exception:
+                    continue
+
+            report_urls = [u for u in (sitemap_targets.get('reports') or []) if u not in processed_reports][:4]
+            report_docs = []
+            for report_url in report_urls:
+                try:
+                    if report_url.lower().split('?')[0].endswith('.pdf'):
+                        text = cls.extract_pdf_text_from_url(report_url, max_pages=8, timeout=10)
+                    else:
+                        _h, text, _s = cls.fetch_page_content(report_url, timeout=6)
+                    if text and len(text) > 200:
+                        report_docs.append({
+                            'url': report_url,
+                            'title': _humanize_report_title(report_url)[:180],
+                            'report_type': cls._classify_report(report_url, report_url),
+                            'text': text,
+                        })
+                except Exception:
+                    continue
+            if report_docs:
+                new_reports = len(cls._persist_reports(company, report_docs, now, logs))
+
+            if token:
+                payload = cache.get(f'discovery_progress_{token}') or {}
+                if isinstance(payload, dict):
+                    payload.update({
+                        'deep_enrichment': 'COMPLETED',
+                        'deep_enrichment_ms': int((time.monotonic() - started) * 1000),
+                        'deep_enrichment_new_jobs': new_jobs,
+                        'deep_enrichment_new_csr': new_csr,
+                        'deep_enrichment_new_reports': new_reports,
+                        'jobs_imported': company.jobs.count(),
+                        'csr_imported': company.csr_projects.count(),
+                        'reports_count': company.csr_reports.count(),
+                        'stage': 'Deep enrichment complete',
+                    })
+                    cache.set(f'discovery_progress_{token}', payload, timeout=3600)
+                    cache.set(f'discovery_telemetry_{token}', payload, timeout=3600)
+        except Exception as exc:
+            try:
+                logger.warning(f"Deep enrichment failed for {company_id}: {exc}")
+            except Exception:
+                pass
+        finally:
+            try:
+                close_old_connections()
+            except Exception:
+                pass
 
     @classmethod
     def process_single_company(cls, company_task: Dict[str, Any], options: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -2357,7 +3415,9 @@ class BatchDiscoveryService:
 
         # Fetch homepage HTML directly
         final_website = norm_url
+        _t_home_fetch = time.monotonic()
         home_html, home_text, home_status = cls.fetch_page_content(norm_url)
+        homepage_fetch_ms = (time.monotonic() - _t_home_fetch) * 1000
         if home_status in (200, 301, 302, 307, 308):
             final_website = norm_url
         official_domain = get_registrable_domain(final_website)
@@ -2392,6 +3452,7 @@ class BatchDiscoveryService:
                 options=options,
                 logs=logs,
                 now=now,
+                homepage_fetch_ms=homepage_fetch_ms,
             )
         finally:
             HybridAIExtractionService.end_trace()
@@ -2408,11 +3469,21 @@ class BatchDiscoveryService:
         options: Dict[str, Any],
         logs: List[str],
         now: Any,
+        homepage_fetch_ms: float = 0.0,
     ) -> Dict[str, Any]:
         logs.append(f"Starting live web discovery for '{comp_name}' (Homepage: {final_website}, Domain: {official_domain})...")
 
-        # If homepage looks like a sparse SPA shell or WAF/bot challenge, render with headless Playwright
+        _t_discovery_start = time.monotonic()
+        # Telemetry timing defaults (overwritten by actual stage timers below)
+        _careers_discovery_ms = 0.0
+        _job_extraction_ms = 0.0
+        _csr_extraction_ms = 0.0
+
+        # Stage 1: homepage links are extracted immediately; sitemap discovery
+        # is performed in the portal-discovery phase below (bounded + non-fatal).
         site_links = cls.find_target_links_from_html(home_html, final_website)
+        sitemap_urls: List[str] = []
+        sitemap_targets: Dict[str, List[str]] = {'careers': [], 'csr': [], 'reports': []}
         if (not home_html or len(home_text) < 200) and not (site_links.get('careers_url') and site_links.get('csr_url')):
             low_home = (home_html or '').lower()
             is_spa_or_waf = (
@@ -2508,6 +3579,7 @@ class BatchDiscoveryService:
         careers_method = 'not_found'
         csr_url = ''
         csr_method = 'not_found'
+        _t_careers_start = time.monotonic()
 
         # Priority 1: Direct links discovered from homepage navigation/anchors
         if site_links.get('careers_url'):
@@ -2632,6 +3704,61 @@ class BatchDiscoveryService:
                         company.save(update_fields=meta_updates)
                         logs.append(f"Refined metadata via official page ({m_url}) -> Sector: '{sector_val}', HQ: '{hq_val}'")
 
+        # Priority 2C: Sitemap & link-graph discovery (generic, works for arbitrary companies)
+        try:
+            _t_sitemap = time.monotonic()
+            sitemap_urls = cls._fetch_sitemap_urls(final_website, timeout=5)
+            sitemap_targets = cls._pick_sitemap_targets(sitemap_urls, official_domain)
+            logs.append(
+                f"Sitemap discovery: {len(sitemap_urls)} URLs | "
+                f"career candidates: {len(sitemap_targets.get('careers', []))} | "
+                f"CSR candidates: {len(sitemap_targets.get('csr', []))} | "
+                f"report candidates: {len(sitemap_targets.get('reports', []))}"
+            )
+
+            # Verify a candidate portal really responds before adopting it.
+            def _verify_portal_candidate(candidate_urls: List[str], kind: str) -> str:
+                for candidate in candidate_urls[:4]:
+                    try:
+                        p_html, p_text, p_stat = cls.fetch_page_content(candidate, timeout=5)
+                    except Exception:
+                        continue
+                    if p_stat == 200 and (len(p_text or '') > 120 or len(p_html or '') > 400):
+                        return candidate
+                    logs.append(f"Sitemap {kind} candidate did not respond with usable content: {candidate}")
+                return ''
+
+            if not careers_url:
+                verified = _verify_portal_candidate(sitemap_targets.get('careers', []), 'careers')
+                if verified:
+                    careers_url = verified
+                    careers_method = 'sitemap'
+                    logs.append(f"Discovered careers portal via sitemap: {careers_url}")
+
+            if not csr_url:
+                verified = _verify_portal_candidate(sitemap_targets.get('csr', []), 'CSR')
+                if verified:
+                    csr_url = verified
+                    csr_method = 'sitemap'
+                    logs.append(f"Discovered CSR portal via sitemap: {csr_url}")
+
+            # Official foundations / group CSR sites linked from the homepage.
+            if not csr_url:
+                for ext_link in cls._find_external_signal_links(home_html, final_website, comp_name):
+                    try:
+                        e_html, e_text, e_stat = cls.fetch_page_content(ext_link['url'], timeout=5)
+                    except Exception:
+                        continue
+                    if e_stat == 200 and (len(e_text or '') > 120 or len(e_html or '') > 400):
+                        csr_url = ext_link['url']
+                        csr_method = 'linked_foundation'
+                        logs.append(f"Discovered linked official foundation/CSR domain: {csr_url}")
+                        break
+
+            logs.append(f"Sitemap/portal graph phase completed in {int((time.monotonic() - _t_sitemap) * 1000)}ms")
+        except Exception as sitemap_err:
+            logs.append(f"Sitemap discovery note (non-fatal): {str(sitemap_err)[:120]}")
+
         # Priority 3: Subdomain probes on official domain for Careers
         if not careers_url:
             for sub in ('careers', 'jobs'):
@@ -2715,228 +3842,432 @@ class BatchDiscoveryService:
             csr_method = 'not_found'
             logs.append(f"No authentic CSR portal verified for {comp_name}. 0 CSR projects will be saved.")
 
+        # Priority 6: Concurrent path probing for careers + CSR simultaneously (if still not found)
+        if not careers_url or not csr_url:
+            career_paths = ['/careers', '/jobs', '/work-with-us', '/join-us', '/join']
+            csr_paths = ['/csr', '/sustainability', '/corporate-social-responsibility', '/esg']
+
+            def _probe_path(url):
+                try:
+                    h, t, s = cls.fetch_page_content(url, 4)
+                    return h, t, s
+                except Exception:
+                    return '', '', 0
+
+            with _cf.ThreadPoolExecutor(max_workers=4) as _probe_ex:
+                career_futures = {
+                    _probe_ex.submit(_probe_path, f"{base_url}{p}"): p
+                    for p in career_paths if not careers_url
+                }
+                csr_futures = {
+                    _probe_ex.submit(_probe_path, f"{base_url}{p}"): p
+                    for p in csr_paths if not csr_url
+                }
+                for fut, path in career_futures.items():
+                    try:
+                        h, t, s = fut.result(timeout=6)
+                        if s == 200 and len(t) > 150 and not careers_url:
+                            careers_url = f"{base_url}{path}"
+                            careers_method = 'concurrent_path_probe'
+                            logs.append(f"Discovered careers portal via concurrent path probe: {careers_url}")
+                            break
+                    except Exception:
+                        pass
+                for fut, path in csr_futures.items():
+                    try:
+                        h, t, s = fut.result(timeout=6)
+                        if s == 200 and len(t) > 150 and not csr_url:
+                            csr_url = f"{base_url}{path}"
+                            csr_method = 'concurrent_path_probe'
+                            logs.append(f"Discovered CSR portal via concurrent path probe: {csr_url}")
+                            break
+                    except Exception:
+                        pass
+
+        _careers_discovery_ms = (time.monotonic() - _t_careers_start) * 1000
+
         company.careers_url = careers_url or None
         company.csr_portal_url = csr_url or None
         company.sustainability_url = csr_url or None
         company.save(update_fields=['careers_url', 'csr_portal_url', 'sustainability_url'])
 
-        # STAGE 4 & 6: CRAWL CAREERS & HARD VALIDATION GATE FOR JOBS
-        discovered_jobs = []
-        if options.get('extract_jobs', True) and careers_url:
-            # FAST-PATH: If this is an enterprise with a dedicated API/ATS adapter (Amazon, Microsoft, Google, Samsung, Pfizer, HCL, JPMC, Reliance, TCS, Titan, etc.)
-            # run discovery immediately on the verified portal URL without slow multi-hop hopping!
-            is_fast_enterprise = any(
-                cls._matches_enterprise_key(k, comp_lower, company.official_domain or official_domain)
-                for k in (
-                    'amazon', 'microsoft', 'google', 'samsung', 'pfizer', 'hcl', 'jpmorgan', 'jpmc',
-                    'reliance', 'ril', 'tcs', 'tata consultancy', 'maruti', 'adobe', 'titan'
-                )
-            )
-            if is_fast_enterprise:
-                logs.append(f"Engaging high-speed enterprise recruitment pipeline: {careers_url}")
-                job_html, job_text, job_status = cls.fetch_page_content(careers_url, timeout=6)
-                discovered_jobs = cls.discover_all_real_jobs(company, careers_url, job_html, job_text, sector_val, logs)
-            else:
+
+# STAGE 4-8: CONCURRENT JOB / CSR / REPORT TRACKS
+        # Jobs and CSR are extracted independently and each track is persisted
+        # as soon as it completes.  Nothing is deleted: an incomplete crawl can
+        # never wipe previously verified records.
+        _t_job_start = time.monotonic()
+        _t_csr_start = time.monotonic()
+        _t_concurrent_start = time.monotonic()
+
+        job_state: Dict[str, Any] = {'candidates': [], 'status': 'SKIPPED', 'error': '', 'ms': 0.0}
+        csr_state: Dict[str, Any] = {'candidates': [], 'status': 'SKIPPED', 'error': '', 'ms': 0.0, 'html': '', 'text': '', 'url': csr_url}
+        report_state: Dict[str, Any] = {'links': [], 'docs': [], 'status': 'SKIPPED', 'error': '', 'ms': 0.0}
+        validated_jobs: List[Dict[str, Any]] = []
+        validated_csr: List[Dict[str, Any]] = []
+        report_rows: List[Dict[str, Any]] = []
+        db_jobs: List[Dict[str, Any]] = []
+        db_csr: List[Dict[str, Any]] = []
+        first_job_ms: int = 0
+        first_csr_ms: int = 0
+        http_failures = 0
+
+        def _serialize_db_jobs() -> List[Dict[str, Any]]:
+            rows = list(company.jobs.all().order_by('job_row_id').values(
+                'job_id', 'external_job_id', 'job_title', 'department', 'location',
+                'work_mode', 'experience', 'salary', 'employment_type', 'ats_platform',
+                'application_url', 'source_url', 'confidence', 'evidence_text',
+                'job_description', 'skills', 'posted_date',
+            ))
+            serialized = []
+            for rj in rows:
+                serialized.append({
+                    'job_id': rj['job_id'],
+                    'job_title': rj['job_title'],
+                    'department': rj['department'],
+                    'location': rj['location'],
+                    'work_mode': rj['work_mode'],
+                    'experience': rj['experience'],
+                    'salary_range': rj['salary'],
+                    'employment_type': rj.get('employment_type') or '',
+                    'ats_platform': rj.get('ats_platform') or '',
+                    'application_url': rj['application_url'],
+                    'source_url': rj.get('source_url') or rj['application_url'],
+                    'requisition_id': rj['external_job_id'],
+                    'confidence': rj['confidence'],
+                    'evidence_text': rj['evidence_text'],
+                    'description': rj.get('job_description') or '',
+                    'skills': rj.get('skills') or '',
+                    'posting_date': rj.get('posted_date') or '',
+                })
+            return serialized
+
+        def _serialize_db_csr() -> List[Dict[str, Any]]:
+            rows = list(company.csr_projects.all().order_by('csr_id').values(
+                'csr_id', 'project_name', 'category', 'state', 'geographic_location',
+                'budget', 'description', 'source_url', 'canonical_url', 'confidence',
+                'evidence_text', 'raw_metadata',
+            ))
+            serialized = []
+            for rc in rows:
+                meta = rc.get('raw_metadata') if isinstance(rc.get('raw_metadata'), dict) else {}
+                serialized.append({
+                    'project_id': str(rc['csr_id']),
+                    'project_name': rc['project_name'],
+                    'category': rc['category'],
+                    'state': rc['state'],
+                    'geographic_location': rc['geographic_location'],
+                    'district': rc['geographic_location'],
+                    'budget': rc['budget'],
+                    'description': rc['description'],
+                    'summary': meta.get('ai_summary') or rc['description'] or '',
+                    'source_url': rc['source_url'],
+                    'canonical_url': rc['canonical_url'],
+                    'confidence': rc['confidence'],
+                    'evidence_text': rc['evidence_text'],
+                    'verbatim_quote': rc['evidence_text'],
+                    'beneficiaries': meta.get('beneficiaries') or '',
+                    'implementing_partner': meta.get('implementing_partner') or '',
+                    'financial_year': meta.get('financial_year') or '',
+                    'schedule_vii': meta.get('schedule_vii') or '',
+                    'expenditure': meta.get('expenditure') or rc.get('budget') or '',
+                })
+            return serialized
+
+        def _job_worker() -> None:
+            started = time.monotonic()
+            try:
+                if not (options.get('extract_jobs', True) and careers_url):
+                    job_state['status'] = 'SKIPPED'
+                    return
+                job_state['status'] = 'RUNNING'
                 logs.append(f"Probing live careers portal: {careers_url}")
-                deep_careers_url, job_html, job_text, job_status = cls.crawl_deep_portal_chain(careers_url, target_type='jobs', max_hops=2, logs=logs)
-                discovered_jobs = cls.discover_all_real_jobs(company, deep_careers_url or careers_url, job_html, job_text, sector_val, logs)
-            
-            # Enterprise registry fallback if user-supplied landing page yielded no direct vacancies
-            if not discovered_jobs:
-                reg_cand = None
-                for k, reg_p in ENTERPRISE_PORTAL_REGISTRY.items():
-                    if cls._matches_enterprise_key(k, comp_lower, company.official_domain or official_domain):
-                        reg_cand = reg_p
-                        break
-                if reg_cand and reg_cand.rstrip('/') != careers_url.rstrip('/'):
-                    logs.append(f"Engaging dedicated enterprise vacancy registry: {reg_cand}")
-                    fb_url, fb_html, fb_text, fb_stat = cls.crawl_deep_portal_chain(reg_cand, target_type='jobs', max_hops=2, logs=logs)
-                    discovered_jobs = cls.discover_all_real_jobs(company, fb_url or reg_cand, fb_html, fb_text, sector_val, logs)
+                deep_url, job_html, job_text, job_status = cls.crawl_deep_portal_chain(
+                    careers_url, target_type='jobs', max_hops=2, logs=logs,
+                )
+                if not job_html:
+                    job_html, job_text, job_status = cls.fetch_page_content(deep_url or careers_url, timeout=6)
+                candidates = cls.discover_all_real_jobs(
+                    company, deep_url or careers_url, job_html, job_text, sector_val, logs,
+                )
+                if not candidates:
+                    reg_cand = None
+                    for k, reg_p in ENTERPRISE_PORTAL_REGISTRY.items():
+                        if cls._matches_enterprise_key(k, comp_lower, company.official_domain or official_domain):
+                            reg_cand = reg_p
+                            break
+                    if reg_cand and reg_cand.rstrip('/') != (careers_url or '').rstrip('/'):
+                        logs.append(f"Engaging dedicated enterprise vacancy registry: {reg_cand}")
+                        fb_url, fb_html, fb_text, _fb_stat = cls.crawl_deep_portal_chain(
+                            reg_cand, target_type='jobs', max_hops=1, logs=logs,
+                        )
+                        candidates = cls.discover_all_real_jobs(
+                            company, fb_url or reg_cand, fb_html, fb_text, sector_val, logs,
+                        )
+                job_state['candidates'] = candidates or []
+                job_state['status'] = 'COMPLETED'
+            except Exception as exc:
+                job_state['status'] = 'FAILED'
+                job_state['error'] = str(exc)[:240]
+                logs.append(f"Job track error (non-fatal, CSR continues): {str(exc)[:140]}")
+            finally:
+                job_state['ms'] = (time.monotonic() - started) * 1000
+                close_old_connections()
 
-        # STAGE 8: DEDUPLICATE & PURGE OLD BEFORE INSERT
-        company.jobs.all().delete()
+        def _csr_worker() -> None:
+            started = time.monotonic()
+            try:
+                if not (options.get('extract_csr', True) and csr_url):
+                    csr_state['status'] = 'SKIPPED'
+                    return
+                csr_state['status'] = 'RUNNING'
+                logs.append(f"Probing live CSR portal: {csr_url}")
+                deep_csr_url, csr_html, csr_text, _csr_status = cls.crawl_deep_portal_chain(
+                    csr_url, target_type='csr', max_hops=2, logs=logs,
+                )
+                csr_state['url'] = deep_csr_url or csr_url
+                csr_state['html'] = csr_html or ''
+                csr_state['text'] = csr_text or ''
+                candidates = cls.discover_all_real_csr(
+                    company, csr_state['url'], csr_html, csr_text, sector_val, logs,
+                )
+                if not candidates:
+                    csr_cand = None
+                    for k, reg_c in ENTERPRISE_CSR_REGISTRY.items():
+                        if cls._matches_enterprise_key(k, comp_lower, company.official_domain or official_domain):
+                            csr_cand = reg_c
+                            break
+                    if csr_cand and csr_cand.rstrip('/') != (csr_url or '').rstrip('/'):
+                        logs.append(f"Engaging dedicated enterprise CSR registry: {csr_cand}")
+                        fb_csr_url, fb_csr_html, fb_csr_text, _fb_stat = cls.crawl_deep_portal_chain(
+                            csr_cand, target_type='csr', max_hops=1, logs=logs,
+                        )
+                        if fb_csr_text:
+                            csr_state['text'] = fb_csr_text
+                            csr_state['html'] = fb_csr_html or csr_state['html']
+                            csr_state['url'] = fb_csr_url or csr_cand
+                        candidates = cls.discover_all_real_csr(
+                            company, fb_csr_url or csr_cand, fb_csr_html, fb_csr_text, sector_val, logs,
+                        )
+                csr_state['candidates'] = candidates or []
+                csr_state['status'] = 'COMPLETED'
+            except Exception as exc:
+                csr_state['status'] = 'FAILED'
+                csr_state['error'] = str(exc)[:240]
+                logs.append(f"CSR track error (non-fatal, jobs continue): {str(exc)[:140]}")
+            finally:
+                csr_state['ms'] = (time.monotonic() - started) * 1000
+                close_old_connections()
 
-        validated_jobs = []
-        seen_urls = set()
-        seen_job_keys = set()
+        def _report_worker() -> None:
+            started = time.monotonic()
+            try:
+                if not options.get('extract_reports', True):
+                    report_state['status'] = 'SKIPPED'
+                    return
+                report_state['status'] = 'RUNNING'
+                links = cls._discover_report_links(home_html, final_website)
+                for sitemap_report_url in (sitemap_targets.get('reports') or [])[:6]:
+                    if not _is_report_document_url(sitemap_report_url):
+                        continue
+                    links.append({
+                        'url': sitemap_report_url,
+                        'title': _humanize_report_title(sitemap_report_url)[:180],
+                        'report_type': cls._classify_report(sitemap_report_url, sitemap_report_url),
+                    })
+                deduped = {}
+                for item in links:
+                    key = (item.get('url') or '').rstrip('/').lower()
+                    if key and key not in deduped:
+                        deduped[key] = item
+                report_state['links'] = list(deduped.values())[:6]
+                docs = []
+                for item in report_state['links'][:4]:
+                    url = item.get('url') or ''
+                    try:
+                        if url.lower().split('?')[0].endswith('.pdf'):
+                            text = cls.extract_pdf_text_from_url(url, max_pages=8, timeout=10)
+                        else:
+                            _rh, text, _rs = cls.fetch_page_content(url, timeout=6)
+                    except Exception:
+                        text = ''
+                    if text and len(text) > 200:
+                        docs.append({
+                            'url': url,
+                            'title': item.get('title') or '',
+                            'report_type': item.get('report_type') or cls._classify_report(item.get('title', ''), url),
+                            'text': text,
+                        })
+                    elif url:
+                        logs.append(f"Report document unavailable or empty: {url[:90]}")
+                report_state['docs'] = docs
+                report_state['status'] = 'COMPLETED'
+            except Exception as exc:
+                report_state['status'] = 'FAILED'
+                report_state['error'] = str(exc)[:240]
+                logs.append(f"Report track error (non-fatal): {str(exc)[:140]}")
+            finally:
+                report_state['ms'] = (time.monotonic() - started) * 1000
+                close_old_connections()
 
-        for cand in discovered_jobs:
-            is_valid, reason, validated_cand = cls.validate_job(cand, company, seen_urls, logs)
-            if is_valid:
-                req_id = (validated_cand.get('requisition_id') or '').strip()
-                t_norm = (validated_cand.get('job_title') or '').strip().lower()
-                loc_norm = (validated_cand.get('location') or '').strip().lower()
-                dedupe_key = req_id if req_id else (t_norm, loc_norm)
-                if dedupe_key in seen_job_keys:
-                    cls._record_dropped_candidate(company, 'JOB', validated_cand.get('job_title', ''), validated_cand.get('application_url', ''), 'DUPLICATE_RECORD', validated_cand)
-                    continue
-                seen_job_keys.add(dedupe_key)
-                validated_jobs.append(validated_cand)
-
-        for j in validated_jobs:
-            t = j['job_title']
-            job_slug = re.sub(r'[^a-zA-Z0-9]+', '', t).upper()[:8]
-            job_hash = hashlib.md5(f"{company.company_id}_{t}_{j['application_url']}".encode('utf-8')).hexdigest()[:6].upper()
-            job_uid = f"JOB_{company.company_id}_{job_slug}_{job_hash}"
-            evidence_h = hashlib.sha256(f"{company.company_id}_{t}_{j['application_url']}".encode('utf-8')).hexdigest()
-
-            Job.objects.create(
-                company=company,
-                job_id=job_uid,
-                external_job_id=j.get('requisition_id') or '',
-                job_title=t,
-                department=j.get('department') or 'Corporate',
-                location=j.get('location') or 'India',
-                work_mode=j.get('work_mode') or 'Full-Time',
-                experience=j.get('experience') or 'As specified on portal',
-                salary=j.get('salary_range') or 'Competitive',
-                salary_text=j.get('salary_range') or 'Competitive',
-                application_url=j['application_url'],
-                canonical_url=j['application_url'],
-                source_url=j['application_url'],
-                status='ACTIVE',
-                verification_status='PUBLISHED',
-                confidence=float(j.get('confidence') or 0.95),
-                retrieved_at=now,
-                first_seen_at=now,
-                last_seen_at=now,
-                evidence_text=j.get('verbatim_source_quote') or f"Verified opening on {j['application_url']}",
-                content_hash=evidence_h,
-                verification_reason="Validated authentic live HTTP 200 job opening from enterprise ATS"
+        def _consume_jobs() -> None:
+            nonlocal validated_jobs, db_jobs, first_job_ms
+            if job_state.get('status') == 'SKIPPED':
+                return
+            candidates = job_state.get('candidates') or []
+            validated_jobs, _saved_ids = cls._persist_job_candidates(
+                company, candidates, now, logs, seen_urls=set(),
             )
+            db_jobs = _serialize_db_jobs()
+            if db_jobs and not first_job_ms:
+                first_job_ms = int((time.monotonic() - _t_discovery_start) * 1000)
+            cls._publish_progress(options, {
+                'status': 'running',
+                'stage': 'Jobs validated & saved',
+                'company_name': comp_name,
+                'company_id': company.company_id,
+                'website_url': company.website_url,
+                'careers_url': careers_url or '',
+                'csr_url': csr_url or '',
+                'jobs': db_jobs,
+                'csr': db_csr,
+                'reports': report_rows,
+                'jobs_imported': len(db_jobs),
+                'csr_imported': len(db_csr),
+                'reports_count': len(report_rows),
+                'elapsed_ms': int((time.monotonic() - _t_discovery_start) * 1000),
+                'deep_enrichment': 'PENDING',
+            })
 
-        if len(validated_jobs) > 0:
-            logs.append(f"Successfully validated & saved {len(validated_jobs)} real job openings directly to database.")
-        elif careers_url:
-            logs.append(f"No jobs passed the hard validation gate. 0 jobs saved to database.")
-
-        # STAGE 7: CRAWL CSR & HARD VALIDATION GATE FOR CSR
-        discovered_csr = []
-        csr_html, csr_text = '', ''
-        if options.get('extract_csr', True) and csr_url:
-            logs.append(f"Probing live CSR portal: {csr_url}")
-            deep_csr_url, csr_html, csr_text, csr_status = cls.crawl_deep_portal_chain(csr_url, target_type='csr', max_hops=2, logs=logs)
-            discovered_csr = cls.discover_all_real_csr(company, deep_csr_url or csr_url, csr_html, csr_text, sector_val, logs)
-
-            # Enterprise CSR registry fallback if landing page lacked documented initiatives
-            if not discovered_csr:
-                csr_cand = None
-                for k, reg_c in ENTERPRISE_CSR_REGISTRY.items():
-                    if cls._matches_enterprise_key(k, comp_lower, company.official_domain or official_domain):
-                        csr_cand = reg_c
-                        break
-                if csr_cand and csr_cand.rstrip('/') != csr_url.rstrip('/'):
-                    logs.append(f"Engaging dedicated enterprise CSR registry: {csr_cand}")
-                    fb_csr_url, fb_csr_html, fb_csr_text, _ = cls.crawl_deep_portal_chain(csr_cand, target_type='csr', max_hops=2, logs=logs)
-                    discovered_csr = cls.discover_all_real_csr(company, fb_csr_url or csr_cand, fb_csr_html, fb_csr_text, sector_val, logs)
-                    if fb_csr_text:
-                        csr_text = fb_csr_text
-
-        company.csr_projects.all().delete()
-
-        validated_csr = []
-        seen_csr_keys = set()
-
-        for cand in discovered_csr:
-            is_valid, reason, validated_cand = cls.validate_csr(cand, company, csr_text, cand.get('raw_pdf_text', ''), logs)
-            if is_valid:
-                p_norm = (validated_cand.get('project_name') or '').strip().lower()
-                if p_norm in seen_csr_keys:
-                    cls._record_dropped_candidate(company, 'CSR', validated_cand.get('project_name', ''), validated_cand.get('source_url', ''), 'DUPLICATE_PROJECT', validated_cand)
-                    continue
-                seen_csr_keys.add(p_norm)
-                validated_csr.append(validated_cand)
-
-        for c in validated_csr:
-            p_name = c['project_name']
-            c_src = c.get('source_url') or csr_url
-            csr_evidence_h = hashlib.sha256(f"{company.company_id}_{p_name}_{c_src}".encode('utf-8')).hexdigest()
-
-            CSRProject.objects.create(
-                company=company,
-                project_name=p_name,
-                category=c.get('category') or 'Corporate Social Responsibility',
-                state=c.get('state') or 'Pan-India',
-                geographic_location=c.get('district') or c.get('state') or 'India',
-                budget=c.get('budget') or 'Section 135 Outlay',
-                description=c.get('description') or f"Official Section 135 initiative: {p_name}",
-                confidence=float(c.get('confidence') or 0.95),
-                status='ACTIVE',
-                source_url=c_src,
-                canonical_url=c_src,
-                verification_status='PUBLISHED',
-                retrieved_at=now,
-                first_seen_at=now,
-                last_seen_at=now,
-                evidence_text=c.get('verbatim_quote') or f"Verified Section 135 initiative: {p_name}",
-                content_hash=csr_evidence_h,
-                verification_reason="Validated statutory Section 135 initiative with verbatim quote"
+        def _consume_csr() -> None:
+            nonlocal validated_csr, db_csr, first_csr_ms
+            if csr_state.get('status') == 'SKIPPED':
+                return
+            candidates = csr_state.get('candidates') or []
+            validated_csr, _saved_ids = cls._persist_csr_candidates(
+                company, candidates, csr_state.get('text') or '', now, logs,
             )
+            db_csr = _serialize_db_csr()
+            if db_csr and not first_csr_ms:
+                first_csr_ms = int((time.monotonic() - _t_discovery_start) * 1000)
+            cls._publish_progress(options, {
+                'status': 'running',
+                'stage': 'CSR projects validated & saved',
+                'company_name': comp_name,
+                'company_id': company.company_id,
+                'website_url': company.website_url,
+                'careers_url': careers_url or '',
+                'csr_url': csr_url or '',
+                'jobs': db_jobs,
+                'csr': db_csr,
+                'reports': report_rows,
+                'jobs_imported': len(db_jobs),
+                'csr_imported': len(db_csr),
+                'reports_count': len(report_rows),
+                'elapsed_ms': int((time.monotonic() - _t_discovery_start) * 1000),
+                'deep_enrichment': 'PENDING',
+            })
 
-        if len(validated_csr) > 0:
-            logs.append(f"Successfully validated & saved {len(validated_csr)} Section 135 CSR projects directly to database.")
-        elif csr_url:
-            logs.append(f"No CSR projects passed the hard validation gate. 0 CSR projects saved to database.")
+        def _consume_reports() -> None:
+            nonlocal report_rows
+            if report_state.get('status') == 'SKIPPED':
+                return
+            report_rows = cls._persist_reports(company, report_state.get('docs') or [], now, logs)
+            cls._publish_progress(options, {
+                'status': 'running',
+                'stage': 'Reports analysed & saved',
+                'company_name': comp_name,
+                'company_id': company.company_id,
+                'website_url': company.website_url,
+                'careers_url': careers_url or '',
+                'csr_url': csr_url or '',
+                'jobs': db_jobs,
+                'csr': db_csr,
+                'reports': report_rows,
+                'jobs_imported': len(db_jobs),
+                'csr_imported': len(db_csr),
+                'reports_count': len(report_rows),
+                'elapsed_ms': int((time.monotonic() - _t_discovery_start) * 1000),
+                'deep_enrichment': 'PENDING',
+            })
 
-        # 5. Record Audit Trail
+        # Concurrent execution: each track writes independently.  SQLite test
+        # databases run sequentially to avoid in-memory DB/thread incompatibility.
+        _use_threads = bool(options.get('concurrent_tracks', True))
         try:
-            AuditTrail.objects.create(
-                record_type="Company",
-                record_id=str(company.company_id),
-                action="LIVE_WEB_AI_DISCOVERY",
-                user_role="AI Web Discovery Engine",
-                notes=f"Live Web AI discovery probe for {comp_name}: saved {len(validated_jobs)} verified jobs and {len(validated_csr)} verified CSR initiatives directly to database.",
-                timestamp=now.isoformat()
-            )
-        except Exception as e:
-            logger.warning(f"Failed to record audit trail: {e}")
+            from django.db import connection as _db_connection
+            if _db_connection.vendor == 'sqlite':
+                _use_threads = False
+        except Exception:
+            _use_threads = False
 
-        # STAGE 9: STRICT DATABASE == UI == EXPORT SYNCHRONIZATION
-        raw_db_jobs = list(company.jobs.all().order_by('job_row_id').values(
-            'job_id', 'external_job_id', 'job_title', 'department', 'location',
-            'work_mode', 'experience', 'salary', 'application_url',
-            'confidence', 'evidence_text'
-        ))
-        db_jobs = []
-        for rj in raw_db_jobs:
-            db_jobs.append({
-                'job_id': rj['job_id'],
-                'job_title': rj['job_title'],
-                'department': rj['department'],
-                'location': rj['location'],
-                'work_mode': rj['work_mode'],
-                'experience': rj['experience'],
-                'salary_range': rj['salary'],
-                'application_url': rj['application_url'],
-                'requisition_id': rj['external_job_id'],
-                'confidence': rj['confidence'],
-                'evidence_text': rj['evidence_text'],
-            })
+        if _use_threads:
+            executor = _cf.ThreadPoolExecutor(max_workers=3)
+            future_kinds = {}
+            if options.get('extract_jobs', True) and careers_url:
+                future_kinds[executor.submit(_job_worker)] = 'jobs'
+            if options.get('extract_csr', True) and csr_url:
+                future_kinds[executor.submit(_csr_worker)] = 'csr'
+            if options.get('extract_reports', True):
+                future_kinds[executor.submit(_report_worker)] = 'reports'
+            pending = set(future_kinds)
+            deadline = time.monotonic() + float(options.get('track_timeout_seconds') or 45)
+            while pending:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                done, pending = _cf.wait(
+                    pending, timeout=remaining, return_when=_cf.FIRST_COMPLETED,
+                )
+                for future in done:
+                    kind = future_kinds.get(future)
+                    try:
+                        if kind == 'jobs':
+                            _consume_jobs()
+                        elif kind == 'csr':
+                            _consume_csr()
+                        elif kind == 'reports':
+                            _consume_reports()
+                    except Exception as consume_err:
+                        logs.append(f"Persist phase error for {kind} track: {str(consume_err)[:140]}")
+            for stuck in pending:
+                kind = future_kinds.get(stuck, '')
+                logs.append(f"{kind.upper()} track exceeded the initial {int(options.get('track_timeout_seconds') or 45)}s budget; partial results kept, deep enrichment will continue.")
+                if kind == 'jobs':
+                    job_state['status'] = job_state.get('status') or 'TIMEOUT'
+                elif kind == 'csr':
+                    csr_state['status'] = csr_state.get('status') or 'TIMEOUT'
+                elif kind == 'reports':
+                    report_state['status'] = report_state.get('status') or 'TIMEOUT'
+            executor.shutdown(wait=False)
+        else:
+            _job_worker()
+            _consume_jobs()
+            _csr_worker()
+            _consume_csr()
+            _report_worker()
+            _consume_reports()
 
-        raw_db_csr = list(company.csr_projects.all().order_by('csr_id').values(
-            'csr_id', 'project_name', 'category', 'state', 'geographic_location',
-            'budget', 'description', 'source_url', 'canonical_url', 'confidence',
-            'evidence_text'
-        ))
-        db_csr = []
-        for rc in raw_db_csr:
-            db_csr.append({
-                'project_id': str(rc['csr_id']),
-                'project_name': rc['project_name'],
-                'category': rc['category'],
-                'state': rc['state'],
-                'geographic_location': rc['geographic_location'],
-                'district': rc['geographic_location'],
-                'budget': rc['budget'],
-                'description': rc['description'],
-                'source_url': rc['source_url'],
-                'canonical_url': rc['canonical_url'],
-                'confidence': rc['confidence'],
-                'evidence_text': rc['evidence_text'],
-                'verbatim_quote': rc['evidence_text'],
-            })
+        _job_extraction_ms = float(job_state.get('ms') or 0.0)
+        _csr_extraction_ms = float(csr_state.get('ms') or 0.0)
+        _total_discovery_ms = (time.monotonic() - _t_discovery_start) * 1000
+
+        # Final DB synchronisation (includes pre-existing records, which remain intact)
+        db_jobs = _serialize_db_jobs()
+        db_csr = _serialize_db_csr()
+        try:
+            db_reports = [cls._report_row(r) for r in company.csr_reports.all().order_by('-report_id')[:50]]
+        except Exception:
+            db_reports = report_rows
+
         jobs_dropped_cnt = DroppedCandidate.objects.filter(company=company, candidate_type='JOB').count()
         csr_dropped_cnt = DroppedCandidate.objects.filter(company=company, candidate_type='CSR').count()
+        _run_rejected = max(
+            0,
+            len(job_state.get('candidates') or []) + len(csr_state.get('candidates') or []) - (
+                len(validated_jobs) + len(validated_csr)
+            ),
+        )
 
         ai_trace = HybridAIExtractionService.end_trace()
         ai_summary = resolve_active_ai_summary(force_refresh=True)
@@ -2957,16 +4288,149 @@ class BatchDiscoveryService:
             if ev_model and ev_label not in models_used:
                 models_used.append(ev_label)
 
+        # Honest outcome classification: a failed fetch or failed AI call is
+        # never reported as a successful zero-result discovery.
+        home_ok = home_status in (200, 201, 301, 302, 307, 308) and bool(home_html)
+        track_failed = (
+            job_state.get('status') in ('FAILED', 'TIMEOUT')
+            or csr_state.get('status') in ('FAILED', 'TIMEOUT')
+            or report_state.get('status') in ('FAILED', 'TIMEOUT')
+        )
+        has_results = bool(db_jobs or db_csr or db_reports)
+
+        if has_results:
+            _outcome = 'PARTIAL_SUCCESS' if (track_failed or not home_ok) else 'SUCCESS_WITH_RESULTS'
+        elif not home_ok:
+            _outcome = 'FETCH_FAILED'
+        elif _run_rejected > 0:
+            _outcome = 'VALIDATION_REJECTED'
+        elif ai_invoked and not ai_succeeded:
+            _outcome = 'AI_PROVIDER_FAILED'
+        elif careers_url or csr_url:
+            _outcome = 'PARTIAL_SUCCESS' if track_failed else 'SUCCESS_NO_RESULTS'
+        else:
+            # No official careers/CSR destination could be verified, so a
+            # "confirmed zero" conclusion is not honest.
+            _outcome = 'PARTIAL_SUCCESS'
+
         if ai_invoked and ai_succeeded:
             runtime_label = ", ".join(models_used) if len(models_used) > 1 else (models_used[0] if models_used else f"{used_model} ({used_provider_display})")
             logs.append(f"AI Model Used: {runtime_label}")
         elif ai_invoked and not ai_succeeded:
             logs.append(
-                f"AI Model Status: Configured {ai_summary.get('badge_label', 'None')} failed during extraction; used deterministic verification only."
+                f"AI Model Status: Configured {ai_summary.get('badge_label', 'None')} failed during extraction; deterministic verification only."
             )
 
+        # Background deep enrichment starts only after the initial response is
+        # ready, never blocking the dashboard.
+        _deep_status = 'SKIPPED'
+        _skip_bg = False
+        try:
+            from django.db import connection as _bg_connection
+            if _bg_connection.vendor == 'sqlite':
+                _skip_bg = True
+        except Exception:
+            _skip_bg = True
+        if _skip_bg:
+            _deep_status = 'SKIPPED_TEST_DATABASE'
+        elif not options.get('deep_enrich', True):
+            _deep_status = 'SKIPPED_DISABLED'
+        else:
+            _deep_status = 'RUNNING'
+            try:
+                threading.Thread(
+                    target=cls._deep_enrich,
+                    args=(
+                        company.company_id,
+                        dict(options),
+                        sitemap_targets,
+                        [careers_url] if careers_url else [],
+                        [csr_url] if csr_url else [],
+                        [d.get('url') for d in (report_state.get('docs') or [])],
+                    ),
+                    daemon=True,
+                    name=f"deep-enrich-{company.company_id[:20]}",
+                ).start()
+            except Exception as bg_err:
+                _deep_status = 'FAILED_TO_START'
+                logs.append(f"Deep enrichment could not start: {str(bg_err)[:100]}")
+
+        _telemetry = {
+            'homepage_fetch_ms': int(max(0.0, homepage_fetch_ms or 0.0)),
+            'homepage_content_chars': len(home_text or ''),
+            'sitemap_urls_found': len(sitemap_urls),
+            'careers_discovery_ms': int(_careers_discovery_ms),
+            'csr_discovery_ms': int(max(0.0, (time.monotonic() - _t_csr_start) * 1000)) if csr_url else 0,
+            'portal_discovery_ms': int(_careers_discovery_ms),
+            'job_extraction_ms': int(_job_extraction_ms),
+            'csr_extraction_ms': int(_csr_extraction_ms),
+            'report_extraction_ms': int(float(report_state.get('ms') or 0.0)),
+            'total_ms': int(_total_discovery_ms),
+            'time_to_first_job_ms': first_job_ms,
+            'time_to_first_csr_ms': first_csr_ms,
+            'ai_calls': len(ai_trace),
+            'ai_succeeded': ai_succeeded,
+            'validation_accepted': len(validated_jobs) + len(validated_csr),
+            'validation_rejected': _run_rejected,
+            'jobs_saved': len(db_jobs),
+            'csr_projects_saved': len(db_csr),
+            'reports_saved': len(db_reports),
+            'http_failures': http_failures,
+            'candidate_jobs': len(job_state.get('candidates') or []),
+            'candidate_csr': len(csr_state.get('candidates') or []),
+            'outcome': _outcome,
+            'careers_method': careers_method,
+            'csr_method': csr_method,
+            'job_track_status': job_state.get('status'),
+            'csr_track_status': csr_state.get('status'),
+            'report_track_status': report_state.get('status'),
+            'job_track_error': job_state.get('error') or '',
+            'csr_track_error': csr_state.get('error') or '',
+            'deep_enrichment': _deep_status,
+            'deep_enrichment_ms': 0,
+        }
+
+        try:
+            AuditTrail.objects.create(
+                record_type="Company",
+                record_id=str(company.company_id),
+                action="LIVE_WEB_AI_DISCOVERY",
+                user_role="AI Web Discovery Engine",
+                notes=(
+                    f"Autonomous discovery for {comp_name}: {len(db_jobs)} verified jobs, "
+                    f"{len(db_csr)} CSR projects, {len(db_reports)} reports; outcome={_outcome}."
+                ),
+                timestamp=now.isoformat(),
+            )
+        except Exception as audit_err:
+            logger.warning(f"Failed to record audit trail: {audit_err}")
+
+        _final_payload = {
+            'status': 'completed',
+            'stage': 'Discovery complete',
+            'company_name': comp_name,
+            'company_id': company.company_id,
+            'is_new_company': is_new_company,
+            'sector': company.sector or 'Corporate Enterprise',
+            'headquarters': company.headquarters or 'India',
+            'website_url': company.website_url,
+            'careers_url': careers_url or '',
+            'csr_url': csr_url or '',
+            'jobs': db_jobs,
+            'csr': db_csr,
+            'reports': db_reports,
+            'jobs_imported': len(db_jobs),
+            'csr_imported': len(db_csr),
+            'reports_count': len(db_reports),
+            'outcome': _outcome,
+            'telemetry': _telemetry,
+            'logs': logs[-40:],
+            'deep_enrichment': _deep_status,
+        }
+        cls._publish_progress(options, _final_payload)
+
         return {
-            'status': 'success',
+            'status': 'success' if _outcome != 'FETCH_FAILED' else 'error',
             'is_new_company': is_new_company,
             'company_name': comp_name,
             'company_id': company.company_id,
@@ -2984,11 +4448,17 @@ class BatchDiscoveryService:
             'jobs_imported': len(db_jobs),
             'csr_discovered': len(db_csr),
             'csr_imported': len(db_csr),
+            'reports_count': len(db_reports),
+            'reports_imported': len(db_reports),
             'jobs_dropped': jobs_dropped_cnt,
             'csr_dropped': csr_dropped_cnt,
             'jobs': db_jobs,
             'csr': db_csr,
+            'reports': db_reports,
             'logs': logs,
+            'telemetry': _telemetry,
+            'outcome': _outcome,
+            'deep_enrichment': _deep_status,
             'ai_config': {
                 'provider_id': ai_summary.get('provider_id', ''),
                 'provider_display': ai_summary.get('provider_display', 'Not Configured'),
@@ -3005,4 +4475,3 @@ class BatchDiscoveryService:
                 'models_used': models_used,
             },
         }
-

@@ -10,6 +10,7 @@ from modules.admin_panel.views.company_views import (
     company_csr_create_view,
     company_csr_edit_view,
     company_csr_toggle_status_view,
+    company_delete_view,
 )
 from modules.website.views.company_api_views import company_fetch_live_api
 
@@ -35,4 +36,7 @@ urlpatterns = [
     path('<str:company_id>/csr/add/', company_csr_create_view, name='csr_create'),
     path('<str:company_id>/csr/<int:csr_id>/edit/', company_csr_edit_view, name='csr_edit'),
     path('<str:company_id>/csr/<int:csr_id>/toggle-status/', company_csr_toggle_status_view, name='csr_toggle_status'),
+
+    # Company Deletion
+    path('<str:company_id>/delete/', company_delete_view, name='delete'),
 ]

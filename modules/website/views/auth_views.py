@@ -170,7 +170,24 @@ def user_register_view(request):
                 # Initialize prototype wallet with zero balance
                 wallet = get_or_create_wallet(user)
 
-# User registers without auto-subscription; plan must be explicitly chosen on pricing page
+                # Automatically provision Community Free 14-day trial plan for newly registered users
+                free_plan = Plan.objects.filter(code='free', is_active=True).first()
+                if free_plan:
+                    from datetime import datetime, timezone, timedelta
+                    now_dt = datetime.now(timezone.utc)
+                    trial_days = getattr(free_plan, 'trial_days', 14) or 14
+                    trial_end = now_dt + timedelta(days=trial_days)
+                    Subscription.objects.create(
+                        tenant_id=f"user_{user.id}",
+                        user=user,
+                        plan_id='free',
+                        plan_record=free_plan,
+                        status='TRIALING',
+                        current_period_start=now_dt.isoformat(),
+                        current_period_end=trial_end.isoformat(),
+                        organization_name=user.organization_name,
+                        contact_email=user.email,
+                    )
 
             # Send welcome email asynchronously or safely
             try:

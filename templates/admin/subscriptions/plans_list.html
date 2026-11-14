@@ -158,7 +158,6 @@
                                     {% if p.is_active %}Disable{% else %}Enable{% endif %}
                                 </button>
                             </form>
-                            {% if p.code != "starter" %}
                             <form method="POST" action="{% url 'admin_subscriptions:plan_delete' p.code %}" style="display:inline; margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
                                 title: 'Delete Subscription Plan Specification',
                                 subtitle: 'Permanent deletion of this tier from the product catalog.',
@@ -182,7 +181,6 @@
                                     Delete
                                 </button>
                             </form>
-                            {% endif %}
                         </div>
                     </td>
                 </tr>

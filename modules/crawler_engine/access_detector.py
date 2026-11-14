@@ -92,15 +92,44 @@ def fetch_live_page(url: str, timeout: int = 25) -> dict:
             "error": None if (200 <= status_code < 300 and not is_login_wall) else (login_reason or f"HTTP {status_code} at {final_url}")
         }
     except Exception as exc:
-        return {
-            "ok": False,
-            "status_code": 0,
-            "final_url": url,
-            "html": "",
-            "access_status": "FETCH_ERROR",
-            "login_reason": None,
-            "error": str(exc)
-        }
+        # Fallback to urllib with unverified SSL context if curl_cffi encounters TLS/network transport errors
+        try:
+            import urllib.request
+            import ssl
+            ctx = ssl._create_unverified_context()
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0",
+                "Accept": DEFAULT_HEADERS["Accept"],
+            })
+            with urllib.request.urlopen(req, timeout=timeout, context=ctx) as u_resp:
+                html = u_resp.read().decode("utf-8", errors="ignore")
+                status_code = getattr(u_resp, "status", 200)
+                final_url = u_resp.geturl() or url
+
+                soup = BeautifulSoup(html, "lxml") if html else None
+                body_text = soup.get_text(" ", strip=True) if soup else ""
+                word_count = len(body_text.split())
+
+                is_ok = (200 <= status_code < 300)
+                return {
+                    "ok": is_ok,
+                    "status_code": status_code,
+                    "final_url": final_url,
+                    "html": html,
+                    "access_status": "PUBLIC_OK" if is_ok else f"HTTP_{status_code}",
+                    "login_reason": None,
+                    "error": None if is_ok else f"HTTP {status_code} at {final_url}",
+                }
+        except Exception as fb_exc:
+            return {
+                "ok": False,
+                "status_code": 0,
+                "final_url": url,
+                "html": "",
+                "access_status": "FETCH_ERROR",
+                "login_reason": None,
+                "error": f"Primary error: {exc}; Fallback error: {fb_exc}"
+            }
 
 
 def detect_login_wall(status_code: int, final_url: str, html: str) -> Tuple[bool, str]:

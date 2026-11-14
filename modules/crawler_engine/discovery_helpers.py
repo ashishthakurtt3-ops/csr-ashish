@@ -6,7 +6,8 @@ equivalence, and careers page content verification (Stage 1).
 """
 import re
 import json
-from urllib.parse import urlparse
+import urllib.parse
+from urllib.parse import urlparse, urljoin
 from typing import Optional, Tuple, List, Dict, Any
 from bs4 import BeautifulSoup
 
@@ -20,15 +21,44 @@ _KNOWN_TWO_PART_SUFFIXES = {
     "co.za", "co.jp", "com.sg", "com.my", "com.br"
 }
 
-STATIC_ASSET_EXTENSIONS = (
-    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
-    '.pdf', '.zip', '.tar', '.gz', '.css', '.js', '.mp4', '.mp3',
-    '.woff', '.woff2', '.ttf', '.eot', '.doc', '.docx', '.xls', '.xlsx'
+DOCUMENT_ASSET_EXTENSIONS = (
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'
 )
 
+STATIC_ASSET_EXTENSIONS = (
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
+    '.zip', '.tar', '.gz', '.css', '.js', '.mp4', '.mp3',
+    '.woff', '.woff2', '.ttf', '.eot'
+)
+
+def is_document_asset_url(url: Optional[str]) -> bool:
+    """
+    Checks if a URL points to a document asset (.pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx)
+    rather than static media/code or web pages.
+    Statutory Section 135 CSR reports and BRSR disclosures are frequently published as PDFs.
+    """
+    if not url:
+        return False
+    u_lower = str(url).lower().strip()
+    parsed = urlparse(u_lower)
+    path = parsed.path
+    for ext in DOCUMENT_ASSET_EXTENSIONS:
+        if path.endswith(ext) or u_lower.endswith(ext):
+            return True
+        if f"{ext}?" in u_lower or f"{ext}&" in u_lower or f"{ext}#" in u_lower:
+            return True
+    return False
+
 def is_static_asset_url(url: Optional[str]) -> bool:
+    """
+    Determines if a URL points to a non-content static asset (images, fonts, scripts, styles, archives).
+    Ensures that document assets (like PDFs, Word, Excel files) are NOT treated as static noise.
+    """
     if not url:
         return True
+    # Statutory Section 135 CSR reports and BRSR PDFs must never be dropped as static noise
+    if is_document_asset_url(url):
+        return False
     u_lower = str(url).lower().strip()
     parsed = urlparse(u_lower)
     path = parsed.path
@@ -36,7 +66,7 @@ def is_static_asset_url(url: Optional[str]) -> bool:
         return True
     if any(f"{ext}?" in u_lower for ext in STATIC_ASSET_EXTENSIONS):
         return True
-    if any(k in u_lower for k in ['/adobe/assets/', '/wp-content/uploads/', '/assets/images/', '/static/media/', '/banner/']):
+    if any(k in u_lower for k in ['/assets/images/', '/static/media/', '/banner/']):
         return True
     return False
 
@@ -191,6 +221,17 @@ def is_valid_job_title(title: Optional[str]) -> bool:
     if re.search(r'\b(would you like to cancel|cancel this interview|request additional|interview slots?|jobcategorylinks|saved jobs|can’t find|cant find|stay in the loop|launch your career|how we hire|everything at|find your team|our purpose|our values|our story|our history|our products|culture at|life at|inclusion and belonging|website feedback|partnership|feedback|disclaimer|copyright|all rights reserved)\b', t_lower):
         return False
 
+    # 8b. Reject call-to-action headings that mention roles but are not a job
+    # title, e.g. "Apply for Developer and Lead roles across the opportunities below:".
+    if re.match(
+        r'^(apply|register|join|submit|view|see|explore|discover|browse|search)\b'
+        r'.*\b(roles?|jobs?|positions?|openings?|opportunities|careers?|below)\b',
+        t_lower,
+    ):
+        return False
+    if re.search(r'\b(opportunities|roles|positions|openings|jobs)\s+below\b', t_lower):
+        return False
+
     # 9. Reject advertisement notices alone
     if re.match(r'^(advt|advertisement|notice)\.?\s*(\bno\.?|\b0\d|\b[0-9/]+)?$', t_lower):
         return False
@@ -241,7 +282,7 @@ CSR_PROGRAM_INDICATORS = {
     'colour academy', 'palliative care', 'vidya mandir', 'academy', 'institute', 'training', 'road safety',
     'skillsbuild', 'impact accelerator', 'call for code', 'ai for good', 'accelerator', 'philanthropies',
     'community impact', 'sustainability initiative', 'climate', 'net zero', 'grant', 'giving', 'stewardship',
-    'fellows', 'stem', 'digital literacy', 'green'
+    'fellows', 'stem', 'digital literacy', 'green', 'electrification', 'forestry', 'rainwater', 'harvesting', 'meal'
 }
 
 def is_valid_csr_project(name: Optional[str]) -> bool:
@@ -329,10 +370,12 @@ ENTERPRISE_PORTAL_REGISTRY = {
     'paytm': 'https://paytm.com/careers/',
     'razorpay': 'https://razorpay.com/jobs/',
     'hitachi energy': 'https://www.hitachienergy.com/careers/open-jobs',
-    'varun beverages': 'https://www.varunbeverages.com/careers'
+    'varun beverages': 'https://www.varunbeverages.com/careers',
+    'happiest minds': 'https://jobs.happiestminds.com/happiestminds/',
 }
 
 ENTERPRISE_CSR_REGISTRY = {
+    'happiest minds': 'https://www.happiestminds.com/investors/esg',
     'tata consultancy': 'https://www.tcs.com/corporate-social-responsibility',
     'tcs': 'https://www.tcs.com/corporate-social-responsibility',
     'infosys': 'https://www.infosys.org/',
@@ -375,26 +418,37 @@ ENTERPRISE_CSR_REGISTRY = {
     'hcltech': 'https://www.hcltech.com/sustainability'
 }
 
-def get_registrable_domain(url_or_host: str) -> str:
+def get_registrable_domain(url_or_host: Optional[str]) -> str:
     """
-    Extracts the registrable domain (eTLD+1) from a URL or hostname.
-    E.g. 'https://careers.tatamotors.com/jobs/1' -> 'tatamotors.com'
-    'https://tslhr.tatasteel.co.in/recruit/' -> 'tatasteel.co.in'
-    'https://sec.wd3.myworkdayjobs.com/Samsung_Careers' -> 'myworkdayjobs.com'
+    Extracts the base registrable domain (eTLD+1) from a host or URL.
+    Examples:
+      - 'careers.tatamotors.com' -> 'tatamotors.com'
+      - 'www.sbi.co.in' -> 'sbi.co.in'
+      - 'new.abb.com' -> 'abb.com'
+      - 'https://sec.wd3.myworkdayjobs.com/Samsung_Careers' -> 'myworkdayjobs.com'
     """
-    if not url_or_host:
+    cleaned = clean_text(url_or_host)
+    if not cleaned:
         return ""
-    if "://" in url_or_host:
-        host = urllib.parse.urlparse(url_or_host).netloc.lower()
+
+    if "://" in cleaned:
+        parsed = urlparse(cleaned)
+        host = (parsed.netloc or "").lower().split(":")[0].strip()
     else:
-        host = url_or_host.lower().split('/')[0]
-    host = host.split(':')[0].replace('www.', '').strip('.')
-    parts = host.split('.')
+        host = cleaned.lower().split("/")[0].split(":")[0].strip()
+
+    if host.startswith("www."):
+        host = host[4:]
+
+    parts = host.split(".")
     if len(parts) <= 2:
         return host
-    two_part_suffixes = {'co.in', 'com.au', 'co.uk', 'org.in', 'gov.in', 'ac.in', 'net.in', 'gen.in'}
-    if len(parts) >= 3 and f"{parts[-2]}.{parts[-1]}" in two_part_suffixes:
+
+    # Check two-part ccTLDs e.g. .co.in, .org.in, .co.uk
+    last_two = ".".join(parts[-2:])
+    if last_two in _KNOWN_TWO_PART_SUFFIXES and len(parts) >= 3:
         return ".".join(parts[-3:])
+
     return ".".join(parts[-2:])
 
 
@@ -402,6 +456,7 @@ ALLOWED_ATS_HOSTS = {
     'myworkdayjobs.com',
     'oraclecloud.com',
     'successfactors.com',
+    'successfactors.eu',
     'greenhouse.io',
     'lever.co',
     'smartrecruiters.com',
@@ -415,27 +470,119 @@ ALLOWED_ATS_HOSTS = {
     'peoplestrong.com',
     'phenompeople.com',
     'phenom.com',
+    'keka.com',
+    'zohorecruit.com',
+    'zohorecruit.in',
+    'freshteam.com',
+    'naukri.com',
+    'zwayam.com',
+    'jobs.happiestminds.com',
+    # Enterprise-specific ATS (synced from crawler.py ATS_DOMAINS)
+    'mahindracareers.com',
+    'tatamotorscareers.com',
+    # Additional common ATS platforms
+    'jobvite.com',
+    'brassring.com',
+    'kenexa.com',
+    'ultipro.com',
+    'paylocity.com',
+    'bamboohr.com',
+    'recruitee.com',
+    'teamtailor.com',
+    'careers.hirequest.com',
+    'hire.withgoogle.com',
+    'apply.workable.com',
+    'jobs.jobvite.com',
+}
+
+# 2- and 3-character enterprise roots
+SHORT_ENTERPRISE_ROOTS = {
+    'itc', 'tcs', 'ril', 'sbi', 'ibm', 'abb', 'pnb', 'hcl', 'ge', 'bp', 'ey'
+}
+
+# Approved corporate foundations and CSR initiative portals
+APPROVED_FOUNDATION_DOMAINS = {
+    'tatatrusts.org', 'reliancefoundation.org', 'azimpremjifoundation.org',
+    'infosysprize.org', 'infosys.org', 'infosysfoundation.org',
+    'adlsfoundation.org', 'adanifoundation.org', 'bhartifoundation.org',
+    'techmahindrafoundation.org', 'drreddysfoundation.org', 'ciplafoundation.org',
+    'bajajbeyond.com', 'itcportal.com', 'hclfoundation.org', 'wiprofoundation.org',
+    'sbifoundation.co.in', 'piramal.com', 'jsw.in', 'vedantafoundation.org',
+    'lntfoundation.org', 'tatasteel.com'
+}
+
+ENTERPRISE_DOMAIN_ALIASES = {
+    'ril': {'reliance', 'reliancefoundation'},
+    'reliance': {'ril', 'reliancefoundation'},
+    'tcs': {'tata', 'tatatrusts'},
+    'tata': {'tcs', 'tatatrusts', 'tatamotors', 'tatasteel', 'tatapower'},
+    'sbi': {'statebank', 'sbifoundation'},
+    'pnb': {'punjabnationalbank', 'pnbfoundation'},
+    'hcl': {'hcltech', 'hclfoundation'},
+    'itc': {'itcportal'},
+    'infy': {'infosys', 'infosysfoundation', 'infosysprize'},
+    'infosys': {'infy', 'infosysfoundation', 'infosysprize'},
+    'wipro': {'azimpremji', 'azimpremjifoundation', 'wiprofoundation'},
+    'azimpremji': {'wipro', 'azimpremjifoundation', 'wiprofoundation'},
+    'adani': {'adanifoundation'},
+    'bharti': {'airtel', 'bhartifoundation'},
+    'airtel': {'bharti', 'bhartifoundation'},
+    'mahindra': {'techmahindra', 'techmahindrafoundation'},
+    'techmahindra': {'mahindra', 'techmahindrafoundation'},
 }
 
 
 def is_allowed_domain_or_ats(target_url: str, company_domain_or_url: str) -> bool:
     """
     Validates whether a URL belongs to the company's registrable domain, a known subdomain,
-    an approved third-party enterprise ATS host, or a common brand root domain match.
+    an approved third-party enterprise ATS host, an approved corporate foundation / CSR domain,
+    or a common brand root domain match (supporting 2- and 3-letter enterprise roots).
     """
     if not target_url:
         return False
     target_reg = get_registrable_domain(target_url)
     company_reg = get_registrable_domain(company_domain_or_url)
+    if not target_reg:
+        return False
     if company_reg and target_reg == company_reg:
         return True
-    if any(target_reg.endswith(ats) or ats in target_reg for ats in ALLOWED_ATS_HOSTS):
+    if any(target_reg == ats or target_reg.endswith("." + ats) for ats in ALLOWED_ATS_HOSTS):
         return True
+
+    # Check approved corporate foundation / CSR domains
+    if target_reg in APPROVED_FOUNDATION_DOMAINS:
+        if not company_reg:
+            return True
+        c_root = company_reg.split('.')[0].lower()
+        t_root = target_reg.split('.')[0].lower()
+        if c_root in t_root or t_root in c_root:
+            return True
+        aliases = ENTERPRISE_DOMAIN_ALIASES.get(c_root, set())
+        if any(alias in t_root for alias in aliases):
+            return True
+        return False
+
     if company_reg and target_reg:
         c_root = company_reg.split('.')[0].lower()
         t_root = target_reg.split('.')[0].lower()
-        if len(c_root) >= 4 and len(t_root) >= 4 and (c_root in t_root or t_root in c_root):
+
+        # Exact root match e.g. tata.com and tata.in
+        if c_root == t_root:
             return True
+
+        # Check enterprise domain aliases
+        if c_root in ENTERPRISE_DOMAIN_ALIASES:
+            if any(alias in t_root for alias in ENTERPRISE_DOMAIN_ALIASES[c_root]):
+                return True
+        if t_root in ENTERPRISE_DOMAIN_ALIASES:
+            if any(alias in c_root for alias in ENTERPRISE_DOMAIN_ALIASES[t_root]):
+                return True
+
+        # Strict default: unrelated registrable roots are rejected.  Group/subsidiary
+        # domains must be covered by ENTERPRISE_DOMAIN_ALIASES or the approved
+        # foundation list above rather than loose substring matching, which would
+        # accept lookalike domains such as "tcs-fake-jobs.com" for "tcs.com".
+
     return False
 
 
@@ -562,38 +709,6 @@ def normalize_url_for_comparison(url: Optional[str]) -> Tuple[str, str]:
     path = (parsed.path or "").strip().rstrip("/")
     return host, path
 
-
-def get_registrable_domain(url_or_host: Optional[str]) -> str:
-    """
-    Extracts the base registrable domain from a host or URL.
-    Examples:
-      - 'careers.tatamotors.com' -> 'tatamotors.com'
-      - 'www.sbi.co.in' -> 'sbi.co.in'
-      - 'new.abb.com' -> 'abb.com'
-    """
-    cleaned = clean_text(url_or_host)
-    if not cleaned:
-        return ""
-
-    if "://" in cleaned:
-        parsed = urlparse(cleaned)
-        host = (parsed.netloc or "").lower().split(":")[0].strip()
-    else:
-        host = cleaned.lower().split("/")[0].split(":")[0].strip()
-
-    if host.startswith("www."):
-        host = host[4:]
-
-    parts = host.split(".")
-    if len(parts) <= 2:
-        return host
-
-    # Check two-part ccTLDs e.g. .co.in
-    last_two = ".".join(parts[-2:])
-    if last_two in _KNOWN_TWO_PART_SUFFIXES and len(parts) >= 3:
-        return ".".join(parts[-3:])
-
-    return ".".join(parts[-2:])
 
 
 def is_real_deep_url(url: Optional[str], website_url: Optional[str]) -> bool:
@@ -726,3 +841,225 @@ def verify_careers_url_content(html: Optional[str], url: str = "") -> Tuple[bool
         confidence = 0.25
 
     return has_signals, round(confidence, 2), signals
+
+
+# ==============================================================================
+# FAST HOMEPAGE INTELLIGENCE (Stage 1 Pipeline Accelerator)
+# ==============================================================================
+
+_HOMEPAGE_INTEL_CACHE: Dict[str, Dict[str, Any]] = {}
+
+
+def fast_homepage_intelligence(url: str, session_cache: Optional[dict] = None) -> dict:
+    """
+    Extracts fast homepage and sitemap intelligence:
+    {canonical_url, domain, nav_links: list, footer_links: list, sitemaps: list, detected_ats: Optional[str], ats_url: Optional[str]}
+    Uses in-memory session and global caching, bounded concurrency, and TLS-impersonated fetch.
+    """
+    empty_result = {
+        "canonical_url": "",
+        "domain": "",
+        "nav_links": [],
+        "footer_links": [],
+        "sitemaps": [],
+        "detected_ats": None,
+        "ats_url": None,
+    }
+    if not url:
+        return empty_result
+
+    clean_u = url.strip()
+    if session_cache is not None and clean_u in session_cache:
+        return session_cache[clean_u]
+    if clean_u in _HOMEPAGE_INTEL_CACHE:
+        return _HOMEPAGE_INTEL_CACHE[clean_u]
+
+    fetch_url = clean_u if clean_u.startswith(("http://", "https://")) else f"https://{clean_u}"
+    html = ""
+    final_url = fetch_url
+
+    try:
+        from curl_cffi import requests as cffi_req
+        resp = cffi_req.get(
+            fetch_url,
+            impersonate="chrome124",
+            timeout=10,
+            follow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"}
+        )
+        if resp.status_code == 200:
+            final_url = str(resp.url)
+            html = resp.text or ""
+    except Exception:
+        try:
+            import urllib.request
+            import ssl
+            ctx = ssl._create_unverified_context()
+            req = urllib.request.Request(
+                fetch_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0"}
+            )
+            with urllib.request.urlopen(req, timeout=8, context=ctx) as u_resp:
+                html = u_resp.read().decode("utf-8", errors="ignore")
+                final_url = u_resp.geturl() or fetch_url
+        except Exception:
+            pass
+
+    domain = get_registrable_domain(final_url or fetch_url)
+    canonical_url = final_url
+
+    nav_links: List[Dict[str, str]] = []
+    footer_links: List[Dict[str, str]] = []
+    sitemaps: List[str] = []
+    detected_ats: Optional[str] = None
+    ats_url: Optional[str] = None
+
+    if html:
+        soup = BeautifulSoup(html, "lxml")
+
+        # Canonical tag
+        can_tag = soup.find("link", rel=lambda r: r and "canonical" in r.lower())
+        if can_tag and can_tag.get("href"):
+            href_can = can_tag["href"].strip()
+            if href_can.startswith("http"):
+                canonical_url = href_can
+            else:
+                canonical_url = urljoin(final_url, href_can)
+
+        # Nav links
+        seen_nav = set()
+        nav_containers = soup.find_all(["nav", "header"])
+        if not nav_containers:
+            nav_containers = soup.find_all(class_=re.compile(r'nav|menu|header', re.I))[:3]
+        for c in nav_containers:
+            for a in c.find_all("a", href=True):
+                href = a.get("href", "").strip()
+                text = a.get_text(" ", strip=True)
+                if not href or href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                    continue
+                full_href = urljoin(canonical_url, href)
+                if full_href not in seen_nav and not is_static_asset_url(full_href):
+                    seen_nav.add(full_href)
+                    nav_links.append({"text": text, "url": full_href})
+                    if len(nav_links) >= 50:
+                        break
+            if len(nav_links) >= 50:
+                break
+
+        # Footer links
+        seen_footer = set()
+        footer_containers = soup.find_all("footer")
+        if not footer_containers:
+            footer_containers = soup.find_all(class_=re.compile(r'footer|bottom', re.I))[:2]
+        for c in footer_containers:
+            for a in c.find_all("a", href=True):
+                href = a.get("href", "").strip()
+                text = a.get_text(" ", strip=True)
+                if not href or href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                    continue
+                full_href = urljoin(canonical_url, href)
+                if full_href not in seen_footer and not is_static_asset_url(full_href):
+                    seen_footer.add(full_href)
+                    footer_links.append({"text": text, "url": full_href})
+                    if len(footer_links) >= 50:
+                        break
+            if len(footer_links) >= 50:
+                break
+
+        # ATS detection on HTML and links
+        # 1. Workday
+        wd_match = re.search(r'https?://([a-zA-Z0-9_\-\.]+\.myworkdayjobs\.com/[^"\'<>\s]+)', html, re.I)
+        if wd_match:
+            detected_ats = "workday"
+            ats_url = wd_match.group(0).rstrip('"\')')
+        elif ".myworkdayjobs.com" in html:
+            detected_ats = "workday"
+            m = re.search(r'([a-zA-Z0-9_\-]+\.myworkdayjobs\.com)', html, re.I)
+            if m:
+                ats_url = f"https://{m.group(1)}"
+
+        # 2. Greenhouse
+        if not detected_ats:
+            gh_for = re.search(r'boards\.greenhouse\.io.*?[\?&]for=([a-zA-Z0-9_\-]+)', html, re.I)
+            if gh_for:
+                detected_ats = "greenhouse"
+                ats_url = f"https://boards.greenhouse.io/{gh_for.group(1)}"
+            else:
+                gh_match = re.search(r'https?://boards\.greenhouse\.io/([a-zA-Z0-9_\-]+)', html, re.I)
+                if gh_match and gh_match.group(1).lower() not in ('embed', 'js', 'api'):
+                    detected_ats = "greenhouse"
+                    ats_url = f"https://boards.greenhouse.io/{gh_match.group(1)}"
+
+        # 3. Lever
+        if not detected_ats:
+            lev_match = re.search(r'https?://jobs\.lever\.co/([a-zA-Z0-9_\-]+)', html, re.I)
+            if lev_match:
+                detected_ats = "lever"
+                ats_url = f"https://jobs.lever.co/{lev_match.group(1)}"
+
+        # 4. SmartRecruiters
+        if not detected_ats:
+            sr_match = re.search(r'https?://(?:careers|jobs|www)?\.smartrecruiters\.com/([a-zA-Z0-9_\-]+)', html, re.I)
+            if sr_match:
+                detected_ats = "smartrecruiters"
+                ats_url = sr_match.group(0)
+
+        # 5. SuccessFactors
+        if not detected_ats:
+            sf_match = re.search(r'https?://[a-zA-Z0-9_\-\.]*successfactors\.[a-z]+/[^"\'<>\s]+', html, re.I)
+            if sf_match:
+                detected_ats = "successfactors"
+                ats_url = sf_match.group(0).rstrip('"\')')
+
+        # 6. Darwinbox
+        if not detected_ats:
+            db_match = re.search(r'https?://([a-zA-Z0-9_\-]+)\.darwinbox\.(?:in|com)/?[^"\'<>\s]*', html, re.I)
+            if db_match:
+                detected_ats = "darwinbox"
+                ats_url = db_match.group(0).rstrip('"\')')
+
+    # Bounded concurrency sitemap discovery
+    parsed_base = urlparse(canonical_url or fetch_url)
+    if parsed_base.netloc:
+        base_root = f"{parsed_base.scheme}://{parsed_base.netloc}"
+        cand_sitemaps = [
+            f"{base_root}/sitemap.xml",
+            f"{base_root}/sitemap_index.xml",
+        ]
+
+        import concurrent.futures
+
+        def check_sm(sm_url: str) -> Optional[str]:
+            try:
+                from curl_cffi import requests as cffi_req
+                s_resp = cffi_req.get(sm_url, impersonate="chrome124", timeout=3)
+                if s_resp.status_code == 200 and len(s_resp.text or "") > 50:
+                    return sm_url
+            except Exception:
+                pass
+            return None
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [executor.submit(check_sm, sm) for sm in cand_sitemaps[:3]]
+            for f in concurrent.futures.as_completed(futures):
+                res = f.result()
+                if res and res not in sitemaps:
+                    sitemaps.append(res)
+
+    result = {
+        "canonical_url": canonical_url,
+        "domain": domain,
+        "nav_links": nav_links,
+        "footer_links": footer_links,
+        "sitemaps": sitemaps,
+        "detected_ats": detected_ats,
+        "ats_url": ats_url,
+    }
+
+    if session_cache is not None:
+        session_cache[clean_u] = result
+    if len(_HOMEPAGE_INTEL_CACHE) > 500:
+        _HOMEPAGE_INTEL_CACHE.clear()
+    _HOMEPAGE_INTEL_CACHE[clean_u] = result
+    return result
+

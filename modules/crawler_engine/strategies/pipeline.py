@@ -105,19 +105,35 @@ class StrategyPipeline:
 
         winning_strategy = "none"
         raw_extracted_jobs: List[Dict[str, Any]] = []
+        all_strategy_candidates: List[Dict[str, Any]] = []  # track for diagnostics
 
-        # 3. Cascade execution: stop when one yields results that pass validation
+        # 3. Cascade execution: stop when one yields viable results (has application_url/external_job_id)
         for strategy in ordered_strategies:
             try:
                 if strategy.detect(context):
-                    jobs = strategy.extract(context)
-                    if jobs:
-                        raw_extracted_jobs = jobs
-                        winning_strategy = strategy.name
-                        break
+                    candidates = strategy.extract(context)
+                    if not candidates:
+                        continue
+                    # Quick pre-screen: does at least 1 candidate have a non-empty application_url?
+                    viable = [c for c in candidates if c.get("application_url") or c.get("external_job_id")]
+                    if not viable:
+                        logger.debug(
+                            "Strategy %s yielded %d candidates but none had application_url/external_job_id for %s",
+                            strategy.name, len(candidates), company
+                        )
+                        all_strategy_candidates.extend(candidates)
+                        continue  # Try next strategy instead of stopping
+                    raw_extracted_jobs = viable
+                    winning_strategy = strategy.name
+                    break
             except Exception as exc:
                 logger.debug("Strategy %s failed for %s: %s", strategy.name, company, exc)
                 continue
+
+        # If viable candidates still empty, fall back to any candidates from all strategies
+        if not raw_extracted_jobs and all_strategy_candidates:
+            raw_extracted_jobs = all_strategy_candidates
+            winning_strategy = "fallback_all"
 
         # 4. If nothing works or 0 jobs found
         if not raw_extracted_jobs:

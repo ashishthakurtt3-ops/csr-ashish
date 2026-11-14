@@ -48,6 +48,15 @@
             <a href="{% url 'admin_companies:list' %}" class="btn-admin btn-admin-secondary" style="padding:8px 12px;">
                 &larr; Back to Directory
             </a>
+            <button type="button" class="btn-admin"
+                    style="padding:8px 14px; font-weight:700; background:#dc2626; border:1px solid #b91c1c; color:#fff; cursor:pointer;"
+                    data-delete-url="{% url 'admin_companies:delete' company.company_id %}"
+                    data-company-name="{{ company.company_name }}"
+                    data-company-id="{{ company.company_id }}"
+                    onclick="confirmCompanyDelete(this.dataset.deleteUrl, this.dataset.companyName, this.dataset.companyId)"
+                    title="Delete this company and all related records">
+                🗑️ Delete Company
+            </button>
         </div>
     </div>
 </div>
@@ -85,9 +94,20 @@
             <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-primary);">
                 Statutory Corporate Profile
             </h3>
-            <a href="{% url 'admin_companies:edit' company.company_id %}" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:3px 10px;">
-                Edit Profile
-            </a>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <a href="{% url 'admin_companies:edit' company.company_id %}" class="btn-admin btn-admin-secondary" style="font-size:11.5px; padding:3px 10px;">
+                    Edit Profile
+                </a>
+                <button type="button" class="btn-admin"
+                        style="font-size:11.5px; padding:3px 10px; background:#dc2626; border:1px solid #b91c1c; color:#fff; cursor:pointer;"
+                        data-delete-url="{% url 'admin_companies:delete' company.company_id %}"
+                        data-company-name="{{ company.company_name }}"
+                        data-company-id="{{ company.company_id }}"
+                        onclick="confirmCompanyDelete(this.dataset.deleteUrl, this.dataset.companyName, this.dataset.companyId)"
+                        title="Delete this company and all related records">
+                        🗑️ Delete
+                    </button>
+            </div>
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; font-size:13px;">
@@ -1088,4 +1108,6 @@ function openEditCsrModal(csrId, name, category, desc, location, state, budget, 
     document.getElementById('modal-edit-csr').style.display = 'flex';
 }
 </script>
+
+{% include "admin/components/company_delete_modal.html" %}
 {% endblock %}

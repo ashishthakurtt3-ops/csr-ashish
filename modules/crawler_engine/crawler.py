@@ -210,7 +210,7 @@ def try_fetch_lever_jobs(url: str) -> list:
                     title = (item.get("text") or "").strip()
                     if not title or GENERIC_BUTTON_PHRASES.match(title) or title.lower() in NAVBAR_BLACKLIST:
                         continue
-                    app_url = item.get("hostedUrl") or item.get("applyUrl") or f"https://jobs.lever.co/{token}/{item.get('id')}"
+                    app_url = item.get("applyUrl") or item.get("hostedUrl") or f"https://jobs.lever.co/{token}/{item.get('id')}"
                     cats = item.get("categories") or {}
                     loc = cats.get("location") or "India"
                     dept = cats.get("department") or cats.get("team") or "Corporate"
@@ -309,16 +309,40 @@ def try_fetch_greenhouse_jobs(url: str) -> list:
 def try_fetch_workday_json(careers_url: str) -> list:
     """
     Direct Workday JSON API Extractor.
+    Preserves tenant and site, detects locale, strips job paths, and avoids 'India' query filters.
     Matches URLs like https://<tenant>.wd3.myworkdayjobs.com/<en-US>/<site>
     """
     parsed = urlparse(careers_url)
-    if "myworkdayjobs.com" not in parsed.netloc.lower():
+    host = parsed.netloc.lower()
+    if "myworkdayjobs.com" not in host:
         return []
-    tenant = parsed.netloc.split(".")[0]
-    path_parts = [p for p in parsed.path.split("/") if p]
-    if not path_parts:
+
+    path_parts = [p for p in parsed.path.strip("/").split("/") if p]
+    locale = None
+    remaining = list(path_parts)
+    if remaining and re.match(r"^[a-z]{2}([-_][a-z]{2})?$", remaining[0], re.I):
+        locale = remaining.pop(0)
+
+    sub = host.split(".")[0]
+    is_generic = (sub.startswith("wd") and sub[2:].isdigit()) or sub == "myworkdayjobs"
+
+    if is_generic:
+        tenant = remaining.pop(0) if remaining else ""
+        site = remaining.pop(0) if remaining else "Careers"
+    else:
+        tenant = sub
+        if remaining:
+            if "job" in remaining:
+                j_idx = remaining.index("job")
+                site = remaining[j_idx - 1] if j_idx > 0 else "Careers"
+            else:
+                site = remaining[0]
+        else:
+            site = "Careers"
+
+    if not tenant:
         return []
-    site = path_parts[-1]
+
     api_url = f"{parsed.scheme}://{parsed.netloc}/wday/cxs/{tenant}/{site}/jobs"
     try:
         # Full pagination — no 25-job cap
@@ -347,11 +371,25 @@ def try_fetch_workday_json(careers_url: str) -> list:
                 ext_path = item.get("externalPath") or ""
                 if not title or not ext_path or GENERIC_BUTTON_PHRASES.match(title) or title.lower() in NAVBAR_BLACKLIST:
                     continue
-                job_url = f"{parsed.scheme}://{parsed.netloc}/{site}{ext_path}"
+                if locale:
+                    job_url = f"{parsed.scheme}://{parsed.netloc}/{locale}/{site}{ext_path}"
+                else:
+                    job_url = f"{parsed.scheme}://{parsed.netloc}/{site}{ext_path}"
+
+                # Extract external job ID from bulletFields or last segment
+                ext_id = None
+                bullet = item.get("bulletFields")
+                if bullet and isinstance(bullet, list) and bullet[0]:
+                    ext_id = str(bullet[0]).strip()
+                if not ext_id:
+                    ext_id = ext_path.strip("/").split("/")[-1]
+
                 jobs.append({
                     "title": title,
                     "location": item.get("locationsText") or "India",
                     "department": "Corporate",
+                    "application_url": job_url,
+                    "external_job_id": ext_id,
                     "apply_url": job_url,
                     "posted_on": item.get("postedOn") or "",
                     "verbatim_quote": f"{title} - {item.get('locationsText', 'Workday Portal')}",
@@ -368,6 +406,7 @@ def try_fetch_workday_json(careers_url: str) -> list:
             _time.sleep(0.15)
         return jobs
     except Exception:
+        return []
         pass
     return []
 
@@ -459,7 +498,7 @@ def try_fetch_successfactors_jobs(url: str) -> list:
     """
     SAP SuccessFactors / Career Site Builder (e.g. jobs.mahindracareers.com).
     Inspects search subpaths /search/ or query parameters to extract individual /job/ postings
-    with full pagination up to 40 jobs.
+    with full pagination up to 40 jobs, preserving multi-tenant query parameters like company=...
     """
     parsed = urlparse(url)
     is_sf = any(k in url.lower() for k in ["successfactors", "mahindracareers.com", "tatamotorscareers", "heromotocorp"])
@@ -470,8 +509,14 @@ def try_fetch_successfactors_jobs(url: str) -> list:
     jobs = []
     seen_urls = set()
 
+    from urllib.parse import parse_qsl, urlencode
+    orig_params = dict(parse_qsl(parsed.query))
+
     for startrow in (0, 25):
-        search_url = f"{base_portal}/search/?q=&startrow={startrow}"
+        params = dict(orig_params)
+        params["q"] = ""
+        params["startrow"] = startrow
+        search_url = f"{base_portal}/search/?{urlencode(params)}"
         try:
             resp = cffi_requests.get(search_url, impersonate="chrome124", timeout=20)
             if resp.status_code != 200 and startrow == 0:
@@ -504,6 +549,7 @@ def try_fetch_successfactors_jobs(url: str) -> list:
                             "title": title,
                             "location": loc,
                             "department": "Corporate Openings",
+                            "application_url": build_highlight_url(full_href, title),
                             "apply_url": build_highlight_url(full_href, title),
                             "verbatim_quote": f"Verified SuccessFactors Opening: {title} ({loc})",
                             "verification_status": "PUBLISHED"
@@ -554,9 +600,109 @@ def try_fetch_oracle_jobs(url: str) -> list:
     return []
 
 
+def dispatch_ats_direct(ats_platform: str, ats_url: str, tenant: Optional[str] = None) -> list:
+    """
+    Unified high-speed direct REST API extraction interface for enterprise ATS platforms.
+    Prioritizes direct REST endpoints before any browser rendering is attempted.
+
+    Returns list of dicts with normalized keys:
+    {
+        "external_job_id": Optional[str],
+        "title": str,
+        "application_url": str,
+        "source_url": str,
+        "location": str,
+        "department": str,
+        # backward-compatibility fields:
+        "apply_url": str,
+        "verbatim_quote": str,
+        "verification_status": str,
+    }
+    """
+    if not ats_url and not tenant:
+        return []
+
+    plat = (ats_platform or "").strip().lower()
+    url = (ats_url or "").strip()
+
+    raw_jobs = []
+    if "lever" in plat or "lever.co" in url:
+        raw_jobs = try_fetch_lever_jobs(url)
+    elif "greenhouse" in plat or "greenhouse.io" in url or (tenant and "greenhouse" in plat):
+        target = url
+        if not target and tenant:
+            target = f"https://boards.greenhouse.io/{tenant}"
+        raw_jobs = try_fetch_greenhouse_jobs(target)
+    elif "workday" in plat or "myworkdayjobs" in url:
+        raw_jobs = try_fetch_workday_json(url)
+    elif "smartrecruiters" in plat or "smartrecruiters.com" in url:
+        raw_jobs = try_fetch_smartrecruiters_jobs(url)
+    elif "darwinbox" in plat or "darwinbox" in url:
+        raw_jobs = try_fetch_darwinbox_jobs(url)
+    elif "successfactors" in plat or any(k in url for k in ("successfactors", "mahindracareers", "tatamotorscareers", "heromotocorp")):
+        raw_jobs = try_fetch_successfactors_jobs(url)
+    elif "oracle" in plat or "taleo" in plat or "oraclecloud" in url or "taleo.net" in url:
+        raw_jobs = try_fetch_oracle_jobs(url)
+    else:
+        raw_jobs = try_dispatch_specialized_ats(url)
+
+    normalized = []
+    for j in raw_jobs:
+        title = j.get("title") or ""
+        app_url = j.get("application_url") or j.get("apply_url") or url
+        jid = j.get("external_job_id") or j.get("job_id") or ""
+        loc = j.get("location") or "India"
+        dept = j.get("department") or "Corporate"
+
+        normalized.append({
+            "external_job_id": str(jid) if jid else None,
+            "title": title,
+            "application_url": app_url,
+            "source_url": url,
+            "location": loc,
+            "department": dept,
+            "apply_url": app_url,
+            "verbatim_quote": j.get("verbatim_quote") or f"{title} - {loc}",
+            "verification_status": j.get("verification_status") or "PUBLISHED",
+        })
+
+    return normalized
+
+
+def try_fetch_zwayam_jobs(url: str) -> list:
+    """
+    Zwayam ATS / Career Site parser (*.zwayam.com, jobs.happiestminds.com, careers.happiestminds.com).
+    Directly queries Zwayam search API.
+    """
+    lower = url.lower()
+    if not ("zwayam" in lower or "happiestminds" in lower):
+        return []
+
+    try:
+        from modules.crawler_engine.adapters.zwayam import ZwayamAdapter
+        adapter = ZwayamAdapter()
+        raw_records = adapter.extract_jobs("comp_temp", url)
+        jobs = []
+        for r in raw_records:
+            jobs.append({
+                "title": r.job_title,
+                "location": r.location_raw or "India",
+                "department": r.department or "Technology Services",
+                "apply_url": r.application_url,
+                "application_url": r.application_url,
+                "verbatim_quote": r.source_evidence.get("raw_source") or f"{r.job_title} - {r.location_raw}",
+                "verification_status": "PUBLISHED"
+            })
+        return jobs
+    except Exception:
+        return []
+
+
 def try_dispatch_specialized_ats(url: str) -> list:
     """Dispatches URL to any specialized ATS API extractor."""
     lower = url.lower()
+    if "zwayam" in lower or "happiestminds" in lower:
+        return try_fetch_zwayam_jobs(url)
     if "lever.co" in lower:
         return try_fetch_lever_jobs(url)
     if "greenhouse.io" in lower:

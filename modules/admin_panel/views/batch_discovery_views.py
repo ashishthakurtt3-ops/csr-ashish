@@ -28,7 +28,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-from modules.admin_panel.models import Company, Job, CSRProject
+from modules.admin_panel.models import Company, Job, CSRProject, CSRReport
 from modules.admin_panel.services.batch_discovery_service import BatchDiscoveryService
 from modules.admin_panel.services.ai_config_service import get_active_ai_config, resolve_active_ai_summary
 
@@ -122,6 +122,7 @@ def ai_status_api(request):
         'ai_is_ready': ai_summary.get('is_ready', False),
         'ai_is_configured': ai_summary.get('is_configured', False),
         'ai_badge_label': ai_summary.get('badge_label', 'No AI Model Configured'),
+        'badge_label': ai_summary.get('badge_label', 'No AI Model Configured'),
         'ai_using_failover': ai_summary.get('using_failover', False),
         'ai_fallback_enabled': ai_summary.get('fallback_enabled', False),
         'ai_fallback_provider': ai_summary.get('fallback_provider', ''),
@@ -192,6 +193,7 @@ def parse_file_api(request):
 def process_company_api(request):
     """Processes a single company task from the client queue: crawls website, invokes AI, auto-imports to DB."""
     company_task = None
+    options = {}
     try:
         data = json.loads(request.body.decode('utf-8'))
         if not isinstance(data, dict):
@@ -233,9 +235,31 @@ def process_company_api(request):
 
         company_task = sanitized_task
         result = BatchDiscoveryService.process_single_company(sanitized_task, options)
+
+        # Cache telemetry keyed by the live progress token (and legacy session id)
+        if result.get('telemetry'):
+            from django.core.cache import cache
+            session_id = options.get('progress_token') or data.get('session_id') or 'latest'
+            cache.set(f'discovery_telemetry_{session_id}', result['telemetry'], timeout=3600)
+
         return JsonResponse(result)
     except Exception as e:
         logger.exception("Company processing failed")
+        try:
+            from django.core.cache import cache
+            token = options.get('progress_token') or 'latest'
+            cache.set(
+                f'discovery_telemetry_{token}',
+                {
+                    'status': 'failed',
+                    'stage': 'Discovery failed',
+                    'message': str(e)[:300],
+                    'outcome': 'FETCH_FAILED',
+                },
+                timeout=3600,
+            )
+        except Exception:
+            pass
         return JsonResponse({
             'status': 'error',
             'company_name': (company_task.get('company_name') if company_task else 'Unknown'),
@@ -291,4 +315,109 @@ def download_sample_template_view(request):
         resp = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
         resp['Content-Disposition'] = 'attachment; filename="company_discovery_sample_template.csv"'
         return resp
+
+
+@require_http_methods(['GET'])
+def discovery_status_api(request):
+    """
+    Polling endpoint: returns cached telemetry for a discovery session.
+    Frontend passes ?session_id=<uuid> (or omits it to get the latest).
+    Returns 200 with telemetry dict even if no data yet (returns empty dict).
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'unauthenticated'}, status=401)
+    from django.core.cache import cache
+    session_id = request.GET.get('session_id', 'latest')
+    telemetry = cache.get(f'discovery_telemetry_{session_id}', {})
+    return JsonResponse({'status': 'ok', 'session_id': session_id, 'telemetry': telemetry})
+
+
+@require_http_methods(['GET'])
+@json_api_view
+def recent_dossiers_api(request):
+    """
+    Returns the most recently discovered or refreshed company dossiers from the database
+    so the AI Bulk Discovery dashboard can seamlessly hydrate/restore on page reload or
+    when navigating back from another admin tab.
+    """
+    recent_companies = Company.objects.filter(
+        last_crawled__isnull=False
+    ).order_by('-last_crawled')[:15]
+
+    if not recent_companies.exists():
+        recent_companies = Company.objects.all().order_by('-company_id')[:15]
+
+    dossiers = []
+    total_jobs_count = 0
+    total_csr_count = 0
+
+    for c in recent_companies:
+        jobs = list(Job.objects.filter(company=c, status='ACTIVE').values(
+            'job_title', 'location', 'department', 'employment_type', 'application_url', 'source_url'
+        )[:20])
+        csrs = list(CSRProject.objects.filter(company=c).values(
+            'project_name', 'category', 'budget', 'state', 'geographic_location', 'source_url', 'description'
+        )[:20])
+        reports = list(CSRReport.objects.filter(company=c).order_by('-report_id').values(
+            'report_id', 'title', 'report_type', 'financial_year', 'source_url', 'summary',
+            'topics', 'initiatives', 'key_findings', 'expenditure', 'beneficiaries',
+            'geographic_coverage', 'implementing_partners', 'evidence_text',
+        )[:20])
+
+        serialized_reports = [{
+            'report_id': str(r['report_id']),
+            'title': r['title'],
+            'report_type': r['report_type'],
+            'financial_year': r['financial_year'] or '',
+            'source_url': r['source_url'],
+            'summary': r['summary'] or '',
+            'topics': r['topics'] or [],
+            'initiatives': r['initiatives'] or [],
+            'key_findings': r['key_findings'] or [],
+            'expenditure': r['expenditure'] or '',
+            'beneficiaries': r['beneficiaries'] or '',
+            'geographic_coverage': r['geographic_coverage'] or '',
+            'implementing_partners': r['implementing_partners'] or '',
+            'evidence_text': r['evidence_text'] or '',
+        } for r in reports]
+
+        total_jobs_count += len(jobs)
+        total_csr_count += len(csrs)
+
+        dossiers.append({
+            'cardId': f'dossier-db-{c.company_id}',
+            'company_name': c.company_name,
+            'company_id': c.company_id,
+            'is_new': False,
+            'sector': c.sector or 'Corporate Enterprise',
+            'headquarters': c.headquarters or 'India',
+            'nse_symbol': c.nse_symbol or '',
+            'website_url': c.website_url or '',
+            'careers_url': c.careers_url or '',
+            'csr_url': c.csr_portal_url or '',
+            'jobs': jobs,
+            'csr': csrs,
+            'reports': serialized_reports,
+            'jobs_imported': len(jobs),
+            'csr_imported': len(csrs),
+            'reports_count': len(serialized_reports),
+            'activeTab': 'jobs' if len(jobs) > 0 else ('csr' if len(csrs) > 0 else ('reports' if serialized_reports else 'jobs')),
+            'jobsPage': 1,
+            'jobsPageSize': 10,
+            'jobsSearch': '',
+            'csrPage': 1,
+            'csrPageSize': 10,
+            'csrSearch': '',
+            'timestamp': c.last_crawled.isoformat() if c.last_crawled else None,
+            'status': 'SUCCESS'
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'count': len(dossiers),
+        'total_jobs': total_jobs_count,
+        'total_csr': total_csr_count,
+        'dossiers': dossiers
+    })
+
 

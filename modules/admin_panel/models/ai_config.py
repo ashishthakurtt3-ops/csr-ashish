@@ -155,13 +155,13 @@ class AISystemSettings(models.Model):
     )
     fallback_provider = models.CharField(
         max_length=50,
-        default='grok',
+        default='openrouter',
         blank=True,
         help_text="Fallback AI provider name."
     )
     fallback_model = models.CharField(
         max_length=100,
-        default='grok-2-latest',
+        default='openrouter/free',
         blank=True,
         help_text="Fallback model identifier."
     )

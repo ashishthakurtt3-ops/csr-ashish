@@ -24,6 +24,7 @@ Features:
 import os
 import re
 import json
+import ast
 import time
 import logging
 import sqlite3
@@ -238,19 +239,67 @@ class BaseAIClient(AIClient):
         raw = f"{prov}:{self.model}:{cfg.PROMPT_VERSION}:{stage}:{payload_hash}"
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
-    def _clean_json_text(self, raw_text: str) -> Any:
-        """Strips markdown codeblocks and extracts valid JSON objects or arrays."""
-        text = str(raw_text or "").strip()
-        # Strip reasoning thinking tags if present
-        text = re.sub(r'<think>[\s\S]*?</think>', '', text).strip()
+    @classmethod
+    def _repair_json_string(cls, text: str) -> str:
+        """
+        Repairs common LLM formatting anomalies:
+        - Removes single-line // comments and multi-line /* */ comments (outside strings)
+        - Removes trailing commas before closing braces/brackets
+        - Converts unquoted Python literals (True/False/None) to JSON equivalents
+        """
+        # Remove comments (avoid stripping URLs like http://)
+        text = re.sub(r'(?<!:)\s*//.*$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'/\*[\s\S]*?\*/', '', text)
+        # Fix trailing commas: [1, 2, ,] -> [1, 2] and {"a": 1, } -> {"a": 1}
+        text = re.sub(r',\s*([\]}])', r'\1', text)
+        # Replace python literals if unquoted
+        text = re.sub(r'\bTrue\b', 'true', text)
+        text = re.sub(r'\bFalse\b', 'false', text)
+        text = re.sub(r'\bNone\b', 'null', text)
+        return text.strip()
 
-        # 0. Markdown code fence extraction anywhere in text
-        fence_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', text)
-        if fence_match:
+    def _clean_json_text(self, raw_text: str) -> Any:
+        """
+        Strips markdown codeblocks, thinking tags, trailing commentary,
+        and repairs malformed JSON syntax (trailing commas, unescaped linebreaks,
+        python dict syntax, truncated arrays/objects).
+        """
+        text = str(raw_text or "").strip()
+        # 0. Strip reasoning thinking tags (<think>...</think>) and reasoning preambles
+        text = re.sub(r'<think>[\s\S]*?</think>', '', text, flags=re.IGNORECASE).strip()
+        text = re.sub(r'^(?:thinking process|reasoning|analysis):[\s\S]*?(?=\n\s*(?:```|\[|\{))', '', text, flags=re.IGNORECASE).strip()
+
+        # Helper to attempt parsing candidate text with standard and relaxed parsing
+        def _try_parse(cand: str) -> Optional[Any]:
+            cand = cand.strip()
+            if not cand:
+                return None
+            # Direct parse attempt with strict=False (allows unescaped control chars like \n, \t in strings)
             try:
-                return json.loads(fence_match.group(1).strip())
+                return json.loads(cand, strict=False)
             except Exception:
                 pass
+            # Repair trailing commas, comments, python literals
+            repaired = self._repair_json_string(cand)
+            try:
+                return json.loads(repaired, strict=False)
+            except Exception:
+                pass
+            # Try ast.literal_eval for single-quoted Python structures
+            try:
+                val = ast.literal_eval(cand)
+                if isinstance(val, (dict, list)):
+                    return val
+            except Exception:
+                pass
+            return None
+
+        # 1. Markdown code fence extraction anywhere in text
+        fence_matches = re.findall(r'```(?:json)?\s*([\s\S]*?)\s*```', text)
+        for fence in fence_matches:
+            parsed = _try_parse(fence)
+            if parsed is not None:
+                return parsed
 
         if text.startswith("```json"):
             text = text[7:]
@@ -260,40 +309,69 @@ class BaseAIClient(AIClient):
             text = text[:-3]
         text = text.strip()
 
-        # 1. Direct parse attempt
-        try:
-            return json.loads(text)
-        except Exception:
-            pass
+        # 2. Try parsing full cleaned text
+        parsed = _try_parse(text)
+        if parsed is not None:
+            return parsed
 
-        # 2. Raw decode attempt from first bracket to ignore trailing commentary
-        for i, ch in enumerate(text):
-            if ch in ('{', '['):
-                try:
-                    obj, _ = json.JSONDecoder().raw_decode(text[i:])
-                    return obj
-                except Exception:
-                    continue
+        # 3. Truncated JSON array repair if output starts as an array
+        first_bracket = text.find('[')
+        first_brace = text.find('{')
+        is_array_intent = (first_bracket != -1) and (first_brace == -1 or first_bracket < first_brace)
 
-        # 3. Fallback regex extraction of embedded JSON array or object
-        match = re.search(r'(\[[\s\S]*\]|\{[\s\S]*\})', text)
-        if match:
-            try:
-                return json.loads(match.group(1))
-            except Exception:
-                pass
-
-        # 4. Truncated JSON array repair: salvage complete objects before truncation
-        bracket_idx = text.find('[')
-        if bracket_idx != -1:
-            arr_candidate = text[bracket_idx:]
+        if is_array_intent:
+            arr_candidate = text[first_bracket:]
             last_brace = arr_candidate.rfind('}')
             if last_brace != -1:
+                salvaged = arr_candidate[:last_brace + 1].strip() + ']'
+                parsed = _try_parse(salvaged)
+                if isinstance(parsed, list):
+                    return parsed
+
+        # 4. Raw decode attempt across opening brackets to ignore leading/trailing commentary
+        bracket_indices = [i for i, ch in enumerate(text) if ch in ('{', '[')]
+        for idx in bracket_indices[:25]:
+            try:
+                obj, _ = json.JSONDecoder(strict=False).raw_decode(text[idx:])
+                if isinstance(obj, (dict, list)):
+                    return obj
+            except Exception:
                 try:
-                    repaired = arr_candidate[:last_brace + 1].strip() + ']'
-                    return json.loads(repaired)
+                    repaired_slice = self._repair_json_string(text[idx:])
+                    obj, _ = json.JSONDecoder(strict=False).raw_decode(repaired_slice)
+                    if isinstance(obj, (dict, list)):
+                        return obj
                 except Exception:
                     pass
+
+        # 5. Fallback regex extraction of embedded JSON array or object
+        match = re.search(r'(\[[\s\S]*\]|\{[\s\S]*\})', text)
+        if match:
+            parsed = _try_parse(match.group(1))
+            if parsed is not None:
+                return parsed
+
+        # 6. Secondary truncated JSON array repair
+        if first_bracket != -1:
+            arr_candidate = text[first_bracket:]
+            last_brace = arr_candidate.rfind('}')
+            if last_brace != -1:
+                salvaged = arr_candidate[:last_brace + 1].strip() + ']'
+                parsed = _try_parse(salvaged)
+                if parsed is not None:
+                    return parsed
+
+        # 6. Truncated JSON object repair: close open braces
+        brace_idx = text.find('{')
+        if brace_idx != -1:
+            obj_candidate = text[brace_idx:]
+            open_b = obj_candidate.count('{')
+            close_b = obj_candidate.count('}')
+            if open_b > close_b:
+                closed = obj_candidate + ('}' * (open_b - close_b))
+                parsed = _try_parse(closed)
+                if parsed is not None:
+                    return parsed
 
         raise AIClientError(f"Failed to parse JSON from AI response: {text[:200]}")
 
@@ -1149,7 +1227,8 @@ class AnthropicApiClient(BaseAIClient):
 class GeminiApiClient(BaseAIClient):
     """
     Dedicated client for Google Gemini hosted AI API.
-    Interacts via Google's official Interactions API (https://generativelanguage.googleapis.com/v1beta/interactions)
+    Interacts via Google's official Generative Language API
+    (https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent)
     for model inference, structured JSON output validation, and state tracking.
     Enforces official API free-tier models and zero-cost operation.
     """
@@ -1181,6 +1260,15 @@ class GeminiApiClient(BaseAIClient):
             or (self.api_key if getattr(cfg, "AI_PROVIDER", "gemini") == "gemini" else "")
         )
         self.base_url = (base_url or db_gemini.get("base_url") or cfg.GEMINI_BASE_URL).rstrip('/')
+        # Normalize: repair corrupted values such as '.../v1beta/models' that would
+        # otherwise double the '/models' segment in request paths.
+        if "/v1beta" in self.base_url:
+            _b = self.base_url
+            if _b.endswith("/models"):
+                _b = _b[: -len("/models")]
+            self.base_url = _b.rstrip('/')
+        if self.base_url and not self.base_url.endswith("/v1beta"):
+            self.base_url = f"{self.base_url}/v1beta"
 
     def verify_free_tier_eligibility(self) -> Tuple[bool, str]:
         """
@@ -1196,10 +1284,15 @@ class GeminiApiClient(BaseAIClient):
                 f"({cfg.GEMINI_FREE_TIER_MODELS}). Paid models violate the zero-cost policy."
             )
 
-        base_v1beta = self.base_url if "/v1beta" in self.base_url else f"{self.base_url}/v1beta"
-        endpoint = f"{base_v1beta}/models/{self.model}?key={self.api_key}"
+        # Send the credential exactly once via header; adding ?key= as well makes
+        # Google reject the request with a 'multiple authentication credentials' error.
+        endpoint = f"{self.base_url}/models/{self.model}"
         try:
-            resp = requests.get(endpoint, timeout=cfg.REQUEST_TIMEOUT)
+            resp = requests.get(
+                endpoint,
+                headers={"x-goog-api-key": self.api_key},
+                timeout=cfg.REQUEST_TIMEOUT,
+            )
             if resp.status_code == 200:
                 return True, f"Gemini API key is verified and free-tier model '{self.model}' is accessible (0 billable cost)."
             elif resp.status_code == 429:
@@ -1228,8 +1321,9 @@ class GeminiApiClient(BaseAIClient):
         if self.metrics["api_calls_made"] >= cfg.MAX_API_CALLS_PER_RUN:
             raise QuotaExhaustedError(f"Reached configured run limit of {cfg.MAX_API_CALLS_PER_RUN} API calls.")
 
-        base_v1beta = self.base_url if "/v1beta" in self.base_url else f"{self.base_url}/v1beta"
-        endpoint = f"{base_v1beta}/models/{self.model}:generateContent?key={self.api_key}"
+        # Send the credential exactly once via header; appending ?key= as well makes
+        # Google reject the request with a 'multiple authentication credentials' error.
+        endpoint = f"{self.base_url}/models/{self.model}:generateContent"
         headers = {
             "Content-Type": "application/json",
             "x-goog-api-key": self.api_key
@@ -1262,18 +1356,8 @@ class GeminiApiClient(BaseAIClient):
                             elif isinstance(part, str):
                                 raw_text += part
 
-                    # Interactions API: step-based response fallback
                     if not raw_text:
-                        for step in data.get("steps", []):
-                            if step.get("type") == "model_output":
-                                for part in step.get("content", []):
-                                    if isinstance(part, dict) and "text" in part:
-                                        raw_text += part["text"]
-                                    elif isinstance(part, str):
-                                        raw_text += part
-
-                    if not raw_text:
-                        raise AIClientError(f"Gemini Interactions API returned empty output text. Status: {data.get('status')}")
+                        raise AIClientError(f"Gemini generateContent returned empty output text. finishReason: {data.get('candidates', [{}])[0].get('finishReason') if data.get('candidates') else 'none'}")
 
                     self.metrics["models_used"][actual_model] = self.metrics["models_used"].get(actual_model, 0) + 1
                     cleaned = self._clean_json_text(raw_text)
@@ -1297,6 +1381,21 @@ class GeminiApiClient(BaseAIClient):
                     continue
                 else:
                     self.metrics["errors_count"] += 1
+                    err_reason = ""
+                    try:
+                        for _d in (resp.json().get("error") or {}).get("details", []):
+                            if isinstance(_d, dict) and _d.get("reason"):
+                                err_reason = _d["reason"]
+                                break
+                    except Exception:
+                        pass
+                    if resp.status_code == 401 or err_reason in ("ACCESS_TOKEN_TYPE_UNSUPPORTED", "API_KEY_INVALID"):
+                        raise AIClientError(
+                            f"Gemini rejected the API key (HTTP {resp.status_code}, reason: {err_reason or 'API_KEY_INVALID'}). "
+                            "The key itself is not accepted by Google - create a fresh key at "
+                            "https://aistudio.google.com/apikey, copy the ENTIRE value, restrict it to the Gemini API, "
+                            "and save it in the AI Control Center."
+                        )
                     raise AIClientError(f"Gemini API returned HTTP {resp.status_code}: {resp.text}")
 
             except requests.exceptions.Timeout:

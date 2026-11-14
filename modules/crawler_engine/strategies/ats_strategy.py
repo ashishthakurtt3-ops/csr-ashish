@@ -97,17 +97,105 @@ class ATSStrategy(BaseStrategy):
                 m = regex.search(u)
                 if m:
                     context.discovered_ats_platform = platform
-                    context.discovered_ats_token = m.group(1) if m.lastindex else platform
+                    token = m.group(1) if m.lastindex else platform
+                    if platform == "greenhouse":
+                        for_m = re.search(r"[?&]for=([^&#]+)", u, re.I)
+                        if for_m:
+                            token = for_m.group(1)
+                        elif token in ("embed", "js", "api"):
+                            token = None
+                    context.discovered_ats_token = token
+                    context.discovered_ats_url = u
                     return True
 
-        # 3. Check HTML content for iframe, script src, or links
+        # 3. Check HTML content for iframe, script src, or links (Fix Target URL Desynchronization)
         if context.html_content:
             text = context.html_content[:150000]
+
+            # Priority A: Greenhouse embed with ?for=company
+            gh_for = re.search(r'boards\.greenhouse\.io.*?[\?&]for=([a-zA-Z0-9_\-]+)', text, re.I)
+            if gh_for:
+                token = gh_for.group(1)
+                context.discovered_ats_platform = "greenhouse"
+                context.discovered_ats_token = token
+                ats_url = f"https://boards.greenhouse.io/{token}"
+                context.discovered_ats_url = ats_url
+                context.final_url = ats_url
+                return True
+
+            # Priority B: Workday portal iframe or link
+            wd_match = re.search(r'https?://([a-zA-Z0-9_\-\.]+\.myworkdayjobs\.com/[^"\'<>\s]+)', text, re.I)
+            if wd_match:
+                ats_url = wd_match.group(0).rstrip('"\')')
+                context.discovered_ats_platform = "workday"
+                context.discovered_ats_url = ats_url
+                context.final_url = ats_url
+                sub = urlparse(ats_url).netloc.split(".")[0]
+                context.discovered_ats_token = sub
+                return True
+
+            # Priority C: Lever direct portal
+            lev_match = re.search(r'https?://jobs\.lever\.co/([a-zA-Z0-9_\-]+)', text, re.I)
+            if lev_match:
+                token = lev_match.group(1)
+                context.discovered_ats_platform = "lever"
+                context.discovered_ats_token = token
+                ats_url = f"https://jobs.lever.co/{token}"
+                context.discovered_ats_url = ats_url
+                context.final_url = ats_url
+                return True
+
+            # Priority D: SmartRecruiters
+            sr_match = re.search(r'https?://(?:careers|jobs|www)?\.smartrecruiters\.com/([a-zA-Z0-9_\-]+)', text, re.I)
+            if sr_match:
+                token = sr_match.group(1)
+                context.discovered_ats_platform = "smartrecruiters"
+                context.discovered_ats_token = token
+                ats_url = sr_match.group(0)
+                context.discovered_ats_url = ats_url
+                context.final_url = ats_url
+                return True
+
+            # Priority E: SuccessFactors
+            sf_match = re.search(r'https?://[a-zA-Z0-9_\-\.]*successfactors\.[a-z]+/[^"\'<>\s]+', text, re.I)
+            if sf_match:
+                ats_url = sf_match.group(0).rstrip('"\')')
+                context.discovered_ats_platform = "successfactors"
+                context.discovered_ats_url = ats_url
+                context.final_url = ats_url
+                context.discovered_ats_token = urlparse(ats_url).netloc
+                return True
+
+            # Priority F: Darwinbox
+            db_match = re.search(r'https?://([a-zA-Z0-9_\-]+)\.darwinbox\.(?:in|com)/?[^"\'<>\s]*', text, re.I)
+            if db_match:
+                token = db_match.group(1)
+                context.discovered_ats_platform = "darwinbox"
+                context.discovered_ats_token = token
+                ats_url = db_match.group(0).rstrip('"\')')
+                context.discovered_ats_url = ats_url
+                context.final_url = ats_url
+                return True
+
+            # General signature fallback
             for platform, regex in self.ATS_SIGNATURES:
                 m = regex.search(text)
                 if m:
+                    token = m.group(1) if m.lastindex else platform
+                    if platform == "greenhouse" and token in ("embed", "js", "api"):
+                        for_m = re.search(r"[?&]for=([^&#]+)", text, re.I)
+                        if for_m:
+                            token = for_m.group(1)
                     context.discovered_ats_platform = platform
-                    context.discovered_ats_token = m.group(1) if m.lastindex else platform
+                    context.discovered_ats_token = token
+
+                    # Extract full ATS URL from surrounding markup
+                    m_str = m.group(0)
+                    url_m = re.search(r'https?://[^\s"\'<>]*' + re.escape(m_str) + r'[^\s"\'<>]*', text)
+                    if url_m:
+                        ats_url = url_m.group(0).rstrip('"\')')
+                        context.discovered_ats_url = ats_url
+                        context.final_url = ats_url
                     return True
 
         return False
@@ -121,7 +209,13 @@ class ATSStrategy(BaseStrategy):
         ).lower()
 
         token = context.discovered_ats_token or getattr(context.company, "ats_token", None)
-        target_url = getattr(context.company, "ats_url", None) or context.final_url or context.careers_url
+        # Fix Target URL Desynchronization: prioritize discovered_ats_url
+        target_url = (
+            getattr(context, "discovered_ats_url", None)
+            or getattr(context.company, "ats_url", None)
+            or context.final_url
+            or context.careers_url
+        )
 
         # Dispatch to specific adapter
         if "lever" in platform or "lever.co" in target_url:
@@ -207,15 +301,19 @@ class ATSStrategy(BaseStrategy):
     # 2. Greenhouse Adapter
     # -------------------------------------------------------------------------
     def _extract_greenhouse(self, url: str, token: Optional[str], context: ExtractionContext) -> List[Dict[str, Any]]:
-        if not token:
+        if not token or token in ("embed", "js", "api", "greenhouse"):
             for_m = re.search(r"[?&]for=([^&#]+)", url, re.I)
             if for_m:
                 token = for_m.group(1)
-            else:
+            elif context.html_content:
+                for_m = re.search(r"boards\.greenhouse\.io.*?[\?&]for=([a-zA-Z0-9_\-]+)", context.html_content, re.I)
+                if for_m:
+                    token = for_m.group(1)
+            if not token:
                 m = re.search(r"greenhouse\.io/([^/?#]+)", url, re.I)
-                if m and m.group(1) not in ("embed", "js", "api"):
+                if m and m.group(1).lower() not in ("embed", "js", "api"):
                     token = m.group(1)
-        if not token:
+        if not token or token in ("embed", "js", "api", "greenhouse"):
             return []
 
         context.discovered_ats_platform = "Greenhouse"
@@ -260,21 +358,39 @@ class ATSStrategy(BaseStrategy):
     # -------------------------------------------------------------------------
     def _extract_workday(self, url: str, token: Optional[str], context: ExtractionContext) -> List[Dict[str, Any]]:
         parsed = urlparse(url)
-        host = parsed.netloc
-        path_parts = [p for p in parsed.path.strip("/").split("/") if p]
-        if not path_parts:
+        host = parsed.netloc.lower()
+        if not host:
             return []
+        path_parts = [p for p in parsed.path.strip("/").split("/") if p]
 
-        # Detect locale (e.g. en-US) if present
+        # Detect locale (e.g. en-US, en_US, en)
         locale = None
-        if len(path_parts) > 1 and re.match(r"^[a-z]{2}(-[A-Z]{2})?$", path_parts[0], re.I):
-            locale = path_parts[0]
-            site = path_parts[1]
-        else:
-            site = path_parts[0]
+        remaining_parts = list(path_parts)
+        if remaining_parts and re.match(r"^[a-z]{2}([-_][a-z]{2})?$", remaining_parts[0], re.I):
+            locale = remaining_parts.pop(0)
 
+        # Determine tenant and site
         sub = host.split(".")[0]
-        tenant = path_parts[0] if (sub.startswith("wd") or sub == "myworkdayjobs") else sub
+        is_generic_host = (sub.startswith("wd") and sub[2:].isdigit()) or sub == "myworkdayjobs"
+
+        if is_generic_host:
+            # Format: https://wd3.myworkdayjobs.com/<tenant>/<site>
+            tenant = remaining_parts.pop(0) if remaining_parts else (token.split(":")[0] if token and ":" in token else "")
+            site = remaining_parts.pop(0) if remaining_parts else "Careers"
+        else:
+            # Format: https://<tenant>.wd3.myworkdayjobs.com/<site> or https://<tenant>.myworkdayjobs.com/<site>
+            tenant = sub
+            if remaining_parts:
+                if "job" in remaining_parts:
+                    job_idx = remaining_parts.index("job")
+                    site = remaining_parts[job_idx - 1] if job_idx > 0 else "Careers"
+                else:
+                    site = remaining_parts[0]
+            else:
+                site = "Careers"
+
+        if not tenant:
+            return []
 
         context.discovered_ats_platform = "Workday"
         context.discovered_ats_token = f"{tenant}:{site}"
@@ -286,6 +402,7 @@ class ATSStrategy(BaseStrategy):
         total: Optional[int] = None
 
         while True:
+            # REMOVE hardcoded searchText filter so all active vacancies are discovered
             payload = {"appliedFacets": {}, "limit": limit, "offset": offset, "searchText": ""}
             resp = cffi_post(api_url, json=payload)
             if not resp or resp.status_code != 200:
@@ -490,8 +607,15 @@ class ATSStrategy(BaseStrategy):
         startrow = 0
         step = 25
 
+        # Preserve query parameters (e.g. company=tatamotors) for multi-tenant portals
+        from urllib.parse import parse_qsl, urlencode
+        orig_params = dict(parse_qsl(parsed.query))
+
         while True:
-            search_url = f"{base_portal}/search/?q=&startrow={startrow}"
+            params = dict(orig_params)
+            params["q"] = ""
+            params["startrow"] = startrow
+            search_url = f"{base_portal}/search/?{urlencode(params)}"
             resp = cffi_get(search_url)
             if not resp or resp.status_code != 200:
                 if startrow == 0:
@@ -882,3 +1006,11 @@ class ATSStrategy(BaseStrategy):
                 "link_check_note": "freshteam_direct_url" if direct_url else "missing_direct_url",
             })
         return jobs
+
+
+def dispatch_ats_direct(ats_platform: str, ats_url: str, tenant: Optional[str] = None) -> list:
+    """
+    Unified entry point for direct ATS extraction without browser rendering.
+    """
+    from modules.crawler_engine.crawler import dispatch_ats_direct as _crawler_dispatch
+    return _crawler_dispatch(ats_platform, ats_url, tenant)

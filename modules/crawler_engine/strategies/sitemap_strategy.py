@@ -97,16 +97,18 @@ class JobSitemapStrategy(BaseStrategy):
         if not candidate_job_urls:
             return []
 
-        # 4. Fetch detail pages to confirm titles
+        # 4. Fetch detail pages to confirm titles using bounded concurrency
         jobs = []
-        for url in candidate_job_urls[:40]:  # Cap to polite sample
+        import concurrent.futures
+
+        def fetch_candidate_job(url: str) -> Optional[Dict[str, Any]]:
             canon = normalize_canonical_url(url)
             if not canon:
-                continue
+                return None
             try:
-                page_resp = cffi_requests.get(canon, impersonate="chrome124", timeout=8)
+                page_resp = cffi_requests.get(canon, impersonate="chrome124", timeout=5)
                 if page_resp.status_code != 200:
-                    continue
+                    return None
 
                 soup = BeautifulSoup(page_resp.text, "lxml")
                 # Title extraction
@@ -122,13 +124,13 @@ class JobSitemapStrategy(BaseStrategy):
                             title = re.split(r"\s*[\|\-–—:»/]\s*", raw_title)[0].strip()
 
                 if not title or len(title) < 3 or len(title) > 120:
-                    continue
+                    return None
 
                 # Extract ID from URL
                 m = _JOB_PATH_REGEX.search(canon)
                 ext_id = m.group(1) if m else None
 
-                jobs.append({
+                return {
                     "title": title,
                     "location": "India",
                     "department": "Corporate",
@@ -137,8 +139,15 @@ class JobSitemapStrategy(BaseStrategy):
                     "raw_metadata": {"source_sitemap_url": url},
                     "link_quality": "DIRECT",
                     "link_check_note": "sitemap_direct_job_page",
-                })
+                }
             except Exception:
-                continue
+                return None
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+            futures = [executor.submit(fetch_candidate_job, url) for url in candidate_job_urls[:40]]
+            for future in concurrent.futures.as_completed(futures):
+                res = future.result()
+                if res:
+                    jobs.append(res)
 
         return jobs

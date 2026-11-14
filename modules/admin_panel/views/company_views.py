@@ -34,6 +34,7 @@ from modules.admin_panel.verification import (
     public_jobs,
     public_records,
 )
+from modules.admin_panel.services.company_deletion_service import delete_company_completely
 from modules.crawler_engine.normalizers import (
     clean_text,
     detect_csr_source_format,
@@ -1061,3 +1062,28 @@ def company_csr_toggle_status_view(request, company_id, csr_id):
     )
     messages.success(request, f"CSR Project '{csr.project_name}' status set to {csr.status}.")
     return redirect(f"/admin-portal/companies/{company.company_id}/?tab=csr")
+
+
+@admin_required
+def company_delete_view(request, company_id):
+    """Hard delete a company and every related record. POST only."""
+    if request.method != "POST":
+        return redirect(f"/admin-portal/companies/{company_id}/")
+
+    company = get_object_or_404(Company, company_id=company_id)
+    company_name = company.company_name
+
+    try:
+        stats = delete_company_completely(company, deleted_by=request.user)
+
+        messages.success(
+            request,
+            f"Company '{company_name}' (ID: {company_id}) and all related data were permanently deleted "
+            f"({stats['jobs']} jobs, {stats['csr_projects']} CSR projects, {stats['documents']} documents, "
+            f"{stats['sources']} sources, {stats['crawled_pages']} crawled pages).",
+        )
+    except Exception as e:
+        logger.exception(f"Error deleting company {company_id}: {e}")
+        messages.error(request, f"Failed to delete company: {str(e)}")
+
+    return redirect("admin_companies:list")

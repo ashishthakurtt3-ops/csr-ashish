@@ -132,13 +132,12 @@ _CACHE_TTL_SECONDS: float = 10.0
 # Confirmed Free-Tier Models per Provider
 FREE_TIER_MODELS_CATALOG: Dict[str, Tuple[str, ...]] = {
     "gemini": (
+        "gemini-3.8-flash",
+        "gemini-3.6-flash",
         "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
-        "gemini-3.8-flash",
         "gemini-2.5-flash",
-        "gemini-1.5-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-flash-8b",
+        "gemini-2.5-flash-lite",
     ),
     "openrouter": (
         "openrouter/free",
@@ -176,11 +175,12 @@ DEFAULT_PROVIDERS_METADATA = [
         "env_key_var": "GEMINI_API_KEY",
         "available_models": [
             {"id": "gemini-3.1-flash-lite", "name": "Gemini 3.1 Flash Lite", "is_free_tier": True, "description": "High-efficiency, ultra fast official API free tier"},
+            {"id": "gemini-3.5-flash-lite", "name": "Gemini 3.5 Flash Lite", "is_free_tier": True, "description": "Fastest, most cost-effective 3.5 model for high-throughput execution"},
+            {"id": "gemini-3.5-flash", "name": "Gemini 3.5 Flash", "is_free_tier": True, "description": "Balanced speed and capability for extraction and reasoning"},
+            {"id": "gemini-3.6-flash", "name": "Gemini 3.6 Flash", "is_free_tier": True, "description": "Balanced speed and multimodal capabilities for agentic tasks"},
             {"id": "gemini-3.8-flash", "name": "Gemini 3.8 Flash", "is_free_tier": True, "description": "Official API high-intelligence fast flash model"},
-            {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "is_free_tier": True, "description": "Legacy free tier flash model"},
-            {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "is_free_tier": True, "description": "Multimodal general purpose free model"},
-            {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "is_free_tier": True, "description": "Experimental low-latency multimodal model"},
-            {"id": "gemini-1.5-flash-8b", "name": "Gemini 1.5 Flash-8B", "is_free_tier": True, "description": "Lightweight 8B parameter model"},
+            {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "is_free_tier": True, "description": "Legacy free tier flash model (routes to 3.5-flash-lite from Dec 2026)"},
+            {"id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash Lite", "is_free_tier": True, "description": "Fastest and most budget-friendly multimodal model in the 2.5 family"},
         ]
     },
     {
@@ -355,7 +355,7 @@ def bootstrap_default_configs():
             )
 
             # If created or missing API key, check if an environment variable key is available to seed
-            if not cfg_obj.encrypted_api_key:
+            if created and not cfg_obj.encrypted_api_key:
                 env_var = pdata.get("env_key_var")
                 env_key = os.environ.get(env_var, "").strip() if env_var else ""
                 if not env_key and prov_name == "grok":
@@ -366,6 +366,20 @@ def bootstrap_default_configs():
                     cfg_obj.status = AIProviderConfig.STATUS_ACTIVE
                     cfg_obj.save(update_fields=["encrypted_api_key", "api_key_masked", "status"])
 
+            # Repair any legacy/corrupted selected_model from previous fallback default bug
+            if cfg_obj.selected_model == "gemini-3.1-flash-lite" and prov_name != "gemini":
+                cfg_obj.selected_model = pdata["default_model"]
+                cfg_obj.save(update_fields=["selected_model"])
+
+            # Repair corrupted Gemini base URLs (e.g. '.../v1beta/models') which produced
+            # doubled request paths like /v1beta/models/models/{model}:generateContent.
+            if prov_name == "gemini" and cfg_obj.base_url:
+                _fixed_base = _normalize_gemini_base_url(cfg_obj.base_url)
+                if _fixed_base != (cfg_obj.base_url or "").strip().rstrip('/'):
+                    cfg_obj.base_url = _fixed_base
+                    cfg_obj.save(update_fields=["base_url"])
+                    logger.warning("Repaired corrupted Gemini base_url to %s", _fixed_base)
+
             # If model list changed, update available_models
             if not cfg_obj.available_models or len(cfg_obj.available_models) < len(pdata["available_models"]):
                 cfg_obj.available_models = pdata["available_models"]
@@ -375,12 +389,16 @@ def bootstrap_default_configs():
         settings_obj, settings_created = AISystemSettings.objects.get_or_create(id=1)
         if settings_created or (not settings_obj.primary_provider and not settings_obj.primary_model and settings_obj.version <= 1):
             settings_obj.primary_provider = os.environ.get("AI_PROVIDER", "gemini").lower().strip()
-            settings_obj.primary_model = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite").strip()
-            settings_obj.fallback_provider = os.environ.get("AI_FALLBACK_PROVIDER", "grok").lower().strip()
-            settings_obj.fallback_model = os.environ.get("GROK_MODEL", "grok-2-latest").strip()
+            settings_obj.primary_model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
+            settings_obj.fallback_provider = os.environ.get("AI_FALLBACK_PROVIDER", "openrouter").lower().strip()
+            settings_obj.fallback_model = os.environ.get("OPENROUTER_MODEL", "openrouter/free").strip()
             settings_obj.fallback_enabled = os.environ.get("AI_FALLBACK_ENABLED", "true").lower() in ("true", "1")
             settings_obj.free_tier_only = True
             settings_obj.save()
+        elif settings_obj.fallback_provider == "grok" and not os.environ.get("AI_FALLBACK_PROVIDER"):
+            settings_obj.fallback_provider = "openrouter"
+            settings_obj.fallback_model = "openrouter/free"
+            settings_obj.save(update_fields=["fallback_provider", "fallback_model"])
 
     except Exception as e:
         logger.warning("AI configuration bootstrap skipped or deferred: %s", e)
@@ -475,7 +493,7 @@ def get_active_ai_config(force_refresh: bool = False) -> Dict[str, Any]:
         logger.warning("Failed to load AI configuration from database. Falling back to environment variables: %s", e)
         # Emergency fallback to environment variables
         prov = os.environ.get("AI_PROVIDER", "gemini").lower().strip()
-        model = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite").strip() if prov == "gemini" else os.environ.get("AI_MODEL", "")
+        model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite").strip() if prov == "gemini" else os.environ.get("AI_MODEL", "")
         key = os.environ.get("GEMINI_API_KEY", "").strip() if prov == "gemini" else ""
         return {
             "primary_provider": prov,
@@ -666,6 +684,14 @@ def update_system_settings(data: Dict[str, Any], user=None, ip_address: str = ""
             new_timeout = int(data.get("request_timeout", settings_obj.request_timeout))
             new_retries = int(data.get("max_retries", settings_obj.max_retries))
             new_max_calls = int(data.get("max_api_calls_per_run", settings_obj.max_api_calls_per_run))
+
+            # Free-tier cost protection enforcement
+            if new_free_tier:
+                if new_primary_prov and new_primary_model and not is_model_free_tier(new_primary_prov, new_primary_model):
+                    return False, f"Cost Protection Error: Primary model '{new_primary_model}' on '{new_primary_prov}' is not an approved free-tier model.", 400
+
+                if new_fallback_enabled and new_fallback_prov and new_fallback_model and not is_model_free_tier(new_fallback_prov, new_fallback_model):
+                    return False, f"Cost Protection Error: Failover model '{new_fallback_model}' on '{new_fallback_prov}' is not an approved free-tier model.", 400
 
             # Paid provider guard: verify authorization
             if new_primary_prov:
@@ -946,25 +972,33 @@ def refresh_provider_models(
 
     cfg_obj = AIProviderConfig.objects.filter(provider=prov_name).first()
     raw_key = cfg_obj.get_api_key() if cfg_obj else ""
+    default_meta = next((m for m in DEFAULT_PROVIDERS_METADATA if m["provider"] == prov_name), None)
+    if not raw_key and default_meta and default_meta.get("env_key_var"):
+        raw_key = os.environ.get(default_meta["env_key_var"], "").strip()
+        if not raw_key and prov_name == "grok":
+            raw_key = os.environ.get("XAI_API_KEY", "").strip()
+
     base_url = (cfg_obj.base_url if cfg_obj else "").strip()
 
     # Look up fallback metadata
-    default_meta = next((m for m in DEFAULT_PROVIDERS_METADATA if m["provider"] == prov_name), None)
     fallback_models = list(default_meta["available_models"]) if default_meta else []
 
     refreshed_models: List[Dict[str, Any]] = []
 
-    # Attempt live query if key or local
-    if raw_key or prov_name in ("ollama", "local"):
+    # Attempt live query if key or public/local provider
+    if raw_key or prov_name in ("openrouter", "ollama", "local"):
         try:
             if prov_name == "gemini":
-                ep = f"https://generativelanguage.googleapis.com/v1beta/models?key={raw_key}"
-                resp = requests.get(ep, headers={"x-goog-api-key": raw_key}, timeout=5)
+                ep = "https://generativelanguage.googleapis.com/v1beta/models"
+                # Send the credential exactly once via header (query + header together
+                # triggers Google's 'multiple authentication credentials' rejection).
+                resp = requests.get(ep, headers={"x-goog-api-key": raw_key}, timeout=10)
                 if resp.status_code == 200:
                     data = resp.json()
                     for m in data.get("models", []):
+                        methods = m.get("supportedGenerationMethods") or []
                         m_name = m.get("name", "").replace("models/", "")
-                        if "gemini" in m_name:
+                        if "gemini" in m_name and "generateContent" in methods:
                             disp = m.get("displayName", m_name)
                             is_free = is_model_free_tier("gemini", m_name)
                             is_dep = "deprecated" in m_name or "1.0" in m_name
@@ -975,6 +1009,12 @@ def refresh_provider_models(
                                 "is_deprecated": is_dep,
                                 "description": m.get("description", "Google Gemini model")
                             })
+                else:
+                    _reason = _extract_google_error_reason(resp)
+                    logger.warning(
+                        "Gemini model refresh failed (HTTP %s, reason %s): %s",
+                        resp.status_code, _reason or "unknown", _extract_error_message(resp)[:200]
+                    )
             elif prov_name in ("openai", "groq", "openrouter", "deepseek", "mistral", "grok", "custom"):
                 clean_base = base_url.rstrip("/") if base_url else ""
                 if not clean_base:
@@ -987,7 +1027,7 @@ def refresh_provider_models(
 
                 if clean_base:
                     ep = f"{clean_base}/models"
-                    headers = {"Authorization": f"Bearer {raw_key}"}
+                    headers = {"Authorization": f"Bearer {raw_key}"} if raw_key else {}
                     resp = requests.get(ep, headers=headers, timeout=5)
                     if resp.status_code == 200:
                         data = resp.json()
@@ -1030,16 +1070,17 @@ def refresh_provider_models(
     # Check for missing currently selected model
     if cfg_obj and cfg_obj.selected_model:
         selected_id = cfg_obj.selected_model
-        found = any(m.get("id") == selected_id for m in refreshed_models)
-        if not found:
-            refreshed_models.insert(0, {
-                "id": selected_id,
-                "name": f"{selected_id} (Unrecognized / Missing from remote)",
-                "is_free_tier": is_model_free_tier(prov_name, selected_id),
-                "is_deprecated": True,
-                "is_missing": True,
-                "description": "This saved model was not returned in the provider's active model list."
-            })
+        if not (prov_name != "gemini" and selected_id == "gemini-3.1-flash-lite"):
+            found = any(m.get("id") == selected_id for m in refreshed_models)
+            if not found:
+                refreshed_models.insert(0, {
+                    "id": selected_id,
+                    "name": f"{selected_id} (Unrecognized / Missing from remote)",
+                    "is_free_tier": is_model_free_tier(prov_name, selected_id),
+                    "is_deprecated": True,
+                    "is_missing": True,
+                    "description": "This saved model was not returned in the provider's active model list."
+                })
 
     # Save to provider config if updated
     if cfg_obj:
@@ -1132,13 +1173,22 @@ def test_provider_live(
     prov_name = (provider or "").lower().strip()
     start_time = time.time()
 
+    default_selected_model = (model_override or "").strip()
+    if not default_selected_model:
+        if prov_name == "openrouter":
+            default_selected_model = "openrouter/free"
+        elif prov_name == "grok":
+            default_selected_model = "grok-2-latest"
+        else:
+            default_selected_model = "gemini-3.5-flash-lite"
+
     # 1. Resolve configuration
     try:
         cfg_obj, _ = AIProviderConfig.objects.get_or_create(
             provider=prov_name,
             defaults={
                 "display_name": prov_name.capitalize(),
-                "selected_model": (model_override or "").strip() or "gemini-3.1-flash-lite",
+                "selected_model": default_selected_model,
             }
         )
     except Exception:
@@ -1160,19 +1210,28 @@ def test_provider_live(
             raw_key = os.environ.get("GROK_API_KEY", "").strip() or os.environ.get("XAI_API_KEY", "").strip()
 
     # Resolve Model
-    model = (model_override or (cfg_obj.effective_model if cfg_obj else "")).strip()
+    raw_model = (model_override or "").strip()
+    if not raw_model and cfg_obj:
+        if prov_name != "gemini" and cfg_obj.selected_model == "gemini-3.1-flash-lite":
+            raw_model = ""
+        else:
+            raw_model = (cfg_obj.effective_model or "").strip()
+    model = raw_model
     if not model:
         if prov_name == "gemini":
-            model = "gemini-3.1-flash-lite"
+            model = "gemini-3.5-flash-lite"
         elif prov_name == "openrouter":
             model = "openrouter/free"
         elif prov_name == "grok":
             model = "grok-2-latest"
         else:
-            model = "default"
+            meta = next((m for m in DEFAULT_PROVIDERS_METADATA if m["provider"] == prov_name), None)
+            model = meta["default_model"] if meta else "default"
 
     # Resolve Base URL
     base_url = (base_url_override or (cfg_obj.base_url if cfg_obj else "")).strip()
+    if prov_name == "gemini":
+        base_url = _normalize_gemini_base_url(base_url)
     if not base_url:
         default_urls = {
             "gemini": "https://generativelanguage.googleapis.com/v1beta",
@@ -1279,28 +1338,46 @@ def _record_test_outcome(provider: str, model: str, result: Dict[str, Any], cfg_
         logger.warning("Failed to record test outcome: %s", e)
 
 
+def _normalize_gemini_base_url(base_url: str) -> str:
+    """
+    Normalizes a Gemini base URL to 'https://generativelanguage.googleapis.com/v1beta'.
+    Repairs corrupted values such as '.../v1beta/models' which previously produced
+    doubled paths like '/v1beta/models/models/{model}:generateContent'.
+    """
+    clean = (base_url or "https://generativelanguage.googleapis.com/v1beta").strip().rstrip('/')
+    if clean.endswith("/models"):
+        clean = clean[: -len("/models")].rstrip('/')
+    if not clean.endswith("/v1beta"):
+        clean = f"{clean}/v1beta"
+    return clean
+
+
+_GEMINI_TEST_PROMPT = "System check. Output strictly valid JSON object conforming to: {\"status\": \"ok\", \"ping\": \"pong\"}"
+
+
 def _test_gemini_live(api_key: str, model: str, base_url: str) -> Dict[str, Any]:
-    """Tests Google Gemini official API via metadata check followed by harmless minimal inference."""
-    clean_base = base_url.rstrip('/')
-    
-    # Minimal harmless test inference payload
-    endpoint = f"{clean_base}/interactions?key={api_key}"
+    """Tests Google Gemini official API via models/{model}:generateContent inference."""
+    clean_base = _normalize_gemini_base_url(base_url)
+
+    # Minimal harmless test inference payload via the official generateContent endpoint.
+    endpoint = f"{clean_base}/models/{model}:generateContent"
+    # Send the credential exactly once (x-goog-api-key). Appending ?key= as well
+    # makes Google reject the request with a 'multiple authentication credentials' error.
     headers = {
         "Content-Type": "application/json",
-        "x-goog-api-key": api_key
+        "x-goog-api-key": api_key,
     }
     body = {
-        "model": model,
-        "input": "System check. Output strictly valid JSON object conforming to: {\"status\": \"ok\", \"ping\": \"pong\"}",
-        "response_format": {
-            "type": "text",
-            "mime_type": "application/json"
-        }
+        "contents": [{"parts": [{"text": _GEMINI_TEST_PROMPT}]}],
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "maxOutputTokens": 64,
+        },
     }
 
     try:
         resp = requests.post(endpoint, json=body, headers=headers, timeout=20)
-        
+
         # 1. Success
         if resp.status_code == 200:
             try:
@@ -1309,30 +1386,20 @@ def _test_gemini_live(api_key: str, model: str, base_url: str) -> Dict[str, Any]
                 return {
                     "success": False,
                     "status": "INVALID_RESPONSE",
-                    "message": "OpenRouter response was not valid JSON.",
+                    "message": "Gemini response was not valid JSON.",
                 }
-            actual_model = data.get("model") or model
-            # Verify structured JSON output
+            actual_model = data.get("modelVersion") or data.get("model") or model
             raw_text = ""
-            for step in data.get("steps", []):
-                if step.get("type") == "model_output":
-                    for part in step.get("content", []):
-                        if isinstance(part, dict) and "text" in part:
-                            raw_text += part["text"]
-                        elif isinstance(part, str):
-                            raw_text += part
+            cands = data.get("candidates") or []
+            if cands:
+                for part in (cands[0].get("content") or {}).get("parts", []):
+                    if isinstance(part, dict) and "text" in part:
+                        raw_text += part["text"]
+                    elif isinstance(part, str):
+                        raw_text += part
 
-            if not raw_text and "candidates" in data:
-                cands = data.get("candidates", [])
-                if cands:
-                    parts = cands[0].get("content", {}).get("parts", [])
-                    if parts:
-                        raw_text = parts[0].get("text", "")
-
-            # Validate that response contains valid JSON
             is_valid_json = False
             try:
-                # Strip codeblocks if any
                 cleaned = raw_text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
                 parsed = json.loads(cleaned)
                 if isinstance(parsed, dict) and parsed.get("status") == "ok":
@@ -1350,12 +1417,24 @@ def _test_gemini_live(api_key: str, model: str, base_url: str) -> Dict[str, Any]
             }
 
         # 2. Authentication failure
-        elif resp.status_code in (400, 403):
+        elif resp.status_code in (400, 401, 403):
             err_text = _extract_error_message(resp)
+            err_reason = _extract_google_error_reason(resp)
+            if resp.status_code == 401 or err_reason == "ACCESS_TOKEN_TYPE_UNSUPPORTED" or err_reason == "API_KEY_INVALID":
+                message = (
+                    f"Google rejected the API key (HTTP {resp.status_code}, reason: {err_reason or 'API_KEY_INVALID'}). "
+                    "The key itself is not accepted by Google - this is a key problem, not an app problem. "
+                    "Common causes: the key was copied incompletely (new AI Studio keys are long and start with 'AQ.'), "
+                    "the key is restricted to a different service than the Gemini API, or the key was revoked/leaked. "
+                    "Create a fresh key at https://aistudio.google.com/apikey, copy the ENTIRE value, restrict it to the "
+                    "Gemini API, and save it again in the AI Control Center."
+                )
+            else:
+                message = f"Authentication failed (HTTP {resp.status_code}): {err_text}"
             return {
                 "success": False,
                 "status": "INVALID_KEY",
-                "message": f"Authentication failed (HTTP {resp.status_code}): {err_text}",
+                "message": message,
             }
 
         # 3. Model unavailable / Not found
@@ -1363,7 +1442,10 @@ def _test_gemini_live(api_key: str, model: str, base_url: str) -> Dict[str, Any]
             return {
                 "success": False,
                 "status": "MODEL_UNAVAILABLE",
-                "message": f"Model '{model}' was not found or is unavailable to this Google AI API project (HTTP 404).",
+                "message": (
+                    f"Model '{model}' was not found or is unavailable to this Google AI API project (HTTP 404). "
+                    "Use 'Refresh Models' in the AI Control Center to load the exact list your project can access."
+                ),
             }
 
         # 4. Quota exceeded
@@ -1770,6 +1852,18 @@ def _extract_error_message(resp: requests.Response) -> str:
         return resp.text[:200]
 
 
+def _extract_google_error_reason(resp: requests.Response) -> str:
+    """Extracts google.rpc.ErrorInfo reason (e.g. ACCESS_TOKEN_TYPE_UNSUPPORTED) when present."""
+    try:
+        data = resp.json()
+        for detail in (data.get("error") or {}).get("details", []):
+            if isinstance(detail, dict) and detail.get("reason"):
+                return str(detail["reason"])
+    except Exception:
+        pass
+    return ""
+
+
 def create_or_update_custom_provider(
     provider_id: str,
     display_name: str,
@@ -1985,7 +2079,7 @@ def run_company_diagnostic(
     settings_obj = AISystemSettings.get_solo()
     prov_name = (provider_override or settings_obj.primary_provider or "gemini").lower().strip()
     cfg_obj = AIProviderConfig.objects.filter(provider=prov_name).first()
-    model_name = (model_override or (cfg_obj.effective_model if cfg_obj else "") or settings_obj.primary_model or "gemini-3.1-flash-lite").strip()
+    model_name = (model_override or (cfg_obj.effective_model if cfg_obj else "") or settings_obj.primary_model or "gemini-3.5-flash-lite").strip()
 
     # Free-tier cost guard
     is_paid = is_provider_paid_tier(prov_name, model_name)

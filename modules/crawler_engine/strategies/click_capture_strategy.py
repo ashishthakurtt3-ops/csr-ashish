@@ -84,21 +84,55 @@ class ClickCaptureStrategy(BaseStrategy):
                 ]
 
                 cards = []
+                active_selector = None
                 for sel in card_selectors:
                     found = page.query_selector_all(sel)
                     if len(found) >= 2:
                         cards = found
+                        active_selector = sel
                         break
 
                 clicks = 0
                 seen_urls = set()
 
-                for card in cards[:max_clicks]:
+                for idx in range(min(len(cards), max_clicks)):
                     try:
+                        # Re-query card by index if page was reloaded or navigated back
+                        current_cards = page.query_selector_all(active_selector) if active_selector else cards
+                        if idx >= len(current_cards):
+                            break
+                        card = current_cards[idx]
+
                         title = clean_text(card.inner_text().split("\n")[0])
                         if not title or len(title) < 3 or len(title) > 120:
                             continue
 
+                        # 1. Non-destructive direct href extraction: anchor itself or nested <a>
+                        href = card.get_attribute("href")
+                        if not href:
+                            nested_a = card.query_selector("a[href]")
+                            if nested_a:
+                                href = nested_a.get_attribute("href")
+
+                        if href and not href.startswith(("#", "javascript:", "mailto:", "tel:")):
+                            from urllib.parse import urljoin
+                            full_dest = urljoin(page.url, href)
+                            canon = normalize_canonical_url(full_dest)
+                            if canon and canon not in seen_urls:
+                                seen_urls.add(canon)
+                                jobs.append({
+                                    "title": title,
+                                    "location": "India",
+                                    "department": "Corporate",
+                                    "application_url": canon,
+                                    "external_job_id": None,
+                                    "raw_metadata": {"direct_href": full_dest},
+                                    "link_quality": "DIRECT",
+                                    "link_check_note": "click_capture_direct_anchor_href",
+                                })
+                            continue
+
+                        # 2. If no direct href is available, click with safe state restoration
                         current_url = page.url
                         card.click(timeout=3000)
                         page.wait_for_timeout(1000)
@@ -118,9 +152,15 @@ class ClickCaptureStrategy(BaseStrategy):
                                     "link_quality": "DIRECT",
                                     "link_check_note": "click_capture_pushstate_url",
                                 })
-                                # Navigate back
-                                page.go_back(wait_until="domcontentloaded")
-                                page.wait_for_timeout(1000)
+                                # Navigate back safely and re-sync
+                                try:
+                                    page.go_back(wait_until="domcontentloaded")
+                                    page.wait_for_timeout(1000)
+                                    if page.url != current_url:
+                                        page.goto(careers_url, wait_until="domcontentloaded")
+                                        page.wait_for_timeout(1000)
+                                except Exception:
+                                    pass
 
                         clicks += 1
                     except Exception:

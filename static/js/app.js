@@ -5914,18 +5914,14 @@ function applySubscriptionToUI() {
         }
     }
     if (upgradeCta) {
-        if (normTier === 'foundation') {
-            upgradeCta.textContent = 'Foundation Master Active 👑';
+        if (normTier === 'ultra' || normTier === 'enterprise' || normTier === 'foundation') {
+            upgradeCta.textContent = 'Ultra Enterprise Active 👑';
             upgradeCta.style.opacity = '0.9';
-            upgradeCta.onclick = () => openSubscriptionModal('foundation');
-        } else if (normTier === 'enterprise') {
-            upgradeCta.textContent = 'Upgrade to Foundation 👑';
-            upgradeCta.style.opacity = '1';
-            upgradeCta.onclick = () => openSubscriptionModal('foundation');
+            upgradeCta.onclick = () => openSubscriptionModal('ultra');
         } else if (normTier === 'pro') {
-            upgradeCta.textContent = 'Upgrade to Enterprise 🚀';
+            upgradeCta.textContent = 'Upgrade to Ultra Enterprise 🚀';
             upgradeCta.style.opacity = '1';
-            upgradeCta.onclick = () => openSubscriptionModal('enterprise');
+            upgradeCta.onclick = () => openSubscriptionModal('ultra');
         } else {
             upgradeCta.textContent = 'Upgrade to Impact Pro ⚡';
             upgradeCta.style.opacity = '1';
@@ -5933,7 +5929,7 @@ function applySubscriptionToUI() {
         }
     }
     if (subCard) {
-        if (normTier === 'foundation' || normTier === 'enterprise') {
+        if (normTier === 'ultra' || normTier === 'enterprise' || normTier === 'foundation') {
             subCard.style.borderColor = 'rgba(168, 85, 247, 0.5)';
             subCard.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(15, 23, 42, 0.8))';
         } else if (normTier === 'pro') {

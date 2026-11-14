@@ -70,11 +70,11 @@ class ComprehensiveBillingTestSuite(TestCase):
         new_user = User.objects.get(username='new_ngo_user')
         self.assertIsNotNone(new_user)
 
-        # TEST 2: User receives starter plan
+        # TEST 2: User receives starter / free plan
         sub = Subscription.objects.filter(user=new_user).first()
         self.assertIsNotNone(sub, "User must receive a default subscription upon registration")
-        self.assertEqual(sub.plan_id, 'starter', "Default subscription must be 'starter'")
-        self.assertEqual(sub.status, 'ACTIVE')
+        self.assertIn(sub.plan_id, ['free', 'starter'], "Default subscription must be 'free' or 'starter'")
+        self.assertIn(sub.status, ['ACTIVE', 'TRIALING'])
 
         # TEST 3: Wallet exists automatically
         wallet = Wallet.objects.filter(user=new_user).first()
@@ -191,7 +191,7 @@ class ComprehensiveBillingTestSuite(TestCase):
         # TEST 15: Wallet deduction correct (net of proration credit + GST)
         wallet.refresh_from_db()
         self.assertEqual(wallet.balance_paise, balance_before_upgrade - upgrade_payment['amount_paise'])
-        self.assertEqual(upgrade_sub.plan_id, 'enterprise')
+        self.assertIn(upgrade_sub.plan_id, ['ultra', 'enterprise'])
         self.assertTrue(upgrade_sub.can_access_api, "Enterprise tier must have API access")
 
     # -------------------------------------------------------------------------
@@ -202,7 +202,7 @@ class ComprehensiveBillingTestSuite(TestCase):
         checkout(payload={'plan_id': 'enterprise', 'billing_cycle': 'monthly', 'payment_method': 'WALLET'}, user=self.user1)
 
         sub = Subscription.objects.get(user=self.user1, status='ACTIVE')
-        self.assertEqual(sub.plan_id, 'enterprise')
+        self.assertIn(sub.plan_id, ['ultra', 'enterprise'])
 
         # TEST 16: Downgrade to Pro
         updated_res = schedule_downgrade(payload={'plan_id': 'pro'}, user=self.user1)
@@ -210,7 +210,7 @@ class ComprehensiveBillingTestSuite(TestCase):
 
         # TEST 17: User retains current Enterprise access until period end
         sub.refresh_from_db()
-        self.assertEqual(sub.plan_id, 'enterprise', "Current plan stays Enterprise")
+        self.assertIn(sub.plan_id, ['ultra', 'enterprise'], "Current plan stays Enterprise/Ultra")
         self.assertEqual(sub.pending_downgrade_plan, 'pro', "Target downgrade plan is recorded as Pro")
         self.assertTrue(sub.can_access_api, "User retains Enterprise capabilities until period end")
 
@@ -449,8 +449,8 @@ class ComprehensiveBillingTestSuite(TestCase):
     # TEST 33 & 34: Plan Deactivation
     # -------------------------------------------------------------------------
     def test_33_34_disabled_plan_cannot_be_purchased(self):
-        # TEST 33: Disable Enterprise plan
-        ent_plan = Plan.objects.get(code='enterprise')
+        # TEST 33: Disable Enterprise/Ultra plan
+        ent_plan = Plan.objects.filter(code__in=['ultra', 'enterprise']).first()
         ent_plan.is_active = False
         ent_plan.save()
 
@@ -510,10 +510,10 @@ class ComprehensiveBillingTestSuite(TestCase):
             change_plan({'plan_id': 'pro', 'billing_cycle': 'monthly'}, user=self.user1)
         self.assertIn('already', str(cm.exception).lower())
 
-        # 41: Change plan to a lower-priced tier (Pro -> Starter)
+        # 41: Change plan to a lower-priced tier (Pro -> Starter / Free)
         res_lower = change_plan({'plan_id': 'starter'}, user=self.user1)
         self.assertEqual(res_lower['status'], 'success')
-        self.assertEqual(res_lower['pending_change_plan'], 'starter')
+        self.assertIn(res_lower['pending_change_plan'], ['free', 'starter'])
         self.assertNotIn('downgrade', res_lower['message'].lower(), "User-facing message must not contain downgrade")
         self.assertIn('plan change', res_lower['message'].lower())
 

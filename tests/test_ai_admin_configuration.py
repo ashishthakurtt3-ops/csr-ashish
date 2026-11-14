@@ -174,7 +174,7 @@ class AIAdminConfigurationTests(TestCase):
         self.assertFalse(is_model_free_tier('openrouter', 'anthropic/claude-3.5-sonnet'))
 
         # Attempt to set paid model with Free-Tier Protection ON
-        success, msg = update_system_settings({
+        success, msg, code = update_system_settings({
             'primary_provider': 'gemini',
             'primary_model': 'gemini-1.5-pro',
             'free_tier_only': True
@@ -182,14 +182,16 @@ class AIAdminConfigurationTests(TestCase):
 
         self.assertFalse(success)
         self.assertIn("Cost Protection Error", msg)
+        self.assertEqual(code, 400)
 
         # Disabling Free-Tier Protection permits custom/paid selection
-        success, msg = update_system_settings({
+        success, msg, code = update_system_settings({
             'primary_provider': 'gemini',
             'primary_model': 'gemini-1.5-pro',
             'free_tier_only': False
         }, user=self.admin_user)
         self.assertTrue(success)
+        self.assertEqual(code, 200)
 
     # --------------------------------------------------------------------------
     # 4. Centralized Dynamic Model Switching Without Restart

@@ -59,8 +59,13 @@
         <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-secondary">
             &larr; Back to Catalog
         </a>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; align-items:center;">
             <a href="{% url 'admin_subscriptions:plans_list' %}" class="btn-admin btn-admin-secondary">Cancel</a>
+            {% if plan %}
+            <button type="button" class="btn-admin btn-admin-danger" style="font-size:11.5px; padding:6px 14px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444;" onclick="return confirmDeletePlan('{{ plan.code }}', '{{ plan.name|escapejs }}')">
+                Delete Plan
+            </button>
+            {% endif %}
             <button type="submit" class="btn-admin btn-admin-primary" style="font-weight:700; padding:8px 22px;">
                 Save Plan &amp; Entitlements
             </button>
@@ -190,6 +195,10 @@
                 <label style="display:block; font-size:12px; font-weight:600; color:var(--admin-muted); margin-bottom:6px;">Trial Period (Days)</label>
                 <input type="number" id="field-trial_days" name="trial_days" value="{{ plan.trial_days|default:'0' }}" min="0" max="365"
                        style="width:100%; box-sizing:border-box; padding:10px 12px; background:rgba(30,41,59,0.6); border:1px solid var(--admin-border); border-radius:6px; color:#fff; font-size:13.5px;">
+                <p style="font-size:11px; color:var(--admin-muted); margin-top:4px;">Free trial is only available for the FREE plan. Other plans must have No Trial (0 days).</p>
+                <div id="trial-restriction-warning" style="display:none; font-size:11px; color:#ef4444; margin-top:4px; background:rgba(239,68,68,0.1); padding:6px 8px; border-radius:4px; border:1px solid rgba(239,68,68,0.2);">
+                    ⚠️ Free trial is restricted to the FREE plan only. Value forced to 0.
+                </div>
             </div>
 
             <div>
@@ -425,6 +434,34 @@
         </button>
     </div>
 </form>
+
+{% if plan %}
+<div style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:40px;">
+    <form id="planDeleteForm" method="POST" action="{% url 'admin_subscriptions:plan_delete' plan.code %}" style="display:inline; margin:0;" onsubmit="return EnterpriseConfirm.handleForm(event, {
+        title: 'Delete Subscription Plan Specification',
+        subtitle: 'Permanent deletion of this tier from the product catalog.',
+        severity: 'danger',
+        entity: {
+            'Plan Name': '{{ plan.name }}',
+            'Plan Identifier': '{{ plan.code }}'
+        },
+        impacts: [
+            'Permanently deletes the plan record and configured entitlements',
+            'Operation will be rejected if any active subscriptions are attached',
+            'Cannot be recovered once executed'
+        ],
+        alert: 'CRITICAL: Only proceed if you are certain this plan specification is obsolete.',
+        requireAck: true,
+        ackText: 'I confirm permanent deletion of plan {{ plan.name }} ({{ plan.code }}).',
+        confirmText: 'Permanently Delete Plan'
+    });">
+        {% csrf_token %}
+        <button type="submit" class="btn-admin btn-admin-danger" style="font-size:11.5px; padding:4px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#ef4444;">
+            Delete
+        </button>
+    </form>
+</div>
+{% endif %}
 
 <!-- MODAL: Confirmation & Diff Dialog (Requirement 10 & 11) -->
 <div id="modal-plan-confirm" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(11,31,51,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
@@ -700,6 +737,56 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('change', () => syncBulletsFromLimits(false));
         }
     });
+
+    // ── Free Trial Restriction: only FREE plan may have trial_days > 0 ──
+    syncTrialField();
+    const planCodeInput = document.getElementById('field-code');
+    if (planCodeInput && !planCodeInput.disabled) {
+        planCodeInput.addEventListener('input', syncTrialField);
+        planCodeInput.addEventListener('change', syncTrialField);
+    }
 });
+
+function syncTrialField() {
+    const codeEl = document.getElementById('field-code');
+    const trialEl = document.getElementById('field-trial_days');
+    const warningEl = document.getElementById('trial-restriction-warning');
+    if (!codeEl || !trialEl) return;
+    const code = (codeEl.value || '').trim().toLowerCase();
+    const isFree = code === 'free';
+    if (!isFree) {
+        trialEl.disabled = true;
+        trialEl.value = 0;
+        if (warningEl) warningEl.style.display = 'block';
+    } else {
+        trialEl.disabled = false;
+        if (warningEl) warningEl.style.display = 'none';
+    }
+}
+
+function confirmDeletePlan(planCode, planName) {
+    var form = document.getElementById('planDeleteForm');
+    if (!form) return false;
+    EnterpriseConfirm.show({
+        title: 'Delete Subscription Plan Specification',
+        subtitle: 'Permanent deletion of this tier from the product catalog.',
+        severity: 'danger',
+        entity: {
+            'Plan Name': planName,
+            'Plan Identifier': planCode
+        },
+        impacts: [
+            'Permanently deletes the plan record and configured entitlements',
+            'Operation will be rejected if any active subscriptions are attached',
+            'Cannot be recovered once executed'
+        ],
+        alert: 'CRITICAL: Only proceed if you are certain this plan specification is obsolete.',
+        requireAck: true,
+        ackText: 'I confirm permanent deletion of plan ' + planName + ' (' + planCode + ').',
+        confirmText: 'Permanently Delete Plan',
+        form: form
+    });
+    return false;
+}
 </script>
 {% endblock %}

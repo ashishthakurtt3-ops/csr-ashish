@@ -60,6 +60,7 @@ from modules.admin_panel.services.ai_config_service import (
     test_routing_and_failover,
     test_all_providers_batch,
     get_model_catalog_list,
+    bootstrap_default_configs,
 )
 from modules.admin_panel.services.ai_telemetry_service import AITelemetryStore
 from modules.admin_panel.utils.ai_crypto import mask_api_key, encrypt_secret, decrypt_secret
@@ -72,6 +73,7 @@ class AIControlCenterMasterTestSuite(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        bootstrap_default_configs()
         cls.rf = RequestFactory()
         cls.admin_user = User.objects.filter(is_superuser=True).first()
         if not cls.admin_user:

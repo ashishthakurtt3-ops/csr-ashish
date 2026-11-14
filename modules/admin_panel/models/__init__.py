@@ -12,6 +12,7 @@ from .subscription import (
     SavedRecord, SavedSearch, TeamMembership, CompanyRefreshRequest
 )
 from .document import Document
+from .csr_report import CSRReport
 from .service import ServiceCatalog
 from .coverage import CompanyCompletenessRegister
 from .source_registry import CompanySource
@@ -55,6 +56,7 @@ __all__ = [
     'TeamMembership',
     'CompanyRefreshRequest',
     'Document',
+    'CSRReport',
     'ServiceCatalog',
     'CompanySource',
     'AIProviderConfig',

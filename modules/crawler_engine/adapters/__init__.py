@@ -10,12 +10,14 @@ from .reliance import ReliancePortalAdapter
 from .darwinbox import DarwinboxAdapter
 from .taleo import TaleoAdapter
 from .successfactors import SuccessFactorsAdapter
+from .zwayam import ZwayamAdapter
 from .generic_jsonld import GenericStructuredJobAdapter
 
 REGISTERED_ADAPTERS: List[BaseATSAdapter] = [
     ReliancePortalAdapter(),
     WorkdayAdapter(),
     DarwinboxAdapter(),
+    ZwayamAdapter(),
     TaleoAdapter(),
     SuccessFactorsAdapter(),
     GenericStructuredJobAdapter(),

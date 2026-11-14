@@ -17,6 +17,7 @@ class ExtractionContext:
         self.status_code: Optional[int] = None
         self.discovered_ats_platform: Optional[str] = None
         self.discovered_ats_token: Optional[str] = None
+        self.discovered_ats_url: Optional[str] = None
         self.extra_metadata: Dict[str, Any] = {}
 
 

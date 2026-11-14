@@ -19,6 +19,8 @@ from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from .discovery_helpers import get_registrable_domain, fast_homepage_intelligence
+
 logger = logging.getLogger(__name__)
 
 CAREER_CORPUS = [
@@ -126,7 +128,12 @@ PROBING_CSR_PATHS = [
 
 
 def _extract_registered_domain(url: str) -> str:
-    """Extracts base host (e.g. 'tatapower.com' from 'https://www.tatapower.com/index.html')."""
+    """Extracts base registrable domain (e.g. 'tatapower.com' from 'https://careers.tatapower.com/jobs')."""
+    if not url:
+        return ""
+    reg = get_registrable_domain(url)
+    if reg:
+        return reg
     parsed = urlparse(url if url.startswith(("http://", "https://")) else f"https://{url}")
     host = parsed.netloc.lower().split(":")[0]
     parts = host.split(".")
@@ -137,12 +144,13 @@ def _extract_registered_domain(url: str) -> str:
     return host
 
 
-def probe_subdomains_and_paths(domain_url: str) -> Dict[str, Optional[str]]:
+def probe_subdomains_and_paths(domain_url: str, max_workers: int = 4) -> Dict[str, Optional[str]]:
     """
     Automatically tests live HTTP requests (curl_cffi impersonating Chrome 124) against:
     - https://careers.<domain>, https://jobs.<domain>, https://hr.<domain>
     - <domain>/careers, <domain>/career, <domain>/jobs, <domain>/current-openings, etc.
     - <domain>/sustainability, <domain>/csr, <domain>/esg, <domain>/foundation
+    Uses bounded concurrency to avoid sequential blocking bottlenecks.
     """
     discovered = {"careers_url": None, "csr_url": None}
     if not domain_url:
@@ -157,48 +165,51 @@ def probe_subdomains_and_paths(domain_url: str) -> Dict[str, Optional[str]]:
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
 
-    # 1. Probing Subdomains for Careers
-    for sub in PROBING_SUBDOMAINS:
-        sub_url = f"https://{sub}.{base_domain}"
+    import concurrent.futures
+
+    def check_candidate_url(u: str) -> Optional[Tuple[str, str]]:
         try:
-            resp = cffi_requests.get(sub_url, impersonate="chrome124", headers=headers, timeout=5, follow_redirects=True)
-            if resp.status_code == 200 and len(resp.text) > 500:
-                final_url = resp.url or sub_url
-                # Verify not a generic 404 or parking page
-                text_lower = resp.text.lower()
-                if not any(err in text_lower for err in ["404 not found", "domain for sale", "page not found"]):
-                    discovered["careers_url"] = final_url
-                    logger.info("Subdomain probe hit for %s -> %s", base_domain, final_url)
-                    break
+            resp = cffi_requests.get(u, impersonate="chrome124", headers=headers, timeout=4, follow_redirects=True)
+            if resp.status_code == 200 and len(resp.text or "") > 500:
+                text_lower = (resp.text or "").lower()
+                if not any(err in text_lower for err in ["404 not found", "domain for sale", "page not found", "does not exist"]):
+                    return u, (resp.url or u)
         except Exception:
             pass
+        return None
 
-    # 2. Probing Career Paths if subdomain didn't hit
+    # 1. Probing subdomains
+    sub_urls = [f"https://{sub}.{base_domain}" for sub in PROBING_SUBDOMAINS]
+    bounded_workers = max(1, int(max_workers or 1))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(bounded_workers, len(sub_urls))) as executor:
+        futures = [executor.submit(check_candidate_url, u) for u in sub_urls]
+        for f in futures:
+            res = f.result()
+            if res:
+                discovered["careers_url"] = res[1]
+                logger.info("Subdomain probe hit for %s -> %s", base_domain, res[1])
+                break
+
+    # 2. Probing career paths if subdomain didn't hit
     if not discovered["careers_url"]:
-        for path in PROBING_CAREER_PATHS:
-            target_url = f"https://{base_domain}{path}"
-            try:
-                resp = cffi_requests.get(target_url, impersonate="chrome124", headers=headers, timeout=4, follow_redirects=True)
-                if resp.status_code == 200 and len(resp.text) > 500:
-                    text_lower = resp.text.lower()
-                    if not any(err in text_lower for err in ["404 not found", "page not found", "does not exist"]):
-                        discovered["careers_url"] = resp.url or target_url
-                        break
-            except Exception:
-                pass
-
-    # 3. Probing CSR / Sustainability Paths
-    for path in PROBING_CSR_PATHS:
-        target_url = f"https://{base_domain}{path}"
-        try:
-            resp = cffi_requests.get(target_url, impersonate="chrome124", headers=headers, timeout=4, follow_redirects=True)
-            if resp.status_code == 200 and len(resp.text) > 500:
-                text_lower = resp.text.lower()
-                if not any(err in text_lower for err in ["404 not found", "page not found", "does not exist"]):
-                    discovered["csr_url"] = resp.url or target_url
+        career_urls = [f"https://{base_domain}{path}" for path in PROBING_CAREER_PATHS]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=bounded_workers) as executor:
+            futures = [executor.submit(check_candidate_url, u) for u in career_urls]
+            for f in futures:
+                res = f.result()
+                if res:
+                    discovered["careers_url"] = res[1]
                     break
-        except Exception:
-            pass
+
+    # 3. Probing CSR / Sustainability paths
+    csr_urls = [f"https://{base_domain}{path}" for path in PROBING_CSR_PATHS]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=bounded_workers) as executor:
+        futures = [executor.submit(check_candidate_url, u) for u in csr_urls]
+        for f in futures:
+            res = f.result()
+            if res:
+                discovered["csr_url"] = res[1]
+                break
 
     return discovered
 

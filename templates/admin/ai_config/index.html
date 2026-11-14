@@ -1828,6 +1828,17 @@
 
 <!-- VIEW 2: USAGE & LIMITS SECTION -->
 <div id="viewUsageSection" style="display:none;" role="region" aria-labelledby="tab-usage">
+    <!-- Global System Settings Edit Bar -->
+    <div style="background:var(--ai-surface); border:1px solid var(--ai-border); border-radius:12px; padding:18px 24px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+            <h3 style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:var(--ai-text-main);">Global System Settings &amp; Execution Limits</h3>
+            <p style="margin:0; font-size:13px; color:var(--ai-text-muted);">Configure inference timeouts, retry limits, max call caps, and cost protection policies.</p>
+        </div>
+        <button type="button" class="btn-drawer-save" onclick="openSystemSettingsModal()" style="padding:9px 20px; font-size:13px; cursor:pointer;">
+            ⚙️ Edit System Settings
+        </button>
+    </div>
+
     <div class="usage-metrics-grid">
         <!-- Metric 1: Total Cached Responses -->
         <div class="usage-metric-card">
@@ -2244,6 +2255,51 @@
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
                 <button type="button" class="btn-drawer-test" onclick="closeAddProviderModal()">Cancel</button>
                 <button type="submit" class="btn-drawer-save" id="btnSubmitNewProvider">Save Provider</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- System Settings Edit Modal -->
+<div class="modal-backdrop-ai" id="systemSettingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle" style="display:none;">
+    <div class="modal-card-ai" id="settingsModalCard">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 id="settingsModalTitle" style="font-size:16.5px; font-weight:800; color:var(--ai-text-main); margin:0;">
+                Global AI System Settings
+            </h3>
+            <button type="button" style="border:none; background:none; font-size:18px; cursor:pointer; color:var(--ai-text-muted);" onclick="closeSystemSettingsModal()" aria-label="Close dialog">✕</button>
+        </div>
+
+        <form id="systemSettingsForm" onsubmit="event.preventDefault(); saveSystemSettings();">
+            <div class="form-group-ai">
+                <label class="label-ai" for="settingTimeout">Request Timeout (seconds)</label>
+                <input type="number" id="settingTimeout" class="input-ai" min="5" max="180" value="{{ settings.request_timeout }}" required>
+                <div class="hint-ai">Maximum wait time per AI classification request (5 - 180 seconds).</div>
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="settingRetries">Maximum Retries</label>
+                <input type="number" id="settingRetries" class="input-ai" min="0" max="5" value="{{ settings.max_retries }}" required>
+                <div class="hint-ai">Number of retry attempts upon transient error or rate limit (0 - 5).</div>
+            </div>
+
+            <div class="form-group-ai">
+                <label class="label-ai" for="settingMaxCalls">Per-Run Call Cap</label>
+                <input type="number" id="settingMaxCalls" class="input-ai" min="1" max="500" value="{{ settings.max_api_calls_per_run }}" required>
+                <div class="hint-ai">Maximum total AI inference calls allowed during a single discovery run (1 - 500).</div>
+            </div>
+
+            <div class="form-group-ai" style="display:flex; align-items:flex-start; gap:10px; margin-top:14px;">
+                <input type="checkbox" id="settingFreeTierOnly" style="margin-top:3px;" {% if settings.free_tier_only %}checked{% endif %}>
+                <div>
+                    <label class="label-ai" for="settingFreeTierOnly" style="margin:0; cursor:pointer;">Enforce Strict Free-Tier-Only Cost Protection</label>
+                    <div class="hint-ai">When enabled, rejects any model or provider that requires billable credits.</div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
+                <button type="button" class="btn-drawer-test" onclick="closeSystemSettingsModal()">Cancel</button>
+                <button type="submit" class="btn-drawer-save" id="btnSaveSystemSettings">Save Settings</button>
             </div>
         </form>
     </div>
@@ -3467,6 +3523,80 @@
         } finally {
             btn.disabled = false;
             btn.textContent = "Save Provider";
+        }
+    }
+
+    function openSystemSettingsModal() {
+        const modal = document.getElementById("systemSettingsModal");
+        if (modal) {
+            modal.style.display = "flex";
+            const timeoutInput = document.getElementById("settingTimeout");
+            if (timeoutInput) timeoutInput.focus();
+            modal.addEventListener('keydown', handleSettingsModalKeyDown);
+        }
+    }
+
+    function closeSystemSettingsModal() {
+        const modal = document.getElementById("systemSettingsModal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.removeEventListener('keydown', handleSettingsModalKeyDown);
+        }
+    }
+
+    function handleSettingsModalKeyDown(e) {
+        if (e.key === 'Escape') {
+            closeSystemSettingsModal();
+        }
+    }
+
+    async function saveSystemSettings() {
+        const btn = document.getElementById("btnSaveSystemSettings");
+        const origText = btn ? btn.textContent : "Save Settings";
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = "Saving...";
+        }
+
+        try {
+            const timeout = parseInt(document.getElementById("settingTimeout").value, 10);
+            const retries = parseInt(document.getElementById("settingRetries").value, 10);
+            const maxCalls = parseInt(document.getElementById("settingMaxCalls").value, 10);
+            const freeTierOnly = document.getElementById("settingFreeTierOnly").checked;
+
+            const versionEl = document.getElementById("settings-version");
+            const currentVersion = versionEl ? JSON.parse(versionEl.textContent) : 1;
+
+            const resp = await fetch("{% url 'admin_ai_config:save_settings' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify({
+                    request_timeout: timeout,
+                    max_retries: retries,
+                    max_api_calls_per_run: maxCalls,
+                    free_tier_only: freeTierOnly,
+                    version: currentVersion
+                })
+            });
+
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                showToast(data.message || "Global AI system settings saved successfully.", "success");
+                closeSystemSettingsModal();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast("Error saving system settings: " + (data.message || data.error || "Validation failed"), "error");
+            }
+        } catch (err) {
+            showToast("Network error: " + err.message, "error");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = origText;
+            }
         }
     }
 </script>

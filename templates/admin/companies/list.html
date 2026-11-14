@@ -272,7 +272,7 @@
                     <th>CSR Portfolio</th>
                     <th>Last Crawled</th>
                     <th>Crawl Status</th>
-                    <th style="text-align:right; min-width:160px;">Management Actions</th>
+                    <th style="text-align:right; min-width:230px;">Management Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -387,6 +387,15 @@
                         <button type="button" class="btn-admin" style="padding:3px 7px; font-size:11px; background:rgba(37,99,235,0.12); border:1px solid #3b82f6; color:#2563eb; font-weight:700;" onclick="adminFetchLiveCompany('{{ c.company_id }}', this)" title="Probe and live sync company data">
                             🔄 Sync
                         </button>
+                        <button type="button" class="btn-admin"
+                                style="padding:3px 7px; font-size:11px; background:#DC2626; border:1px solid #B91C1C; color:#fff; font-weight:700; cursor:pointer;"
+                                data-delete-url="{% url 'admin_companies:delete' c.company_id %}"
+                                data-company-name="{{ c.company_name }}"
+                                data-company-id="{{ c.company_id }}"
+                                onclick="confirmCompanyDelete(this.dataset.deleteUrl, this.dataset.companyName, this.dataset.companyId)"
+                                title="Permanently delete this company and all related data">
+                            Delete
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
@@ -434,4 +443,6 @@
     </div>
     {% endif %}
 </div>
+
+{% include "admin/components/company_delete_modal.html" %}
 {% endblock %}

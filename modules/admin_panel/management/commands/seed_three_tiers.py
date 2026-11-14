@@ -300,7 +300,7 @@ class Command(BaseCommand):
                 ('No Trial', 'TEXT'),
                 ('No Trial', 'TEXT')),
             ('billing_flexibility', 'Billing options',
-                ('Free Forever', 'TEXT'),
+                ('14-Day Free Evaluation', 'TEXT'),
                 ('Monthly & Annual Billing', 'TEXT'),
                 ('Monthly & Annual Billing', 'TEXT')),
         ]

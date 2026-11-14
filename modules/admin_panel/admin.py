@@ -7,6 +7,7 @@ from .models import (
     PromoCode, Subscription, SubscriptionEvent, Invoice, UsageCounter,
     Document, ServiceCatalog
 )
+from .services.company_deletion_service import delete_company_completely
 
 
 @admin.register(User)
@@ -26,6 +27,26 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('company_id', 'company_name', 'nse_symbol', 'sector', 'crawl_status', 'link_quality')
     search_fields = ('company_id', 'company_name', 'nse_symbol', 'sector', 'isin')
     list_filter = ('sector', 'crawl_status', 'link_quality', 'listed_on_nse')
+    actions = ('delete_selected_with_related',)
+
+    def delete_model(self, request, obj):
+        # Single source of truth: removes every related record and stored file.
+        name = obj.company_name
+        delete_company_completely(obj, deleted_by=request.user)
+        self.message_user(request, f"Company '{name}' and all related data were permanently deleted.")
+
+    def delete_queryset(self, request, queryset):
+        # Django's built-in bulk "delete selected" action funnels through here.
+        for company in queryset:
+            delete_company_completely(company, deleted_by=request.user)
+
+    @admin.action(description="Delete selected companies and all related data")
+    def delete_selected_with_related(self, request, queryset):
+        deleted_count = 0
+        for company in queryset:
+            delete_company_completely(company, deleted_by=request.user)
+            deleted_count += 1
+        self.message_user(request, f"Successfully deleted {deleted_count} company(ies) and all related data.")
 
 
 @admin.register(Job)
@@ -148,4 +169,3 @@ class AuditTrailAdmin(admin.ModelAdmin):
 class ServiceCatalogAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'price_inr', 'is_active')
     list_filter = ('category', 'is_active')
-

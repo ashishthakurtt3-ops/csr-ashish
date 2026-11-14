@@ -432,6 +432,10 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" id="btn-clear-discovery-session" onclick="clearDiscoverySession()" style="display: none; background: var(--bg-surface-subtle); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Reset session dossiers & logs to start a fresh batch">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Clear Output</span>
+                        </button>
                         <button type="button" id="btn-export-dossiers-csv" onclick="exportQueueResultsCSV()" style="display: none; background: rgba(16,185,129,0.12); color: #10B981; border: 1px solid rgba(16,185,129,0.3); font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             <span>Export CSV</span>
@@ -716,6 +720,47 @@
     padding: 2px 7px;
     border-radius: 10px;
 }
+.badge-processing {
+    background: rgba(245,158,11,0.14);
+    color: #D97706;
+    border: 1px solid rgba(245,158,11,0.3);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    animation: dossierPulse 1.6s ease-in-out infinite;
+}
+@keyframes dossierPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+.badge-outcome-success {
+    background: rgba(16,185,129,0.12);
+    color: #059669;
+    border: 1px solid rgba(16,185,129,0.25);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.badge-outcome-partial {
+    background: rgba(245,158,11,0.12);
+    color: #B45309;
+    border: 1px solid rgba(245,158,11,0.25);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.badge-outcome-failed {
+    background: rgba(239,68,68,0.12);
+    color: #DC2626;
+    border: 1px solid rgba(239,68,68,0.25);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
 .dossier-code {
     font-size: 10.5px;
     background: var(--bg-surface-subtle);
@@ -850,6 +895,12 @@
     background: rgba(16,185,129,0.08);
     color: #10B981;
     border-color: rgba(16,185,129,0.25);
+    font-weight: 600;
+}
+.dossier-pill-blue {
+    background: rgba(10,108,255,0.08);
+    color: #0A6CFF;
+    border-color: rgba(10,108,255,0.25);
     font-weight: 600;
 }
 .dossier-apply-btn {
@@ -1697,6 +1748,9 @@ async function startSingleCompanyDiscovery() {
         return;
     }
 
+    // New company details entered: the previous crawl must not be shown.
+    beginFreshDiscoveryBatch({ abortActive: true });
+
     const btn = document.getElementById('btn-quick-discover');
     const originalBtnHTML = btn ? btn.innerHTML : '';
     if (btn) {
@@ -1727,17 +1781,24 @@ async function startSingleCompanyDiscovery() {
         duration: 3500
     });
 
+    const progressToken = `disc_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const options = {
         extract_jobs: document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true,
         extract_csr: document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true,
+        extract_reports: true,
+        deep_enrich: true,
+        progress_token: progressToken,
         auto_create_company: document.getElementById('opt-auto-create-company') ? document.getElementById('opt-auto-create-company').checked : true,
     };
 
     const companyTask = {
         company_name: compName,
         website_url: websiteVal,
-        homepage_url: websiteVal
+        homepage_url: websiteVal,
+        progress_token: progressToken
     };
+
+    startDiscoveryProgressPolling(progressToken, companyTask);
 
     try {
         const resp = await fetch("{% url 'admin_ai_discovery:process_company' %}", {
@@ -1809,21 +1870,14 @@ async function handleFileSelected(file) {
     if (!file) return;
     selectedFile = file;
 
-    // Fully reset queue lifecycle and failure counters to prevent getting stuck on re-upload
-    if (window.activeDiscoveryAbortController) {
-        try { window.activeDiscoveryAbortController.abort(); } catch(e) {}
-        window.activeDiscoveryAbortController = null;
-    }
-    if (window.discoveryQueueTimeout) {
-        clearTimeout(window.discoveryQueueTimeout);
-        window.discoveryQueueTimeout = null;
-    }
-    isQueueRunning = false;
-    isQueuePaused = false;
-    consecutiveNetworkFailures = 0;
-    companyQueue = [];
-    currentQueueIndex = 0;
-    failedCompaniesList = [];
+    // New company details entered: wipe the previous crawl immediately so its
+    // dossiers/logs can never appear next to the new batch.
+    beginFreshDiscoveryBatch({ abortActive: true });
+
+    // Any previous manifest preview is also part of the old batch.
+    parsedManifestCompanies = [];
+    filteredManifestCompanies = [];
+    previewCurrentPage = 1;
 
     // Hide any previous emergency alert or completion banner
     const alertBox = document.getElementById('queue-emergency-alert');
@@ -2108,15 +2162,10 @@ function startParsedManifestDiscovery() {
         return;
     }
 
-    if (window.activeDiscoveryAbortController) {
-        try { window.activeDiscoveryAbortController.abort(); } catch(e) {}
-    }
-    window.activeDiscoveryAbortController = new AbortController();
+    // Starting a new manifest batch: clear the previous crawl first.
+    beginFreshDiscoveryBatch({ abortActive: true });
 
-    if (window.discoveryQueueTimeout) {
-        clearTimeout(window.discoveryQueueTimeout);
-        window.discoveryQueueTimeout = null;
-    }
+    window.activeDiscoveryAbortController = new AbortController();
 
     companyQueue = [...parsedManifestCompanies];
 
@@ -2508,6 +2557,12 @@ function logTerminal(msg, color) {
     if (matchesActiveFilter(logEntry)) {
         appendLogDOM(logEntry);
     }
+
+    // Debounced session persistence for terminal logs
+    if (window._saveDiscoveryStateTimeout) clearTimeout(window._saveDiscoveryStateTimeout);
+    window._saveDiscoveryStateTimeout = setTimeout(() => {
+        if (typeof saveDiscoveryState === 'function') saveDiscoveryState();
+    }, 600);
 }
 
 function matchesActiveFilter(entry) {
@@ -2698,6 +2753,7 @@ function clearTerminalLogs() {
         `;
     }
     updateHUDStatus('IDLE — Awaiting Crawler Manifest', 'Standby', false);
+    if (typeof saveDiscoveryState === 'function') saveDiscoveryState();
     showInAppNotification({ title: 'Terminal Cleared', message: 'Console stream log reset.', type: 'info' });
 }
 
@@ -2934,12 +2990,396 @@ let resultsSearchQuery = '';
 let resultsCurrentPage = 1;
 const RESULTS_PAGE_SIZE = 5;
 
+const DISCOVERY_STORAGE_KEY = 'impactbridge_ai_discovery_state_v1';
+
+function saveDiscoveryState() {
+    try {
+        const payload = {
+            discoveredCompaniesResults: (discoveredCompaniesResults || []).slice(0, 50),
+            allLogsData: (allLogsData || []).slice(-250),
+            counters: {
+                totalJobsImported: totalJobsImported || 0,
+                totalCsrImported: totalCsrImported || 0,
+                totalNewCompanies: totalNewCompanies || 0,
+                totalExistingCompanies: totalExistingCompanies || 0
+            },
+            resultsCurrentTab: resultsCurrentTab || 'all',
+            // Marks this browser tab as having an explicit discovery session.
+            // An empty session is still authoritative and must NOT trigger the
+            // "recent database dossiers" hydration fallback.
+            sessionEstablished: true,
+            savedAt: Date.now()
+        };
+        localStorage.setItem(DISCOVERY_STORAGE_KEY, JSON.stringify(payload));
+    } catch (e) {
+        console.warn('Failed to save discovery state to localStorage:', e);
+    }
+}
+
+function getPageNavigationType() {
+    try {
+        const navEntry = performance.getEntriesByType('navigation')[0];
+        return (navEntry && navEntry.type) ? navEntry.type : 'navigate';
+    } catch (e) {
+        return 'navigate';
+    }
+}
+
+function applyRestoredDiscoveryView(data) {
+    discoveredCompaniesResults = Array.isArray(data.discoveredCompaniesResults)
+        ? data.discoveredCompaniesResults
+        : [];
+
+    if (data.counters) {
+        totalJobsImported = data.counters.totalJobsImported || 0;
+        totalCsrImported = data.counters.totalCsrImported || 0;
+        totalNewCompanies = data.counters.totalNewCompanies || 0;
+        totalExistingCompanies = data.counters.totalExistingCompanies || 0;
+    }
+
+    const counterJobs = document.getElementById('counter-jobs-imported');
+    if (counterJobs) counterJobs.innerText = totalJobsImported;
+    const counterCsr = document.getElementById('counter-csr-imported');
+    if (counterCsr) counterCsr.innerText = totalCsrImported;
+    const counterNew = document.getElementById('counter-new-companies');
+    if (counterNew) counterNew.innerText = totalNewCompanies;
+    const counterComp = document.getElementById('counter-comp-completed');
+    if (counterComp) counterComp.innerText = discoveredCompaniesResults.length;
+
+    const statNew = document.getElementById('stat-new-companies');
+    if (statNew) statNew.innerText = totalNewCompanies;
+    const statExisting = document.getElementById('stat-existing-companies');
+    if (statExisting) statExisting.innerText = totalExistingCompanies;
+    const statImports = document.getElementById('stat-session-imports');
+    if (statImports) statImports.innerText = `${totalJobsImported + totalCsrImported} records`;
+    const badge = document.getElementById('queue-results-badge');
+    if (badge) badge.innerText = `${discoveredCompaniesResults.length} processed`;
+
+    const termStatJobs = document.getElementById('term-stat-jobs');
+    if (termStatJobs) termStatJobs.innerText = totalJobsImported;
+    const termStatCsr = document.getElementById('term-stat-csr');
+    if (termStatCsr) termStatCsr.innerText = totalCsrImported;
+
+    allLogsData = Array.isArray(data.allLogsData) ? data.allLogsData : [];
+    logCounters = { all: allLogsData.length, jobs: 0, csr: 0, direct: 0, error: 0 };
+    allLogsData.forEach(logEntry => {
+        if (logEntry.type === 'jobs' || logEntry.badge === '💼 CAREERS') logCounters.jobs++;
+        if (logEntry.type === 'csr' || logEntry.badge === '🌱 CSR/ESG') logCounters.csr++;
+        if (logEntry.type === 'direct' || logEntry.type === 'probe') logCounters.direct++;
+        if (logEntry.type === 'error') logCounters.error++;
+    });
+
+    const term = document.getElementById('terminal-log-window');
+    if (term && allLogsData.length > 0) {
+        term.innerHTML = '';
+        allLogsData.forEach(logEntry => appendLogDOM(logEntry));
+    }
+    updateFilterBadges();
+
+    if (data.resultsCurrentTab) {
+        resultsCurrentTab = data.resultsCurrentTab;
+        ['all', 'jobs', 'csr', 'new'].forEach(t => {
+            const btn = document.getElementById(`tab-pill-${t}`);
+            if (btn) {
+                if (t === resultsCurrentTab) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        });
+    }
+
+    renderDiscoveredResultsList();
+}
+
+async function restoreDiscoveryState() {
+    // An explicit browser refresh (F5 / Ctrl+R) must start with a clean
+    // discovery screen. Navigating to another admin option and coming back
+    // (navigate / back_forward) restores the saved session instead.
+    if (getPageNavigationType() === 'reload') {
+        beginFreshDiscoveryBatch({ abortActive: true });
+        return;
+    }
+
+    try {
+        const raw = localStorage.getItem(DISCOVERY_STORAGE_KEY);
+        if (raw) {
+            const data = JSON.parse(raw);
+            if (data) {
+                // Any saved state — including an explicitly cleared/empty
+                // session — is authoritative. Never re-hydrate old dossiers.
+                applyRestoredDiscoveryView(data);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to restore discovery state from localStorage:', e);
+    }
+
+    // First visit in this browser: show the most recent verified dossiers.
+    await hydrateFromRecentDatabaseDossiers();
+}
+
+async function hydrateFromRecentDatabaseDossiers() {
+    try {
+        const resp = await fetch("{% url 'admin_ai_discovery:recent_dossiers' %}", {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.status === 'success' && Array.isArray(data.dossiers) && data.dossiers.length > 0) {
+                discoveredCompaniesResults = data.dossiers;
+                totalJobsImported = data.total_jobs || 0;
+                totalCsrImported = data.total_csr || 0;
+
+                const counterJobs = document.getElementById('counter-jobs-imported');
+                if (counterJobs) counterJobs.innerText = totalJobsImported;
+                const counterCsr = document.getElementById('counter-csr-imported');
+                if (counterCsr) counterCsr.innerText = totalCsrImported;
+                const counterComp = document.getElementById('counter-comp-completed');
+                if (counterComp) counterComp.innerText = discoveredCompaniesResults.length;
+
+                const statImports = document.getElementById('stat-session-imports');
+                if (statImports) statImports.innerText = `${totalJobsImported + totalCsrImported} records`;
+                const badge = document.getElementById('queue-results-badge');
+                if (badge) badge.innerText = `${discoveredCompaniesResults.length} processed`;
+
+                renderDiscoveredResultsList();
+                logTerminal(`[SYSTEM] Loaded ${data.dossiers.length} verified dossiers directly from database.`);
+                saveDiscoveryState();
+            }
+        }
+    } catch (err) {
+        console.warn('Could not hydrate recent dossiers:', err);
+    }
+}
+
+function resetDiscoveryViewState() {
+    // Clear every in-memory and visible trace of the previous crawl.
+    // Deliberately does not touch the manifest preview (new uploads manage it).
+    discoveredCompaniesResults = [];
+    allLogsData = [];
+    logCounters = { all: 0, jobs: 0, csr: 0, direct: 0, error: 0 };
+    totalJobsImported = 0;
+    totalCsrImported = 0;
+    totalNewCompanies = 0;
+    totalExistingCompanies = 0;
+    processedResults = [];
+    failedCompaniesList = [];
+    consecutiveNetworkFailures = 0;
+    resultsCurrentTab = 'all';
+    resultsCurrentPage = 1;
+    resultsSearchQuery = '';
+
+    const term = document.getElementById('terminal-log-window');
+    if (term) {
+        term.innerHTML = `
+            <div class="log-row log-type-sys" data-type="sys">
+                <span class="log-time">[RESET]</span>
+                <span class="log-badge log-badge-sys">⚙ SYSTEM</span>
+                <span class="log-text" style="color: #94A3B8;">Session output reset. Ready for next discovery crawl.</span>
+            </div>
+        `;
+    }
+
+    const counterJobs = document.getElementById('counter-jobs-imported');
+    if (counterJobs) counterJobs.innerText = '0';
+    const counterCsr = document.getElementById('counter-csr-imported');
+    if (counterCsr) counterCsr.innerText = '0';
+    const counterNew = document.getElementById('counter-new-companies');
+    if (counterNew) counterNew.innerText = '0';
+    const counterComp = document.getElementById('counter-comp-completed');
+    if (counterComp) counterComp.innerText = '0';
+
+    const statNew = document.getElementById('stat-new-companies');
+    if (statNew) statNew.innerText = '0';
+    const statExisting = document.getElementById('stat-existing-companies');
+    if (statExisting) statExisting.innerText = '0';
+    const statImports = document.getElementById('stat-session-imports');
+    if (statImports) statImports.innerText = '0 records';
+    const badge = document.getElementById('queue-results-badge');
+    if (badge) badge.innerText = '0 processed';
+
+    const btnExp = document.getElementById('btn-export-results');
+    if (btnExp) btnExp.style.display = 'none';
+    const compBanner = document.getElementById('queue-completion-banner');
+    if (compBanner) compBanner.style.display = 'none';
+    const alertBox = document.getElementById('queue-emergency-alert');
+    if (alertBox) alertBox.style.display = 'none';
+
+    ['all', 'jobs', 'csr', 'new'].forEach(t => {
+        const btn = document.getElementById(`tab-pill-${t}`);
+        if (btn) {
+            if (t === 'all') btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+    });
+
+    updateFilterBadges();
+    updateFailedCompaniesUI();
+    renderDiscoveredResultsList();
+
+    const qBar = document.getElementById('queue-progress-bar');
+    if (qBar) qBar.style.width = '0%';
+}
+
+function beginFreshDiscoveryBatch(options) {
+    options = options || {};
+
+    if (options.abortActive) {
+        if (window.activeDiscoveryAbortController) {
+            try { window.activeDiscoveryAbortController.abort(); } catch (e) {}
+            window.activeDiscoveryAbortController = null;
+        }
+        if (window.discoveryQueueTimeout) {
+            clearTimeout(window.discoveryQueueTimeout);
+            window.discoveryQueueTimeout = null;
+        }
+        if (window.activeDiscoveryPollers) {
+            Object.values(window.activeDiscoveryPollers).forEach(timer => {
+                try { clearInterval(timer); } catch (e) {}
+            });
+            window.activeDiscoveryPollers = {};
+        }
+    }
+
+    isQueueRunning = false;
+    isQueuePaused = false;
+    companyQueue = [];
+    currentQueueIndex = 0;
+
+    resetDiscoveryViewState();
+
+    // Persist the clean session. This marker prevents the old crawl from being
+    // restored or re-hydrated from the database when navigating back.
+    saveDiscoveryState();
+
+    if (options.notify) {
+        showInAppNotification({
+            title: 'Fresh Discovery Session',
+            message: 'Previous crawl results cleared. Ready for the new company details.',
+            type: 'info',
+            duration: 3000
+        });
+    }
+}
+
+function clearDiscoverySession(confirmPrompt = true) {
+    if (confirmPrompt) {
+        const proceed = window.confirm('Clear all discovered company dossiers and console logs from this screen? This starts a fresh session; data already saved in the database remains untouched.');
+        if (!proceed) return;
+    }
+
+    beginFreshDiscoveryBatch({ abortActive: true });
+
+    showInAppNotification({
+        title: 'Console Reset',
+        message: 'Discovered dossiers view and logs cleared for a fresh batch.',
+        type: 'info',
+        duration: 3000
+    });
+}
+
+function startDiscoveryProgressPolling(token, companyTask) {
+    if (!token) return;
+    window.activeDiscoveryPollers = window.activeDiscoveryPollers || {};
+    if (window.activeDiscoveryPollers[token]) return;
+
+    let entry = discoveredCompaniesResults.find(d => d.progress_token === token);
+    if (!entry) {
+        entry = {
+            cardId: `live-${token}`,
+            progress_token: token,
+            company_name: companyTask.company_name,
+            company_id: '',
+            is_new: false,
+            is_live: true,
+            live_stage: 'Crawling official homepage…',
+            sector: 'Resolving…',
+            headquarters: 'Resolving…',
+            nse_symbol: '',
+            website_url: companyTask.website_url || companyTask.homepage_url || '',
+            careers_url: '',
+            csr_url: '',
+            jobs: [],
+            csr: [],
+            reports: [],
+            jobs_imported: 0,
+            csr_imported: 0,
+            reports_count: 0,
+            elapsed_ms: 0,
+            deep_enrichment: 'PENDING',
+            activeTab: 'jobs',
+            jobsPage: 1, jobsPageSize: 10, jobsSearch: '',
+            csrPage: 1, csrPageSize: 10, csrSearch: '',
+            timestamp: new Date()
+        };
+        discoveredCompaniesResults.unshift(entry);
+        renderDiscoveredResultsList();
+    }
+
+    const poll = async () => {
+        try {
+            const resp = await fetch("{% url 'admin_ai_discovery:discovery_status' %}?session_id=" + encodeURIComponent(token), {
+                method: 'GET',
+                headers: { 'X-CSRFToken': getCsrfToken() }
+            });
+            const data = await safeParseJsonResponse(resp);
+            const t = data.telemetry || {};
+            const target = discoveredCompaniesResults.find(d => d.progress_token === token);
+            if (!target) {
+                clearInterval(timer);
+                delete window.activeDiscoveryPollers[token];
+                return;
+            }
+            if (Array.isArray(t.jobs)) target.jobs = t.jobs;
+            if (Array.isArray(t.csr)) target.csr = t.csr;
+            if (Array.isArray(t.reports)) target.reports = t.reports;
+            if (t.company_id) target.company_id = t.company_id;
+            if (t.careers_url) target.careers_url = t.careers_url;
+            if (t.csr_url) target.csr_url = t.csr_url;
+            if (t.primary_careers_url) target.careers_url = t.primary_careers_url;
+            if (t.sector) target.sector = t.sector;
+            if (t.headquarters) target.headquarters = t.headquarters;
+            target.jobs_imported = t.jobs_imported || target.jobs.length;
+            target.csr_imported = t.csr_imported || target.csr.length;
+            target.reports_count = t.reports_count || target.reports.length;
+            target.live_stage = t.stage || target.live_stage;
+            target.deep_enrichment = t.deep_enrichment || target.deep_enrichment;
+            target.outcome = t.outcome || target.outcome || '';
+            target.elapsed_ms = t.elapsed_ms || t.total_ms || target.elapsed_ms || 0;
+
+            // Auto-switch to whichever track produced results first.
+            if (target.jobs.length && !target.csr.length) target.activeTab = 'jobs';
+            else if (target.csr.length && !target.jobs.length) target.activeTab = 'csr';
+            renderDiscoveredResultsList();
+
+            if (t.status === 'completed' || t.status === 'failed') {
+                clearInterval(timer);
+                delete window.activeDiscoveryPollers[token];
+            }
+        } catch (e) {
+            // Keep polling: a single transient network failure is not terminal.
+        }
+    };
+
+    const timer = setInterval(poll, 2500);
+    window.activeDiscoveryPollers[token] = timer;
+    // Fire one immediate poll so the provisional card fills quickly.
+    poll();
+}
+
 function handleCompanyResult(task, res) {
     if (res.ai_config) {
         applyActiveAiModelUI(res.ai_config);
     }
     if (res.logs && Array.isArray(res.logs)) {
         res.logs.forEach(l => logTerminal(`  ${l}`));
+    }
+    // Telemetry HUD update
+    if (res.telemetry) {
+        const t = res.telemetry;
+        logTerminal(`  ⏱ Telemetry | Homepage: ${t.homepage_fetch_ms}ms | Careers+CSR Discovery: ${t.careers_discovery_ms}ms | Jobs: ${t.job_extraction_ms}ms | CSR: ${t.csr_extraction_ms}ms | Reports: ${t.report_extraction_ms || 0}ms | Total: ${t.total_ms}ms`);
+        logTerminal(`  🤖 AI Calls: ${t.ai_calls} (${t.ai_succeeded ? '✅ succeeded' : '❌ failed'}) | Accepted: ${t.validation_accepted} | Rejected: ${t.validation_rejected} | Outcome: ${t.outcome}`);
+        logTerminal(`  📄 Reports saved: ${t.reports_saved || 0} | First job: ${t.time_to_first_job_ms || 0}ms | First CSR: ${t.time_to_first_csr_ms || 0}ms | Deep enrichment: ${t.deep_enrichment || res.deep_enrichment || '—'}`);
     }
 
     const jobsImported = res.jobs_imported || 0;
@@ -2985,8 +3425,18 @@ function handleCompanyResult(task, res) {
 
     // Store in structured results model
     const cardUniqueId = `dossier-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const progressToken = task && task.progress_token ? task.progress_token : '';
+    if (progressToken) {
+        const existingIdx = discoveredCompaniesResults.findIndex(d => d.progress_token === progressToken);
+        if (existingIdx >= 0) discoveredCompaniesResults.splice(existingIdx, 1);
+        if (window.activeDiscoveryPollers && window.activeDiscoveryPollers[progressToken]) {
+            clearInterval(window.activeDiscoveryPollers[progressToken]);
+            delete window.activeDiscoveryPollers[progressToken];
+        }
+    }
     const dossierEntry = {
         cardId: cardUniqueId,
+        progress_token: progressToken,
         company_name: res.company_name || task.company_name,
         company_id: res.company_id || '',
         is_new: isNew,
@@ -2998,8 +3448,13 @@ function handleCompanyResult(task, res) {
         csr_url: res.csr_url || '',
         jobs: Array.isArray(res.jobs) ? res.jobs : [],
         csr: Array.isArray(res.csr) ? res.csr : [],
+        reports: Array.isArray(res.reports) ? res.reports : [],
         jobs_imported: jobsImported,
         csr_imported: csrImported,
+        reports_count: res.reports_count || (Array.isArray(res.reports) ? res.reports.length : 0),
+        outcome: res.outcome || '',
+        elapsed_ms: (res.telemetry && (res.telemetry.total_ms || res.telemetry.elapsed_ms)) || 0,
+        deep_enrichment: res.deep_enrichment || '',
         activeTab: (Array.isArray(res.jobs) && res.jobs.length > 0) ? 'jobs' : ((Array.isArray(res.csr) && res.csr.length > 0) ? 'csr' : 'jobs'),
         jobsPage: 1,
         jobsPageSize: 10,
@@ -3022,10 +3477,13 @@ function handleCompanyResult(task, res) {
         csr_url: dossierEntry.csr_url,
         jobs_imported: jobsImported,
         csr_imported: csrImported,
-        status: 'SUCCESS'
+        reports_count: dossierEntry.reports_count,
+        outcome: dossierEntry.outcome,
+        status: res.outcome || 'SUCCESS'
     });
 
     renderDiscoveredResultsList();
+    saveDiscoveryState();
 }
 
 function setResultsTabFilter(tabName) {
@@ -3039,6 +3497,7 @@ function setResultsTabFilter(tabName) {
     });
     resultsCurrentPage = 1;
     renderDiscoveredResultsList();
+    saveDiscoveryState();
 }
 
 function onResultsSearch(query) {
@@ -3049,27 +3508,18 @@ function onResultsSearch(query) {
 
 function switchCardTab(cardId, tabName) {
     const entry = discoveredCompaniesResults.find(d => d.cardId === cardId);
-    if (entry) {
-        entry.activeTab = tabName;
-        const jobsContent = document.getElementById(`${cardId}-tab-jobs`);
-        const csrContent = document.getElementById(`${cardId}-tab-csr`);
-        const jobsBtn = document.getElementById(`${cardId}-btn-jobs`);
-        const csrBtn = document.getElementById(`${cardId}-btn-csr`);
-
-        if (jobsContent && csrContent) {
-            if (tabName === 'jobs') {
-                jobsContent.style.display = 'flex';
-                csrContent.style.display = 'none';
-                if (jobsBtn) jobsBtn.classList.add('active');
-                if (csrBtn) csrBtn.classList.remove('active');
-            } else {
-                jobsContent.style.display = 'none';
-                csrContent.style.display = 'flex';
-                if (jobsBtn) jobsBtn.classList.remove('active');
-                if (csrBtn) csrBtn.classList.add('active');
-            }
+    if (!entry) return;
+    entry.activeTab = tabName;
+    ['jobs', 'csr', 'reports'].forEach(kind => {
+        const content = document.getElementById(`${cardId}-tab-${kind}`);
+        const btn = document.getElementById(`${cardId}-btn-${kind}`);
+        const isActive = kind === tabName;
+        if (content) content.style.display = isActive ? 'flex' : 'none';
+        if (btn) {
+            if (isActive) btn.classList.add('active');
+            else btn.classList.remove('active');
         }
-    }
+    });
 }
 
 // =========================================================================
@@ -3346,6 +3796,75 @@ function buildCardCsrHtml(c) {
     return html;
 }
 
+function buildCardReportsHtml(c) {
+    const reports = Array.isArray(c.reports) ? c.reports : [];
+    if (reports.length === 0) {
+        return `
+            <div style="text-align: center; padding: 18px 12px; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12px;">
+                📄 No CSR, annual, BRSR or sustainability reports were detected on this company's portals.
+            </div>
+        `;
+    }
+
+    return `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; background: var(--bg-surface-subtle); padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 11.5px; color: var(--text-secondary);">
+            <span>📄 <strong>${reports.length}</strong> analysed report${reports.length === 1 ? '' : 's'} &amp; disclosures</span>
+            <span>Metadata stored separately from CSR projects</span>
+        </div>
+        ${reports.map((r, idx) => {
+            const topics = Array.isArray(r.topics) ? r.topics.filter(Boolean) : [];
+            const findings = Array.isArray(r.key_findings) ? r.key_findings.filter(Boolean).slice(0, 3) : [];
+            const initiatives = Array.isArray(r.initiatives) ? r.initiatives.filter(Boolean).slice(0, 4) : [];
+            return `
+                <div class="dossier-item-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                        <div style="font-weight: 700; font-size: 13px; color: #0A6CFF; line-height: 1.35;">
+                            📄 ${idx + 1}. ${escapeHtml(r.title || 'Corporate disclosure')}
+                        </div>
+                        ${r.source_url ? `
+                            <a href="${escapeHtml(r.source_url)}" target="_blank" rel="noopener noreferrer" class="dossier-source-btn">
+                                <span>Open report ↗</span>
+                            </a>
+                        ` : ''}
+                    </div>
+                    <div class="dossier-pills-row">
+                        ${r.report_type ? `<span class="dossier-pill dossier-pill-blue">📑 ${escapeHtml(String(r.report_type).replace(/_/g, ' '))}</span>` : ''}
+                        ${r.financial_year ? `<span class="dossier-pill">🗓️ FY ${escapeHtml(r.financial_year)}</span>` : ''}
+                        ${r.expenditure ? `<span class="dossier-pill">💰 ${escapeHtml(r.expenditure)}</span>` : ''}
+                        ${r.beneficiaries ? `<span class="dossier-pill">👥 ${escapeHtml(r.beneficiaries)}</span>` : ''}
+                    </div>
+                    ${r.summary ? `
+                        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45; margin-top: 3px;">
+                            ${escapeHtml(r.summary)}
+                        </div>
+                    ` : ''}
+                    ${initiatives.length ? `
+                        <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 5px;">
+                            <strong style="color: var(--text-primary);">Initiatives:</strong> ${initiatives.map(escapeHtml).join(' • ')}
+                        </div>
+                    ` : ''}
+                    ${findings.length ? `
+                        <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
+                            <strong style="color: var(--text-primary);">Key findings:</strong> ${findings.map(escapeHtml).join(' • ')}
+                        </div>
+                    ` : ''}
+                    ${topics.length ? `
+                        <div class="dossier-pills-row" style="margin-top: 6px;">
+                            ${topics.slice(0, 6).map(t => `<span class="dossier-pill dossier-pill-emerald">${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${(r.geographic_coverage || r.implementing_partners) ? `
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                            ${r.geographic_coverage ? `📍 ${escapeHtml(r.geographic_coverage)}` : ''}
+                            ${r.implementing_partners ? ` · 🤝 ${escapeHtml(r.implementing_partners)}` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('')}
+    `;
+}
+
 function onCardJobsSearch(cardId, query) {
     const entry = discoveredCompaniesResults.find(d => d.cardId === cardId);
     if (!entry) return;
@@ -3458,6 +3977,10 @@ function renderDiscoveredResultsList() {
     if (btnExportDossiers) {
         btnExportDossiers.style.display = totalCount > 0 ? 'inline-flex' : 'none';
     }
+    const btnClearDossiers = document.getElementById('btn-clear-discovery-session');
+    if (btnClearDossiers) {
+        btnClearDossiers.style.display = totalCount > 0 ? 'inline-flex' : 'none';
+    }
 
     if (totalCount === 0) {
         list.innerHTML = `
@@ -3505,10 +4028,24 @@ function renderDiscoveredResultsList() {
     const pageItems = filtered.slice(startIndex, endIndex);
 
     if (filteredTotal === 0) {
+        let filterExplanation = 'Try clearing or adjusting your search filters above.';
+        if (resultsCurrentTab === 'jobs') {
+            filterExplanation = 'None of the discovered companies in this batch currently have active career vacancies listed.';
+        } else if (resultsCurrentTab === 'csr') {
+            filterExplanation = 'None of the discovered companies in this batch currently have Section 135 CSR projects listed.';
+        } else if (resultsCurrentTab === 'new') {
+            filterExplanation = 'All companies in this batch are existing database records (no newly created entities).';
+        }
+
         list.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 13px; background: var(--bg-surface-subtle); border-radius: 10px; border: 1px dashed var(--border-color);">
-                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">No matching company dossiers</div>
-                <div style="margin-top: 4px; font-size: 12px;">Try clearing or adjusting your search filters above.</div>
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">No matching company dossiers in "${resultsCurrentTab.toUpperCase()}" view</div>
+                <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary);">${filterExplanation}</div>
+                <div style="margin-top: 14px;">
+                    <button type="button" onclick="setResultsTabFilter('all')" class="admin-btn" style="background: #0A6CFF; color: #FFFFFF; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>Show All Companies (${totalCount})</span>
+                    </button>
+                </div>
             </div>
         `;
     } else {
@@ -3532,13 +4069,29 @@ function renderDiscoveredResultsList() {
                                         '<span class="badge-new-entity">✨ NEW CANONICAL ENTITY</span>' : 
                                         '<span class="badge-synced-entity">🔄 SYNCED RECORD</span>'
                                     }
-                                    <span class="badge-live-verified">✓ Live Crawl Verified</span>
+                                    ${c.is_live ? `
+                                        <span class="badge-processing">⏳ ${escapeHtml(c.live_stage || 'Processing…')}</span>
+                                    ` : `
+                                        <span class="badge-live-verified">✓ Live Crawl Verified</span>
+                                    `}
+                                    ${c.outcome ? `
+                                        <span class="${c.outcome === 'PARTIAL_SUCCESS' ? 'badge-outcome-partial' : (c.outcome.indexOf('SUCCESS') === 0 ? 'badge-outcome-success' : 'badge-outcome-failed')}">
+                                            ${escapeHtml(c.outcome.replace(/_/g, ' '))}
+                                        </span>
+                                    ` : ''}
                                     <code class="dossier-code">${escapeHtml(c.company_id || 'ID Pending')}</code>
                                 </div>
                                 <div class="dossier-quick-meta">
                                     <span>🏢 <strong>${escapeHtml(c.sector)}</strong></span>
                                     <span>📍 <strong>${escapeHtml(c.headquarters)}</strong></span>
                                     ${c.nse_symbol ? `<span>📈 NSE: <strong>${escapeHtml(c.nse_symbol)}</strong></span>` : ''}
+                                </div>
+                                <div class="dossier-quick-meta">
+                                    <span>💼 Jobs: <strong>${c.jobs_imported ?? (c.jobs || []).length}</strong></span>
+                                    <span>🌱 CSR: <strong>${c.csr_imported ?? (c.csr || []).length}</strong></span>
+                                    <span>📄 Reports: <strong>${c.reports_count ?? (c.reports || []).length}</strong></span>
+                                    ${c.deep_enrichment ? `<span>⚙ Enrichment: <strong>${escapeHtml(c.deep_enrichment)}</strong></span>` : ''}
+                                    ${c.elapsed_ms ? `<span>⏱ <strong>${(c.elapsed_ms / 1000).toFixed(1)}s</strong></span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -3579,6 +4132,9 @@ function renderDiscoveredResultsList() {
                         <button type="button" id="${c.cardId}-btn-csr" class="dossier-tab-btn ${c.activeTab === 'csr' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'csr')">
                             🌱 Section 135 CSR Initiatives (${c.csr.length})
                         </button>
+                        <button type="button" id="${c.cardId}-btn-reports" class="dossier-tab-btn ${c.activeTab === 'reports' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'reports')">
+                            📄 Reports &amp; Disclosures (${c.reports_count ?? (c.reports || []).length})
+                        </button>
                     </div>
 
                     <!-- JOBS TAB CONTENT -->
@@ -3589,6 +4145,11 @@ function renderDiscoveredResultsList() {
                     <!-- CSR TAB CONTENT -->
                     <div id="${c.cardId}-tab-csr" style="display: ${c.activeTab === 'csr' ? 'flex' : 'none'}; flex-direction: column; gap: 8px;">
                         ${csrListHtml}
+                    </div>
+
+                    <!-- REPORTS TAB CONTENT -->
+                    <div id="${c.cardId}-tab-reports" style="display: ${c.activeTab === 'reports' ? 'flex' : 'none'}; flex-direction: column; gap: 8px;">
+                        ${buildCardReportsHtml(c)}
                     </div>
                 </div>
             `;
@@ -3697,6 +4258,7 @@ function finishQueue() {
         type: failedCompaniesList.length > 0 ? 'warning' : 'success',
         duration: 7000
     });
+    if (typeof saveDiscoveryState === 'function') saveDiscoveryState();
 }
 
 function togglePauseQueue() {
@@ -4039,6 +4601,11 @@ document.addEventListener('visibilitychange', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Restore persistent session state across tab/option switches, or hydrate recent verified DB dossiers
+    if (typeof restoreDiscoveryState === 'function') {
+        restoreDiscoveryState();
+    }
+
     const quickInput = document.getElementById('quick-company-input');
     const quickWebInput = document.getElementById('quick-website-input');
     

@@ -62,8 +62,14 @@ STATE_CODES: Dict[str, str] = {
 PLAN_ALIASES: Dict[str, str] = {
     'starter': 'free',
     'community_free': 'free',
+    'community-free': 'free',
+    'community-starter': 'free',
     'enterprise': 'ultra',
+    'corporate-enterprise': 'ultra',
     'foundation': 'ultra',
+    'foundation-master': 'ultra',
+    'ultra-enterprise': 'ultra',
+    'impact-pro': 'pro',
     'api': 'ultra',
     'institutional': 'ultra',
 }
@@ -862,8 +868,8 @@ def _bump_usage(tenant_id: str, metric: str, amount: int = 1) -> int:
 
 
 def quota_snapshot(row: Dict[str, Any]) -> Dict[str, Any]:
-    plan = get_plan(row.get('plan_id')) or get_plan('starter')
-    limit = plan['limits'].get('daily_matches')
+    plan = get_plan(row.get('plan_id')) or get_plan('free') or get_plan('starter')
+    limit = plan['limits'].get('daily_matches') if plan and plan.get('limits') else 5
     tenant = row.get('tenant_id') or DEFAULT_TENANT_ID
     used = _get_usage(tenant, 'ngo_matches')
     remaining = None if limit is None else max(0, int(limit) - used)

@@ -342,18 +342,32 @@ def plan_create_edit_view(request, code=None):
 
     if request.method == 'POST':
         plan_code = request.POST.get('code', '').strip().lower()
-        if not plan_code and plan:
-            plan_code = plan.code
+
+        # ── Validate required fields ──────────────────────────────────────
+        errors = []
+        if not plan_code:
+            errors.append("Plan Code is required.")
+        if not plan and Plan.objects.filter(code=plan_code).exists():
+            errors.append(f"Plan code '{plan_code}' already exists.")
 
         name = request.POST.get('name', '').strip()
+        if not name:
+            errors.append("Plan Name is required.")
+
         slug = request.POST.get('slug', '').strip() or plan_code
         desc = request.POST.get('description', '').strip()
         badge = request.POST.get('badge', '').strip()
         cta_text = request.POST.get('cta_text', '').strip() or 'Select Plan'
         billing_note = request.POST.get('billing_note', '').strip()
 
-        monthly_inr = float(request.POST.get('monthly_price_inr') or 0)
-        yearly_inr = float(request.POST.get('yearly_price_inr') or 0)
+        try:
+            monthly_inr = float(request.POST.get('monthly_price_inr') or 0)
+        except (ValueError, TypeError):
+            monthly_inr = 0.0
+        try:
+            yearly_inr = float(request.POST.get('yearly_price_inr') or 0)
+        except (ValueError, TypeError):
+            yearly_inr = 0.0
         monthly_paise = rupees_to_paise(monthly_inr)
         yearly_paise = rupees_to_paise(yearly_inr)
 
@@ -364,13 +378,22 @@ def plan_create_edit_view(request, code=None):
         wallet_deduct_paise = rupees_to_paise(float(wallet_deduct_inr)) if wallet_deduct_inr and wallet_deduct_inr.strip() else monthly_paise
 
         currency = request.POST.get('currency', 'INR').strip() or 'INR'
-        discount_percent = int(request.POST.get('discount_percent') or 0)
+        try:
+            discount_percent = int(request.POST.get('discount_percent') or 0)
+        except (ValueError, TypeError):
+            discount_percent = 0
         savings_text = request.POST.get('savings_text', '').strip() or None
         card_description = request.POST.get('card_description', '').strip() or None
         additional_info = request.POST.get('additional_info', '').strip() or None
         button_text = request.POST.get('button_text', '').strip() or 'Change Plan'
-        button_visible = bool(request.POST.get('button_visible'))
-        button_order = int(request.POST.get('button_order') or 1)
+        try:
+            button_visible = bool(request.POST.get('button_visible'))
+        except (ValueError, TypeError):
+            button_visible = True
+        try:
+            button_order = int(request.POST.get('button_order') or 1)
+        except (ValueError, TypeError):
+            button_order = 1
         terms = request.POST.get('terms', '').strip() or None
         notes = request.POST.get('notes', '').strip() or None
 
@@ -384,8 +407,37 @@ def plan_create_edit_view(request, code=None):
         allow_cancel = bool(request.POST.get('allow_cancel'))
         auto_renew_default = bool(request.POST.get('auto_renew_default'))
 
-        display_order = int(request.POST.get('display_order') or 0)
-        trial_days = int(request.POST.get('trial_days') or 0)
+        try:
+            display_order = int(request.POST.get('display_order') or 0)
+        except (ValueError, TypeError):
+            display_order = 0
+        try:
+            trial_days = int(request.POST.get('trial_days') or 0)
+        except (ValueError, TypeError):
+            trial_days = 0
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return redirect('admin_subscriptions:plan_create')
+
+        # ── Free Trial Restriction: only the FREE plan may have a trial ──
+        if trial_days > 0 and plan_code != 'free':
+            messages.warning(
+                request,
+                f"Free trial ({trial_days} days) is only available for the FREE plan. "
+                f"Plan '{plan_code}' is not the FREE plan, so the trial has been set to 0 days (No Trial)."
+            )
+            trial_days = 0
+
+        # ── Free Trial Restriction: only the FREE plan may have a trial ──
+        if trial_days > 0 and plan_code != 'free':
+            messages.warning(
+                request,
+                f"Free trial ({trial_days} days) is only available for the FREE plan. "
+                f"Plan '{plan_code}' is not the FREE plan, so the trial has been set to 0 days (No Trial)."
+            )
+            trial_days = 0
 
         # Parse features list (newline separated)
         features_raw = request.POST.get('features', '') or request.POST.get('features_text', '')
@@ -628,6 +680,10 @@ def plan_delete_view(request, code):
     if not _is_admin(request.user):
         messages.error(request, "Access restricted to administrators.")
         return redirect('admin_portal:dashboard')
+
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method for deleting a plan.")
+        return redirect('admin_subscriptions:plans_list')
 
     plan = get_object_or_404(Plan, code=code)
     # Check if subscriptions are on this plan

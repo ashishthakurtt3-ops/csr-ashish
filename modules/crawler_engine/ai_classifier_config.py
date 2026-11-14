@@ -31,14 +31,17 @@ AI_FALLBACK_PROVIDER: str = os.getenv("AI_FALLBACK_PROVIDER", "grok").lower().st
 AI_FALLBACK_ENABLED: bool = os.getenv("AI_FALLBACK_ENABLED", "true").lower() in ("true", "1", "yes")
 
 # --- Google Gemini Configuration (Official Free Tier Only) ---
+# Current stable text models (per https://ai.google.dev/gemini-api/docs/models).
+# 2.0/1.5 generation models are shut down; 2.5-flash routes to 3.5-flash-lite
+# from Dec 1, 2026, so new deployments should prefer the 3.x flash models.
 GEMINI_FREE_TIER_MODELS = (
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
-    "gemini-3.8-flash",
     "gemini-2.5-flash",
-    "gemini-1.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-8b",
+    "gemini-2.5-flash-lite",
 )
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
 GEMINI_API_KEY_ENV: str = os.getenv("GEMINI_API_KEY_ENV", "GEMINI_API_KEY").strip()
@@ -75,7 +78,7 @@ OPENROUTER_TITLE: str = os.getenv("OPENROUTER_TITLE", "CSR & Job Intelligence Pl
 
 # Default fallback values when database is unavailable
 DEFAULT_AI_PROVIDER = os.getenv("AI_PROVIDER", "gemini").lower().strip()
-DEFAULT_AI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite").strip()
+DEFAULT_AI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
 DEFAULT_FALLBACK_PROVIDER = os.getenv("AI_FALLBACK_PROVIDER", "grok").lower().strip()
 DEFAULT_FALLBACK_MODEL = os.getenv("GROK_MODEL", "grok-2-latest").strip()
 DEFAULT_FALLBACK_ENABLED = os.getenv("AI_FALLBACK_ENABLED", "true").lower() in ("true", "1", "yes")
@@ -141,7 +144,7 @@ def __getattr__(name: str) -> Any:
     elif name == "AI_MODEL":
         return get_active_model()
     elif name == "GEMINI_MODEL":
-        return get_active_model() if get_active_provider() == "gemini" else os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite").strip()
+        return get_active_model() if get_active_provider() == "gemini" else os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
     elif name == "AI_FALLBACK_PROVIDER":
         return get_active_fallback_provider()
     elif name == "AI_FALLBACK_ENABLED":
