@@ -740,6 +740,10 @@ def admin_verify_api(request):
         return JsonResponse({'detail': f'Unsupported action: {action}'}, status=400)
     if not rec_id:
         return JsonResponse({'detail': 'record_id is required'}, status=400)
+    try:
+        rec_pk = int(rec_id)
+    except (TypeError, ValueError):
+        return JsonResponse({'detail': f'CSR project {rec_id} not found'}, status=404)
 
     actor = request.user.get_username()
     actor_role = getattr(request.user, 'role', None) or (
@@ -749,7 +753,7 @@ def admin_verify_api(request):
     from modules.crawler_engine.verification_service import VerificationService
 
     with transaction.atomic():
-        project = CSRProject.objects.select_for_update().filter(csr_id=rec_id).first()
+        project = CSRProject.objects.select_for_update().filter(csr_id=rec_pk).first()
         if project is None:
             return JsonResponse({'detail': f'CSR project {rec_id} not found'}, status=404)
 

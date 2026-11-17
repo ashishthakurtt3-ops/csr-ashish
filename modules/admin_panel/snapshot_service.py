@@ -659,8 +659,11 @@ def get_current_stats_snapshot() -> tuple:
     """
     cache_key = 'stats_snapshot_cache'
     cached = cache.get(cache_key)
+    live_comps = Company.objects.count()
     if cached is not None:
-        return cached['data'], cached['is_stale'], cached['audit_run_id'], cached['data_as_of']
+        if cached.get('data', {}).get('total_companies') == live_comps:
+            return cached['data'], cached['is_stale'], cached['audit_run_id'], cached['data_as_of']
+        cache.delete(cache_key)
 
     snapshot = StatsSnapshot.objects.select_related('audit_run').filter(
         audit_run__is_current=True, audit_run__status='COMPLETE'
@@ -668,6 +671,14 @@ def get_current_stats_snapshot() -> tuple:
     if snapshot and snapshot.audit_run:
         current_run = snapshot.audit_run
         data = dict(snapshot.payload)
+        if data.get('total_companies') != live_comps:
+            live_data = compute_live_stats()
+            data.update(live_data)
+            snapshot.payload = data
+            try:
+                snapshot.save(update_fields=['payload'])
+            except Exception:
+                pass
         as_of_dt = current_run.finished_at or current_run.started_at
         as_of_str = as_of_dt.strftime('%d %b %Y, %H:%M') if as_of_dt else 'Recently'
         is_stale = (timezone.now() - as_of_dt) > timedelta(hours=STALE_THRESHOLD_HOURS) if as_of_dt else False

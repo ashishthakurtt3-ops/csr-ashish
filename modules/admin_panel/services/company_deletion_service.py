@@ -157,10 +157,24 @@ def delete_company_completely(company, deleted_by=None):
             ),
         )
 
+    # Rebuild snapshots so that PlatformStatsSnapshot and all platform KPIs reflect the true DB state
+    try:
+        from modules.admin_panel.snapshot_service import build_snapshots
+        build_snapshots(triggered_by='COMPANY_DELETED', ignore_suspect=True)
+    except Exception as exc:
+        logger.warning("Failed to rebuild snapshots after company deletion: %s", exc)
+
     # Invalidate all platform stats and summary caches so counts update instantly across UI
     try:
         cache.delete('stats_snapshot_cache')
         cache.delete('jobs_summary_snapshot_cache')
+        cache.delete('home_stats_cache_v1')
+        cache.delete('coverage_report_cache')
+        cache.delete('admin_dashboard_companies_by_status')
+        cache.delete('admin_dashboard_top_sectors')
+        cache.delete('admin_dashboard_top_causes')
+        cache.delete('admin_dashboard_current_audit_run')
+        cache.delete('admin_dashboard_jobs_by_status')
     except Exception as exc:
         logger.warning("Failed to invalidate cache after company deletion: %s", exc)
 
