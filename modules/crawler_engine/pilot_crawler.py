@@ -28,6 +28,7 @@ from modules.crawler_engine.discovery_helpers import (
     is_real_deep_url,
     normalize_url_for_comparison,
 )
+from modules.crawler_engine.normalizers import is_generic_landing_url
 from modules.admin_panel.verification import (
     UI_NAV_DEFECT_PATTERNS,
     NOT_AVAILABLE_TEXT,
@@ -555,6 +556,10 @@ class PilotCrawler:
                 items = data if isinstance(data, list) else [data]
                 for item in items:
                     if isinstance(item, dict) and item.get("@type") == "JobPosting":
+                        raw_u = (item.get("url") or "").strip()
+                        app_u = urljoin(res["final_url"], raw_u) if raw_u else ""
+                        if not app_u or is_generic_landing_url(app_u):
+                            continue
                         json_ld_jobs += 1
                         self._validate_and_record_job(
                             comp=comp,
@@ -566,7 +571,7 @@ class PilotCrawler:
                             posting_date=item.get("datePosted"),
                             deadline=item.get("validThrough"),
                             req_id=item.get("identifier", {}).get("value") if isinstance(item.get("identifier"), dict) else str(item.get("identifier") or ""),
-                            apply_url=item.get("url") or res["final_url"],
+                            apply_url=app_u,
                             source_url=res["final_url"],
                             evidence=f"Schema.org JobPosting: {item.get('title')}",
                             extraction_method="JSON_LD_SCHEMA"

@@ -2,7 +2,7 @@ from django.urls import path
 from modules.admin_panel.views.batch_discovery_views import (
     batch_discovery_view, parse_file_api, process_company_api,
     download_sample_template_view, ai_status_api, discovery_status_api,
-    recent_dossiers_api
+    recent_dossiers_api, export_discovered_urls_csv_api, export_discovered_urls_excel_api
 )
 
 app_name = 'admin_ai_discovery'
@@ -15,5 +15,7 @@ urlpatterns = [
     path('parse-file/', parse_file_api, name='parse_file'),
     path('process-company/', process_company_api, name='process_company'),
     path('sample-template/', download_sample_template_view, name='sample_template'),
+    path('export-urls/csv/', export_discovered_urls_csv_api, name='export_urls_csv'),
+    path('export-urls/excel/', export_discovered_urls_excel_api, name='export_urls_excel'),
 ]
 

@@ -4,11 +4,16 @@ import json
 import re
 import hashlib
 import time
+import threading
 from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlparse
 from typing import List, Dict, Any, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
+
+# Serialises crawl start/reset so two concurrent triggers cannot both pass the
+# `is_running` check.
+_CRAWL_START_LOCK = threading.Lock()
 
 from bs4 import BeautifulSoup
 from curl_cffi import requests as cffi_requests
@@ -22,7 +27,8 @@ from modules.admin_panel.models import Company, Job, CSRProject, CSROpportunity,
 from .access_detector import fetch_live_page, DEFAULT_HEADERS
 from .link_verifier import build_highlight_url, verify_url_live
 from .semantic_matcher import score_link_semantics, probe_subdomains_and_paths, mine_sitemap_for_links
-from .normalizers import clean_text, normalize_canonical_url, build_job_fingerprint
+from .normalizers import clean_text, normalize_canonical_url, build_job_fingerprint, is_generic_landing_url
+from .state import log_event
 from .discovery_helpers import (
     is_real_deep_url, is_same_registrable_domain_or_ats, verify_careers_url_content,
     is_valid_job_title, is_valid_csr_project, is_static_asset_url,
@@ -238,7 +244,9 @@ def try_fetch_lever_jobs(url: str) -> list:
                 title_elem = post.find(["h5", "a"], {"data-qa": "posting-name"}) or post.find("h5")
                 title = title_elem.get_text(strip=True) if title_elem else ""
                 link_elem = post.find("a", class_="posting-title") or post.find("a", href=True)
-                apply_url = urljoin(url, link_elem["href"]) if link_elem and link_elem.get("href") else url
+                apply_url = urljoin(url, link_elem["href"]) if link_elem and link_elem.get("href") else ""
+                if not apply_url or is_generic_landing_url(apply_url):
+                    continue
                 loc_elem = post.find("span", class_="sort-by-time") or post.find(class_=re.compile(r"location", re.I))
                 loc = loc_elem.get_text(strip=True) if loc_elem else "India"
                 if title and not GENERIC_BUTTON_PHRASES.match(title) and title.lower() not in NAVBAR_BLACKLIST:
@@ -437,7 +445,9 @@ def try_fetch_smartrecruiters_jobs(url: str) -> list:
                 if not title or GENERIC_BUTTON_PHRASES.match(title) or title.lower() in NAVBAR_BLACKLIST:
                     continue
                 jid = item.get("id")
-                app_url = f"https://jobs.smartrecruiters.com/{token}/{jid}" if jid else url
+                app_url = f"https://jobs.smartrecruiters.com/{token}/{jid}" if jid else ""
+                if not app_url or is_generic_landing_url(app_url):
+                    continue
                 loc_dict = item.get("location") or {}
                 loc = ", ".join(filter(None, [loc_dict.get("city"), loc_dict.get("country")])) or "India"
                 jobs.append({
@@ -501,7 +511,11 @@ def try_fetch_successfactors_jobs(url: str) -> list:
     with full pagination up to 40 jobs, preserving multi-tenant query parameters like company=...
     """
     parsed = urlparse(url)
-    is_sf = any(k in url.lower() for k in ["successfactors", "mahindracareers.com", "tatamotorscareers", "heromotocorp"])
+    is_sf = (
+        any(k in url.lower() for k in ["successfactors", "mahindracareers.com", "tatamotorscareers", "heromotocorp", "ltm.com"])
+        or "/search" in url.lower()
+        or "/job/" in url.lower()
+    )
     if not is_sf:
         return []
 
@@ -566,35 +580,134 @@ def try_fetch_successfactors_jobs(url: str) -> list:
 def try_fetch_oracle_jobs(url: str) -> list:
     """
     Direct Oracle Cloud HCM / Taleo career portal extractor.
+    Supports official REST API for Oracle Candidate Experience (CX) portals
+    and falls back to Taleo / Oracle HTML requisition parsing.
     """
     lower = url.lower()
-    if not ("oraclecloud.com" in lower or "taleo.net" in lower or "oracle" in lower):
+    if not ("oraclecloud.com" in lower or "taleo.net" in lower or "oracle" in lower or "/sites/" in lower or "explore-jobs" in lower):
         return []
+
+    # 1. Check if Oracle Candidate Experience REST API can be invoked directly
     try:
-        resp = cffi_requests.get(url, impersonate="chrome124", timeout=20)
+        resp = cffi_requests.get(url, impersonate="chrome124", timeout=12)
         if resp.status_code == 200:
-            soup = BeautifulSoup(resp.text, "lxml")
+            html = resp.text
+            soup = BeautifulSoup(html, "lxml")
+
+            base_tag = soup.find("base")
+            fahost = base_tag.get("data-fahosturl") if base_tag else None
+            site_num = base_tag.get("data-sitenumber") if base_tag else None
+            vanity = base_tag.get("data-vanitybaseurl") if base_tag else None
+            base_href = base_tag.get("href", "") if base_tag else ""
+
+            if not fahost:
+                m_fa = re.search(r'data-fahosturl=["\']([^"\']+)["\']', html)
+                if m_fa:
+                    fahost = m_fa.group(1)
+            if not site_num:
+                m_site = re.search(r'siteNumber=([A-Za-z0-9_]+)', html) or re.search(r'data-sitenumber=["\']([^"\']+)["\']', html) or re.search(r'/sites/([A-Za-z0-9_\-]+)', url)
+                if m_site:
+                    site_num = m_site.group(1)
+            if not vanity:
+                p_u = urlparse(url)
+                vanity = f"{p_u.scheme}://{p_u.netloc}"
+
+            if (fahost or "oraclecloud.com" in lower) and site_num:
+                host_to_call = fahost or f"{urlparse(url).scheme}://{urlparse(url).netloc}"
+                api_ep = f"{host_to_call.rstrip('/')}/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList.workLocation&finder=findReqs;siteNumber={site_num},limit=200,sortBy=POSTING_DATES_DESC"
+                api_res = cffi_requests.get(api_ep, impersonate="chrome124", timeout=15)
+                if api_res.status_code == 200:
+                    api_data = api_res.json()
+                    items = api_data.get("items", [])
+                    req_list = items[0].get("requisitionList", []) if items else []
+                    api_jobs = []
+                    site_path = base_href.rstrip('/') if base_href else f"/en/sites/{site_num}"
+                    for req in req_list:
+                        title = req.get("Title")
+                        req_id = str(req.get("Id") or "")
+                        if not title or not req_id or not is_valid_job_title(title):
+                            continue
+                        loc = req.get("PrimaryLocation") or "India"
+                        direct_url = f"{vanity.rstrip('/')}{site_path}/job/{req_id}"
+                        api_jobs.append({
+                            "title": title,
+                            "location": loc,
+                            "department": req.get("Department") or "Corporate",
+                            "application_url": direct_url,
+                            "apply_url": direct_url,
+                            "external_job_id": req_id,
+                            "posted_on": req.get("PostedDate") or "",
+                            "verbatim_quote": f"Verified Oracle HCM Requisition: {title} ({loc})",
+                            "verification_status": "PUBLISHED"
+                        })
+                    if api_jobs:
+                        return api_jobs
+
+            # 2. HTML Fallback for Taleo / Oracle Cloud listings
             jobs = []
             seen_titles = set()
             for a in soup.find_all("a", href=True):
                 href = a["href"].strip()
-                if any(p in href.lower() for p in ["/job/", "jobdetail", "requisition", "careersection", "job_detail"]):
+                if any(p in href.lower() for p in ["/job/", "jobdetail", "requisition", "careersection", "job_detail", "jobapply"]):
                     title = a.get_text(" ", strip=True)
                     if 4 <= len(title) <= 120 and title.lower() not in seen_titles:
                         if not GENERIC_BUTTON_PHRASES.match(title) and title.lower() not in NAVBAR_BLACKLIST:
-                            seen_titles.add(title.lower())
                             full_url = urljoin(url, href)
-                            jobs.append({
-                                "title": title,
-                                "location": "India",
-                                "department": "Corporate",
-                                "apply_url": build_highlight_url(full_url, title),
-                                "posted_on": "",
-                                "verbatim_quote": f"Verified Oracle Opening: {title}",
-                                "verification_status": "SOURCE_CONFIRMED"
-                            })
+                            if not is_generic_landing_url(full_url):
+                                seen_titles.add(title.lower())
+                                jobs.append({
+                                    "title": title,
+                                    "location": "India",
+                                    "department": "Corporate",
+                                    "application_url": build_highlight_url(full_url, title),
+                                    "apply_url": build_highlight_url(full_url, title),
+                                    "posted_on": "",
+                                    "verbatim_quote": f"Verified Oracle Opening: {title}",
+                                    "verification_status": "SOURCE_CONFIRMED"
+                                })
             if jobs:
                 return jobs
+    except Exception:
+        pass
+    return []
+
+
+def try_fetch_ashby_jobs(url: str) -> list:
+    """
+    Extracts jobs from Ashby ATS (jobs.ashbyhq.com/<token>).
+    """
+    parsed = urlparse(url)
+    if "ashbyhq.com" not in parsed.netloc.lower():
+        return []
+    parts = [p for p in parsed.path.split('/') if p]
+    if not parts:
+        return []
+    token = parts[0]
+    api_url = f"https://api.ashbyhq.com/posting-api/job-board/{token}"
+    try:
+        resp = cffi_requests.get(api_url, impersonate="chrome124", timeout=20)
+        if resp.status_code == 200:
+            data = resp.json()
+            jobs = []
+            for item in data.get("jobs", []):
+                title = (item.get("title") or "").strip()
+                jid = item.get("id")
+                if not title or not jid or GENERIC_BUTTON_PHRASES.match(title) or title.lower() in NAVBAR_BLACKLIST:
+                    continue
+                app_url = item.get("jobUrl") or f"https://jobs.ashbyhq.com/{token}/{jid}"
+                loc = item.get("location") or "India"
+                dept = item.get("department") or "Corporate"
+                jobs.append({
+                    "title": title,
+                    "location": loc,
+                    "department": dept,
+                    "apply_url": app_url,
+                    "application_url": app_url,
+                    "posted_on": str(item.get("publishedAt", "")),
+                    "verbatim_quote": f"{title} - {loc}",
+                    "verification_status": "PUBLISHED"
+                })
+            return jobs
     except Exception:
         pass
     return []
@@ -639,9 +752,11 @@ def dispatch_ats_direct(ats_platform: str, ats_url: str, tenant: Optional[str] =
         raw_jobs = try_fetch_smartrecruiters_jobs(url)
     elif "darwinbox" in plat or "darwinbox" in url:
         raw_jobs = try_fetch_darwinbox_jobs(url)
+    elif "ashby" in plat or "ashbyhq.com" in url:
+        raw_jobs = try_fetch_ashby_jobs(url)
     elif "successfactors" in plat or any(k in url for k in ("successfactors", "mahindracareers", "tatamotorscareers", "heromotocorp")):
         raw_jobs = try_fetch_successfactors_jobs(url)
-    elif "oracle" in plat or "taleo" in plat or "oraclecloud" in url or "taleo.net" in url:
+    elif "oracle" in plat or "taleo" in plat or "oraclecloud" in url or "taleo.net" in url or "/sites/" in url or "explore-jobs" in url:
         raw_jobs = try_fetch_oracle_jobs(url)
     else:
         raw_jobs = try_dispatch_specialized_ats(url)
@@ -649,7 +764,9 @@ def dispatch_ats_direct(ats_platform: str, ats_url: str, tenant: Optional[str] =
     normalized = []
     for j in raw_jobs:
         title = j.get("title") or ""
-        app_url = j.get("application_url") or j.get("apply_url") or url
+        app_url = j.get("application_url") or j.get("apply_url") or ""
+        if not app_url or is_generic_landing_url(app_url):
+            continue
         jid = j.get("external_job_id") or j.get("job_id") or ""
         loc = j.get("location") or "India"
         dept = j.get("department") or "Corporate"
@@ -713,9 +830,13 @@ def try_dispatch_specialized_ats(url: str) -> list:
         return try_fetch_smartrecruiters_jobs(url)
     if "darwinbox" in lower:
         return try_fetch_darwinbox_jobs(url)
-    if any(k in lower for k in ["successfactors", "mahindracareers.com", "tatamotorscareers", "heromotocorp"]):
-        return try_fetch_successfactors_jobs(url)
-    if "oraclecloud.com" in lower or "taleo.net" in lower:
+    if "ashbyhq.com" in lower:
+        return try_fetch_ashby_jobs(url)
+    if any(k in lower for k in ["successfactors", "mahindracareers.com", "tatamotorscareers", "heromotocorp", "ltm.com"]) or "/search" in lower or "/job/" in lower:
+        sf_jobs = try_fetch_successfactors_jobs(url)
+        if sf_jobs:
+            return sf_jobs
+    if "oraclecloud.com" in lower or "taleo.net" in lower or "/sites/" in lower or "explore-jobs" in lower:
         return try_fetch_oracle_jobs(url)
     return []
 
@@ -793,8 +914,7 @@ def detect_repeating_dom_job_cards(soup: BeautifulSoup, page_url: str) -> List[D
                     apply_url = ""
 
                 # Ensure apply_url looks like a real job posting rather than a root home or landing page
-                p_app = urlparse(apply_url) if apply_url else None
-                if not apply_url or (p_app and p_app.path.strip("/").lower() in ("", "home", "careers", "career", "jobs", "job")):
+                if not apply_url or is_generic_landing_url(apply_url):
                     continue
 
                 card_text = card.get_text(" ", strip=True).lower()
@@ -899,9 +1019,12 @@ def _extract_jobs_from_json_blob(data: Any, source_url: str, out_jobs: List[Dict
                     if job_id:
                         app_url = urljoin(source_url, f"?job_id={job_id}")
                     else:
-                        app_url = source_url
+                        app_url = ""
                 else:
                     app_url = urljoin(source_url, app_url)
+
+                if not app_url or is_generic_landing_url(app_url):
+                    return
 
                 out_jobs.append({
                     "title": title_clean,
@@ -2102,9 +2225,6 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1", ai_config=No
         return False
 
     from .state import CRAWL_TASK_STATE, log_event
-    if CRAWL_TASK_STATE.get("is_running"):
-        logger.warning("start_background_crawl: Crawl already running.")
-        return False
 
     qs = Company.objects.all().order_by('company_id')
     if company_ids:
@@ -2117,36 +2237,44 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1", ai_config=No
         return False
 
     ai_active = bool(ai_config and ai_config.get("enabled"))
-    CRAWL_TASK_STATE["is_running"] = True
-    CRAWL_TASK_STATE["start_time"] = timezone.now().isoformat()
-    CRAWL_TASK_STATE["events"] = []
-    CRAWL_TASK_STATE["stats"] = {
-        "companies_requested": total_targets,
-        "companies_crawled": 0,
-        "fetch_failures": 0,
-        "blocked": 0,
-        "dns_failures": 0,
-        "jobs_discovered": 0,
-        "new_jobs": 0,
-        "updated_jobs": 0,
-        "expired_jobs": 0,
-        "csr_pages_found": 0,
-        "csr_pdfs": 0,
-        "csr_projects": 0,
-        "csr_opportunities": 0,
-        "contacts_found": 0,
-        # AI Metrics
-        "ai_enabled": ai_active,
-        "ai_scope": ai_config.get("scope", "disabled") if ai_config else "disabled",
-        "ai_provider": ai_config.get("provider", "None") if ai_config else "None",
-        "ai_strategy": ai_config.get("strategy", "None") if ai_config else "None",
-        "ai_requests_made": 0,
-        "ai_jobs_extracted": 0,
-        "ai_csr_extracted": 0,
-        "ai_candidates_verified": 0,
-        "ai_candidates_rejected": 0,
-        "ai_failed_requests": 0,
-    }
+
+    with _CRAWL_START_LOCK:
+        if CRAWL_TASK_STATE.get("is_running"):
+            logger.warning("start_background_crawl: Crawl already running.")
+            return False
+
+        CRAWL_TASK_STATE["is_running"] = True
+        # Epoch seconds. Telemetry computes `time.time() - start_time`, so an ISO
+        # string here raises TypeError on every poll while a crawl is running.
+        CRAWL_TASK_STATE["start_time"] = time.time()
+        CRAWL_TASK_STATE["events"] = []
+        CRAWL_TASK_STATE["stats"] = {
+            "companies_requested": total_targets,
+            "companies_crawled": 0,
+            "fetch_failures": 0,
+            "blocked": 0,
+            "dns_failures": 0,
+            "jobs_discovered": 0,
+            "new_jobs": 0,
+            "updated_jobs": 0,
+            "expired_jobs": 0,
+            "csr_pages_found": 0,
+            "csr_pdfs": 0,
+            "csr_projects": 0,
+            "csr_opportunities": 0,
+            "contacts_found": 0,
+            # AI Metrics
+            "ai_enabled": ai_active,
+            "ai_scope": ai_config.get("scope", "disabled") if ai_config else "disabled",
+            "ai_provider": ai_config.get("provider", "None") if ai_config else "None",
+            "ai_strategy": ai_config.get("strategy", "None") if ai_config else "None",
+            "ai_requests_made": 0,
+            "ai_jobs_extracted": 0,
+            "ai_csr_extracted": 0,
+            "ai_candidates_verified": 0,
+            "ai_candidates_rejected": 0,
+            "ai_failed_requests": 0,
+        }
     
     log_event("INIT", "START", f"Initiating {batch_label} ({total_targets} companies)...")
     if ai_active:
@@ -2157,12 +2285,27 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1", ai_config=No
     else:
         log_event("AI_CONFIG", "AI_DISABLED", "AI extraction disabled for this run (deterministic extraction mode).")
 
+    from itertools import count as _count
+
+    _progress_counter = _count(1)
+    _progress_lock = threading.Lock()
+
+    def _next_progress_index() -> int:
+        """Atomically claim the next progress slot.
+
+        The previous ``stats["companies_crawled"] + 1`` read-modify-write lost
+        increments when three workers finished at the same time.
+        """
+        with _progress_lock:
+            index = next(_progress_counter)
+            CRAWL_TASK_STATE["stats"]["companies_crawled"] = index
+            return index
+
     def _crawl_worker(company):
         close_old_connections()
         try:
             res = sync_single_company_live(company, ai_config=ai_config)
-            crawled = CRAWL_TASK_STATE["stats"]["companies_crawled"] + 1
-            CRAWL_TASK_STATE["stats"]["companies_crawled"] = crawled
+            crawled = _next_progress_index()
 
             jobs_count = res.get("jobs_discovered", 0)
             csr_count = len(res.get("csr_projects", []))
@@ -2175,8 +2318,7 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1", ai_config=No
             return res
         except Exception as exc:
             logger.error("Crawl worker error for %s: %s", company.company_name, exc, exc_info=True)
-            crawled = CRAWL_TASK_STATE["stats"]["companies_crawled"] + 1
-            CRAWL_TASK_STATE["stats"]["companies_crawled"] = crawled
+            crawled = _next_progress_index()
             log_event(
                 "SCRAPE", "ERROR",
                 f"({crawled}/{total_targets}) {company.company_name}: Extraction encountered warning ({str(exc)[:60]}).",
@@ -2204,10 +2346,10 @@ def start_background_crawl(company_ids=None, batch_label="Batch 1", ai_config=No
             except Exception as snap_err:
                 logger.error("Failed to rebuild snapshots after batch crawl: %s", snap_err)
         finally:
-            CRAWL_TASK_STATE["is_running"] = False
+            with _CRAWL_START_LOCK:
+                CRAWL_TASK_STATE["is_running"] = False
             close_old_connections()
 
-    import threading
     t = threading.Thread(target=_run, daemon=True)
     t.start()
     return True

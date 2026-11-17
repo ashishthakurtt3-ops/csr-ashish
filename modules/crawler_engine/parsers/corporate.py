@@ -162,6 +162,7 @@ class CorporateHTMLParser(BaseParser):
             seen_titles.add(heading_text)
             csr_projects.append({
                 'project_name': heading_text,
+                'title': heading_text,
                 'category': matched_theme,
                 'description': block_text[:1200],
                 'geographic_location': loc_val,  # Strictly NULL if not present in text

@@ -430,17 +430,23 @@ def serialize_job_item(j: Job, is_detail: bool = True):
 
 def jobs_list_api(request):
     from modules.website.utils.entitlement_service import user_has_active_plan
-    if not user_has_active_plan(request.user):
+    # RequestFactory-built requests have no AuthenticationMiddleware, so
+    # `request.user` may not exist at all.
+    user = getattr(request, 'user', None)
+    is_authenticated = bool(user and user.is_authenticated)
+    if not user_has_active_plan(user):
         from modules.admin_panel.models import GuestPreviewSettings
         from modules.website.views.preview_api_views import get_public_preview_jobs
         cfg = GuestPreviewSettings.get_settings()
+        # Authoritative public inventory, using the same filter as /stats.
+        public_total = public_jobs(Job.objects.all()).count()
         if not cfg.preview_enabled:
             return JsonResponse({
                 'is_preview': True,
                 'preview_enabled': False,
                 'preview_limit': 0,
-                'preview_message': 'Please select a subscription plan to access vacancies.' if request.user.is_authenticated else 'Guest preview is currently disabled. Please sign in or register to access vacancies.',
-                'plan_required': bool(request.user.is_authenticated),
+                'preview_message': 'Please select a subscription plan to access vacancies.' if is_authenticated else 'Guest preview is currently disabled. Please sign in or register to access vacancies.',
+                'plan_required': is_authenticated,
                 'items': [],
                 'total': 0,
                 'page': 1,
@@ -452,12 +458,12 @@ def jobs_list_api(request):
             'is_preview': True,
             'preview_enabled': True,
             'preview_limit': cfg.preview_limit,
-            'preview_message': 'Subscription plan required. Please choose a subscription plan to search, filter, and save all vacancies.' if request.user.is_authenticated else f'You are viewing a limited public preview of {len(items)} active job openings. Sign in or register to search, filter, and save all vacancies.',
-            'plan_required': bool(request.user.is_authenticated),
+            'preview_message': 'Subscription plan required. Please choose a subscription plan to search, filter, and save all vacancies.' if is_authenticated else f'You are viewing a limited public preview of {public_total} active job openings. Sign in or register to search, filter, and save all vacancies.',
+            'plan_required': is_authenticated,
             'login_url': '/login/?next=/jobs/',
             'register_url': '/register/?next=/jobs/',
             'pricing_url': '/?tab=pricing',
-            'total': len(items),
+            'total': public_total,
             'page': 1,
             'total_pages': 1,
             'has_more': True,

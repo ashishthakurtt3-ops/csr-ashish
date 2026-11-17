@@ -1,10 +1,15 @@
 import json
+import logging
 import time
 import requests
 import math
+from functools import wraps
 from pathlib import Path
+from django.core.cache import cache
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from modules.admin_panel.models import (
     Company, PageRecord, AuditTrail, CSRProject, Job,
@@ -13,7 +18,69 @@ from modules.admin_panel.models import (
 from modules.admin_panel.services.ai_config_service import get_active_ai_config
 from modules.crawler_engine import start_background_crawl, CRAWL_TASK_STATE
 
+logger = logging.getLogger(__name__)
+
+ALLOWED_VERIFY_ACTIONS = frozenset({'APPROVE', 'REJECT'})
+ALLOWED_VERIFY_RECORD_TYPES = frozenset({'CSR_PROJECT'})
+
+SYNC_BATCH_ALLOWLIST = frozenset({'1', '2', '3', '4', 'all'})
+AI_SCOPE_ALLOWLIST = frozenset({'both', 'jobs', 'csr'})
+AI_STRATEGY_ALLOWLIST = frozenset({'hybrid', 'assisted'})
+MAX_CRAWL_REQUESTS_CEILING = 200
+MAX_REQUESTS_PER_COMPANY_CEILING = 10
+MAX_TIMEOUT_CEILING = 60
+
+
+def staff_api_required(view_func):
+    """API-safe staff gate.
+
+    Returns JSON 401/403 instead of redirecting to an HTML login page, so that
+    fetch() callers get a machine-readable response instead of a 302 to HTML.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        user = getattr(request, 'user', None)
+        if user is None or not user.is_authenticated:
+            return JsonResponse({'detail': 'Authentication required'}, status=401)
+        if not (user.is_staff or user.is_superuser or getattr(user, 'role', '') in ('ADMIN', 'STAFF')):
+            return JsonResponse({'detail': 'Staff privileges required'}, status=403)
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
+
+
+def _clamp_int(value, default, minimum, maximum):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(minimum, min(maximum, parsed))
+
+
 VERIFIED_CACHE_PATH = Path(__file__).resolve().parents[3] / 'data' / 'verified_company_links.json'
+
+
+def _elapsed_seconds(state):
+    """Seconds since the crawl started.
+
+    ``start_time`` is stored as a ``time.time()`` float. Older worker state may
+    still hold an ISO string, so both shapes are accepted instead of raising
+    ``TypeError: unsupported operand type(s) for -: 'float' and 'str'``.
+    """
+    started = state.get("start_time")
+    if not state.get("is_running") or not started:
+        return 0
+    if isinstance(started, str):
+        try:
+            from datetime import datetime
+            started_dt = datetime.fromisoformat(started.replace('Z', '+00:00'))
+            return max(0, int((timezone.now() - started_dt).total_seconds()))
+        except (ValueError, TypeError):
+            return 0
+    try:
+        return max(0, int(time.time() - float(started)))
+    except (TypeError, ValueError):
+        return 0
 
 
 def get_verified_cache():
@@ -26,6 +93,8 @@ def get_verified_cache():
     return {}
 
 
+@staff_api_required
+@require_GET
 def crawler_logs_api(request):
     q = request.GET.get('q', '').strip()
     quality = request.GET.get('quality', '').strip()
@@ -37,10 +106,10 @@ def crawler_logs_api(request):
 
     cache = get_verified_cache()
     cached_comps = cache.get('companies', {})
-    gen_at = cache.get('generated_at', '2026-09-18T13:14:39+00:00')
-    requests_made = cache.get('requests_made', 1616)
-    robots_blocked = cache.get('requests_blocked_by_robots', 7)
-    elapsed_sec = cache.get('elapsed_seconds', 381.3)
+    gen_at = cache.get('generated_at') or None
+    requests_made = cache.get('requests_made')
+    robots_blocked = cache.get('requests_blocked_by_robots')
+    elapsed_sec = cache.get('elapsed_seconds')
     summary_counts = cache.get('summary', {})
 
     companies = Company.objects.all().order_by('company_name')
@@ -54,9 +123,9 @@ def crawler_logs_api(request):
         link_qual = info.get('link_quality') or c.link_quality or 'OFFICIAL_DOMAIN_MONITORED'
         careers_url = info.get('careers_url') or c.careers_url
         csr_url = info.get('csr_url') or c.csr_portal_url
-        careers_status = info.get('careers_status', 200 if careers_url else None)
-        csr_status = info.get('csr_status', 200 if csr_url else None)
-        homepage_status = info.get('homepage_status', 200 if c.website_url else None)
+        careers_status = info.get('careers_status')
+        csr_status = info.get('csr_status')
+        homepage_status = info.get('homepage_status')
 
         record = {
             'company_id': cid,
@@ -106,14 +175,27 @@ def crawler_logs_api(request):
     deep_link_count = companies.filter(careers_url__isnull=False).exclude(careers_url='').count()
     homepage_count = companies.filter(careers_url__isnull=True).exclude(website_url__isnull=True).count()
     not_checked_count = companies.filter(crawl_status='PENDING').count()
-    latest_sync = AuditTrail.objects.filter(record_type='WEB_FETCH').order_by('-audit_id').values_list('timestamp', flat=True).first() or timezone.now().isoformat()
+    latest_sync = AuditTrail.objects.filter(record_type='WEB_FETCH').order_by('-audit_id').values_list('timestamp', flat=True).first() or None
+
+    live_stats = CRAWL_TASK_STATE.get("stats") or {}
+    is_running = bool(CRAWL_TASK_STATE.get("is_running"))
+    if is_running:
+        requests_made = live_stats.get("companies_crawled", requests_made)
+        robots_blocked = live_stats.get("blocked", robots_blocked)
+        elapsed_sec = _elapsed_seconds(CRAWL_TASK_STATE)
+    else:
+        if requests_made is None:
+            requests_made = total_pages
+        if robots_blocked is None:
+            robots_blocked = blocked_count
 
     telemetry = {
-        'last_global_sync': latest_sync,
+        'last_global_sync': gen_at or latest_sync,
+        'telemetry_available': bool(cache) or is_running,
         'total_monitored': total_companies,
-        'requests_made': CRAWL_TASK_STATE["stats"]["companies_crawled"] if CRAWL_TASK_STATE["is_running"] else total_pages,
-        'requests_blocked_by_robots': CRAWL_TASK_STATE["stats"]["blocked"] if CRAWL_TASK_STATE["is_running"] else blocked_count,
-        'elapsed_seconds': (time.time() - CRAWL_TASK_STATE["start_time"]) if CRAWL_TASK_STATE["is_running"] and CRAWL_TASK_STATE["start_time"] else 0,
+        'requests_made': requests_made if requests_made is not None else 0,
+        'requests_blocked_by_robots': robots_blocked if robots_blocked is not None else 0,
+        'elapsed_seconds': elapsed_sec if elapsed_sec is not None else 0,
         'verified_deep_link': deep_link_count,
         'verified_homepage': homepage_count,
         'official_domain_not_live_checked': not_checked_count,
@@ -158,6 +240,8 @@ def crawler_logs_api(request):
     })
 
 
+@staff_api_required
+@require_GET
 def company_crawler_log_api(request, company_id):
     try:
         comp = Company.objects.get(company_id=company_id)
@@ -248,11 +332,16 @@ def recheck_company_domain_api(request, company_id):
             status_code = 504
             is_ok = False
 
-        checked_time = timezone.now().isoformat()
+        checked_at = timezone.now()
+        checked_time = checked_at.isoformat()
         try:
             c = Company.objects.get(company_id=cid)
-            c.link_verified_at = checked_time
-            c.last_crawled = checked_time
+            # Pass timezone-aware datetimes, not pre-formatted strings. Note:
+            # Company.link_verified_at / last_crawled are TextField columns, so
+            # Django coerces these to str(); they should be migrated to
+            # DateTimeField separately.
+            c.link_verified_at = checked_at
+            c.last_crawled = checked_at
             c.save(update_fields=['link_verified_at', 'last_crawled'])
 
             AuditTrail.objects.create(
@@ -265,7 +354,7 @@ def recheck_company_domain_api(request, company_id):
                 timestamp=checked_time
             )
         except Exception:
-            pass
+            logger.exception("Failed persisting domain recheck result for company %s", cid)
 
         result_payload = {
             'status': 'success',
@@ -292,6 +381,8 @@ def recheck_company_domain_api(request, company_id):
     }, status=202)
 
 
+@staff_api_required
+@require_GET
 def recheck_company_domain_status_api(request, company_id):
     """Pollable endpoint for background company domain recheck."""
     from django.core.cache import cache
@@ -304,6 +395,8 @@ def recheck_company_domain_status_api(request, company_id):
     return JsonResponse(res)
 
 
+@staff_api_required
+@require_GET
 def crawler_ai_config_status_api(request):
     """
     Returns sanitized AI configuration for the frontend live domain verification modal.
@@ -349,17 +442,32 @@ def crawler_ai_config_status_api(request):
     })
 
 
-@csrf_exempt
+@staff_api_required
+@require_POST
 def live_sync_fetch_api(request):
-    if request.method != 'POST':
-        return JsonResponse({'detail': 'Method not allowed'}, status=405)
-
     from django.conf import settings
+
     if not getattr(settings, 'ALLOW_GLOBAL_SYNC', False):
         return JsonResponse({
             'status': 'REFUSED',
-            'detail': 'Global batch sync is disabled until a proper background queue is configured. Set ALLOW_GLOBAL_SYNC=True in settings to override.'
+            'detail': 'Global batch sync is disabled for this deployment. '
+                      'Set ALLOW_GLOBAL_SYNC=True only when a background queue is configured.'
         }, status=403)
+
+    if CRAWL_TASK_STATE.get('is_running'):
+        return JsonResponse({
+            'status': 'ALREADY_RUNNING',
+            'detail': 'A crawl is already in progress. Wait for it to finish.',
+        }, status=409)
+
+    # Per-user cooldown so a single staff account cannot loop the trigger.
+    throttle_key = f'sync_trigger:{request.user.pk}'
+    if cache.get(throttle_key):
+        return JsonResponse(
+            {'detail': 'A sync was triggered moments ago. Wait 60 seconds before retrying.'},
+            status=429,
+        )
+    cache.set(throttle_key, True, 60)
 
     # Parse batch selection & optional AI extraction configuration
     batch = '1'
@@ -368,13 +476,21 @@ def live_sync_fetch_api(request):
     if request.body:
         try:
             body_data = json.loads(request.body)
-            batch = str(body_data.get('batch', '1')).strip().lower()
-            if 'ai_config' in body_data and isinstance(body_data['ai_config'], dict):
-                ai_config_payload = body_data['ai_config']
-        except Exception:
-            batch = str(request.POST.get('batch', '1')).strip().lower()
+        except (ValueError, UnicodeDecodeError):
+            return JsonResponse({'detail': 'Malformed JSON payload'}, status=400)
+        if not isinstance(body_data, dict):
+            return JsonResponse({'detail': 'Payload must be a JSON object'}, status=400)
+        batch = str(body_data.get('batch', '1')).strip().lower()
+        if isinstance(body_data.get('ai_config'), dict):
+            ai_config_payload = body_data['ai_config']
     else:
         batch = str(request.POST.get('batch', '1')).strip().lower()
+
+    if batch not in SYNC_BATCH_ALLOWLIST:
+        return JsonResponse(
+            {'detail': f"Unsupported batch '{batch}'. Allowed: {sorted(SYNC_BATCH_ALLOWLIST)}"},
+            status=400,
+        )
 
     # Validate AI configuration if requested
     validated_ai_config = None
@@ -383,9 +499,9 @@ def live_sync_fetch_api(request):
         scope = str(ai_config_payload.get('scope', 'both')).strip().lower()
         strategy = str(ai_config_payload.get('strategy', 'hybrid')).strip().lower()
 
-        if scope not in ('both', 'jobs', 'csr'):
+        if scope not in AI_SCOPE_ALLOWLIST:
             scope = 'both'
-        if strategy not in ('hybrid', 'assisted'):
+        if strategy not in AI_STRATEGY_ALLOWLIST:
             strategy = 'hybrid'
 
         active_cfg = get_active_ai_config()
@@ -399,12 +515,14 @@ def live_sync_fetch_api(request):
 
         # Ensure provider credentials exist on server
         p_row = AIProviderConfig.objects.filter(provider=resolved_prov, is_enabled=True).first()
-        if not p_row or not p_row.encrypted_api_key:
-            if resolved_prov != 'mock':
-                return JsonResponse({
-                    'status': 'ERROR',
-                    'detail': f"Selected AI provider '{resolved_prov}' is not enabled or lacks valid API credentials in the database. Please configure it in the Admin Panel or disable AI."
-                }, status=400)
+        if (not p_row or not p_row.encrypted_api_key) and resolved_prov != 'mock':
+            return JsonResponse({
+                'status': 'ERROR',
+                'detail': (
+                    f"Selected AI provider '{resolved_prov}' is not enabled or lacks valid "
+                    'API credentials in the database. Configure it in the Admin Panel or disable AI.'
+                )
+            }, status=400)
 
         validated_ai_config = {
             'enabled': True,
@@ -412,9 +530,13 @@ def live_sync_fetch_api(request):
             'provider': resolved_prov,
             'model': resolved_model,
             'strategy': strategy,
-            'max_requests_per_company': int(ai_config_payload.get('max_requests_per_company', 2)),
-            'max_crawl_requests': int(ai_config_payload.get('max_crawl_requests', 50)),
-            'timeout': int(ai_config_payload.get('timeout', 15)),
+            'max_requests_per_company': _clamp_int(
+                ai_config_payload.get('max_requests_per_company'), 2, 0, MAX_REQUESTS_PER_COMPANY_CEILING
+            ),
+            'max_crawl_requests': _clamp_int(
+                ai_config_payload.get('max_crawl_requests'), 50, 0, MAX_CRAWL_REQUESTS_CEILING
+            ),
+            'timeout': _clamp_int(ai_config_payload.get('timeout'), 15, 5, MAX_TIMEOUT_CEILING),
             'fallback_enabled': bool(ai_config_payload.get('fallback_enabled', True))
         }
 
@@ -425,34 +547,51 @@ def live_sync_fetch_api(request):
                 provider=resolved_prov,
                 model_name=resolved_model,
                 status='INITIATED',
-                message=f"Live probe initiated with AI extraction enabled for batch {batch} (Scope: {scope}, Strategy: {strategy}).",
+                message=(
+                    f'Live probe initiated with AI extraction enabled for batch {batch} '
+                    f'(Scope: {scope}, Strategy: {strategy}).'
+                ),
                 details=validated_ai_config,
-                performed_by=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+                performed_by=request.user,
                 ip_address=request.META.get('REMOTE_ADDR', '')
             )
         except Exception as audit_err:
-            import logging
-            logging.getLogger(__name__).warning("Failed recording AIConfigurationAuditLog for crawl: %s", audit_err)
+            logger.warning("Failed recording AIConfigurationAuditLog for crawl: %s", audit_err)
+
+    BATCH_SIZE = 50
 
     all_companies = list(Company.objects.all().order_by('company_id'))
     total_market = len(all_companies)
 
-    if batch == '2':
-        batch_slice = all_companies[50:100]
-        batch_label = "Batch 2 (Companies 51 to 100)"
-    elif batch == '3':
-        batch_slice = all_companies[100:150]
-        batch_label = "Batch 3 (Companies 101 to 150)"
-    elif batch == '4':
-        batch_slice = all_companies[150:201]
-        batch_label = "Batch 4 (Companies 151 to 201)"
-    elif batch == 'all':
+    if batch == 'all':
         batch_slice = all_companies
-        batch_label = "Full Market Crawl (All 201 Companies)"
+        batch_label = f"Full Market Crawl (All {total_market} companies)"
     else:
-        batch = '1'
-        batch_slice = all_companies[0:50]
-        batch_label = "Batch 1 (Companies 1 to 50)"
+        try:
+            batch_number = max(1, int(batch))
+        except (TypeError, ValueError):
+            batch_number = 1
+        batch = str(batch_number)
+        start_idx = (batch_number - 1) * BATCH_SIZE
+        end_idx = start_idx + BATCH_SIZE
+        batch_slice = all_companies[start_idx:end_idx]
+        if batch_slice:
+            batch_label = (
+                f"Batch {batch_number} "
+                f"(Companies {start_idx + 1} to {min(end_idx, total_market)})"
+            )
+        else:
+            batch_label = f"Batch {batch_number} (no companies in this range)"
+
+    if not batch_slice:
+        return JsonResponse({
+            'status': 'EMPTY',
+            'batch': batch,
+            'batch_label': batch_label,
+            'companies_in_batch': 0,
+            'total_companies': total_market,
+            'detail': f'No companies matched {batch_label}.',
+        }, status=404)
 
     batch_cids = [c.company_id for c in batch_slice]
     sync_time = timezone.now().isoformat()
@@ -496,6 +635,8 @@ def live_sync_fetch_api(request):
     })
 
 
+@staff_api_required
+@require_GET
 def live_crawler_stream_api(request):
     limit = int(request.GET.get('limit', 15))
     
@@ -531,6 +672,8 @@ def live_crawler_stream_api(request):
 
 
 # Legacy /admin compatibility endpoints
+@staff_api_required
+@require_GET
 def admin_crawler_status_api(request):
     recent_pages = list(PageRecord.objects.order_by('-page_id')[:20].values())
     total_pages = PageRecord.objects.count()
@@ -548,6 +691,8 @@ def admin_crawler_status_api(request):
     })
 
 
+@staff_api_required
+@require_GET
 def admin_verification_queue_api(request):
     projects = CSRProject.objects.filter(
         verification_status__in=['UNVERIFIED', 'EXTRACTED', 'VALIDATED']
@@ -568,51 +713,83 @@ def admin_verification_queue_api(request):
     return JsonResponse(records, safe=False)
 
 
-@csrf_exempt
+@staff_api_required
+@require_POST
 def admin_verify_api(request):
-    if request.method != 'POST':
-        return JsonResponse({'detail': 'Method not allowed'}, status=405)
+    """Staff-only publish/reject endpoint for verification records.
 
+    The acting identity and role are derived exclusively from the authenticated
+    session. Nothing security-relevant is read from the request body.
+    """
     try:
-        payload = json.loads(request.body.decode('utf-8'))
-    except Exception:
-        payload = {}
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({'detail': 'Malformed JSON payload'}, status=400)
 
-    rec_type = payload.get('record_type', 'CSR_PROJECT')
-    rec_id = payload.get('record_id')
-    action = payload.get('action', 'APPROVE')
-    user_role = payload.get('user_role', 'Data Admin')
-    notes = payload.get('notes', 'Manual audit verified from public disclosures.')
-    now_ts = timezone.now().isoformat()
+    if not isinstance(payload, dict):
+        return JsonResponse({'detail': 'Payload must be a JSON object'}, status=400)
+
+    rec_type = str(payload.get('record_type') or 'CSR_PROJECT').strip().upper()
+    rec_id = str(payload.get('record_id') or '').strip()
+    action = str(payload.get('action') or '').strip().upper()
+    notes = str(payload.get('notes') or '').strip()[:2000]
+
+    if rec_type not in ALLOWED_VERIFY_RECORD_TYPES:
+        return JsonResponse({'detail': f'Unsupported record_type: {rec_type}'}, status=400)
+    if action not in ALLOWED_VERIFY_ACTIONS:
+        return JsonResponse({'detail': f'Unsupported action: {action}'}, status=400)
+    if not rec_id:
+        return JsonResponse({'detail': 'record_id is required'}, status=400)
+
+    actor = request.user.get_username()
+    actor_role = getattr(request.user, 'role', None) or (
+        'ADMIN' if request.user.is_superuser else 'STAFF'
+    )
 
     from modules.crawler_engine.verification_service import VerificationService
 
-    if action == 'APPROVE':
-        if rec_type == 'CSR_PROJECT':
-            project = CSRProject.objects.filter(csr_id=rec_id).first()
-            if project:
-                VerificationService.publish_record(project, actor=user_role)
-    elif action == 'REJECT':
-        if rec_type == 'CSR_PROJECT':
-            CSRProject.objects.filter(csr_id=rec_id).update(
-                confidence=0.40,
-                verification_status='REJECTED',
-                link_status='REJECTED'
-            )
+    with transaction.atomic():
+        project = CSRProject.objects.select_for_update().filter(csr_id=rec_id).first()
+        if project is None:
+            return JsonResponse({'detail': f'CSR project {rec_id} not found'}, status=404)
 
-    AuditTrail.objects.create(
-        record_type=rec_type,
-        record_id=str(rec_id),
-        action=action,
-        new_value=f"Action {action} performed. Status updated.",
-        user_role=user_role,
-        notes=notes,
-        timestamp=now_ts
-    )
+        previous_status = project.verification_status
 
-    return JsonResponse({'status': 'success', 'message': f'Record {rec_id} processed with action {action}.'})
+        if action == 'APPROVE':
+            VerificationService.publish_record(project, actor=actor)
+            new_value = 'PUBLISHED'
+        else:
+            project.confidence = 0.40
+            project.verification_status = 'REJECTED'
+            project.link_status = 'REJECTED'
+            project.save(update_fields=['confidence', 'verification_status', 'link_status'])
+            new_value = 'REJECTED'
+
+        AuditTrail.objects.create(
+            record_type=rec_type,
+            record_id=rec_id,
+            action=action,
+            previous_value=f'{previous_status}',
+            new_value=new_value,
+            user_role=actor_role,
+            notes=notes or f'{action} performed by {actor} through the admin verification API.',
+            timestamp=timezone.now().isoformat(),
+        )
+
+    logger.info('Verification action %s applied to %s %s by %s', action, rec_type, rec_id, actor)
+
+    return JsonResponse({
+        'status': 'success',
+        'record_type': rec_type,
+        'record_id': rec_id,
+        'action': action,
+        'new_value': new_value,
+        'verified_by': actor,
+    })
 
 
+@staff_api_required
+@require_GET
 def admin_audit_trail_api(request):
     audits = list(AuditTrail.objects.order_by('-audit_id')[:30].values())
     return JsonResponse(audits, safe=False)

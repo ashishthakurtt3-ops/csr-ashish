@@ -128,11 +128,17 @@
                 </svg>
             </div>
 
-            <!-- Action Button -->
+            <!-- Action Buttons: Full Discovery vs URLs Only -->
             <button type="button" id="btn-quick-discover" onclick="startSingleCompanyDiscovery()" 
                     style="background: linear-gradient(135deg, #0A6CFF 0%, #005CE0 100%) !important; color: #FFFFFF !important; font-size: 14px; font-weight: 700; padding: 0 24px; height: 48px; border-radius: 10px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(10,108,255,0.35); white-space: nowrap;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 <span>Search CSR &amp; Jobs ⚡</span>
+            </button>
+            <button type="button" id="btn-quick-discover-urls" onclick="startSingleCompanyDiscovery({urls_only: true})" 
+                    style="background: rgba(10,108,255,0.1); color: #0A6CFF; border: 1.5px solid rgba(10,108,255,0.35); font-size: 13.5px; font-weight: 700; padding: 0 20px; height: 48px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;"
+                    title="Autonomous URL Discovery Engine: discover, classify &amp; verify all company destinations without data extraction">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                <span>Discover URLs Only 🌐</span>
             </button>
         </div>
     </div>
@@ -257,7 +263,14 @@
             </div>
 
             <!-- DISCOVERY OPTIONS -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 20px 0 16px 0; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0 16px 0; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="opt-urls-only" onchange="onUrlsOnlyToggle(this.checked)" style="width: 18px; height: 18px; accent-color: #0A6CFF; cursor: pointer;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">🌐 Discover URLs Only (Fast)</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Robots.txt, sitemaps, navigation &amp; 5-tier classification</div>
+                    </div>
+                </label>
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                     <input type="checkbox" id="opt-jobs" checked style="width: 18px; height: 18px; accent-color: #0A6CFF; cursor: pointer;">
                     <div>
@@ -431,10 +444,18 @@
                             Structured intelligence dossiers: canonical entity profile, verified vacancies, and Section 135 CSR disclosures
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button type="button" id="btn-clear-discovery-session" onclick="clearDiscoverySession()" style="display: none; background: var(--bg-surface-subtle); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Reset session dossiers & logs to start a fresh batch">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" id="btn-clear-discovery-session" onclick="clearDiscoverySession()" style="display: none; background: var(--bg-surface-subtle); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Reset session dossiers &amp; logs to start a fresh batch">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             <span>Clear Output</span>
+                        </button>
+                        <button type="button" id="btn-export-urls-csv" onclick="exportDiscoveredUrlsCSV()" style="display: none; background: rgba(10,108,255,0.12); color: #0A6CFF; border: 1px solid rgba(10,108,255,0.3); font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Export all discovered company URLs to CSV">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Export URLs (CSV)</span>
+                        </button>
+                        <button type="button" id="btn-export-urls-excel" onclick="exportDiscoveredUrlsExcel()" style="display: none; background: rgba(5,150,105,0.12); color: #059669; border: 1px solid rgba(5,150,105,0.3); font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Export all discovered company URLs to Excel (.xlsx)">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+                            <span>Export URLs (Excel)</span>
                         </button>
                         <button type="button" id="btn-export-dossiers-csv" onclick="exportQueueResultsCSV()" style="display: none; background: rgba(16,185,129,0.12); color: #10B981; border: 1px solid rgba(16,185,129,0.3); font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -1687,11 +1708,13 @@ async function safeParseJsonResponse(resp) {
     }
 }
 
-async function startSingleCompanyDiscovery() {
+async function startSingleCompanyDiscovery(customOptions = {}) {
     const input = document.getElementById('quick-company-input');
     let compName = (input ? input.value : '').trim();
     const websiteInput = document.getElementById('quick-website-input');
     let websiteVal = (websiteInput ? websiteInput.value : '').trim();
+
+    const isUrlsOnly = Boolean(customOptions && customOptions.urls_only) || Boolean(document.getElementById('opt-urls-only') && document.getElementById('opt-urls-only').checked);
 
     // Auto-derive both fields if a URL/domain was pasted into the Company Name field
     if (compName && !websiteVal && (/^(https?:\/\/|www\.)/i.test(compName) || /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/[^\s]*)?$/i.test(compName))) {
@@ -1751,11 +1774,11 @@ async function startSingleCompanyDiscovery() {
     // New company details entered: the previous crawl must not be shown.
     beginFreshDiscoveryBatch({ abortActive: true });
 
-    const btn = document.getElementById('btn-quick-discover');
+    const btn = document.getElementById(isUrlsOnly ? 'btn-quick-discover-urls' : 'btn-quick-discover');
     const originalBtnHTML = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; display: inline-block; vertical-align: middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Crawling &amp; Extracting...</span>`;
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; display: inline-block; vertical-align: middle;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>${isUrlsOnly ? 'Discovering URLs...' : 'Crawling &amp; Extracting...'}</span>`;
     }
 
     // Ensure live queue and results container is displayed
@@ -1765,28 +1788,29 @@ async function startSingleCompanyDiscovery() {
     if (emptyState) emptyState.style.display = 'none';
 
     const qHeading = document.getElementById('queue-heading');
-    if (qHeading) qHeading.innerHTML = `Direct AI Discovery: <span style="color:#0A6CFF;">${escapeHtml(compName)}</span>`;
+    if (qHeading) qHeading.innerHTML = `${isUrlsOnly ? 'Autonomous URL Discovery' : 'Direct AI Discovery'}: <span style="color:#0A6CFF;">${escapeHtml(compName)}</span>`;
     const qSubheading = document.getElementById('queue-subheading');
-    if (qSubheading) qSubheading.innerText = `Crawling homepage URL, probing careers portal for vacancies, and discovering Section 135 CSR projects...`;
+    if (qSubheading) qSubheading.innerText = isUrlsOnly ? `Analyzing robots.txt, discovering sitemaps, and classifying navigation destinations...` : `Crawling homepage URL, probing careers portal for vacancies, and discovering Section 135 CSR projects...`;
     const qComp = document.getElementById('queue-current-company');
     if (qComp) qComp.innerText = compName;
     const qBar = document.getElementById('queue-progress-bar');
     if (qBar) qBar.style.width = '65%';
 
-    logTerminal(`[DIRECT_SEARCH] Initiating instant AI discovery for '${compName}' (${websiteVal})...`, '#00D4FF');
+    logTerminal(`[DIRECT_SEARCH] Initiating ${isUrlsOnly ? 'autonomous URL discovery' : 'instant AI discovery'} for '${compName}' (${websiteVal})...`, '#00D4FF');
     showInAppNotification({
-        title: 'Crawl In Progress',
-        message: `Probing official portals and running AI extraction for ${compName}...`,
+        title: isUrlsOnly ? 'URL Discovery In Progress' : 'Crawl In Progress',
+        message: isUrlsOnly ? `Extracting & classifying verified URLs for ${compName}...` : `Probing official portals and running AI extraction for ${compName}...`,
         type: 'info',
         duration: 3500
     });
 
     const progressToken = `disc_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const options = {
-        extract_jobs: document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true,
-        extract_csr: document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true,
-        extract_reports: true,
-        deep_enrich: true,
+        urls_only: isUrlsOnly,
+        extract_jobs: isUrlsOnly ? false : (document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true),
+        extract_csr: isUrlsOnly ? false : (document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true),
+        extract_reports: isUrlsOnly ? false : true,
+        deep_enrich: isUrlsOnly ? false : true,
         progress_token: progressToken,
         auto_create_company: document.getElementById('opt-auto-create-company') ? document.getElementById('opt-auto-create-company').checked : true,
     };
@@ -1818,7 +1842,13 @@ async function startSingleCompanyDiscovery() {
 
         if (qBar) qBar.style.width = '100%';
         if (qHeading) qHeading.innerHTML = `Discovery Complete: <span style="color:#10B981;">${escapeHtml(resData.company_name || compName)}</span>`;
-        if (qSubheading) qSubheading.innerText = `${resData.is_new_company ? '✨ Brand new entity created in database' : '🔄 Existing database entity refreshed'}. Discovered and verified ${resData.jobs_imported || 0} jobs and ${resData.csr_imported || 0} CSR projects.`;
+        if (qSubheading) {
+            if (isUrlsOnly) {
+                qSubheading.innerText = `Discovered, classified and verified ${resData.sources_count || (resData.sources ? resData.sources.length : 0)} corporate URLs.`;
+            } else {
+                qSubheading.innerText = `${resData.is_new_company ? '✨ Brand new entity created in database' : '🔄 Existing database entity refreshed'}. Discovered and verified ${resData.jobs_imported || 0} jobs and ${resData.csr_imported || 0} CSR projects.`;
+            }
+        }
         const btnExp = document.getElementById('btn-export-results');
         if (btnExp) btnExp.style.display = 'inline-block';
 
@@ -1827,7 +1857,7 @@ async function startSingleCompanyDiscovery() {
             btn.style.background = '#10B981';
             showInAppNotification({
                 title: 'Discovery Complete!',
-                message: `Verified and saved ${resData.jobs_imported || 0} jobs and ${resData.csr_imported || 0} Section 135 CSR projects for ${resData.company_name || compName}.`,
+                message: isUrlsOnly ? `Discovered and verified ${resData.sources_count || 0} corporate destination URLs for ${resData.company_name || compName}.` : `Verified and saved ${resData.jobs_imported || 0} jobs and ${resData.csr_imported || 0} Section 135 CSR projects for ${resData.company_name || compName}.`,
                 type: 'success',
                 duration: 5000
             });
@@ -2889,9 +2919,13 @@ async function processNextCompany() {
 
     logTerminal(`[${currentQueueIndex + 1}/${companyQueue.length}] Crawling '${companyTask.company_name}'...`, '#F8FAFC');
 
+    const isUrlsOnly = Boolean(document.getElementById('opt-urls-only') && document.getElementById('opt-urls-only').checked);
     const options = {
-        extract_jobs: document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true,
-        extract_csr: document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true,
+        urls_only: isUrlsOnly,
+        extract_jobs: isUrlsOnly ? false : (document.getElementById('opt-jobs') ? document.getElementById('opt-jobs').checked : true),
+        extract_csr: isUrlsOnly ? false : (document.getElementById('opt-csr') ? document.getElementById('opt-csr').checked : true),
+        extract_reports: isUrlsOnly ? false : true,
+        deep_enrich: isUrlsOnly ? false : true,
         auto_create_company: document.getElementById('opt-auto-create-company') ? document.getElementById('opt-auto-create-company').checked : true,
     };
 
@@ -3305,6 +3339,10 @@ function startDiscoveryProgressPolling(token, companyTask) {
             jobs_imported: 0,
             csr_imported: 0,
             reports_count: 0,
+            jobs_status: 'RUNNING',
+            csr_status: 'RUNNING',
+            reports_status: 'RUNNING',
+            userInteractedTab: false,
             elapsed_ms: 0,
             deep_enrichment: 'PENDING',
             activeTab: 'jobs',
@@ -3339,18 +3377,41 @@ function startDiscoveryProgressPolling(token, companyTask) {
             if (t.primary_careers_url) target.careers_url = t.primary_careers_url;
             if (t.sector) target.sector = t.sector;
             if (t.headquarters) target.headquarters = t.headquarters;
-            target.jobs_imported = t.jobs_imported || target.jobs.length;
-            target.csr_imported = t.csr_imported || target.csr.length;
-            target.reports_count = t.reports_count || target.reports.length;
+            if (t.jobs_status) target.jobs_status = t.jobs_status;
+            if (t.csr_status) target.csr_status = t.csr_status;
+            if (t.reports_status) target.reports_status = t.reports_status;
+            if (t.csr_summary) target.csr_summary = t.csr_summary;
+            target.jobs_imported = t.jobs_imported !== undefined ? t.jobs_imported : target.jobs.length;
+            target.csr_imported = t.csr_imported !== undefined ? t.csr_imported : target.csr.length;
+            target.reports_count = t.reports_count !== undefined ? t.reports_count : target.reports.length;
             target.live_stage = t.stage || target.live_stage;
             target.deep_enrichment = t.deep_enrichment || target.deep_enrichment;
             target.outcome = t.outcome || target.outcome || '';
             target.elapsed_ms = t.elapsed_ms || t.total_ms || target.elapsed_ms || 0;
 
-            // Auto-switch to whichever track produced results first.
-            if (target.jobs.length && !target.csr.length) target.activeTab = 'jobs';
-            else if (target.csr.length && !target.jobs.length) target.activeTab = 'csr';
+            // Auto-switch to whichever track produced results first, unless user already clicked a tab.
+            if (!target.userInteractedTab) {
+                if (target.jobs.length && !target.csr.length) target.activeTab = 'jobs';
+                else if (target.csr.length && !target.jobs.length) target.activeTab = 'csr';
+            }
+
+            // Preserve active input focus during progressive refresh
+            const activeEl = document.activeElement;
+            const activeId = activeEl ? activeEl.id : null;
+            const activeSelStart = activeEl ? activeEl.selectionStart : null;
+            const activeSelEnd = activeEl ? activeEl.selectionEnd : null;
+
             renderDiscoveredResultsList();
+
+            if (activeId) {
+                const restoredEl = document.getElementById(activeId);
+                if (restoredEl && (restoredEl.tagName === 'INPUT' || restoredEl.tagName === 'TEXTAREA')) {
+                    restoredEl.focus();
+                    if (activeSelStart !== null && activeSelEnd !== null) {
+                        try { restoredEl.setSelectionRange(activeSelStart, activeSelEnd); } catch (e) {}
+                    }
+                }
+            }
 
             if (t.status === 'completed' || t.status === 'failed') {
                 clearInterval(timer);
@@ -3361,7 +3422,7 @@ function startDiscoveryProgressPolling(token, companyTask) {
         }
     };
 
-    const timer = setInterval(poll, 2500);
+    const timer = setInterval(poll, 1000);
     window.activeDiscoveryPollers[token] = timer;
     // Fire one immediate poll so the provisional card fills quickly.
     poll();
@@ -3426,13 +3487,24 @@ function handleCompanyResult(task, res) {
     // Store in structured results model
     const cardUniqueId = `dossier-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const progressToken = task && task.progress_token ? task.progress_token : '';
+    let prevActiveTab = null;
+    let prevUserInteracted = false;
     if (progressToken) {
+        const existing = discoveredCompaniesResults.find(d => d.progress_token === progressToken);
+        if (existing) {
+            prevActiveTab = existing.activeTab;
+            prevUserInteracted = existing.userInteractedTab;
+        }
         const existingIdx = discoveredCompaniesResults.findIndex(d => d.progress_token === progressToken);
         if (existingIdx >= 0) discoveredCompaniesResults.splice(existingIdx, 1);
         if (window.activeDiscoveryPollers && window.activeDiscoveryPollers[progressToken]) {
             clearInterval(window.activeDiscoveryPollers[progressToken]);
             delete window.activeDiscoveryPollers[progressToken];
         }
+    }
+    let defaultTab = (Array.isArray(res.jobs) && res.jobs.length > 0) ? 'jobs' : ((Array.isArray(res.csr) && res.csr.length > 0) ? 'csr' : 'jobs');
+    if ((!res.jobs || res.jobs.length === 0) && (!res.csr || res.csr.length === 0) && Array.isArray(res.sources) && res.sources.length > 0) {
+        defaultTab = 'urls';
     }
     const dossierEntry = {
         cardId: cardUniqueId,
@@ -3446,22 +3518,31 @@ function handleCompanyResult(task, res) {
         website_url: res.website_url || '',
         careers_url: res.careers_url || '',
         csr_url: res.csr_url || '',
+        csr_summary: res.csr_summary || '',
         jobs: Array.isArray(res.jobs) ? res.jobs : [],
         csr: Array.isArray(res.csr) ? res.csr : [],
         reports: Array.isArray(res.reports) ? res.reports : [],
+        sources: Array.isArray(res.sources) ? res.sources : [],
+        sources_count: res.sources_count || (Array.isArray(res.sources) ? res.sources.length : 0),
         jobs_imported: jobsImported,
         csr_imported: csrImported,
         reports_count: res.reports_count || (Array.isArray(res.reports) ? res.reports.length : 0),
+        jobs_status: 'COMPLETED',
+        csr_status: 'COMPLETED',
+        reports_status: 'COMPLETED',
         outcome: res.outcome || '',
         elapsed_ms: (res.telemetry && (res.telemetry.total_ms || res.telemetry.elapsed_ms)) || 0,
         deep_enrichment: res.deep_enrichment || '',
-        activeTab: (Array.isArray(res.jobs) && res.jobs.length > 0) ? 'jobs' : ((Array.isArray(res.csr) && res.csr.length > 0) ? 'csr' : 'jobs'),
+        userInteractedTab: prevUserInteracted,
+        activeTab: (prevUserInteracted && prevActiveTab) ? prevActiveTab : defaultTab,
         jobsPage: 1,
         jobsPageSize: 10,
         jobsSearch: '',
         csrPage: 1,
         csrPageSize: 10,
         csrSearch: '',
+        urlsSearch: '',
+        collapsedCategories: {},
         timestamp: new Date()
     };
 
@@ -3509,8 +3590,9 @@ function onResultsSearch(query) {
 function switchCardTab(cardId, tabName) {
     const entry = discoveredCompaniesResults.find(d => d.cardId === cardId);
     if (!entry) return;
+    entry.userInteractedTab = true;
     entry.activeTab = tabName;
-    ['jobs', 'csr', 'reports'].forEach(kind => {
+    ['jobs', 'csr', 'reports', 'urls'].forEach(kind => {
         const content = document.getElementById(`${cardId}-tab-${kind}`);
         const btn = document.getElementById(`${cardId}-btn-${kind}`);
         const isActive = kind === tabName;
@@ -3559,6 +3641,14 @@ function buildCardPagePills(cardId, currentPage, totalPages, clickHandlerName) {
 
 function buildCardJobsHtml(c) {
     if (!c.jobs || c.jobs.length === 0) {
+        if (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete' && c.jobs_status !== 'COMPLETED') {
+            return `
+                <div style="text-align: center; padding: 24px 16px; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--accent-blue, #3b82f6); border-radius: 8px; color: var(--accent-blue, #3b82f6); font-size: 13px; font-weight: 500;">
+                    <span class="spinner" style="display: inline-block; width: 14px; height: 14px; border: 2px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>
+                    ⏳ Mining &amp; Verifying Active Vacancies from Careers Portal...
+                </div>
+            `;
+        }
         return `
             <div style="text-align: center; padding: 18px 12px; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12px;">
                 ℹ️ No active job postings published on careers portal during this crawl cycle.
@@ -3684,6 +3774,14 @@ function buildCardJobsHtml(c) {
 
 function buildCardCsrHtml(c) {
     if (!c.csr || c.csr.length === 0) {
+        if (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete' && c.csr_status !== 'COMPLETED') {
+            return `
+                <div style="text-align: center; padding: 24px 16px; background: rgba(16, 185, 129, 0.05); border: 1px dashed var(--accent-green, #10b981); border-radius: 8px; color: var(--accent-green, #10b981); font-size: 13px; font-weight: 500;">
+                    <span class="spinner" style="display: inline-block; width: 14px; height: 14px; border: 2px solid #10b981; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>
+                    ⏳ Inspecting Official CSR Portal &amp; Section 135 Initiatives...
+                </div>
+            `;
+        }
         return `
             <div style="text-align: center; padding: 18px 12px; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12px;">
                 ℹ️ No Section 135 CSR projects or disclosures detected on this company's portals.
@@ -3716,6 +3814,15 @@ function buildCardCsrHtml(c) {
 
     let html = '';
 
+    if (c.csr_summary) {
+        html += `
+            <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10B981; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; color: var(--text-primary); line-height: 1.45;">
+                <div style="font-weight: 700; color: #10B981; margin-bottom: 2px;">🌱 CSR Footprint Summary:</div>
+                ${escapeHtml(c.csr_summary)}
+            </div>
+        `;
+    }
+
     if (c.csr.length > 5 || query) {
         html += `
             <div class="card-csr-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; background: var(--bg-surface-subtle); padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -3746,25 +3853,33 @@ function buildCardCsrHtml(c) {
     } else {
         html += pageItems.map((p, idx) => {
             const actualIndex = startIndex + idx + 1;
+            const stateText = (p.state && p.state !== 'None' && p.state.toLowerCase() !== 'not specified' && p.state.toLowerCase() !== 'not mentioned') ? p.state : 'Not Mentioned';
+            const budgetText = (p.budget && p.budget !== 'None' && p.budget !== 'Section 135 Outlay' && p.budget.toLowerCase() !== 'not published' && p.budget.toLowerCase() !== 'not specified' && p.budget.toLowerCase() !== 'not mentioned') ? p.budget : 'Not Mentioned';
+            const beneText = (p.beneficiaries && p.beneficiaries !== 'None' && p.beneficiaries.toLowerCase() !== 'not specified' && p.beneficiaries.toLowerCase() !== 'not mentioned') ? p.beneficiaries : null;
+            const targetUrl = p.source_url || p.csr_portal_url || c.csr_url || '';
+            const rawSummary = (p.summary || p.description || p.evidence_text || '').trim();
+            const descSummary = (rawSummary && rawSummary !== 'Documented Section 135 initiative.' && rawSummary.toLowerCase() !== 'not mentioned') ? rawSummary : 'Not Mentioned';
+
             return `
                 <div class="dossier-item-card">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="font-weight: 700; font-size: 13px; color: #10B981; line-height: 1.35;">
                             🌱 ${actualIndex}. ${escapeHtml(p.project_name || 'Section 135 Initiative')}
                         </div>
-                        ${p.source_url ? `
-                            <a href="${escapeHtml(p.source_url)}" target="_blank" rel="noopener noreferrer" class="dossier-source-btn">
-                                <span>Source ↗</span>
+                        ${targetUrl ? `
+                            <a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener noreferrer" class="dossier-source-btn" title="View Official CSR Page">
+                                <span>CSR Webpage ↗</span>
                             </a>
                         ` : ''}
                     </div>
                     <div class="dossier-pills-row">
                         <span class="dossier-pill dossier-pill-emerald">🏷️ ${escapeHtml(p.category || 'CSR Focus Area')}</span>
-                        <span class="dossier-pill">📍 ${escapeHtml(p.state || 'Pan-India')}</span>
-                        <span class="dossier-pill">💰 ${escapeHtml(p.budget || 'Section 135 Outlay')}</span>
+                        <span class="dossier-pill">📍 ${escapeHtml(stateText)}</span>
+                        <span class="dossier-pill">💰 ${escapeHtml(budgetText)}</span>
+                        ${beneText ? `<span class="dossier-pill">👥 ${escapeHtml(beneText)}</span>` : ''}
                     </div>
-                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45; margin-top: 3px;">
-                        ${escapeHtml(p.description || 'Statutory CSR commitment under Companies Act 2013.')}
+                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45; margin-top: 4px;">
+                        <strong>Summary:</strong> ${escapeHtml(descSummary)}
                     </div>
                 </div>
             `;
@@ -3799,6 +3914,14 @@ function buildCardCsrHtml(c) {
 function buildCardReportsHtml(c) {
     const reports = Array.isArray(c.reports) ? c.reports : [];
     if (reports.length === 0) {
+        if (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete' && c.reports_status !== 'COMPLETED') {
+            return `
+                <div style="text-align: center; padding: 24px 16px; background: rgba(14, 165, 233, 0.05); border: 1px dashed var(--accent-cyan, #0ea5e9); border-radius: 8px; color: var(--accent-cyan, #0ea5e9); font-size: 13px; font-weight: 500;">
+                    <span class="spinner" style="display: inline-block; width: 14px; height: 14px; border: 2px solid #0ea5e9; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>
+                    ⏳ Downloading &amp; Analysing Statutory Reports &amp; ESG Disclosures...
+                </div>
+            `;
+        }
         return `
             <div style="text-align: center; padding: 18px 12px; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12px;">
                 📄 No CSR, annual, BRSR or sustainability reports were detected on this company's portals.
@@ -3948,6 +4071,220 @@ function onCardCsrPageClick(cardId, page) {
     }
 }
 
+// =========================================================================
+// PER-DOSSIER CARD AUTONOMOUS DISCOVERED URLS TREE & EXPORT ENGINE
+// =========================================================================
+
+function buildCardUrlsHtml(c) {
+    const rawSources = Array.isArray(c.sources) ? c.sources : [];
+    if (!rawSources || rawSources.length === 0) {
+        if (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete') {
+            return `
+                <div style="text-align: center; padding: 24px 16px; background: rgba(10, 108, 255, 0.05); border: 1px dashed #0A6CFF; border-radius: 8px; color: #0A6CFF; font-size: 13px; font-weight: 500;">
+                    <span class="spinner" style="display: inline-block; width: 14px; height: 14px; border: 2px solid #0A6CFF; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>
+                    ⏳ Discovering, classifying &amp; verifying corporate URLs from robots.txt, sitemaps &amp; navigation...
+                </div>
+            `;
+        }
+        return `
+            <div style="text-align: center; padding: 22px 14px; background: var(--bg-surface-subtle); border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); font-size: 12.5px;">
+                ℹ️ No additional corporate URLs discovered during this crawl cycle.
+            </div>
+        `;
+    }
+
+    const searchQuery = (c.urlsSearch || '').toLowerCase().trim();
+    const filteredSources = searchQuery ? rawSources.filter(s => {
+        return (s.final_url || '').toLowerCase().includes(searchQuery)
+            || (s.link_text || '').toLowerCase().includes(searchQuery)
+            || (s.detailed_classification || '').toLowerCase().includes(searchQuery)
+            || (s.category || '').toLowerCase().includes(searchQuery)
+            || (s.discovery_method || '').toLowerCase().includes(searchQuery);
+    }) : rawSources;
+
+    // Grouping by Category
+    const categoryConfigs = [
+        { key: 'careers', name: 'Careers & Recruitment', icon: '💼', color: '#0A6CFF', bg: 'rgba(10,108,255,0.08)', border: 'rgba(10,108,255,0.25)' },
+        { key: 'csr', name: 'CSR & Social Impact', icon: '🌱', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)' },
+        { key: 'esg', name: 'ESG & Sustainability', icon: '🌍', color: '#059669', bg: 'rgba(5,150,105,0.08)', border: 'rgba(5,150,105,0.25)' },
+        { key: 'ir', name: 'Investor Relations & Reports', icon: '📈', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.25)' },
+        { key: 'other', name: 'Other Important URLs', icon: '🏢', color: '#64748B', bg: 'rgba(100,116,139,0.08)', border: 'rgba(100,116,139,0.25)' },
+    ];
+
+    const grouped = {};
+    categoryConfigs.forEach(cfg => { grouped[cfg.key] = []; });
+
+    filteredSources.forEach(s => {
+        const cat = (s.category || '').toLowerCase();
+        if (cat.includes('career') || cat.includes('job') || cat.includes('recruitment')) {
+            grouped['careers'].push(s);
+        } else if (cat.includes('csr') || cat.includes('social impact')) {
+            grouped['csr'].push(s);
+        } else if (cat.includes('esg') || cat.includes('sustainab')) {
+            grouped['esg'].push(s);
+        } else if (cat.includes('investor') || cat.includes('report') || cat.includes('annual')) {
+            grouped['ir'].push(s);
+        } else {
+            grouped['other'].push(s);
+        }
+    });
+
+    const totalVerified = rawSources.filter(s => (s.verification_status === 'APPROVED' || (s.verification_status_label || '').includes('Verified'))).length;
+
+    // Header Toolbar inside the card
+    let html = `
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding: 10px 12px; background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: inline-flex; align-items: center; gap: 5px;">
+                    <span>🌐</span> Total Discovered: <strong>${rawSources.length}</strong>
+                </span>
+                <span style="font-size: 11px; font-weight: 700; color: #10B981; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.25);">
+                    ✓ ${totalVerified} Verified Official
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <input type="text" id="${c.cardId}-urls-search-input" value="${escapeHtml(c.urlsSearch || '')}"
+                       placeholder="Filter ${rawSources.length} URLs (e.g. careers, report, terms)..."
+                       oninput="onCardUrlsSearch('${c.cardId}', this.value)"
+                       style="height: 30px; font-size: 12px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); width: 220px; outline: none;">
+                <button type="button" onclick="exportDiscoveredUrlsCSV('${c.company_id}')"
+                        style="height: 30px; font-size: 11.5px; font-weight: 600; padding: 0 10px; border-radius: 6px; background: rgba(10,108,255,0.08); color: #0A6CFF; border: 1px solid rgba(10,108,255,0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                        title="Download CSV of this company's discovered URLs">
+                    📥 CSV
+                </button>
+                <button type="button" onclick="exportDiscoveredUrlsExcel('${c.company_id}')"
+                        style="height: 30px; font-size: 11.5px; font-weight: 600; padding: 0 10px; border-radius: 6px; background: rgba(5,150,105,0.08); color: #059669; border: 1px solid rgba(5,150,105,0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                        title="Download Excel of this company's discovered URLs">
+                    📊 Excel
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Category Accordions
+    categoryConfigs.forEach(cfg => {
+        const items = grouped[cfg.key] || [];
+        if (items.length === 0 && searchQuery) return;
+        const accordionId = `${c.cardId}-acc-${cfg.key}`;
+        const isCollapsed = Boolean((c.collapsedCategories || {})[cfg.key]);
+
+        html += `
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; overflow: hidden; background: var(--bg-primary);">
+                <div onclick="toggleUrlCategoryAccordion('${c.cardId}', '${cfg.key}')"
+                     style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-surface-subtle); cursor: pointer; user-select: none; border-bottom: ${isCollapsed ? 'none' : '1px solid var(--border-color)'};">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 14px;">${cfg.icon}</span>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);">${cfg.name}</span>
+                        <span style="font-size: 11.5px; font-weight: 700; color: ${cfg.color}; background: ${cfg.bg}; border: 1px solid ${cfg.border}; padding: 1px 7px; border-radius: 10px;">
+                            ${items.length} URL${items.length === 1 ? '' : 's'}
+                        </span>
+                    </div>
+                    <span style="font-size: 12px; color: var(--text-secondary); transition: transform 0.2s;" id="${accordionId}-arrow">
+                        ${isCollapsed ? '▼ Expand' : '▲ Collapse'}
+                    </span>
+                </div>
+                <div id="${accordionId}-body" style="display: ${isCollapsed ? 'none' : 'flex'}; flex-direction: column; gap: 6px; padding: 10px;">
+                    ${items.length === 0 ? `
+                        <div style="padding: 10px; font-size: 12px; color: var(--text-secondary); text-align: center;">
+                            No URLs in this category.
+                        </div>
+                    ` : items.map(s => {
+                        const vLabel = s.verification_status_label || (s.verification_status === 'APPROVED' ? 'Verified Official Company URL' : s.verification_status);
+                        const isVerified = (s.verification_status === 'APPROVED' || vLabel.includes('Verified'));
+                        const statusBg = isVerified ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)';
+                        const statusColor = isVerified ? '#10B981' : '#F59E0B';
+                        const statusBorder = isVerified ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)';
+
+                        return `
+                            <div style="display: flex; flex-direction: column; gap: 4px; padding: 9px 12px; background: var(--bg-surface-subtle); border: 1px solid var(--border-color); border-radius: 6px; font-size: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                                    <a href="${escapeHtml(s.final_url)}" target="_blank" rel="noopener noreferrer"
+                                       style="color: #0A6CFF; font-weight: 700; text-decoration: none; word-break: break-all; display: inline-flex; align-items: center; gap: 4px;"
+                                       title="Open destination in new tab">
+                                        <span>${escapeHtml(s.final_url)}</span>
+                                        <span style="font-size: 11px;">↗</span>
+                                    </a>
+                                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span style="font-size: 10.5px; font-weight: 700; color: ${statusColor}; background: ${statusBg}; border: 1px solid ${statusBorder}; padding: 2px 7px; border-radius: 10px;">
+                                            ${escapeHtml(vLabel)}
+                                        </span>
+                                        <span style="font-size: 10px; font-weight: 600; color: var(--text-secondary); background: var(--bg-primary); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">
+                                            ${escapeHtml(s.discovery_method || 'NAVIGATION')}
+                                        </span>
+                                        <span style="font-size: 10px; font-weight: 700; color: #8B5CF6; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); padding: 2px 6px; border-radius: 4px;">
+                                            ${Math.round((s.confidence || 0.9) * 100)}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--text-secondary);">
+                                    <span><strong>Label:</strong> ${escapeHtml(s.link_text || s.detailed_classification || 'Corporate Link')}</span>
+                                    ${s.detailed_classification ? `<span>• <strong>Type:</strong> ${escapeHtml(s.detailed_classification)}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+function onCardUrlsSearch(cardId, query) {
+    const entry = discoveredCompaniesResults.find(d => d.cardId === cardId);
+    if (!entry) return;
+    entry.urlsSearch = query;
+    const container = document.getElementById(`${cardId}-tab-urls`);
+    if (container) {
+        container.innerHTML = buildCardUrlsHtml(entry);
+        const input = document.getElementById(`${cardId}-urls-search-input`);
+        if (input) {
+            input.focus();
+            input.selectionStart = input.selectionEnd = input.value.length;
+        }
+    }
+}
+
+function toggleUrlCategoryAccordion(cardId, catKey) {
+    const entry = discoveredCompaniesResults.find(d => d.cardId === cardId);
+    if (!entry) return;
+    if (!entry.collapsedCategories) entry.collapsedCategories = {};
+    entry.collapsedCategories[catKey] = !entry.collapsedCategories[catKey];
+    const container = document.getElementById(`${cardId}-tab-urls`);
+    if (container) {
+        container.innerHTML = buildCardUrlsHtml(entry);
+    }
+}
+
+function onUrlsOnlyToggle(checked) {
+    const optJobs = document.getElementById('opt-jobs');
+    const optCsr = document.getElementById('opt-csr');
+    if (checked) {
+        if (optJobs) optJobs.checked = false;
+        if (optCsr) optCsr.checked = false;
+    } else {
+        if (optJobs) optJobs.checked = true;
+        if (optCsr) optCsr.checked = true;
+    }
+}
+
+function exportDiscoveredUrlsCSV(companyId) {
+    let url = "{% url 'admin_ai_discovery:export_urls_csv' %}";
+    if (companyId) {
+        url += "?company_id=" + encodeURIComponent(companyId);
+    }
+    window.location.href = url;
+}
+
+function exportDiscoveredUrlsExcel(companyId) {
+    let url = "{% url 'admin_ai_discovery:export_urls_excel' %}";
+    if (companyId) {
+        url += "?company_id=" + encodeURIComponent(companyId);
+    }
+    window.location.href = url;
+}
+
 function renderDiscoveredResultsList() {
     const list = document.getElementById('results-card-list');
     if (!list) return;
@@ -3976,6 +4313,14 @@ function renderDiscoveredResultsList() {
     const btnExportDossiers = document.getElementById('btn-export-dossiers-csv');
     if (btnExportDossiers) {
         btnExportDossiers.style.display = totalCount > 0 ? 'inline-flex' : 'none';
+    }
+    const btnExportUrlsCsv = document.getElementById('btn-export-urls-csv');
+    if (btnExportUrlsCsv) {
+        btnExportUrlsCsv.style.display = totalCount > 0 ? 'inline-flex' : 'none';
+    }
+    const btnExportUrlsExcel = document.getElementById('btn-export-urls-excel');
+    if (btnExportUrlsExcel) {
+        btnExportUrlsExcel.style.display = totalCount > 0 ? 'inline-flex' : 'none';
     }
     const btnClearDossiers = document.getElementById('btn-clear-discovery-session');
     if (btnClearDossiers) {
@@ -4127,13 +4472,16 @@ function renderDiscoveredResultsList() {
                     <!-- SEGMENTED TABS STRIP -->
                     <div class="dossier-tabs-strip">
                         <button type="button" id="${c.cardId}-btn-jobs" class="dossier-tab-btn ${c.activeTab === 'jobs' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'jobs')">
-                            💼 Verified Jobs (${c.jobs.length})
+                            💼 Verified Jobs (${c.jobs.length ? c.jobs.length : (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete' && c.jobs_status !== 'COMPLETED' ? '⏳ Loading…' : 0)})
                         </button>
                         <button type="button" id="${c.cardId}-btn-csr" class="dossier-tab-btn ${c.activeTab === 'csr' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'csr')">
-                            🌱 Section 135 CSR Initiatives (${c.csr.length})
+                            🌱 Section 135 CSR Initiatives (${c.csr.length ? c.csr.length : (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete' && c.csr_status !== 'COMPLETED' ? '⏳ Loading…' : 0)})
                         </button>
                         <button type="button" id="${c.cardId}-btn-reports" class="dossier-tab-btn ${c.activeTab === 'reports' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'reports')">
-                            📄 Reports &amp; Disclosures (${c.reports_count ?? (c.reports || []).length})
+                            📄 Reports &amp; Disclosures (${(c.reports && c.reports.length) ? c.reports.length : (c.is_live && c.live_stage !== 'completed' && c.live_stage !== 'Discovery complete' && c.reports_status !== 'COMPLETED' ? '⏳ Loading…' : (c.reports_count || 0))})
+                        </button>
+                        <button type="button" id="${c.cardId}-btn-urls" class="dossier-tab-btn ${c.activeTab === 'urls' ? 'active' : ''}" onclick="switchCardTab('${c.cardId}', 'urls')">
+                            🌐 Discovered URLs (${(c.sources && c.sources.length) ? c.sources.length : (c.sources_count || 0)})
                         </button>
                     </div>
 
@@ -4150,6 +4498,11 @@ function renderDiscoveredResultsList() {
                     <!-- REPORTS TAB CONTENT -->
                     <div id="${c.cardId}-tab-reports" style="display: ${c.activeTab === 'reports' ? 'flex' : 'none'}; flex-direction: column; gap: 8px;">
                         ${buildCardReportsHtml(c)}
+                    </div>
+
+                    <!-- DISCOVERED URLS TAB CONTENT -->
+                    <div id="${c.cardId}-tab-urls" style="display: ${c.activeTab === 'urls' ? 'flex' : 'none'}; flex-direction: column; gap: 8px;">
+                        ${buildCardUrlsHtml(c)}
                     </div>
                 </div>
             `;
@@ -4460,8 +4813,10 @@ function exportJobsCSV() {
 
 function exportCSRCSV() {
     if (!discoveredCompaniesResults.length) return;
-    let csv = "data:text/csv;charset=utf-8,Company Name,Company ID,Project Name,Category,State,Geographic Location,Budget,Source URL\n";
+    let csv = "data:text/csv;charset=utf-8,Company Name,Company ID,Project Name,Category,State,Geographic Location,Budget,Source URL,Official CSR Portal,Summary\n";
     discoveredCompaniesResults.forEach(d => {
+        const portal = (d.csr_portal_url || d.csr_url || '').replace(/"/g, '""');
+        const compSummary = (d.csr_summary || '').replace(/"/g, '""');
         (d.csr || []).forEach(c => {
             const comp = (d.company_name || '').replace(/"/g, '""');
             const compId = (d.company_id || '').replace(/"/g, '""');
@@ -4471,7 +4826,8 @@ function exportCSRCSV() {
             const loc = (c.geographic_location || c.district || '').replace(/"/g, '""');
             const bud = (c.budget || '').replace(/"/g, '""');
             const url = (c.source_url || '').replace(/"/g, '""');
-            csv += `"${comp}","${compId}","${name}","${cat}","${st}","${loc}","${bud}","${url}"\n`;
+            const summary = (c.summary || c.description || compSummary).replace(/"/g, '""');
+            csv += `"${comp}","${compId}","${name}","${cat}","${st}","${loc}","${bud}","${url}","${portal}","${summary}"\n`;
         });
     });
     const link = document.createElement("a");

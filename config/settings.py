@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'modules.website.middleware.StaticCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -209,6 +210,20 @@ if (BASE_DIR / 'static_admin').exists():
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_VERSION = '4.3.0'
 
+# WhiteNoise serves static files in production. The manifest backend is only
+# enabled outside DEBUG so that tests and `runserver` do not require a
+# collectstatic manifest to exist.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage'
+            if DEBUG
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        ),
+    },
+}
+
 # Media / Uploaded files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -235,30 +250,47 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Safety Guard: Global background crawler lock.
-# Allowed for selectable 50-company batch crawling
-ALLOW_GLOBAL_SYNC = True
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in ('true', '1', 'yes', 'on')
 
-# Phase 1 Safety Guard: Freeze all job deletion and expiration transitions until explicitly approved.
-FREEZE_JOB_EXPIRY_AND_DELETION = True
+
+# Safety Guard: global background crawling is opt-in per deployment.
+ALLOW_GLOBAL_SYNC = _env_bool('ALLOW_GLOBAL_SYNC', False)
+
+# Phase 1 Safety Guard: freeze job expiry/deletion until explicitly approved.
+FREEZE_JOB_EXPIRY_AND_DELETION = _env_bool('FREEZE_JOB_EXPIRY_AND_DELETION', True)
 
 # Step 0 Exact-Match Standard: Reconciliation freshness window (hours)
 RECONCILE_MAX_AGE_HOURS = int(os.environ.get('RECONCILE_MAX_AGE_HOURS', 72))
-ENFORCE_RECONCILE_FRESHNESS = os.environ.get('ENFORCE_RECONCILE_FRESHNESS', 'False').lower() in ('true', '1')
+ENFORCE_RECONCILE_FRESHNESS = _env_bool('ENFORCE_RECONCILE_FRESHNESS', False)
 
 
 # ── Subscription and Payment Gateway Security Guards ──────────────────────────
-ALLOW_PROTOTYPE_PAYMENTS = os.environ.get('ALLOW_PROTOTYPE_PAYMENTS', 'True' if DEBUG else 'False').strip().lower() in ('true', '1', 'yes')
-ALLOW_DEMO_AUTH_FALLBACK = os.environ.get('ALLOW_DEMO_AUTH_FALLBACK', 'True' if DEBUG else 'False').strip().lower() in ('true', '1', 'yes')
+ALLOW_PROTOTYPE_PAYMENTS = _env_bool('ALLOW_PROTOTYPE_PAYMENTS', DEBUG)
+ALLOW_DEMO_AUTH_FALLBACK = _env_bool('ALLOW_DEMO_AUTH_FALLBACK', False)
 
 # ── Browser and Transport Security Headers ────────────────────────────────────
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+SECURE_REFERRER_POLICY = 'same-origin'
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1')
-    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1')
-    CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() in ('true', '1')
-    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', 0))
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get('SECURE_HSTS_SUBDOMAINS', 'False').lower() in ('true', '1')
-    SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'False').lower() in ('true', '1')
+    SECURE_SSL_REDIRECT = _env_bool('SECURE_SSL_REDIRECT', True)
+    SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', True)
+    CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', True)
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', 31536000))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool('SECURE_HSTS_SUBDOMAINS', True)
+    SECURE_HSTS_PRELOAD = _env_bool('SECURE_HSTS_PRELOAD', True)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = False  # the JS layer reads this cookie; keep it non-HttpOnly
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+
+if not DEBUG and ALLOW_DEMO_AUTH_FALLBACK:
+    raise ImproperlyConfigured(
+        'ALLOW_DEMO_AUTH_FALLBACK must be False when DEBUG is False.'
+    )

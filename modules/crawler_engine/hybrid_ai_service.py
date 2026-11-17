@@ -18,6 +18,7 @@ from typing import Dict, Any, Optional, Tuple, List
 from modules.admin_panel.services.ai_config_service import get_active_ai_config
 from modules.admin_panel.services.ai_telemetry_service import telemetry_store
 from modules.crawler_engine.ai_api_client import get_ai_client, AIClientError
+from modules.crawler_engine.normalizers import is_generic_landing_url
 
 logger = logging.getLogger(__name__)
 _TRACE_LOCAL = threading.local()
@@ -45,6 +46,12 @@ class HybridAIExtractionService:
             _ACTIVE_PARENT_TRACES[tid] = events
             if events not in _ACTIVE_GLOBAL_TRACE_LIST:
                 _ACTIVE_GLOBAL_TRACE_LIST.append(events)
+
+    @classmethod
+    def get_trace(cls) -> List[Dict[str, Any]]:
+        """Returns the thread-local AI execution trace without clearing it."""
+        events = getattr(_TRACE_LOCAL, "events", None)
+        return list(events) if isinstance(events, list) else []
 
     @classmethod
     def end_trace(cls) -> List[Dict[str, Any]]:
@@ -403,16 +410,18 @@ Respond ONLY with valid JSON in this schema:
                 "2. NEVER extract corporate ethics, compliance statements, marketing claims, employee codes of conduct, or executive bios (e.g. 'We hold ourselves to the highest ethical standards', 'Ethics & Compliance', 'Anti-corruption').\n"
                 "3. DO NOT copy or invent any example names. Output ONLY projects actually documented in the text above.\n"
                 "4. For every project, you MUST provide an exact verbatim 1-2 sentence quote directly copied from the text proving the initiative. Do NOT paraphrase or synthesize the quote.\n"
-                "5. Extract genuine corporate philanthropy, community skilling, educational access, environmental conservation, sustainability accelerators, and social welfare programs (which qualify under Section 135 / Schedule VII). If no such programs exist, return [].\n\n"
+                "5. Extract genuine corporate philanthropy, community skilling, educational access, environmental conservation, sustainability accelerators, and social welfare programs (which qualify under Section 135 / Schedule VII). If no such programs exist, return [].\n"
+                "6. If budget, state, district, or beneficiaries are not explicitly stated in the source text, set them to null. NEVER guess, assume, or fabricate financial or geographic figures.\n"
+                "7. For description, you MUST copy the exact sentence or phrasing from the text excerpt explaining what this program delivers. NEVER invent, paraphrase, or synthesize a new summary.\n\n"
                 "Respond ONLY with a valid JSON array conforming to this schema:\n"
                 "[\n"
                 "  {\n"
                 '    "project_name": "Specific CSR initiative title (copied directly from text)",\n'
                 '    "category": "Education & Skill Development | Healthcare & Nutrition | Environment & Sustainability | Rural Development | Women Empowerment | Water & Sanitation | Disaster Relief | Other",\n'
-                '    "state": "Indian state or Pan-India or null",\n'
-                '    "district": "District name or null",\n'
-                '    "budget": "Disclosed financial outlay / spend figure if mentioned in text, else null",\n'
-                '    "description": "Factual 1-2 sentence summary of what this program delivers",\n'
+                '    "state": "Indian state if explicitly mentioned, else null",\n'
+                '    "district": "District name if explicitly mentioned, else null",\n'
+                '    "budget": "Disclosed financial spend / budget figure if explicitly mentioned, else null",\n'
+                '    "description": "Exact 1-2 sentence verbatim excerpt from the text describing what this program does (do not invent or rephrase)",\n'
                 '    "verbatim_quote": "Exact 1-2 sentence verbatim phrase copied word-for-word from the text excerpt",\n'
                 '    "confidence": 0.95\n'
                 "  }\n"
@@ -467,15 +476,27 @@ Respond ONLY with valid JSON in this schema:
                     continue
 
                 seen_names.add(norm_name_key)
-                budget_val = item.get("budget") or "Section 135 Outlay"
+                raw_b = str(item.get("budget") or "").strip()
+                budget_val = raw_b if raw_b and raw_b.lower() not in ('null', 'none', 'n/a', 'not published', 'not specified', 'section 135 outlay', 'not mentioned', '') else 'Not Mentioned'
+
+                raw_st = str(item.get("state") or item.get("location_state") or "").strip()
+                state_val = raw_st if raw_st and raw_st.lower() not in ('null', 'none', 'n/a', 'not specified', 'not mentioned', '') else 'Not Mentioned'
+
+                raw_dist = str(item.get("district") or item.get("location_district") or "").strip()
+                district_val = raw_dist if raw_dist and raw_dist.lower() not in ('null', 'none', 'n/a', 'not specified', 'not mentioned', '') else 'Not Mentioned'
+
+                # The summary/description must be the exact excerpt as mentioned on the page (verbatim quote or exact page sentence)
+                exact_text = quote if (quote and len(quote) > 15) else (str(item.get("description") or "").strip() or "Not Mentioned")
+
                 valid_projects.append({
                     "project_name": name_clean,
                     "category": item.get("category") or "Corporate Social Responsibility",
-                    "state": item.get("state") or item.get("location_state") or "Pan-India",
-                    "district": item.get("district") or item.get("location_district") or "Not specified",
+                    "state": state_val,
+                    "district": district_val,
                     "budget": budget_val,
-                    "description": item.get("description") or quote,
-                    "verbatim_quote": quote,
+                    "description": exact_text,
+                    "summary": exact_text,
+                    "verbatim_quote": quote or exact_text,
                     "confidence": float(item.get("confidence") or 0.90)
                 })
 
@@ -634,6 +655,8 @@ Respond ONLY with valid JSON in this schema:
                         return
 
                     abs_href = urllib.parse.urljoin(careers_url, href)
+                    if not abs_href or is_generic_landing_url(abs_href) or abs_href.rstrip('/') == careers_url.rstrip('/'):
+                        return
                     cand_key = (abs_href.lower(), norm_text)
                     if cand_key in seen_cands:
                         return
@@ -701,7 +724,7 @@ Respond ONLY with valid JSON in this schema:
                                 'id': cand_idx,
                                 'text': line,
                                 'card_context': line,
-                                'href': careers_url
+                                'href': ''
                             })
                             cand_idx += 1
                             if cand_idx > 40:
@@ -781,6 +804,9 @@ Respond ONLY with valid JSON array conforming to this schema:
                 cid = item.get('candidate_id')
                 if cid in id_map:
                     real_c = id_map[cid]
+                    app_u = real_c.get('href', '').strip()
+                    if not app_u or is_generic_landing_url(app_u):
+                        continue
                     title = (item.get('job_title') or real_c['text']).strip()
                     results.append({
                         'job_title': title,
@@ -788,7 +814,7 @@ Respond ONLY with valid JSON array conforming to this schema:
                         'department': item.get('department') or 'General',
                         'work_mode': item.get('work_mode') or 'Full-time',
                         'experience': 'As specified on portal',
-                        'application_url': real_c['href'], # Strictly from the page DOM!
+                        'application_url': app_u, # Strictly from the page DOM!
                         'verbatim_source_quote': f"Verified anchor: {real_c['text']}",
                         'confidence': float(item.get('confidence') or 0.95)
                     })

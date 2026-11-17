@@ -26,8 +26,10 @@ Features:
 
 from __future__ import annotations
 
+import json
 import logging
 import re
+import threading
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Set, Tuple
@@ -38,10 +40,13 @@ from curl_cffi import requests as cffi_requests
 
 from . import ai_classifier_config as cfg
 from .access_detector import DEFAULT_HEADERS
+from .discovery_helpers import ALLOWED_ATS_HOSTS, APPROVED_FOUNDATION_DOMAINS
 from .normalizers import clean_text, normalize_canonical_url, is_junk_url, match_ats_pattern, load_ats_patterns
 from .ownership import resolve_owner, WRONG_COMPANY, OWNED, UNRESOLVED
 
 logger = logging.getLogger(__name__)
+
+_PLAYWRIGHT_SEMAPHORE = threading.Semaphore(1)
 
 COMMON_PATHS = (
     "/careers",
@@ -240,11 +245,26 @@ class CandidateCollector:
                 continue
             seen_urls.add(norm_url)
 
+            # Standardize source per contract
+            raw_source = item.get("source", "BODY_CONTENT")
+            if ats_match:
+                source_val = "ATS_PLATFORM"
+            elif is_external_nav and (host in APPROVED_FOUNDATION_DOMAINS or any(k in host for k in ("foundation", "trust"))):
+                source_val = "FOUNDATION"
+            elif raw_source in ("COMMON_PATH", "BODY_CONTENT"):
+                source_val = "BODY_CONTENT"
+            elif raw_source == "SUBDOMAIN_PROBE":
+                source_val = "SUBDOMAIN"
+            elif raw_source in ("ROBOTS_TXT", "SITEMAP", "HEADER_NAV", "FOOTER_NAV", "SUBDOMAIN", "ATS_PLATFORM", "FOUNDATION"):
+                source_val = raw_source
+            else:
+                source_val = "BODY_CONTENT"
+
             filtered_candidates.append({
                 "url": norm_url,
                 "link_text": link_text,
                 "menu_path": item.get("menu_path") or link_text,
-                "source": item.get("source", "BODY_CONTENT"),
+                "source": source_val,
                 "external_linked": bool(is_external_nav and not is_official),
                 "ats_match": bool(ats_match),
                 "ats_platform": ats_platform,
@@ -293,13 +313,23 @@ class CandidateCollector:
         except Exception as e:
             logger.debug("curl_cffi fetch error for %s: %s", url, e)
 
-        # Inspect link count to determine if Playwright re-render is necessary
+        # Inspect link count and SPA markers to determine if Playwright re-render is necessary
         link_count = 0
+        header_link_count = 0
+        is_spa = False
         if html:
             soup = BeautifulSoup(html, "lxml")
             link_count = len(soup.find_all("a", href=True))
+            header_link_count = len(soup.find_all(["header", "nav"]))
+            is_spa = bool(soup.find(id=re.compile(r"^(root|app|__next)$")) or soup.find(["app-root", "router-outlet"]))
 
-        if link_count < self.playwright_threshold and self.allow_playwright:
+        should_trigger = self.allow_playwright and (
+            link_count < 5 or
+            (is_spa and link_count < self.playwright_threshold) or
+            (header_link_count == 0 and link_count < self.playwright_threshold)
+        )
+
+        if should_trigger:
             pw_html = self._fetch_with_playwright(url)
             if pw_html:
                 return pw_html, "PLAYWRIGHT"
@@ -307,23 +337,68 @@ class CandidateCollector:
         return html, "CURL_CFFI"
 
     def _fetch_with_playwright(self, url: str) -> Optional[str]:
-        """Renders page in headless Playwright to capture JavaScript-generated menus."""
+        """Renders page in a resource-bounded headless Playwright Chromium instance."""
         try:
             from playwright.sync_api import sync_playwright
+        except ImportError:
+            logger.debug("Playwright not installed; continuing with curl_cffi output.")
+            return None
+
+        # Restrict concurrency to prevent OOM
+        acquired = _PLAYWRIGHT_SEMAPHORE.acquire(blocking=True, timeout=15)
+        if not acquired:
+            logger.warning("Playwright semaphore acquisition timed out for %s; skipping.", url)
+            return None
+
+        browser = None
+        context = None
+        page = None
+        try:
             with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page(
+                launch_args = [
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--disable-extensions",
+                    "--disable-images",
+                    "--blink-settings=imagesEnabled=false",
+                    "--js-flags=--max-old-space-size=256",
+                ]
+                browser = p.chromium.launch(headless=True, args=launch_args)
+                context = browser.new_context(
                     user_agent=DEFAULT_HEADERS.get("User-Agent", "Mozilla/5.0"),
-                    extra_http_headers=DEFAULT_HEADERS
+                    viewport={"width": 1280, "height": 800},
                 )
-                page.goto(url, timeout=self.timeout * 1000, wait_until="domcontentloaded")
-                page.wait_for_timeout(1500)
+                page = context.new_page()
+
+                # Abort heavy static media and font requests to save RAM and speed up render
+                page.route(
+                    re.compile(r"\.(png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot|mp4|mp3|avi)$", re.I),
+                    lambda route: route.abort()
+                )
+
+                page.goto(url, timeout=min(self.timeout * 1000, 10000), wait_until="domcontentloaded")
+                try:
+                    page.wait_for_timeout(1000)  # Brief hydration pause
+                except Exception:
+                    pass
+
                 content = page.content()
-                browser.close()
                 return content
         except Exception as e:
             logger.debug("Playwright render error for %s: %s", url, e)
             return None
+        finally:
+            if page:
+                try: page.close()
+                except Exception: pass
+            if context:
+                try: context.close()
+                except Exception: pass
+            if browser:
+                try: browser.close()
+                except Exception: pass
+            _PLAYWRIGHT_SEMAPHORE.release()
 
     def _probe_url_exists(self, url: str) -> Tuple[bool, Optional[str]]:
         """
@@ -398,9 +473,26 @@ class CandidateCollector:
             img_alt = clean_text(img.get("alt", "")) if img else ""
             link_label = text or title_attr or aria_label or img_alt or ""
 
-            in_header = bool(a.find_parent(["header", "nav"]) or self._has_class_keyword(a, ("menu", "header", "navbar", "nav")))
-            in_footer = bool(a.find_parent("footer") or self._has_class_keyword(a, ("footer", "bottom")))
-            source_tag = "HEADER_NAV" if in_header else ("FOOTER_NAV" if in_footer else "BODY_CONTENT")
+            # Check breadcrumbs first
+            is_breadcrumb = bool(
+                a.find_parent(attrs={"aria-label": re.compile(r"breadcrumb", re.I)}) or
+                a.find_parent(class_=re.compile(r"breadcrumb", re.I)) or
+                a.find_parent(attrs={"itemtype": re.compile(r"BreadcrumbList", re.I)})
+            )
+
+            # Check header / nav / dropdown / mega-menu / ARIA roles
+            in_header = bool(
+                a.find_parent(["header", "nav"]) or
+                self._has_class_keyword(a, ("menu", "header", "navbar", "nav", "dropdown", "megamenu", "mega-menu", "flyout", "sub-menu", "submenu")) or
+                a.find_parent(attrs={"role": re.compile(r"menu(bar|item)?", re.I)}) or
+                a.find_parent(attrs={"aria-haspopup": "true"})
+            )
+
+            # Check footer
+            in_footer = bool(
+                a.find_parent("footer") or
+                self._has_class_keyword(a, ("footer", "bottom", "colophon", "site-info"))
+            )
 
             menu_path = self._extract_menu_path(a, link_label)
 
@@ -410,9 +502,23 @@ class CandidateCollector:
             is_extra = any(_is_subdomain_or_same(host, ed) for ed in extra_allowed)
             ats_match = match_ats_pattern(full_url, self.ats_patterns)
 
+            # Determine exact Discovery Source per contract
+            if ats_match or any(host == h or host.endswith("." + h) for h in ALLOWED_ATS_HOSTS):
+                source_tag = "ATS_PLATFORM"
+            elif host in APPROVED_FOUNDATION_DOMAINS or any(f_alias in host for f_alias in ("foundation", "trust")):
+                source_tag = "FOUNDATION"
+            elif in_header or is_breadcrumb:
+                source_tag = "HEADER_NAV"
+            elif in_footer:
+                source_tag = "FOOTER_NAV"
+            else:
+                source_tag = "BODY_CONTENT"
+
             external_linked = False
-            if (in_header or in_footer) and not (is_official or is_extra or ats_match):
-                if self._is_plausible_corporate_outbound(host, link_label, menu_path):
+            if not (is_official or is_extra or ats_match):
+                if (in_header or in_footer) and self._is_plausible_corporate_outbound(host, link_label, menu_path):
+                    external_linked = True
+                elif host in APPROVED_FOUNDATION_DOMAINS or any(f_alias in host for f_alias in ("foundation", "trust")):
                     external_linked = True
 
             results.append({
@@ -420,10 +526,104 @@ class CandidateCollector:
                 "link_text": link_label[:120],
                 "menu_path": menu_path[:150],
                 "source": source_tag,
+                "is_breadcrumb": is_breadcrumb,
                 "external_linked": external_linked,
             })
 
+        # 2. Extract structured JSON-LD links
+        jsonld_links = self._extract_jsonld_links(base_url, soup, base_domain, extra_allowed)
+        seen_urls = {r["url"].split('#')[0].rstrip('/') for r in results}
+        for jl in jsonld_links:
+            u_clean = jl["url"].split('#')[0].rstrip('/')
+            if u_clean and u_clean not in seen_urls:
+                seen_urls.add(u_clean)
+                results.append(jl)
+
         return results
+
+    def _extract_jsonld_links(
+        self,
+        base_url: str,
+        soup: BeautifulSoup,
+        base_domain: str,
+        extra_allowed: Set[str]
+    ) -> List[Dict[str, Any]]:
+        """Extracts candidate URLs embedded in JSON-LD microdata."""
+        extracted: List[Dict[str, Any]] = []
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                raw_text = script.string or script.get_text()
+                if not raw_text or not raw_text.strip():
+                    continue
+                data = json.loads(raw_text)
+                items = data if isinstance(data, list) else [data]
+
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    type_ = str(item.get("@type", "")).lower()
+
+                    # BreadcrumbList
+                    if "breadcrumblist" in type_:
+                        elem_list = item.get("itemListElement", [])
+                        for elem in elem_list:
+                            if isinstance(elem, dict):
+                                cand_url = elem.get("item") or elem.get("id") or elem.get("url")
+                                name = elem.get("name") or "Breadcrumb Item"
+                                if cand_url and isinstance(cand_url, str):
+                                    full = urljoin(base_url, cand_url)
+                                    extracted.append({
+                                        "url": full,
+                                        "link_text": str(name)[:120],
+                                        "menu_path": f"Breadcrumb > {name}",
+                                        "source": "HEADER_NAV",
+                                        "is_breadcrumb": True,
+                                        "external_linked": False,
+                                    })
+
+                    # Organization / Corporation (sameAs, foundations, careers)
+                    elif any(t in type_ for t in ("organization", "corporation", "company")):
+                        same_as = item.get("sameAs", [])
+                        if isinstance(same_as, str):
+                            same_as = [same_as]
+                        for s_url in same_as:
+                            if isinstance(s_url, str) and s_url.startswith(("http://", "https://")):
+                                host = urlparse(s_url).netloc.lower()
+                                if host in APPROVED_FOUNDATION_DOMAINS or any(f in host for f in ("foundation", "trust")):
+                                    extracted.append({
+                                        "url": s_url,
+                                        "link_text": str(item.get("name", "Corporate Foundation")),
+                                        "menu_path": "Structured Data > sameAs",
+                                        "source": "FOUNDATION",
+                                        "external_linked": True,
+                                    })
+                                elif match_ats_pattern(s_url, self.ats_patterns):
+                                    extracted.append({
+                                        "url": s_url,
+                                        "link_text": "ATS Careers Portal",
+                                        "menu_path": "Structured Data > sameAs",
+                                        "source": "ATS_PLATFORM",
+                                        "external_linked": True,
+                                    })
+
+                    # JobPosting
+                    elif "jobposting" in type_:
+                        job_url = item.get("url") or item.get("directApply")
+                        title = item.get("title", "Job Posting")
+                        if job_url and isinstance(job_url, str):
+                            full = urljoin(base_url, job_url)
+                            ats_match = match_ats_pattern(full, self.ats_patterns)
+                            extracted.append({
+                                "url": full,
+                                "link_text": str(title)[:120],
+                                "menu_path": f"JobPosting > {title}",
+                                "source": "ATS_PLATFORM" if ats_match else "BODY_CONTENT",
+                                "external_linked": False,
+                            })
+            except Exception:
+                continue
+
+        return extracted
 
     def _extract_menu_path(self, anchor_tag: Any, link_label: str) -> str:
         """Walks up DOM parent elements to reconstruct menu path (e.g. 'About Us > Careers')."""
@@ -448,13 +648,15 @@ class CandidateCollector:
 
     def _has_class_keyword(self, tag: Any, keywords: Tuple[str, ...]) -> bool:
         """Checks if tag or its immediate parents have matching CSS class names."""
-        for p in [tag, tag.parent, tag.parent.parent if tag.parent else None]:
-            if not p:
-                continue
-            classes = p.get("class", [])
+        curr = tag
+        depth = 0
+        while curr and depth < 4:
+            classes = curr.get("class", [])
             class_str = " ".join(classes).lower() if isinstance(classes, list) else str(classes).lower()
             if any(k in class_str for k in keywords):
                 return True
+            curr = curr.parent
+            depth += 1
         return False
 
     def _is_plausible_corporate_outbound(self, host: str, link_label: str, menu_path: str) -> bool:
@@ -481,7 +683,7 @@ class CandidateCollector:
                     "url": target_url,
                     "link_text": label,
                     "menu_path": label,
-                    "source": "COMMON_PATH",
+                    "source": "BODY_CONTENT",
                     "external_linked": False,
                 })
         return results
@@ -502,7 +704,7 @@ class CandidateCollector:
                     "url": target_url,
                     "link_text": label,
                     "menu_path": label,
-                    "source": "SUBDOMAIN_PROBE",
+                    "source": "SUBDOMAIN",
                     "external_linked": False,
                 })
         return results

@@ -156,16 +156,31 @@ def parse_file_api(request):
     # Strictly validate company_name and homepage_url, stripping any careers/CSR/optional override fields
     validated_records = []
     skipped_count = 0
+    duplicate_count = 0
+    seen_names = set()
+    seen_domains = set()
+
     for r in raw_records:
         comp_name = (r.get('company_name') or '').strip()
-        home_url = BatchDiscoveryService._sanitize_url(r.get('homepage_url') or r.get('website_url') or '')
-        if not comp_name or not home_url:
+        raw_home_url = (r.get('homepage_url') or r.get('website_url') or '').strip()
+
+        is_valid, home_url, domain, err = BatchDiscoveryService.normalize_and_validate_company(comp_name, raw_home_url)
+        if not is_valid or not home_url:
             skipped_count += 1
             continue
-        parsed_home = urllib.parse.urlparse(home_url)
-        if not parsed_home.netloc or '.' not in parsed_home.netloc:
+
+        comp_name_lower = comp_name.lower()
+        domain_lower = domain.lower() if domain else ''
+
+        if comp_name_lower in seen_names or (domain_lower and domain_lower in seen_domains):
+            duplicate_count += 1
             skipped_count += 1
             continue
+
+        seen_names.add(comp_name_lower)
+        if domain_lower:
+            seen_domains.add(domain_lower)
+
         validated_records.append({
             'company_name': comp_name,
             'homepage_url': home_url,
@@ -177,13 +192,16 @@ def parse_file_api(request):
             'status': 'error',
             'message': 'No valid company records found. Both "Company Name" and "Homepage URL" are strictly required for every row.',
             'skipped_count': skipped_count,
+            'duplicate_count': duplicate_count,
         }, status=400)
 
     return JsonResponse({
         'status': 'success',
         'filename': filename,
         'count': len(validated_records),
+        'valid_count': len(validated_records),
         'skipped_count': skipped_count,
+        'duplicate_count': duplicate_count,
         'companies': validated_records
     })
 
@@ -210,12 +228,12 @@ def process_company_api(request):
 
         comp_name = (raw_company.get('company_name') or '').strip()
         raw_home_url = (raw_company.get('homepage_url') or raw_company.get('website_url') or '').strip()
-        home_url = BatchDiscoveryService._sanitize_url(raw_home_url)
+        is_valid, home_url, domain, err = BatchDiscoveryService.normalize_and_validate_company(comp_name, raw_home_url)
 
-        if not comp_name or not home_url:
+        if not is_valid or not comp_name or not home_url:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Invalid company payload: both company_name and homepage_url are strictly required.'
+                'message': f'Invalid company payload: both company_name and homepage_url are strictly required ({err}).'
             }, status=400)
 
         parsed_home = urllib.parse.urlparse(home_url)
@@ -224,6 +242,16 @@ def process_company_api(request):
                 'status': 'error',
                 'message': f'Invalid homepage_url "{raw_home_url}": must be a valid corporate domain URL.'
             }, status=400)
+
+        if options.get('prevent_duplicates', False):
+            is_dup, existing_comp, dup_reason = BatchDiscoveryService.check_company_duplicate(comp_name, domain or home_url)
+            if is_dup and existing_comp:
+                return JsonResponse({
+                    'status': 'error',
+                    'is_duplicate': True,
+                    'message': f'Duplicate company rejected: {dup_reason}',
+                    'company_id': existing_comp.company_id,
+                }, status=409)
 
         # Strictly sanitize task payload: ONLY company_name, homepage_url, and website_url.
         # Discard and strip any incoming careers_url, csr_url, sector, headquarters, nse_symbol, or bypass fields.
@@ -383,6 +411,7 @@ def recent_dossiers_api(request):
 
         total_jobs_count += len(jobs)
         total_csr_count += len(csrs)
+        sources = BatchDiscoveryService._serialize_company_sources(c)
 
         dossiers.append({
             'cardId': f'dossier-db-{c.company_id}',
@@ -398,10 +427,12 @@ def recent_dossiers_api(request):
             'jobs': jobs,
             'csr': csrs,
             'reports': serialized_reports,
+            'sources': sources,
+            'sources_count': len(sources),
             'jobs_imported': len(jobs),
             'csr_imported': len(csrs),
             'reports_count': len(serialized_reports),
-            'activeTab': 'jobs' if len(jobs) > 0 else ('csr' if len(csrs) > 0 else ('reports' if serialized_reports else 'jobs')),
+            'activeTab': 'jobs' if len(jobs) > 0 else ('csr' if len(csrs) > 0 else ('reports' if serialized_reports else ('urls' if sources else 'jobs'))),
             'jobsPage': 1,
             'jobsPageSize': 10,
             'jobsSearch': '',
@@ -419,5 +450,156 @@ def recent_dossiers_api(request):
         'total_csr': total_csr_count,
         'dossiers': dossiers
     })
+
+
+@require_http_methods(['GET'])
+def export_discovered_urls_csv_api(request):
+    """
+    Exports discovered corporate URLs in CSV format.
+    Accepts ?company_id=<id> for a single company, or exports all recent companies in batch.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'unauthenticated'}, status=401)
+
+    company_id = request.GET.get('company_id')
+    if company_id:
+        companies = list(Company.objects.filter(company_id=company_id))
+    else:
+        companies = list(Company.objects.filter(last_crawled__isnull=False).order_by('-last_crawled')[:30])
+        if not companies:
+            companies = list(Company.objects.all().order_by('-company_id')[:30])
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        'Company Name',
+        'Official Base URL',
+        'Discovered URL',
+        'URL Category',
+        'Detailed Classification',
+        'Page Title / Link Text',
+        'Verification Status',
+        'Discovery Source Method',
+        'Confidence Score',
+        'Last Verified Timestamp',
+    ])
+
+    total_rows = 0
+    for c in companies:
+        sources = BatchDiscoveryService._serialize_company_sources(c)
+        for s in sources:
+            writer.writerow([
+                c.company_name,
+                c.website_url or '',
+                s.get('final_url') or '',
+                s.get('category') or 'Other Important URLs',
+                s.get('detailed_classification') or '',
+                s.get('link_text') or '',
+                s.get('verification_status_label') or s.get('verification_status') or '',
+                s.get('discovery_method') or '',
+                s.get('confidence') or 0.90,
+                s.get('last_verified_at') or '',
+            ])
+            total_rows += 1
+
+    filename = f"impactbridge_discovered_urls_{company_id or 'batch'}.csv"
+    resp = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
+    resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return resp
+
+
+@require_http_methods(['GET'])
+def export_discovered_urls_excel_api(request):
+    """
+    Exports discovered corporate URLs in Microsoft Excel (.xlsx) format.
+    Accepts ?company_id=<id> for a single company, or exports all recent companies in batch.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'unauthenticated'}, status=401)
+
+    company_id = request.GET.get('company_id')
+    if company_id:
+        companies = list(Company.objects.filter(company_id=company_id))
+    else:
+        companies = list(Company.objects.filter(last_crawled__isnull=False).order_by('-last_crawled')[:30])
+        if not companies:
+            companies = list(Company.objects.all().order_by('-company_id')[:30])
+
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Discovered URLs"
+
+        headers = [
+            'Company Name',
+            'Official Base URL',
+            'Discovered URL',
+            'URL Category',
+            'Detailed Classification',
+            'Page Title / Link Text',
+            'Verification Status',
+            'Discovery Source Method',
+            'Confidence Score',
+            'Last Verified Timestamp',
+        ]
+        ws.append(headers)
+
+        header_fill = PatternFill(start_color="0A6CFF", end_color="0A6CFF", fill_type="solid")
+        header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        thin_border = Border(
+            left=Side(style='thin', color='E2E8F0'),
+            right=Side(style='thin', color='E2E8F0'),
+            top=Side(style='thin', color='E2E8F0'),
+            bottom=Side(style='thin', color='E2E8F0')
+        )
+
+        for c in companies:
+            sources = BatchDiscoveryService._serialize_company_sources(c)
+            for s in sources:
+                row_vals = [
+                    c.company_name,
+                    c.website_url or '',
+                    s.get('final_url') or '',
+                    s.get('category') or 'Other Important URLs',
+                    s.get('detailed_classification') or '',
+                    s.get('link_text') or '',
+                    s.get('verification_status_label') or s.get('verification_status') or '',
+                    s.get('discovery_method') or '',
+                    s.get('confidence') or 0.90,
+                    s.get('last_verified_at') or '',
+                ]
+                ws.append(row_vals)
+                for cell in ws[ws.max_row]:
+                    cell.border = thin_border
+                    cell.alignment = Alignment(vertical="center")
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            ws.column_dimensions[col_letter].width = min(max(max_len + 3, 14), 70)
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        filename = f"impactbridge_discovered_urls_{company_id or 'batch'}.xlsx"
+        resp = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return resp
+    except Exception as exc:
+        logger.exception("Excel export error; falling back to CSV")
+        return export_discovered_urls_csv_api(request)
+
 
 

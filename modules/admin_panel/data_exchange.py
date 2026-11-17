@@ -871,18 +871,46 @@ def _execute_import_records(schema, records_to_process, mode, request, source_la
                 else:
                     # Create new instance
                     if entity == 'users':
-                        username = model_data.get('username')
-                        email = model_data.get('email', '')
-                        user_obj = User(username=username, email=email)
-                        for k, v in model_data.items():
-                            if k not in ('id', 'password'):
-                                setattr(user_obj, k, v)
-                        user_obj.set_password(os.environ.get('ADMIN_EXCHANGE_PASSWORD', ''))
-                        if user_obj.role in (User.ROLE_ADMIN, User.ROLE_STAFF):
-                            user_obj.is_staff = True
-                            if user_obj.role == User.ROLE_ADMIN:
-                                user_obj.is_superuser = True
+                        username = str(model_data.get('username') or '').strip()
+                        email = str(model_data.get('email') or '').strip()
+                        requested_role = str(model_data.get('role') or User.ROLE_VIEWER).strip().upper()
+
+                        valid_roles = {code for code, _label in User.ROLE_CHOICES}
+                        if not username:
+                            errors.append('Row skipped: username is required for user import.')
+                            skipped_count += 1
+                            continue
+                        if requested_role not in valid_roles:
+                            errors.append(
+                                f"Row skipped: unknown role '{requested_role}' for user '{username}'."
+                            )
+                            skipped_count += 1
+                            continue
+
+                        importer = getattr(request, 'user', None)
+                        importing_as_superuser = bool(importer and importer.is_superuser)
+                        if requested_role in (User.ROLE_ADMIN, User.ROLE_STAFF) and not importing_as_superuser:
+                            errors.append(
+                                f"Row skipped: only a superuser may import privileged user '{username}'."
+                            )
+                            skipped_count += 1
+                            continue
+
+                        user_obj = User(
+                            username=username,
+                            email=email,
+                            role=requested_role,
+                            is_staff=requested_role in (User.ROLE_ADMIN, User.ROLE_STAFF),
+                            is_superuser=(requested_role == User.ROLE_ADMIN and importing_as_superuser),
+                            is_active=True,
+                        )
+                        # Imported identities carry no credential. The account
+                        # cannot authenticate until a password-reset link is
+                        # issued through the admin "reset password" action.
+                        user_obj.set_unusable_password()
                         user_obj.save()
+                        created_count += 1
+                        continue
                     else:
                         if pk_field in model_data and model_data[pk_field] is None:
                             del model_data[pk_field]

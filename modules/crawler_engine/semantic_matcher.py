@@ -16,8 +16,12 @@ from typing import Dict, List, Optional, Tuple, Any
 
 from curl_cffi import requests as cffi_requests
 from bs4 import BeautifulSoup
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+except Exception:
+    TfidfVectorizer = None
+    cosine_similarity = None
 
 from .discovery_helpers import get_registrable_domain, fast_homepage_intelligence
 
@@ -76,6 +80,16 @@ def _get_sentence_transformer_model():
 
 
 def _get_vectorizer_and_matrix(category: str):
+    global TfidfVectorizer, cosine_similarity
+    if TfidfVectorizer is None:
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer as _TV
+            from sklearn.metrics.pairwise import cosine_similarity as _CS
+            TfidfVectorizer = _TV
+            cosine_similarity = _CS
+        except Exception:
+            pass
+
     cat_lower = category.lower()
     if cat_lower not in _VECTORIZERS:
         if cat_lower == "csr":
@@ -85,24 +99,41 @@ def _get_vectorizer_and_matrix(category: str):
         else:
             corpus = CAREER_CORPUS
 
-        vec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
-        matrix = vec.fit_transform(corpus)
-        _VECTORIZERS[cat_lower] = vec
-        _CORPUS_MATRICES[cat_lower] = matrix
+        if TfidfVectorizer is not None:
+            vec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
+            matrix = vec.fit_transform(corpus)
+            _VECTORIZERS[cat_lower] = vec
+            _CORPUS_MATRICES[cat_lower] = matrix
+        else:
+            return None, None
 
-    return _VECTORIZERS[cat_lower], _CORPUS_MATRICES[cat_lower]
+    return _VECTORIZERS.get(cat_lower), _CORPUS_MATRICES.get(cat_lower)
 
 
 def score_link_semantics(text_and_url: str, category: str = "careers") -> float:
     """
     Computes maximum semantic similarity between the candidate text/url and the reference corpus.
     Uses sentence-transformers if available, otherwise fast local character n-gram TF-IDF (<1ms).
+    Falls back gracefully to word-overlap similarity if sklearn DLL is unmapped.
     """
     if not text_and_url or not text_and_url.strip():
         return 0.0
 
     cleaned = text_and_url.strip().lower()
     vec, corpus_mat = _get_vectorizer_and_matrix(category)
+    if vec is None or corpus_mat is None or cosine_similarity is None:
+        corpus = CSR_CORPUS if category.lower() == "csr" else CAREER_CORPUS
+        words = set(cleaned.split())
+        best = 0.0
+        for doc in corpus:
+            doc_words = set(doc.split())
+            if not doc_words:
+                continue
+            score = len(words & doc_words) / float(len(doc_words))
+            if score > best:
+                best = score
+        return min(best, 1.0)
+
     try:
         cand_mat = vec.transform([cleaned])
         similarities = cosine_similarity(cand_mat, corpus_mat)

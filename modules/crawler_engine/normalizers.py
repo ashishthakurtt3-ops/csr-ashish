@@ -271,14 +271,92 @@ _GENERIC_PATH = re.compile(
 
 
 def is_generic_landing_url(url: Optional[str]) -> bool:
-    """True for site roots / careers index pages that cannot identify ONE job."""
+    """
+    True for site roots, career homepages, and job search index pages that cannot identify ONE job.
+    Accurately identifies landing portals across Workday, Oracle CX, Greenhouse, Lever,
+    SmartRecruiters, Taleo, Ashby, SuccessFactors, and generic corporate CMS portals.
+    """
     u = clean_text(url)
     if not u:
         return True
     p = urlparse(u)
-    if p.query and re.search(r'(job|req|posting|id| vacancy)=', p.query, re.I):
+    path = (p.path or '/').strip('/')
+    path_low = path.lower()
+    query_low = (p.query or '').lower()
+
+    # If query contains explicit job/requisition identifier, it's a specific vacancy:
+    if query_low and re.search(r'(^|[&?])(job|jobid|job_id|req|reqid|req_id|requisition|posting|vacancy|id)=[^&]+', query_low):
         return False
-    return bool(_GENERIC_PATH.match(p.path or '/'))
+
+    # Special ATS checks:
+    # Oracle CX: /sites/<site>/job/<id> is direct; /sites/<site> or /sites/<site>/jobs is landing
+    if 'sites/' in path_low:
+        if re.search(r'/sites/[^/]+/job/[a-zA-Z0-9_\-]+', '/' + path_low):
+            return False
+        return True
+
+    # Workday: /job/<location>/<title>_<id> is direct; /careers without /job/ is landing
+    if 'myworkdayjobs.com' in p.netloc.lower() or 'myworkdaysite.com' in p.netloc.lower():
+        if '/job/' in path_low:
+            return False
+        return True
+
+    # Greenhouse: /jobs/<id> is direct; boards.greenhouse.io/<company> is landing
+    if 'greenhouse.io' in p.netloc.lower():
+        if re.search(r'/jobs/\d+', '/' + path_low):
+            return False
+        return True
+
+    # Lever: jobs.lever.co/<company>/<id> is direct; jobs.lever.co/<company> is landing
+    if 'lever.co' in p.netloc.lower():
+        segments_l = [s for s in path_low.split('/') if s and s not in ('v0', 'postings')]
+        if len(segments_l) >= 2:
+            return False
+        return True
+
+    # SmartRecruiters: jobs.smartrecruiters.com/<company>/<id> is direct
+    if 'smartrecruiters.com' in p.netloc.lower():
+        if re.search(r'jobs\.smartrecruiters\.com/[^/]+/[a-zA-Z0-9_\-]+', u.lower()):
+            return False
+        return True
+
+    # Taleo: jobsearch.ftl without job= is landing
+    if 'taleo.net' in p.netloc.lower():
+        if 'jobapply' in path_low or 'jobdetail' in path_low or 'job=' in query_low:
+            return False
+        return True
+
+    # Check generic path keywords
+    segments = [s for s in path_low.split('/') if s]
+    # Remove locale prefix if present (e.g. en, en-us, in-en)
+    if segments and re.match(r'^[a-z]{2}(-[a-z]{2})?$', segments[0]):
+        segments = segments[1:]
+
+    # If empty or root -> landing
+    if not segments:
+        return True
+
+    clean_last_segment = re.sub(r'\.(html?|aspx?|php|jsp|ftl)$', '', segments[-1])
+
+    generic_catalog_words = {
+        'careers', 'career', 'jobs', 'job', 'search', 'jobsearch', 'job-search', 'search-results',
+        'openings', 'current-openings', 'open-positions', 'opportunities', 'career-opportunities',
+        'all-jobs', 'browse', 'vacancies', 'join-us', 'join-our-team', 'work-with-us', 'work-at',
+        'life-at', 'workplace', 'home', 'index', 'default', 'welcome', 'overview', 'opportunities'
+    }
+
+    if len(segments) == 1 and clean_last_segment in generic_catalog_words:
+        return True
+
+    if len(segments) == 2 and segments[0] in ('careers', 'career', 'jobs', 'about', 'about-us', 'corporate', 'en', 'go') and clean_last_segment in generic_catalog_words:
+        return True
+
+    # Check for direct vacancy indicators in path
+    has_direct_path = bool(re.search(r'/(?:job|jobs|position|positions|requisition|requisitions|vacancy|vacancies|career-opportunity|career-opportunities|postings?|detail|details)/[a-zA-Z0-9_\-\.%]+$', '/' + path_low))
+    if has_direct_path and clean_last_segment not in generic_catalog_words:
+        return False
+
+    return bool(_GENERIC_PATH.match('/' + path))
 
 
 # --------------------------------------------------------------------------- #
@@ -635,5 +713,166 @@ def is_junk_url(url: Optional[str], link_text: Optional[str] = None) -> Tuple[bo
             return True, f"junk link text phrase ({text_clean[:30]})"
 
     return False, ""
+
+
+# --------------------------------------------------------------------------- #
+# Canonical Milestone 1 Contract: Normalization, Validation & Reachability
+# --------------------------------------------------------------------------- #
+def check_domain_reachability(url: str, timeout: float = 4.0) -> Tuple[bool, int, str]:
+    """
+    Performs a bounded reachability check for a company website URL.
+    Status codes in 200..399, 401, 403, 405, 429 are considered reachable.
+    Connection refused, DNS failure, timeout, or status 0 are considered unreachable.
+    Returns: (is_reachable: bool, status_code: int, reason: str)
+    """
+    if not url:
+        return False, 0, "Empty URL"
+
+    clean_url = normalize_canonical_url(url) or url
+    if not clean_url.startswith(('http://', 'https://')):
+        clean_url = 'https://' + clean_url
+
+    parsed = urlparse(clean_url)
+    host = parsed.hostname
+    if not host or '.' not in host:
+        return False, 0, "Invalid domain syntax"
+
+    REACHABLE_STATUSES = {200, 201, 202, 204, 301, 302, 303, 304, 307, 308, 401, 403, 405, 429}
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    }
+
+    # 1. Try curl_cffi with Chrome impersonation if available
+    try:
+        from curl_cffi import requests as cffi_requests
+        if cffi_requests is not None:
+            try:
+                resp = cffi_requests.get(clean_url, impersonate="chrome124", timeout=timeout, headers=headers)
+                status = resp.status_code
+                if (200 <= status < 400) or status in REACHABLE_STATUSES:
+                    return True, status, "OK"
+                return False, status, f"HTTP error {status}"
+            except Exception:
+                pass
+    except ImportError:
+        pass
+
+    # 2. Urllib fallback
+    import urllib.request
+    import urllib.error
+    import ssl
+    try:
+        req = urllib.request.Request(clean_url, headers=headers)
+        ctx = ssl._create_unverified_context()
+        with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
+            status = getattr(resp, 'status', 200)
+            if (200 <= status < 400) or status in REACHABLE_STATUSES:
+                return True, status, "OK"
+            return False, status, f"HTTP {status}"
+    except urllib.error.HTTPError as e:
+        if (200 <= e.code < 400) or e.code in REACHABLE_STATUSES:
+            return True, e.code, "OK (HTTP Challenge/Auth)"
+        return False, e.code, f"HTTP error {e.code}"
+    except urllib.error.URLError as e:
+        return False, 0, f"Network/DNS error: {e.reason}"
+    except Exception as e:
+        return False, 0, f"Connection failed: {str(e)}"
+
+
+def normalize_and_validate_company(
+    name: str,
+    url: str,
+    check_reachability: bool = False,
+    timeout: float = 4.0
+) -> Tuple[bool, str, str, str]:
+    """
+    Validates company name and homepage URL syntax, canonicalizes the URL,
+    and extracts the registrable domain.
+    Optionally performs a domain reachability check.
+
+    Returns: (is_valid: bool, normalized_url: str, domain: str, error_reason: str)
+    """
+    c_name = clean_text(name)
+    if not c_name:
+        return False, "", "", "EMPTY_COMPANY_NAME"
+    if len(c_name) < 2:
+        return False, "", "", "COMPANY_NAME_TOO_SHORT"
+    if len(c_name) > 255:
+        return False, "", "", "COMPANY_NAME_TOO_LONG"
+
+    raw_url = str(url or '').strip()
+    if not raw_url or raw_url.lower() in _EMPTY_TOKENS:
+        return False, "", "", "EMPTY_HOMEPAGE_URL"
+    if any(ch.isspace() for ch in raw_url):
+        return False, "", "", "INVALID_URL_WHITESPACE"
+
+    # Reject non-http(s) schemes explicitly
+    if re.match(r'^(mailto|tel|javascript|data|ftp|file):', raw_url, re.IGNORECASE):
+        return False, "", "", "INVALID_URL_SCHEME"
+    if '@' in raw_url.split('/')[0]:
+        return False, "", "", "INVALID_URL_USERINFO"
+
+    # Auto-prepend https:// if scheme is missing
+    if not re.match(r'^https?://', raw_url, re.IGNORECASE):
+        raw_url = 'https://' + raw_url
+
+    try:
+        parsed = urlparse(raw_url)
+        _ = parsed.port
+    except ValueError:
+        return False, "", "", "INVALID_URL_PORT"
+
+    if parsed.scheme.lower() not in ('http', 'https'):
+        return False, "", "", "INVALID_URL_SCHEME"
+
+    host = (parsed.hostname or '').lower()
+    if not host or '.' not in host:
+        return False, "", "", "INVALID_DOMAIN"
+
+    labels = host.split('.')
+    if any(not lbl for lbl in labels) or len(labels[-1]) < 2 or not re.search(r'^[a-zA-Z]{2,}$', labels[-1]):
+        return False, "", "", "INVALID_TLD"
+
+    # Reject static asset URLs (images, documents, archives, code) for homepage
+    STATIC_EXTS = (
+        '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+        '.zip', '.tar', '.gz', '.css', '.js'
+    )
+    clean_path = (parsed.path or '').lower().split('?')[0]
+    if any(clean_path.endswith(ext) for ext in STATIC_EXTS):
+        return False, "", "", "STATIC_ASSET_NOT_HOMEPAGE"
+
+    normalized_url = normalize_canonical_url(raw_url)
+    if not normalized_url:
+        return False, "", "", "FAILED_TO_NORMALIZE_URL"
+
+    # Registrable domain extraction
+    domain = ""
+    try:
+        from .discovery_helpers import get_registrable_domain
+        domain = get_registrable_domain(normalized_url)
+    except Exception:
+        pass
+    if not domain:
+        norm_parsed = urlparse(normalized_url)
+        h = (norm_parsed.hostname or '').lower()
+        if h.startswith('www.'):
+            h = h[4:]
+        parts = h.split('.')
+        domain = '.'.join(parts[-2:]) if len(parts) >= 2 else h
+
+    if not domain or '.' not in domain:
+        return False, "", "", "INVALID_DOMAIN"
+
+    if check_reachability:
+        is_reachable, status_code, reach_err = check_domain_reachability(normalized_url, timeout=timeout)
+        if not is_reachable:
+            return False, "", "", f"UNREACHABLE_DOMAIN: {reach_err} (status {status_code})"
+
+    return True, normalized_url, domain, ""
+
 
 

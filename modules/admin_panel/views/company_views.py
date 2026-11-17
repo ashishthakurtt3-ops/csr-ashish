@@ -35,11 +35,14 @@ from modules.admin_panel.verification import (
     public_records,
 )
 from modules.admin_panel.services.company_deletion_service import delete_company_completely
+from modules.admin_panel.services.batch_discovery_service import BatchDiscoveryService
 from modules.crawler_engine.normalizers import (
     clean_text,
     detect_csr_source_format,
     is_generic_or_non_csr_contact_email,
     is_page_title_not_csr_project,
+    normalize_and_validate_company,
+    check_domain_reachability,
 )
 
 logger = logging.getLogger(__name__)
@@ -406,9 +409,20 @@ def company_create_view(request):
             messages.error(request, "Company name is required.")
             return render(request, 'admin/companies/create.html', {'form_data': request.POST})
 
-        # Check for duplicates
-        if Company.objects.filter(company_name__iexact=company_name).exists():
-            messages.error(request, f"A company with name '{company_name}' already exists in the database.")
+        if not website_url:
+            messages.error(request, "Official website URL is required.")
+            return render(request, 'admin/companies/create.html', {'form_data': request.POST})
+
+        # Validate URL syntax, normalize URL, and extract domain
+        is_valid, norm_url, official_domain, err_reason = normalize_and_validate_company(company_name, website_url)
+        if not is_valid:
+            messages.error(request, f"Invalid website URL or company details ({err_reason}). Please provide a valid corporate URL.")
+            return render(request, 'admin/companies/create.html', {'form_data': request.POST})
+
+        # Check for duplicates by name or domain
+        is_dup, existing_comp, dup_reason = BatchDiscoveryService.check_company_duplicate(company_name, official_domain)
+        if is_dup and existing_comp:
+            messages.error(request, f"A company with this name or domain already exists: {dup_reason}.")
             return render(request, 'admin/companies/create.html', {'form_data': request.POST})
 
         if cin and Company.objects.filter(cin__iexact=cin).exists():
@@ -417,6 +431,12 @@ def company_create_view(request):
 
         if nse_symbol and Company.objects.filter(nse_symbol__iexact=nse_symbol).exists():
             messages.error(request, f"A company with NSE Symbol '{nse_symbol}' already exists in the database.")
+            return render(request, 'admin/companies/create.html', {'form_data': request.POST})
+
+        # Check domain reachability
+        is_reachable, status_code, reach_err = check_domain_reachability(norm_url, timeout=4.0)
+        if not is_reachable:
+            messages.error(request, f"Official website URL is unreachable (HTTP status: {status_code}, error: {reach_err}). Please check the URL.")
             return render(request, 'admin/companies/create.html', {'form_data': request.POST})
 
         # Generate unique company_id
@@ -435,6 +455,7 @@ def company_create_view(request):
                 company = Company(
                     company_id=new_company_id,
                     company_name=company_name,
+                    official_domain=official_domain,
                     legal_name=legal_name,
                     cin=cin,
                     nse_symbol=nse_symbol,
@@ -444,7 +465,7 @@ def company_create_view(request):
                     listing_status='ACTIVE',
                     sector=sector,
                     headquarters=headquarters,
-                    website_url=website_url,
+                    website_url=norm_url,
                     careers_url=careers_url,
                     csr_portal_url=csr_portal_url,
                     verification_status='UNVERIFIED',
@@ -453,7 +474,7 @@ def company_create_view(request):
                     jobs_access='UNKNOWN',
                     csr_access='UNKNOWN',
                     contacts_access='UNKNOWN',
-                    source_url=website_url or 'https://example.com',
+                    source_url=norm_url,
                     retrieved_at=timezone.now(),
                     content_hash=hashlib.sha256(company_name.encode('utf-8')).hexdigest()
                 )
@@ -562,6 +583,25 @@ def company_detail_view(request, company_id):
     # Pre-calculate source format on current page
     for p in csr_page_obj:
         p.source_format = detect_csr_source_format(p.source_url) if p.source_url else 'Unknown'
+        b = (p.budget or '').strip()
+        p.display_budget = b if b and b.lower() not in ('not published', 'not specified', 'section 135 outlay', 'none', 'null', 'n/a', 'not mentioned', '') else 'Not Mentioned'
+        loc = (p.geographic_location or p.state or '').strip()
+        p.display_location = loc if loc and loc.lower() not in ('not specified', 'none', 'null', 'n/a', 'not mentioned', '') else 'Not Mentioned'
+
+    # Company-level CSR Footprint Summary
+    csr_cats_qs = company.csr_projects.exclude(category__isnull=True).exclude(category='').exclude(category='Corporate Social Responsibility').values_list('category', flat=True).distinct()
+    categories_found = list(csr_cats_qs[:4])
+    cats_str = ', '.join(categories_found) if categories_found else 'statutory social welfare'
+    if total_csr_projects > 0:
+        company_csr_summary = (
+            f"{company.company_name} drives {total_csr_projects} verified Section 135 CSR initiative(s) "
+            f"focusing on {cats_str}. "
+            f"Documented on official portal: {company.csr_portal_url or 'Company CSR Portal'}."
+        )
+    elif company.csr_portal_url:
+        company_csr_summary = f"{company.company_name} maintains an official CSR/Sustainability portal ({company.csr_portal_url}). Individual project expenditures and metrics are not mentioned on the public portal."
+    else:
+        company_csr_summary = "Official CSR portal or individual projects not mentioned on public website."
 
     # --- TAB: ASSOCIATED CSR OPPORTUNITIES & CONTACTS ---
     opportunities = list(
@@ -621,6 +661,7 @@ def company_detail_view(request, company_id):
         'csr_webpage_url': csr_webpage_url,
         'csr_links': csr_links,
         'csr_display_format': csr_display_format,
+        'company_csr_summary': company_csr_summary,
 
         # Other Associated Intelligence
         'opportunities': opportunities,

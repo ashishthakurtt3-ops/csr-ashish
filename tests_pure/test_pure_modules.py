@@ -5,8 +5,17 @@ from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+_orig_modules = {k: sys.modules.get(k) for k in ('modules', 'modules.crawler_engine')}
 for name, rel in (('modules', 'modules'), ('modules.crawler_engine', 'modules/crawler_engine')):
-    m = types.ModuleType(name); m.__path__ = [str(ROOT / rel)]; sys.modules[name] = m
+    if name not in sys.modules:
+        m = types.ModuleType(name); m.__path__ = [str(ROOT / rel)]; sys.modules[name] = m
+
+def tearDownModule():
+    for k, v in _orig_modules.items():
+        if v is None:
+            sys.modules.pop(k, None)
+        else:
+            sys.modules[k] = v
 n = importlib.import_module('modules.crawler_engine.normalizers')
 o = importlib.import_module('modules.crawler_engine.ownership')
 lv = importlib.import_module('modules.crawler_engine.link_verifier')

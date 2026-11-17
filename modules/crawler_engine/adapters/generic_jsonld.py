@@ -6,8 +6,10 @@ Handles Greenhouse, Lever, Ashby, and modern corporate career hubs with schema m
 """
 import json
 from typing import List, Dict, Any, Optional
+from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from .base import BaseATSAdapter, ExtractedJobRecord
+from ..normalizers import is_generic_landing_url
 
 
 class GenericStructuredJobAdapter(BaseATSAdapter):
@@ -48,7 +50,29 @@ class GenericStructuredJobAdapter(BaseATSAdapter):
                         elif isinstance(job_loc, list) and job_loc:
                             loc_str = str(job_loc[0])
 
-                        detail_url = item.get("url") or source_url
+                        # Resolve direct application / vacancy URL
+                        raw_url = (item.get("url") or "").strip()
+                        if raw_url:
+                            detail_url = urljoin(source_url, raw_url)
+                        else:
+                            same_as = item.get("sameAs")
+                            if isinstance(same_as, str) and same_as.startswith("http"):
+                                detail_url = same_as.strip()
+                            else:
+                                detail_url = ""
+
+                        # If detail_url matches generic landing page or is identical to source landing page, reject it
+                        if detail_url and is_generic_landing_url(detail_url):
+                            detail_url = ""
+
+                        # Extract external job identifier if available
+                        ext_id = None
+                        ident = item.get("identifier")
+                        if isinstance(ident, dict):
+                            ext_id = ident.get("value")
+                        elif isinstance(ident, (str, int)):
+                            ext_id = str(ident)
+
                         desc = item.get("description")
                         emp_type = item.get("employmentType")
 
@@ -57,6 +81,7 @@ class GenericStructuredJobAdapter(BaseATSAdapter):
                             job_title=title,
                             detail_url=detail_url,
                             application_url=detail_url,
+                            external_job_id=ext_id,
                             ats_platform="Schema.org JSON-LD",
                             description=str(desc)[:500] if desc else None,
                             location_raw=str(loc_str) if loc_str else None,

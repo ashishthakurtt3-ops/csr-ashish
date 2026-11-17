@@ -103,6 +103,7 @@ class GenericHTMLParser(BaseParser):
                             'state': state_val,
                             'employment_type': item.get('employmentType'),
                             'job_description': desc,
+                            'description': desc or '',
                             'posted_date': item.get('datePosted'),
                             'closing_date': item.get('validThrough'),
                             'department': item.get('occupationalCategory') or item.get('department'),

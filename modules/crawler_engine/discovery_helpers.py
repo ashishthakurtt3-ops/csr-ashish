@@ -271,7 +271,7 @@ CSR_SENTENCE_STARTER_REGEX = re.compile(
 CSR_PROGRAM_INDICATORS = {
     'program', 'programme', 'initiative', 'project', 'foundation', 'fellowship',
     'campaign', 'outreach', 'mission', 'trust', 'school', 'health', 'healthcare',
-    'sanitation', 'water', 'literacy', 'education', 'rural', 'livelihood', 'afforestation',
+    'sanitation', 'water', 'literacy', 'education', 'rural', 'livelihood', 'livelihoods', 'afforestation',
     'biodiversity', 'scholarship', 'development', 'skill', 'skills', 'skilling', 'hospital',
     'relief', 'empower', 'empowerment', 'swachh', 'anganwadi', 'vidya', 'arogya',
     'society', 'drive', 'conservation', 'nutrition', 'tree plantation', 'watershed',
@@ -282,7 +282,9 @@ CSR_PROGRAM_INDICATORS = {
     'colour academy', 'palliative care', 'vidya mandir', 'academy', 'institute', 'training', 'road safety',
     'skillsbuild', 'impact accelerator', 'call for code', 'ai for good', 'accelerator', 'philanthropies',
     'community impact', 'sustainability initiative', 'climate', 'net zero', 'grant', 'giving', 'stewardship',
-    'fellows', 'stem', 'digital literacy', 'green', 'electrification', 'forestry', 'rainwater', 'harvesting', 'meal'
+    'fellows', 'stem', 'digital literacy', 'green', 'electrification', 'forestry', 'rainwater', 'harvesting', 'meal',
+    'sustainability', 'environmental', 'learning', 'sport', 'sports', 'culture', 'heritage', 'destitute', 'welfare',
+    'hygiene', 'hunger', 'poverty', 'renewable', 'solar', 'gender equality'
 }
 
 def is_valid_csr_project(name: Optional[str]) -> bool:
@@ -371,19 +373,23 @@ ENTERPRISE_PORTAL_REGISTRY = {
     'razorpay': 'https://razorpay.com/jobs/',
     'hitachi energy': 'https://www.hitachienergy.com/careers/open-jobs',
     'varun beverages': 'https://www.varunbeverages.com/careers',
+    'ciklum': 'https://explore-jobs.ciklum.com/en/sites/ciklum-career/jobs',
     'happiest minds': 'https://jobs.happiestminds.com/happiestminds/',
+    'ltimindtree': 'https://careers.ltm.com/search/',
+    'ltm': 'https://careers.ltm.com/search/',
 }
 
 ENTERPRISE_CSR_REGISTRY = {
     'happiest minds': 'https://www.happiestminds.com/investors/esg',
     'tata consultancy': 'https://www.tcs.com/corporate-social-responsibility',
     'tcs': 'https://www.tcs.com/corporate-social-responsibility',
-    'infosys': 'https://www.infosys.org/',
+    'infosys': 'https://www.infosys.com/infosys-foundation/initiatives.html',
     'reliance': 'https://www.ril.com/about/corporate-social-responsibility',
     'ril': 'https://www.ril.com/about/corporate-social-responsibility',
     'maruti': 'https://www.marutisuzuki.com/corporate/investors/company-updates',
     'maruti suzuki': 'https://www.marutisuzuki.com/corporate/investors/company-updates',
     'hdfc': 'https://www.hdfcbank.com/personal/about-us/corporate-social-responsibility',
+    'accenture': 'https://www.accenture.com/en/about/corporate-sustainability',
     'icici': 'https://www.icicifoundation.org/',
     'wipro': 'https://wiprofoundation.org/',
     'hcl': 'https://www.hcltech.com/sustainability',
@@ -415,7 +421,9 @@ ENTERPRISE_CSR_REGISTRY = {
     'jpmc': 'https://www.jpmorganchase.com/impact',
     'hsbc': 'https://www.hsbc.com/who-we-are/hsbc-and-sustainability',
     'samsung': 'https://www.samsung.com/in/sustainability/environment/',
-    'hcltech': 'https://www.hcltech.com/sustainability'
+    'hcltech': 'https://www.hcltech.com/sustainability',
+    'ltimindtree': 'https://www.ltm.com/uploads/report/csr-annual-plan-2025-26.pdf',
+    'ltm': 'https://www.ltm.com/uploads/report/csr-annual-plan-2025-26.pdf'
 }
 
 def get_registrable_domain(url_or_host: Optional[str]) -> str:
@@ -480,6 +488,7 @@ ALLOWED_ATS_HOSTS = {
     # Enterprise-specific ATS (synced from crawler.py ATS_DOMAINS)
     'mahindracareers.com',
     'tatamotorscareers.com',
+    'tcscareers.com',
     # Additional common ATS platforms
     'jobvite.com',
     'brassring.com',
@@ -497,7 +506,7 @@ ALLOWED_ATS_HOSTS = {
 
 # 2- and 3-character enterprise roots
 SHORT_ENTERPRISE_ROOTS = {
-    'itc', 'tcs', 'ril', 'sbi', 'ibm', 'abb', 'pnb', 'hcl', 'ge', 'bp', 'ey'
+    'itc', 'tcs', 'ril', 'sbi', 'ibm', 'abb', 'pnb', 'hcl', 'ge', 'bp', 'ey', 'ltm'
 }
 
 # Approved corporate foundations and CSR initiative portals
@@ -514,8 +523,9 @@ APPROVED_FOUNDATION_DOMAINS = {
 ENTERPRISE_DOMAIN_ALIASES = {
     'ril': {'reliance', 'reliancefoundation'},
     'reliance': {'ril', 'reliancefoundation'},
-    'tcs': {'tata', 'tatatrusts'},
-    'tata': {'tcs', 'tatatrusts', 'tatamotors', 'tatasteel', 'tatapower'},
+    'tcs': {'tata', 'tatatrusts', 'tcscareers'},
+    'tcscareers': {'tcs', 'tata', 'tatatrusts'},
+    'tata': {'tcs', 'tatatrusts', 'tatamotors', 'tatasteel', 'tatapower', 'tcscareers'},
     'sbi': {'statebank', 'sbifoundation'},
     'pnb': {'punjabnationalbank', 'pnbfoundation'},
     'hcl': {'hcltech', 'hclfoundation'},
@@ -527,8 +537,19 @@ ENTERPRISE_DOMAIN_ALIASES = {
     'adani': {'adanifoundation'},
     'bharti': {'airtel', 'bhartifoundation'},
     'airtel': {'bharti', 'bhartifoundation'},
-    'mahindra': {'techmahindra', 'techmahindrafoundation'},
+    'mahindra': {'techmahindra', 'techmahindrafoundation', 'mahindracareers'},
+    'mahindracareers': {'mahindra', 'techmahindra'},
     'techmahindra': {'mahindra', 'techmahindrafoundation'},
+    'tatamotors': {'tata', 'tatatrusts', 'tatamotorscareers'},
+    'tatamotorscareers': {'tatamotors', 'tata'},
+    'lnt': {'larsentoubro', 'lntfoundation'},
+    'larsentoubro': {'lnt', 'lntfoundation'},
+    'bajaj': {'bajajbeyond', 'bajajauto', 'bajajfinserv'},
+    'bajajauto': {'bajaj', 'bajajbeyond'},
+    'bajajbeyond': {'bajaj', 'bajajauto', 'bajajfinserv'},
+    'ltimindtree': {'ltm', 'mindtree', 'lnt', 'larsentoubro'},
+    'ltm': {'ltimindtree', 'mindtree', 'lnt', 'larsentoubro'},
+    'mindtree': {'ltimindtree', 'ltm', 'lnt', 'larsentoubro'},
 }
 
 
@@ -568,6 +589,13 @@ def is_allowed_domain_or_ats(target_url: str, company_domain_or_url: str) -> boo
 
         # Exact root match e.g. tata.com and tata.in
         if c_root == t_root:
+            return True
+
+        # Enterprise careers / jobs / foundation composite domains
+        # e.g. gecareers.com for ge.com, adlsfoundation.org for adls.com, tcscareers.com for tcs.com
+        if t_root.startswith(c_root) and any(t_root == f"{c_root}{suffix}" for suffix in ('careers', 'jobs', 'foundation', 'trusts', 'portal')):
+            return True
+        if c_root.startswith(t_root) and any(c_root == f"{t_root}{suffix}" for suffix in ('careers', 'jobs', 'foundation', 'trusts', 'portal')):
             return True
 
         # Check enterprise domain aliases

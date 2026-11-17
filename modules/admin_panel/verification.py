@@ -11,6 +11,10 @@ from django.db.models import Q
 # Verification states that count as verified for non-job records (projects, contacts, opportunities)
 PUBLIC_VERIFICATION_STATUSES = ('PUBLISHED', 'SOURCE_CONFIRMED')
 
+# Job rows that are safe to publish: active, not defect-flagged, link not blocked.
+PUBLIC_JOB_STATUSES = ('ACTIVE',)
+BLOCKED_LINK_STATUSES = ('REJECTED', 'QUARANTINED', 'BLOCKED')
+
 # link_status written by crawler_engine.link_verifier or crawler publish
 LINK_OK = 'VERIFIED_HTTP_200'
 LINK_OK_STATUSES = ('VERIFIED_HTTP_200', 'PUBLISHED')
@@ -433,31 +437,44 @@ def get_defective_job_ids(force_refresh=False):
 
 
 def apply_job_safety_filters(qs):
-    """Direct 100% match with database. Zero filter/exclusion."""
-    return qs
+    """Return only jobs that are safe to publish.
+
+    A job is public when it is active, not flagged defective, and its apply link
+    was not rejected or quarantined. ``link_status`` is nullable, so the
+    exclusion uses Django's NULL-tolerant ``exclude`` form (NULL rows are kept).
+    """
+    return (
+        qs.filter(is_defective=False)
+          .filter(status__in=PUBLIC_JOB_STATUSES)
+          .exclude(link_status__in=BLOCKED_LINK_STATUSES)
+    )
 
 
 def public_jobs(qs=None):
-    """Direct 100% match with database. Returns all jobs in DB."""
+    """Public job queryset. Always routes through the safety filters."""
     if qs is None:
         from modules.admin_panel.models import Job
         qs = Job.objects.all()
-    return qs
+    return apply_job_safety_filters(qs)
 
 
 def public_records(qs):
-    """Direct 100% match with database. Returns all records in DB."""
-    return qs
+    """Public queryset for non-job records (projects, contacts, opportunities)."""
+    return qs.filter(verification_status__in=PUBLIC_VERIFICATION_STATUSES)
 
 
 def public_job_q(prefix='jobs__'):
-    """Q object returning all rows without exclusion."""
-    return Q()
+    """Q object equivalent of ``apply_job_safety_filters``, for joins."""
+    return (
+        Q(**{f'{prefix}is_defective': False})
+        & Q(**{f'{prefix}status__in': list(PUBLIC_JOB_STATUSES)})
+        & ~Q(**{f'{prefix}link_status__in': list(BLOCKED_LINK_STATUSES)})
+    )
 
 
 def public_record_q(prefix):
-    """Q object returning all rows without exclusion."""
-    return Q()
+    """Q object equivalent of ``public_records``, for joins."""
+    return Q(**{f'{prefix}verification_status__in': list(PUBLIC_VERIFICATION_STATUSES)})
 
 
 def format_relative_time(dt) -> str:

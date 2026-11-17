@@ -54,8 +54,8 @@
                         {% else %}—{% endif %}
                     </td>
                     <td><span class="badge-status badge-pending">{{ p.category|default:"Not Available" }}</span></td>
-                    <td>{% if p.state %}{{ p.state }}{% else %}<span style="color:var(--text-muted); font-size:12px;">Not Available</span>{% endif %}</td>
-                    <td style="font-family:var(--font-mono); font-weight:700;">{% if p.budget %}&#8377; {{ p.budget }}{% else %}<span style="color:var(--text-muted); font-size:12px; font-weight:normal;">Not Available</span>{% endif %}</td>
+                    <td>{% if p.state and p.state != "None" and p.state != "Not specified" and p.state != "Not Mentioned" %}{{ p.state }}{% else %}<span style="color:var(--text-muted); font-size:12px;">Not Mentioned</span>{% endif %}</td>
+                    <td style="font-family:var(--font-mono); font-weight:700;">{% if p.budget and p.budget != "None" and p.budget != "Not published" and p.budget != "Not specified" and p.budget != "Section 135 Outlay" and p.budget != "Not Mentioned" %}&#8377; {{ p.budget }}{% else %}<span style="color:var(--text-muted); font-size:12px; font-weight:normal;">Not Mentioned</span>{% endif %}</td>
                     <td><span class="badge-status badge-active">{{ p.confidence|floatformat:2 }}</span></td>
                     <td>
                         {% if p.verification_status == "PUBLISHED" or p.verification_status == "SOURCE_CONFIRMED" %}

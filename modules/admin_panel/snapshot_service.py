@@ -84,6 +84,16 @@ def compute_live_stats() -> dict:
     ngo_collabs = NGOCollaboration.objects.count()
     jobs_base_qs = public_jobs(Job.objects.all())
     jobs_tracked = jobs_base_qs.count()
+
+    # Audit transparency: record how many rows the public filter removed.
+    defective_count = Job.objects.filter(is_defective=True).count()
+    inactive_count = Job.objects.exclude(status='ACTIVE').count()
+    logger.info(
+        'Snapshot basis: %d public jobs (%d defective and %d inactive excluded)',
+        jobs_tracked,
+        defective_count,
+        inactive_count,
+    )
     impact_jobs = jobs_base_qs.filter(IMPACT_ROLE_FILTER).count()
     companies_hiring = jobs_base_qs.values('company_id').distinct().count()
     verified_job_links = jobs_tracked

@@ -11,6 +11,8 @@ action use this service so the deletion scope can never drift between them.
 import logging
 
 from django.db import transaction
+from django.utils import timezone
+from django.core.cache import cache
 
 from modules.admin_panel.models import (
     AuditTrail,
@@ -144,6 +146,7 @@ def delete_company_completely(company, deleted_by=None):
             previous_value=f"{company_name} ({company_id})",
             new_value=None,
             user_role=username,
+            timestamp=timezone.now().isoformat(),
             notes=(
                 "Permanently deleted company and all related data: "
                 f"{stats['jobs']} jobs, {stats['csr_projects']} CSR projects, "
@@ -153,5 +156,12 @@ def delete_company_completely(company, deleted_by=None):
                 f"{stats['opportunities']} opportunities, {stats['refresh_requests']} refresh requests."
             ),
         )
+
+    # Invalidate all platform stats and summary caches so counts update instantly across UI
+    try:
+        cache.delete('stats_snapshot_cache')
+        cache.delete('jobs_summary_snapshot_cache')
+    except Exception as exc:
+        logger.warning("Failed to invalidate cache after company deletion: %s", exc)
 
     return stats

@@ -1,62 +1,119 @@
-from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.core.cache import cache
 from django import forms
+from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+
 from modules.admin_panel.models import User
+
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_LOCKOUT_SECONDS = 900
 
 
 class AdminLoginForm(forms.Form):
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={
         'class': 'form-control',
         'placeholder': 'Enter username or email',
-        'autofocus': True
+        'autofocus': True,
     }))
     password = forms.CharField(widget=forms.PasswordInput(attrs={
         'class': 'form-control',
-        'placeholder': 'Enter password'
+        'placeholder': 'Enter password',
     }))
 
 
+def _client_ip(request) -> str:
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '0.0.0.0')
+
+
+def _throttle_keys(request, username: str):
+    ip = _client_ip(request)
+    return (
+        f'adminlogin:ip:{ip}',
+        f'adminlogin:user:{(username or "").strip().lower()[:150]}',
+    )
+
+
+def _is_locked(keys) -> bool:
+    return any((cache.get(key) or 0) >= LOGIN_MAX_ATTEMPTS for key in keys)
+
+
+def _record_failure(keys) -> None:
+    for key in keys:
+        try:
+            cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, LOGIN_LOCKOUT_SECONDS)
+
+
+def _clear_failures(keys) -> None:
+    for key in keys:
+        cache.delete(key)
+
+
+def _safe_next_url(request, candidate: str) -> str:
+    """Return ``candidate`` only if it is a same-origin path, else the dashboard."""
+    if candidate and url_has_allowed_host_and_scheme(
+        url=candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+    return 'admin_portal:dashboard'
+
+
 def admin_login_view(request):
-    if request.user.is_authenticated and hasattr(request.user, 'is_admin_or_staff') and request.user.is_admin_or_staff():
+    if (
+        request.user.is_authenticated
+        and hasattr(request.user, 'is_admin_or_staff')
+        and request.user.is_admin_or_staff()
+    ):
         return redirect('admin_portal:dashboard')
 
     next_url = request.GET.get('next') or request.POST.get('next') or ''
-
     form = AdminLoginForm(request.POST or None)
+
     if request.method == 'POST':
+        username = (request.POST.get('username') or '').strip()
+        throttle_keys = _throttle_keys(request, username)
+
+        if _is_locked(throttle_keys):
+            messages.error(
+                request,
+                'Too many failed sign-in attempts. Try again in 15 minutes.',
+            )
+            return redirect(request.path)
+
         if form.is_valid():
-            username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            
-            # Support logging in by email or username
+
             user = authenticate(request, username=username, password=password)
-            if not user:
-                try:
-                    user_obj = User.objects.get(email=username)
+            if user is None:
+                user_obj = User.objects.filter(email__iexact=username).first()
+                if user_obj is not None:
                     user = authenticate(request, username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    user = None
 
-            if user is not None:
-                if user.is_active:
-                    login(request, user)
-                    messages.success(request, f"Welcome back, {user.first_name or user.username}!")
-                    target = next_url or 'admin_portal:dashboard'
-                    return redirect(target)
-                else:
-                    messages.error(request, "This account is currently deactivated.")
+            if user is not None and user.is_active:
+                _clear_failures(throttle_keys)
+                login(request, user)
+                messages.success(request, f'Welcome back, {user.first_name or user.username}!')
+                return redirect(_safe_next_url(request, next_url))
+
+            if user is not None and not user.is_active:
+                messages.error(request, 'This account is currently deactivated.')
             else:
-                messages.error(request, "Invalid username or password. Please try again.")
+                _record_failure(throttle_keys)
+                messages.error(request, 'Invalid username or password. Please try again.')
         else:
-            messages.error(request, "Please enter both username/email and security password.")
+            _record_failure(throttle_keys)
+            messages.error(request, 'Please enter both username/email and security password.')
 
-        # Post-Redirect-Get pattern: redirect to clean GET to prevent stuck error loops on page refresh
-        redirect_url = request.path
-        if next_url:
-            redirect_url += f"?next={next_url}"
-        return redirect(redirect_url)
+        return redirect(request.path)
 
     return render(request, 'admin/auth/login.html', {'form': form, 'next_url': next_url})
 
